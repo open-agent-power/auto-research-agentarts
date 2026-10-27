@@ -1,0 +1,7 @@
+{
+  "schema_version": "0.1",
+  "request_id": "example-create-001",
+  "action": "create_campaign",
+  "goal": "Verify the bounded engineering training loop; not a scientific result.",
+  "max_trials": 3
+}
