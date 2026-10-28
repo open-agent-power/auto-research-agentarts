@@ -2,6 +2,7 @@
 
 import hashlib
 import time
+from pathlib import Path
 import numpy as np
 import sklearn
 from sklearn.linear_model import Ridge
@@ -10,20 +11,30 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 
 from .contracts import Candidate, ResearchError
-from .fixture import DATASET_ID, EVIDENCE_TYPE, split_data
+from .fixture import DATASET_ID
+from . import datasets
 
 
-def train(candidate: Candidate):
+def code_identity():
+    names = ("contracts.py", "datasets.py", "fixture.py", "training.py")
+    return hashlib.sha256(b"".join(name.encode() + b"\0" + Path(__file__).with_name(name).read_bytes()
+                                   for name in names)).hexdigest()
+
+
+def train(candidate: Candidate, dataset_id=DATASET_ID):
     started = time.perf_counter()
-    x, y = split_data("train")
-    vx, vy = split_data("validation")
+    data = datasets.descriptor(dataset_id)
+    x, y = datasets.split_data(dataset_id, "train")
+    vx, vy = datasets.split_data(dataset_id, "validation")
     model = make_pipeline(PolynomialFeatures(degree=candidate.degree, include_bias=False),
                           StandardScaler(), Ridge(alpha=candidate.alpha))
     model.fit(x, y)
     poly, scaler, ridge = model.steps[0][1], model.steps[1][1], model.steps[2][1]
     artifact = {
-        "format": "polynomial-ridge-json-v1", "dataset_id": DATASET_ID,
-        "evidence_type": EVIDENCE_TYPE, "candidate": candidate.to_dict(),
+        "format": "polynomial-ridge-json-v1", "dataset_id": dataset_id,
+        "evidence_type": data["evidence_type"], "candidate": candidate.to_dict(),
+        "data_sha256": data["data_sha256"], "split_protocol": data["split_protocol"],
+        "training_code_sha256": code_identity(),
         "powers": poly.powers_.tolist(), "mean": scaler.mean_.tolist(),
         "scale": scaler.scale_.tolist(), "coef": ridge.coef_.tolist(),
         "intercept": float(ridge.intercept_), "training_rows": len(y),
@@ -36,7 +47,8 @@ def train(candidate: Candidate):
     mse = float(mean_squared_error(vy, pred))
     if not np.isfinite(mse):
         raise ResearchError("NONFINITE_METRIC", "training returned a nonfinite metric")
-    return artifact, {"validation_mse": mse, "training_seconds": time.perf_counter()-started}
+    return artifact, {"validation_mse": mse, "training_mse": float(mean_squared_error(y, predict(artifact, x))),
+                      "num_features": int(len(ridge.coef_)), "training_seconds": time.perf_counter()-started}
 
 
 def predict(artifact, x):
@@ -48,5 +60,5 @@ def predict(artifact, x):
 
 
 def terminal_evaluation(artifact):
-    x, y = split_data("test")
+    x, y = datasets.split_data(artifact["dataset_id"], "test")
     return {"test_mse": float(mean_squared_error(y, predict(artifact, x))), "test_rows": len(y)}

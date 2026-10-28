@@ -13,7 +13,7 @@ $env:AUTORESEARCH_WORKSPACE = (Join-Path (Get-Location) 'runs/runtime-state')
 
 默认只监听 `127.0.0.1:8080`；`AGENT_RUN_PORT` 可覆盖端口。工作根目录必须由操作者提供绝对路径，请求无法覆盖它。`GET /ping` 为 SDK 健康检查，`POST /invocations` 接受[请求示例](../examples/create-campaign.json)。调用需带稳定的 `x-hw-agentarts-session-id`；同一次研究及重试使用相同会话，业务 `request_id` 保持稳定。`X-Request-Id` 只是传输关联标识，不能替代业务幂等键或平台 Trace。
 
-协议仅允许 `create_campaign`、`campaign_status`、`run_trial`、`pause_campaign`、`resume_campaign`、`finalize_campaign`。请求不得包含任意代码、命令、数据路径、评价器或分数；中断核对仍是操作者 CLI 命令，不暴露为 HTTP action。请求体限制 64KiB、64 层 JSON，拒绝非有限数。WebSocket 未开放。会话目录使用 SHA-256 命名，日志仅记录允许的标识、状态和响应摘要，不记录请求头、goal 或模型凭据。
+协议允许 `create_campaign`、`campaign_status`、`run_trial`、`pause_campaign`、`resume_campaign`、`finalize_campaign`，以及 `observe_campaign`、`submit_proposal`、`research_report`。外部Agent策略必须先观察再提交结构化提案，不能通过 `run_trial` 跳过校验；详情见[研究程序](../examples/research-program.md)。数据只接受固定ID白名单。请求不得包含任意代码、命令、数据路径、评价器或分数；中断核对仍是操作者 CLI 命令，不暴露为 HTTP action。请求体限制 64KiB、64 层 JSON，拒绝非有限数。WebSocket 未开放。会话目录使用 SHA-256 命名，日志仅记录允许的标识、状态和响应摘要，不记录请求头、goal 或模型凭据。
 
 **会话标识仅用于命名空间，不构成身份认证。**本实现面向单一操作者工程验证，未实现多用户授权。容器绑定 `0.0.0.0` 时，必须由部署环境实施并实测入站认证和网络限制，不得直接暴露到公网。
 
@@ -26,7 +26,7 @@ $env:AUTORESEARCH_WORKSPACE = (Join-Path (Get-Location) 'runs/runtime-state')
 
 探针创建两次独立服务进程，依次执行基准、同请求重试、暂停、进程退出、恢复、改进候选、差候选拒绝和终测。输出 `report.json`、实际模型文件与本地服务日志；会核对参数文件 SHA-256。已有输出目录拒绝覆盖。探针只访问回环地址，结束时关闭自己启动的服务，不调用模型或云平台。
 
-响应中的 `transport` 提供 SDK 适配器和关联标识；`platform_trace_verified=false`。核心结果保留 `platform_connected=false`、`scientific_status=engineering_only`。这些标记需要真实平台证据才能改变，不能由部署环境变量自行提升。
+响应中的 `transport` 提供 SDK 适配器和关联标识；`platform_trace_verified=false`。核心结果保留 `platform_connected=false`；科学状态由固定数据描述给出，为 `engineering_only` 或 `benchmark_only`。这些标记不能由部署环境变量自行提升。
 
 ## 部署包
 
@@ -34,7 +34,7 @@ $env:AUTORESEARCH_WORKSPACE = (Join-Path (Get-Location) 'runs/runtime-state')
 .venv/Scripts/python.exe scripts/build_runtime_bundle.py
 ```
 
-输出 `.agent/artifacts/runtime-context.zip`，只含源码、项目元数据、Dockerfile、依赖锁和每个源文件的 SHA-256 清单。排除运行数据、凭据、参考库和虚拟环境。相同输入的 ZIP 字节可重现。解压到独立目录后，以该目录为构建上下文：
+输出 `.agent/artifacts/runtime-context.zip`，只含允许的源码、项目元数据、Dockerfile、依赖锁、固定公开钢材gzip及署名文件，以及SHA-256清单。排除其他数据、凭据、参考库和虚拟环境。相同输入的 ZIP 字节可重现。解压到独立目录后，以该目录为构建上下文：
 
 ```powershell
 docker buildx build --platform linux/arm64 --load -t autoresearch-runtime:local .

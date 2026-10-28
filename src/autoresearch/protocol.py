@@ -3,14 +3,18 @@
 import sqlite3
 from .contracts import Candidate, ResearchError, identifier
 from .engine import Engine
+from .reports import build_report
 
 FIELDS = {
-    "create_campaign": {"goal", "max_trials"},
+    "create_campaign": {"goal", "max_trials", "dataset_id", "policy_kind"},
     "campaign_status": {"campaign_id"},
     "run_trial": {"campaign_id", "candidate", "reason"},
     "pause_campaign": {"campaign_id"},
     "resume_campaign": {"campaign_id"},
     "finalize_campaign": {"campaign_id"},
+    "observe_campaign": {"campaign_id"},
+    "submit_proposal": {"campaign_id", "proposal"},
+    "research_report": {"campaign_id"},
 }
 
 
@@ -33,7 +37,8 @@ def handle_request(request, workspace):
             Candidate.parse(request["candidate"])
         engine = Engine(workspace)
         if action == "create_campaign":
-            result = engine.create(request_id, request.get("goal"), request.get("max_trials", 3))
+            options = {key: request[key] for key in ("dataset_id", "policy_kind") if key in request}
+            result = engine.create(request_id, request.get("goal"), request.get("max_trials", 3), **options)
         elif action == "campaign_status":
             result = engine.status(request["campaign_id"])
         elif action == "run_trial":
@@ -42,6 +47,12 @@ def handle_request(request, workspace):
             result = engine.pause(request["campaign_id"])
         elif action == "resume_campaign":
             result = engine.pause(request["campaign_id"], False)
+        elif action == "observe_campaign":
+            result = engine.observe(request["campaign_id"])
+        elif action == "submit_proposal":
+            result = engine.submit(request["campaign_id"], request_id, request.get("proposal"))
+        elif action == "research_report":
+            result = build_report(engine, request["campaign_id"])
         else:
             result = engine.finalize(request["campaign_id"])
         return {"schema_version": "0.1", "request_id": response_id, "ok": True, "result": result}

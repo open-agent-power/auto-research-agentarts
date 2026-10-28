@@ -7,6 +7,7 @@ import sys
 from .contracts import ResearchError, canonical
 from .engine import Engine
 from .protocol import handle_request
+from .reports import write_report
 
 
 def code_identity():
@@ -24,6 +25,8 @@ def reject_nonfinite_json(value):
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8", errors="strict")
     parser = argparse.ArgumentParser(description="Bounded research execution; no automatic cloud calls")
     subs = parser.add_subparsers(dest="command", required=True)
     demo = subs.add_parser("demo")
@@ -37,10 +40,16 @@ def main(argv=None):
     reconcile.add_argument("--campaign-id", required=True)
     reconcile.add_argument("--trial-id", required=True)
     reconcile.add_argument("--confirm-worker-stopped", action="store_true")
+    report_command = subs.add_parser("report")
+    report_command.add_argument("--workspace", required=True)
+    report_command.add_argument("--campaign-id", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "tool":
-            raw = sys.stdin.read(65537)
+            try:
+                raw = sys.stdin.read(65537)
+            except UnicodeError:
+                raise ResearchError("INVALID_REQUEST", "tool input must be UTF-8") from None
             if len(raw) > 65536:
                 raise ResearchError("INVALID_REQUEST", "request exceeds 64 KiB character limit")
             try:
@@ -51,6 +60,9 @@ def main(argv=None):
             print(canonical(reply))
             return 0 if reply["ok"] else 2
         engine = Engine(args.workspace)
+        if args.command == "report":
+            print(json.dumps(write_report(engine, args.campaign_id), ensure_ascii=False, indent=2))
+            return 0
         if args.command == "reconcile":
             result = engine.reconcile_interrupted(args.campaign_id, args.trial_id, confirm_stopped=args.confirm_worker_stopped)
         else:

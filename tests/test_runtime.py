@@ -88,6 +88,25 @@ with TestClient(create_app(sys.argv[1])) as c:
             missing = self.invoke(client, "create_campaign", "missing", goal="missing session")
             self.assertEqual(missing["error"]["code"], "SESSION_REQUIRED")
 
+    def test_evidence_bound_materials_proposal_through_sdk_http(self):
+        with TestClient(create_app(self.root)) as client:
+            created = self.invoke(client, "create_campaign", "steel", goal="材料基准", max_trials=2,
+                                  dataset_id="matbench-steels-v1", policy_kind="external_agent_proposal_v1")
+            self.assertTrue(created["ok"])
+            cid = created["result"]["campaign_id"]
+            observation = self.invoke(client, "observe_campaign", "observe", campaign_id=cid)["result"]
+            proposed = {"observation_sha256": observation["observation_sha256"],
+                        "hypothesis": "先建立线性基准", "expected_effect": "获得实际基准误差",
+                        "candidate": {"degree": 1, "alpha": 1.0}, "evidence_trial_ids": []}
+            result = self.invoke(client, "submit_proposal", "trial", campaign_id=cid, proposal=proposed)
+            self.assertEqual(result["result"]["status"], "accepted")
+            report = self.invoke(client, "research_report", "report", campaign_id=cid)
+            self.assertTrue(report["ok"])
+            self.assertEqual(report["result"]["state"]["scientific_status"], "benchmark_only")
+            self.assertEqual(report["result"]["state"]["trials"][0]["proposal"], proposed)
+            self.assertTrue(report["result"]["artifact_integrity"][0]["verified"])
+            self.assertFalse(report["transport"]["platform_trace_verified"])
+
     def test_payload_boundaries_and_unexposed_operator_actions(self):
         with TestClient(create_app(self.root)) as client:
             for body in (b'{"candidate":NaN}', b'{"candidate":1e999}', b'{', b'\xff', b'[' * 1500 + b']' * 1500):

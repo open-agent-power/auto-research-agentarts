@@ -1,4 +1,4 @@
-"""Make an allowlisted Docker build context; never collect data or credentials."""
+"""Allowlisted build context, including only the pinned public data resource."""
 
 import hashlib
 import json
@@ -15,6 +15,8 @@ def build_bundle(repo, destination):
              "Dockerfile": repo / "agentarts/runtime.Dockerfile"}
     for path in sorted((repo / "src/autoresearch").glob("*.py")):
         files[path.relative_to(repo).as_posix()] = path
+    for relative in ("src/autoresearch/data/matbench_steels.json.gz", "src/autoresearch/data/README.md"):
+        files[relative] = repo / relative
     manifest = {}
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for relative, path in sorted(files.items()):

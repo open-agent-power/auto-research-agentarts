@@ -45,3 +45,38 @@ class Candidate:
 
     def to_dict(self):
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class Proposal:
+    observation_sha256: str
+    hypothesis: str
+    expected_effect: str
+    candidate: Candidate
+    evidence_trial_ids: tuple
+
+    @classmethod
+    def parse(cls, value):
+        fields = {"observation_sha256", "hypothesis", "expected_effect", "candidate", "evidence_trial_ids"}
+        if not isinstance(value, dict) or set(value) != fields:
+            raise ResearchError("INVALID_REQUEST", "proposal requires observation_sha256, hypothesis, expected_effect, candidate and evidence_trial_ids")
+        digest = value["observation_sha256"]
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ResearchError("INVALID_REQUEST", "observation_sha256 must be a lowercase SHA-256")
+        for key in ("hypothesis", "expected_effect"):
+            if not isinstance(value[key], str) or not 1 <= len(value[key].strip()) <= 1000:
+                raise ResearchError("INVALID_REQUEST", key + " must contain 1-1000 characters")
+        evidence = value["evidence_trial_ids"]
+        if not isinstance(evidence, list) or len(evidence) > 20:
+            raise ResearchError("INVALID_REQUEST", "evidence_trial_ids must be a list of at most 20 trial identifiers")
+        for item in evidence:
+            identifier(item, "evidence_trial_id")
+        if len(set(evidence)) != len(evidence):
+            raise ResearchError("INVALID_REQUEST", "evidence_trial_ids cannot contain duplicates")
+        return cls(digest, value["hypothesis"], value["expected_effect"],
+                   Candidate.parse(value["candidate"]), tuple(evidence))
+
+    def to_dict(self):
+        return {"observation_sha256": self.observation_sha256, "hypothesis": self.hypothesis,
+                "expected_effect": self.expected_effect, "candidate": self.candidate.to_dict(),
+                "evidence_trial_ids": list(self.evidence_trial_ids)}

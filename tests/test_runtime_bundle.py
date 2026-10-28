@@ -21,6 +21,9 @@ class RuntimeBundleTests(unittest.TestCase):
                 "agentarts/requirements-runtime.lock": "agentarts-sdk==0.1.8",
                 "agentarts/runtime.Dockerfile": "FROM python:3.12-slim",
                 "src/autoresearch/runtime.py": "# public source",
+                "src/autoresearch/data/matbench_steels.json.gz": "pinned public resource fixture",
+                "src/autoresearch/data/README.md": "public source and attribution",
+                "src/autoresearch/data/private-secret.json": "PRIVATE_TOKEN=do-not-package",
                 ".env": "PRIVATE_TOKEN=do-not-package",
                 "runs/private-dataset.json": "sensitive-data",
                 ".venv/lib/credentials.py": "private",
@@ -34,7 +37,8 @@ class RuntimeBundleTests(unittest.TestCase):
             with zipfile.ZipFile(first["path"]) as archive:
                 self.assertEqual(set(archive.namelist()), {
                     "Dockerfile", "pyproject.toml", "requirements-runtime.lock",
-                    "src/autoresearch/runtime.py", "source-manifest.json"})
+                    "src/autoresearch/runtime.py", "src/autoresearch/data/matbench_steels.json.gz",
+                    "src/autoresearch/data/README.md", "source-manifest.json"})
                 manifest = json.loads(archive.read("source-manifest.json"))
                 for name, digest in manifest.items():
                     self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), digest)

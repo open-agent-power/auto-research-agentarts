@@ -1,6 +1,8 @@
 # Reuse and provenance
 
-Scientific fitting and preprocessing use scikit-learn and NumPy; dependencies retain their own licenses. No foundation-model weights or research datasets are bundled.
+Scientific fitting and preprocessing use scikit-learn and NumPy; dependencies retain their own licenses. No foundation-model weights or private research datasets are bundled.
+
+The public [Matbench steels](https://ml.materialsproject.org/projects/matbench_steels) dataset is included as its original 8,836-byte gzip (SHA-256 `473bc4957b2ea5e6465aef84bc29bb48ac34db27d69ea4ec5f508745c6fae252`). Attribution: Matbench contributors A. Dunn et al. / A. Jain; original source: Citrine Informatics, *Mechanical properties of some steels*, dataset 153092. The source marks data as CCA4; this snapshot retains [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) attribution and links. Composition normalization and the grouped holdout are this project's transformations, not the official Matbench evaluation protocol. Full provenance and limitations are in [the packaged data notice](src/autoresearch/data/README.md). Dataset and software licenses are recorded separately.
 
 The optional HTTP transport uses the published [Huawei Cloud AgentArts SDK](https://github.com/huaweicloud/agentarts-sdk-python) version 0.1.8 (Apache-2.0). It delegates HTTP routing, runtime context and handler execution to `AgentArtsRuntimeApp`; its source is not vendored. Dependencies installed in a deployment retain their packaged license notices. The project provides its own bounded protocol adapter and engineering probe; neither implies a Huawei Cloud deployment or a verified platform Trace.
 
