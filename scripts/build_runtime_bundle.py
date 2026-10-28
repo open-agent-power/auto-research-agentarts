@@ -15,7 +15,8 @@ def build_bundle(repo, destination):
              "Dockerfile": repo / "agentarts/runtime.Dockerfile"}
     for path in sorted((repo / "src/autoresearch").glob("*.py")):
         files[path.relative_to(repo).as_posix()] = path
-    for relative in ("src/autoresearch/data/matbench_steels.json.gz", "src/autoresearch/data/README.md"):
+    for relative in ("src/autoresearch/data/matbench_steels.json.gz", "src/autoresearch/data/README.md",
+                     "src/autoresearch/web/index.html", "src/autoresearch/web/app.css", "src/autoresearch/web/app.js"):
         files[relative] = repo / relative
     manifest = {}
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>研究项目 · 持续科研</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到研究正文</a>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="研究项目与章节">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">研</span><span>持续科研<span class="brand-subtitle">研究与证据</span></span></div>
+      <div class="current-project">
+        <p class="eyebrow">当前项目</p>
+        <p id="sidebar-title" class="project-name">正在读取项目</p>
+        <span id="sidebar-status" class="sidebar-status">读取本地快照</span>
+      </div>
+      <nav id="chapter-nav" class="chapter-nav" aria-label="章节导航">
+        <a href="#question" aria-current="location"><span>01</span>研究问题</a>
+        <a href="#evidence"><span>02</span>证据来源</a>
+        <a href="#experiments"><span>03</span>真实试验</a>
+        <a href="#figures"><span>04</span>结果图表</a>
+        <a href="#paper"><span>05</span>论文预览</a>
+        <a href="#next"><span>06</span>后续研究</a>
+      </nav>
+      <p class="sidebar-note">现有证据的冻结快照。<br>模型与 AgentArts 接入暂缓。</p>
+    </aside>
+
+    <main id="main-content" tabindex="-1">
+      <div id="load-state" class="page-state" role="status" aria-live="polite">
+        <span class="loading-mark" aria-hidden="true"></span>
+        <h1>正在读取研究项目</h1>
+        <p>读取本地已有证据，不会启动模型或试验。</p>
+      </div>
+      <div id="project-error" class="page-state error-state" role="alert" hidden>
+        <p class="eyebrow">项目暂未载入</p>
+        <h1>无法读取研究证据</h1>
+        <p id="project-error-message">请确认本地研究服务可用，再重试。</p>
+        <button id="retry-project" class="button secondary" type="button">重新读取</button>
+      </div>
+
+      <div id="project-content" hidden>
+        <header class="project-header">
+          <div class="header-meta"><span class="document-label">研究项目</span><span id="snapshot-mode" class="quiet-label">现有证据快照</span></div>
+          <h1 id="project-title"></h1>
+          <p id="project-question" class="lead"></p>
+          <div class="export-actions" aria-label="下载研究成果">
+            <button id="download-pdf" class="button primary" type="button" disabled><span aria-hidden="true">↓</span>下载研究报告 PDF</button>
+            <button id="download-reproduction" class="button secondary" type="button" disabled><span aria-hidden="true">↓</span>下载复现附件</button>
+          </div>
+          <p id="export-feedback" class="feedback" role="status" aria-live="polite"></p>
+          <p class="evidence-notice">当前展示已有证据：脚本决策与真实训练。模型及 AgentArts 接入暂缓，保存后续问题也不会触发执行。</p>
+        </header>
+
+        <section id="question" class="reading-section" aria-labelledby="question-heading">
+          <div class="section-heading"><span class="section-number">01</span><h2 id="question-heading">研究问题与边界</h2></div>
+          <p id="source-goal" class="source-goal"></p>
+          <dl id="project-labels" class="context-list"></dl>
+          <div id="claims-list" class="claims-list"></div>
+          <details class="provenance">
+            <summary>查看数据划分与快照记录</summary>
+            <dl id="dataset-record" class="record-list"></dl>
+          </details>
+        </section>
+
+        <section id="evidence" class="reading-section" aria-labelledby="evidence-heading">
+          <div class="section-heading"><span class="section-number">02</span><h2 id="evidence-heading">证据来源</h2></div>
+          <p class="section-intro">原始来源与已有记录共同限定本报告能够支持的结论。</p>
+          <ol id="sources-list" class="sources-list"></ol>
+        </section>
+
+        <section id="experiments" class="reading-section" aria-labelledby="experiments-heading">
+          <div class="section-heading"><span class="section-number">03</span><h2 id="experiments-heading">真实试验记录</h2></div>
+          <dl id="metric-strip" class="metric-strip"></dl>
+          <p id="best-trial" class="small-note"></p>
+          <p class="table-hint">表格在窄屏可横向滚动；“保留”只表示达到当前评价门槛。</p>
+          <div class="table-scroll" tabindex="0" role="region" aria-label="试验记录，可横向滚动">
+            <table>
+              <caption class="sr-only">现有试验的配方、验证误差、保留判定与证据记录</caption>
+              <thead><tr><th scope="col">试验</th><th scope="col">配方</th><th id="mse-heading" scope="col">验证 MSE</th><th scope="col">记录判定</th><th scope="col">追溯记录</th></tr></thead>
+              <tbody id="trials-body"></tbody>
+            </table>
+          </div>
+          <p id="trials-empty" class="empty-state" hidden>当前快照没有试验记录，不能推断模型效果。</p>
+        </section>
+
+        <section id="figures" class="reading-section" aria-labelledby="figures-heading">
+          <div class="section-heading"><span class="section-number">04</span><h2 id="figures-heading">结果图表</h2></div>
+          <div id="figures-list" class="figures-list"></div>
+        </section>
+
+        <section id="paper" class="reading-section" aria-labelledby="paper-heading">
+          <div class="section-heading"><span class="section-number">05</span><h2 id="paper-heading">论文式报告预览</h2></div>
+          <p class="section-intro">按当前证据组织的报告。预览及 PDF 均不代表同行评审、科研发现或临床验证。</p>
+          <article id="paper-preview" class="paper-preview" aria-label="研究报告正文"></article>
+        </section>
+
+        <section id="next" class="reading-section" aria-labelledby="next-heading">
+          <div class="section-heading"><span class="section-number">06</span><h2 id="next-heading">后续研究问题</h2></div>
+          <p class="section-intro">记录下一次需要核查的问题，保留继续研究的线索。这里只保存，不调用模型、不启动试验。</p>
+          <form id="question-form" class="question-form">
+            <label for="next-question">想继续研究什么？</label>
+            <textarea id="next-question" name="text" rows="4" required disabled aria-describedby="question-help question-count save-feedback" placeholder="例如：现有结论是否受到数据划分或实验条件缺失的影响？"></textarea>
+            <p id="question-help" class="small-note">问题会保存为“待人工执行”。请勿填入个人隐私、密钥或账号信息。</p>
+            <div class="form-footer"><span id="question-count" class="small-note">已输入 0 字</span><button id="save-question" class="button primary" type="submit" disabled>保存后续研究问题</button></div>
+            <p id="save-feedback" class="feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="saved-heading"><h3>已保存的问题</h3><span id="questions-count" class="small-note"></span></div>
+          <ol id="questions-list" class="questions-list"></ol>
+          <p id="questions-empty" class="empty-state" hidden>还没有保存后续问题。可以先记下一个未解决的疑问，留给后续人工执行。</p>
+        </section>
+        <footer class="project-footer"><p>记录事实、保留负结果、说明尚未完成的工作。</p><p id="snapshot-footer" class="small-note"></p></footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+

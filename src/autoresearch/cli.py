@@ -59,8 +59,30 @@ def main(argv=None):
     research_reconcile.add_argument("--workspace", required=True)
     research_reconcile.add_argument("--call-id", required=True)
     research_reconcile.add_argument("--confirm-worker-stopped", action="store_true")
+    prepare = subs.add_parser("studio-prepare", help="Freeze existing steels evidence without training")
+    prepare.add_argument("--source-workspace", required=True)
+    prepare.add_argument("--campaign-id", required=True)
+    prepare.add_argument("--output", required=True)
+    studio = subs.add_parser("studio", help="Serve a prepared research project on loopback only")
+    studio.add_argument("--workspace", required=True)
+    studio.add_argument("--port", type=int, default=8766)
+    paper = subs.add_parser("paper-export", help="Export the prepared project paper and validation reproduction ZIP")
+    paper.add_argument("--workspace", required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == "studio-prepare":
+            from .studio_project import prepare_project
+            result = prepare_project(args.source_workspace, args.campaign_id, args.output)
+            print(json.dumps({"workspace":str(Path(args.output).resolve()), "project_id":result["id"], "new_training_runs":0,"cloud_calls":0}, ensure_ascii=False,indent=2))
+            return 0
+        if args.command == "studio":
+            from .studio import serve
+            serve(args.workspace,args.port)
+            return 0
+        if args.command == "paper-export":
+            from .studio_outputs import ProjectOutputs
+            print(json.dumps(ProjectOutputs(args.workspace).export(),ensure_ascii=False,indent=2))
+            return 0
         if args.command in {"research", "research-status", "research-reconcile"}:
             from .research_loop import ResearchLoop
             loop = ResearchLoop(args.workspace)

@@ -23,6 +23,13 @@ class RuntimeBundleTests(unittest.TestCase):
                 "src/autoresearch/runtime.py": "# public source",
                 "src/autoresearch/data/matbench_steels.json.gz": "pinned public resource fixture",
                 "src/autoresearch/data/README.md": "public source and attribution",
+                "src/autoresearch/web/index.html": "<html lang='zh-CN'>local research project</html>",
+                "src/autoresearch/web/app.css": "body { color: #203c2e; }",
+                "src/autoresearch/web/app.js": "fetch('/api/project');",
+                "src/autoresearch/web/.env": "PRIVATE_TOKEN=do-not-package",
+                "src/autoresearch/web/debug-credentials.json": "PRIVATE_TOKEN=do-not-package",
+                "src/autoresearch/web/private.key": "PRIVATE_TOKEN=do-not-package",
+                "src/autoresearch/web/uploads/private.csv": "PRIVATE_TOKEN=do-not-package",
                 "src/autoresearch/data/private-secret.json": "PRIVATE_TOKEN=do-not-package",
                 ".env": "PRIVATE_TOKEN=do-not-package",
                 "runs/private-dataset.json": "sensitive-data",
@@ -38,7 +45,8 @@ class RuntimeBundleTests(unittest.TestCase):
                 self.assertEqual(set(archive.namelist()), {
                     "Dockerfile", "pyproject.toml", "requirements-runtime.lock",
                     "src/autoresearch/runtime.py", "src/autoresearch/data/matbench_steels.json.gz",
-                    "src/autoresearch/data/README.md", "source-manifest.json"})
+                    "src/autoresearch/data/README.md", "src/autoresearch/web/index.html",
+                    "src/autoresearch/web/app.css", "src/autoresearch/web/app.js", "source-manifest.json"})
                 manifest = json.loads(archive.read("source-manifest.json"))
                 for name, digest in manifest.items():
                     self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), digest)
