@@ -27,7 +27,7 @@ def main(argv=None):
         sys.stdout.reconfigure(encoding="utf-8")
     if hasattr(sys.stdin, "reconfigure"):
         sys.stdin.reconfigure(encoding="utf-8", errors="strict")
-    parser = argparse.ArgumentParser(description="Bounded research execution; no automatic cloud calls")
+    parser = argparse.ArgumentParser(description="Bounded research execution; live models require explicit operator configuration")
     subs = parser.add_subparsers(dest="command", required=True)
     demo = subs.add_parser("demo")
     demo.add_argument("--workspace", default="runs/demo")
@@ -43,8 +43,45 @@ def main(argv=None):
     report_command = subs.add_parser("report")
     report_command.add_argument("--workspace", required=True)
     report_command.add_argument("--campaign-id", required=True)
+    research = subs.add_parser("research", help="Run a bounded product-owned research loop; live access is opt-in")
+    research.add_argument("--workspace", required=True)
+    research.add_argument("--config", required=True)
+    research.add_argument("--goal")
+    research.add_argument("--max-trials", type=int, default=5)
+    research.add_argument("--max-model-requests", type=int, default=8)
+    research.add_argument("--max-cost-cny", default="5")
+    research.add_argument("--steps", type=int, default=8)
+    research.add_argument("--resume", action="store_true")
+    research.add_argument("--allow-live", action="store_true")
+    research_status = subs.add_parser("research-status")
+    research_status.add_argument("--workspace", required=True)
+    research_reconcile = subs.add_parser("research-reconcile")
+    research_reconcile.add_argument("--workspace", required=True)
+    research_reconcile.add_argument("--call-id", required=True)
+    research_reconcile.add_argument("--confirm-worker-stopped", action="store_true")
     args = parser.parse_args(argv)
     try:
+        if args.command in {"research", "research-status", "research-reconcile"}:
+            from .research_loop import ResearchLoop
+            loop = ResearchLoop(args.workspace)
+            if args.command == "research-status":
+                result = loop.status()
+            elif args.command == "research-reconcile":
+                result = loop.reconcile(args.call_id, confirm_worker_stopped=args.confirm_worker_stopped)
+            else:
+                try:
+                    config = json.loads(Path(args.config).read_text(encoding="utf-8-sig"), parse_constant=reject_nonfinite_json)
+                except (OSError, ValueError, RecursionError):
+                    raise ResearchError("CONFIG_REQUIRED", "read a valid local configuration file without embedding credentials") from None
+                if args.goal is not None:
+                    loop.configure(args.goal, config, max_trials=args.max_trials,
+                                   max_requests=args.max_model_requests, max_cost_cny=args.max_cost_cny)
+                if args.resume:
+                    loop.resume()
+                result = loop.run(config, max_new_requests=args.steps, allow_live=args.allow_live)
+                result["exports"] = loop.export()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
         if args.command == "tool":
             try:
                 raw = sys.stdin.read(65537)

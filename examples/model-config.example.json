@@ -1,0 +1,22 @@
+{
+  "connection": {
+    "endpoint": "https://api.modelarts-maas.com/openai/v1/chat/completions",
+    "model": "REPLACE_WITH_EXACT_MODEL_ID_FROM_CONSOLE",
+    "api_key_env": "AUTORESEARCH_API_KEY",
+    "output_token_parameter": "max_completion_tokens",
+    "max_output_tokens": 768,
+    "max_prompt_bytes": 64000,
+    "timeout_seconds": 30,
+    "allow_loopback_http": false
+  },
+  "pricing": {
+    "input_cny_per_million": "REPLACE_WITH_CONFIRMED_WORST_CASE_PRICE",
+    "output_cny_per_million": "REPLACE_WITH_CONFIRMED_WORST_CASE_PRICE",
+    "input_tokens_ceiling": 0,
+    "source_url": "https://support.huaweicloud.com/price-maas/price-maas-0002.html",
+    "input_ceiling_source_url": "https://support.huaweicloud.com/model-call-maas/model-call-021.html",
+    "checked_on": "REPLACE_WITH_YYYY-MM-DD",
+    "verified": false,
+    "output_cap_covers_all_billed_tokens": false
+  }
+}

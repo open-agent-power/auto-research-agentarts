@@ -2,6 +2,8 @@
 
 已实现官方 SDK 0.1.8 的 HTTP 入口，保留现有研究协议。真实本地 HTTP、服务进程重启、幂等和模型参数产物已验证；云端镜像、认证、存储和平台 Trace 尚待验证。
 
+R4新增的产品决策循环通过本地CLI调用独立HTTP模型接口，随后使用同一实验内核；它没有自动注册成此Runtime的工具，也没有据此完成平台主编排。用户已暂缓平台接入验证，真实模型与云端调用保持pending。localhost脚本模型端点只算显式fixture，入口和恢复方式见[自主研究接入说明](../examples/autonomous-research.md)。
+
 ## 启动与复用
 
 ```powershell
