@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import secrets
+import time
 
 from .contracts import ResearchError, canonical
 from .studio_project import ProjectStore
@@ -45,7 +46,9 @@ def create_server(workspace, port=8766):
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "no-referrer")
-            self.send_header("Content-Security-Policy", "default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+            # X6 sets SVG/HTML geometry through inline styles and draws its local grid
+            # as a data image. Scripts stay local, without inline code or eval.
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
             if filename:
                 self.send_header("Content-Disposition", 'attachment; filename="'+filename+'"')
             self.end_headers()
@@ -60,6 +63,29 @@ def create_server(workspace, port=8766):
                 f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"}
 
         def error(self, status, code, message):
+            # On Windows, closing with an unread small request body can reset the
+            # connection before a rejection reaches the client. Drain only a
+            # bounded, explicitly sized body; never wait for arbitrary uploads.
+            if self.command == "POST" and not getattr(self, "_body_consumed", False):
+                sizes = self.headers.get_all("Content-Length", [])
+                if (not self.headers.get("Transfer-Encoding") and len(sizes) == 1
+                        and 1 <= len(sizes[0]) <= 5 and sizes[0].isascii() and sizes[0].isdigit()
+                        and 1 <= int(sizes[0]) <= 8193):
+                    try:
+                        deadline = time.monotonic() + 1
+                        remaining = int(sizes[0])
+                        while remaining:
+                            timeout = deadline - time.monotonic()
+                            if timeout <= 0:
+                                break
+                            self.connection.settimeout(timeout)
+                            chunk = self.rfile.read1(remaining)
+                            if not chunk:
+                                break
+                            remaining -= len(chunk)
+                    except OSError:
+                        pass
+                    self._body_consumed = True
             self.reply(status, {"ok":False, "error":{"code":code,"message":message}})
 
         def do_GET(self):
@@ -70,7 +96,8 @@ def create_server(workspace, port=8766):
                     return self.send(204,b"","image/x-icon")
                 static = {"/":("index.html","text/html; charset=utf-8"),
                           "/app.js":("app.js","text/javascript; charset=utf-8"),
-                          "/app.css":("app.css","text/css; charset=utf-8")}
+                          "/app.css":("app.css","text/css; charset=utf-8"),
+                          "/vendor-licenses.txt":("vendor-licenses.txt","text/plain; charset=utf-8")}
                 if self.path in static:
                     name,mime = static[self.path]
                     return self.send(200, (assets/name).read_bytes(), mime)
@@ -113,6 +140,7 @@ def create_server(workspace, port=8766):
             self.connection.settimeout(5)
             try:
                 raw = self.rfile.read(int(sizes[0]))
+                self._body_consumed = True
                 if len(raw) != int(sizes[0]):
                     raise ValueError("incomplete body")
                 value = json.loads(raw.decode("utf-8"), object_pairs_hook=_object, parse_constant=_nonfinite)

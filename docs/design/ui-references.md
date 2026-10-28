@@ -1,12 +1,12 @@
 # UI 参考与采用边界
 
-2026-10-28 · R6 设计记录。**本轮仅设计；未新增依赖、迁移框架或实现白板。**
+2026-10-29 · R7采用更新。X6 3.1.8已接入统一工作台；其他条目继续作为设计或选型参考，不推定已使用。
 
 目标是空气感的研究工作区：无限画布帮助组织课题、来源、假设、试验和论证；正文与论文保持清晰易读。当前 Python 后端、冻结证据和待执行问题的语义继续保留。
 
 ## 采用方向
 
-- **优先评估 X6 + vanilla TypeScript**：先验证节点、连线、分组、缩放及侧栏联动的最小适配，保留 Python 后端。TypeScript 是后续实现选择，本轮没有增加构建工具。
+- **采用 X6 + vanilla TypeScript**：节点、引用连线、分组、缩放及详情联动保留Python后端；esbuild构建和版本锁位于frontend。实际浏览器依赖的完整许可由构建归集到vendor-licenses.txt，不能都标成MIT。
 - **React Flow 是备选**：只有决定迁移 React 后再采用。React Flow 依赖 React；同属 xyflow 的 Svelte Flow 是另一产品，不能混称。
 - tldraw、AFFiNE、Excalidraw 优先作为交互参考。JSON Canvas 用于研究可交换格式，不充当画布渲染器。
 - 不为了视觉样式并装多套画布或组件库；每次实现只验证一条完整研究路径。
@@ -20,7 +20,7 @@
 | [React Flow](https://reactflow.dev/learn)、[sub-flows](https://reactflow.dev/learn/layouting/sub-flows)、[xyflow](https://github.com/xyflow/xyflow) | 研究对象节点、父子分组、连接规则与视图控制 | 已确认 React 技术前提；所选包和示例文件许可待逐项核对。React 迁移后才进入候选。 |
 | [tldraw](https://tldraw.dev/)、[许可说明](https://tldraw.dev/community/license) | 空间组织、选择与聚焦、工具栏和示例体验 | 已核查：默认开发使用；生产需有效 trial、commercial 或 hobby key。不能写成可免费商用。 |
 | [AFFiNE](https://github.com/toeverything/AFFiNE)、[LICENSE](https://raw.githubusercontent.com/toeverything/AFFiNE/canary/LICENSE) | 文档与白板切换、资料卡与上下文侧栏 | 已核查：backend、common/native 适用单独许可，其余部分 MIT；不能称全仓 MIT。具体文件和版本仍需核对。 |
-| [X6](https://github.com/antvis/X6)、[LICENSE](https://raw.githubusercontent.com/antvis/X6/master/LICENSE) | 图编辑器、分组和节点扩展；与现有后端薄适配 | 已核查主仓库 MIT；优先评估。实际包、插件、字体及示例资产需按固定版本确认。 |
+| [X6](https://github.com/antvis/X6)、[LICENSE](https://raw.githubusercontent.com/antvis/X6/master/LICENSE) | 图编辑器、分组和节点扩展；与现有后端薄适配 | 已采用3.1.8，主包MIT；实际依赖各自许可归集在vendor-licenses.txt，未使用其他库的商业模板。 |
 | [JSON Canvas 1.0](https://jsoncanvas.org/spec/1.0/) | `nodes` / `edges` 与 text、file、link、group 节点的交换结构 | 已核查格式结构；它不是渲染引擎。导出映射、规范文本与代码的许可分别核对。 |
 | [Excalidraw](https://github.com/excalidraw/excalidraw) | 草图表达、分组与低负担操作 | 所选组件、示例和素材许可待逐文件核对；不复制完整应用作为前置依赖。 |
 | [Apple Materials](https://developer.apple.com/design/human-interface-guidelines/materials) | 控件层与内容层分工、材质的层次和可读性 | 已核查设计语义：Liquid Glass 面向控件与导航层，standard materials 可用于内容层；不是对全部透明材质的绝对禁令。仅借鉴原则。 |
@@ -41,7 +41,7 @@
 
 ## 令牌使用
 
-[tokens.css](tokens.css) 仅声明设计变量，**当前未加载到运行 UI**，也不表示拖拽、缩放、分组或抽屉已实现。
+[tokens.css](tokens.css) 是实际构建共享的设计变量；交互由frontend源码实现，不能因新增一个令牌就推定对应能力已完成。
 
 - `--ar-canvas-*`：画布底色与点阵；缩放策略由选定引擎实现后验证。
 - `--ar-hud-*`：浮动控件材质；正文继续用 `--ar-content-surface`。

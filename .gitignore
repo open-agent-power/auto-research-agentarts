@@ -13,6 +13,7 @@ references/
 runs/
 dist/
 build/
+frontend/node_modules/
 *.sqlite*
 *.log
 *.pem

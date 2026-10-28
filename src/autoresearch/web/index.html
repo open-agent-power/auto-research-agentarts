@@ -4,117 +4,67 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>研究项目 · 持续科研</title>
+  <title>空间研究 · Auto Research</title>
   <link rel="stylesheet" href="/app.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#main-content">跳到研究正文</a>
-  <div class="workspace">
-    <aside class="sidebar" aria-label="研究项目与章节">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">研</span><span>持续科研<span class="brand-subtitle">研究与证据</span></span></div>
-      <div class="current-project">
-        <p class="eyebrow">当前项目</p>
-        <p id="sidebar-title" class="project-name">正在读取项目</p>
-        <span id="sidebar-status" class="sidebar-status">读取本地快照</span>
+  <a class="skip-link" href="#reading-view">跳到研究阅读</a>
+  <div id="workspace" class="workspace">
+    <div id="graph" class="graph-surface" role="region" tabindex="0" aria-label="研究证据画布。拖动空白平移，Ctrl或⌘加滚轮缩放，Enter查看卡片，Escape关闭详情。"></div>
+    <div class="ambient" aria-hidden="true"></div>
+
+    <aside id="project-nav" class="project-nav glass" aria-label="项目导航">
+      <div class="brand">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3 28 10v12l-12 7L4 22V10Z"/><path d="m4 10 12 7 12-7M16 17v12M10 6.5l12 7v12"/></svg></span>
+        <span>空间研究<small>AUTO RESEARCH</small></span>
       </div>
-      <nav id="chapter-nav" class="chapter-nav" aria-label="章节导航">
-        <a href="#question" aria-current="location"><span>01</span>研究问题</a>
-        <a href="#evidence"><span>02</span>证据来源</a>
-        <a href="#experiments"><span>03</span>真实试验</a>
-        <a href="#figures"><span>04</span>结果图表</a>
-        <a href="#paper"><span>05</span>论文预览</a>
-        <a href="#next"><span>06</span>后续研究</a>
+      <div class="project-identity"><span class="overline">当前项目</span><strong id="nav-project-title">正在读取证据</strong><span class="project-local">本地研究工作区</span></div>
+      <label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="search" type="search" placeholder="搜索研究对象…" aria-label="搜索研究对象" autocomplete="off" disabled><kbd>/</kbd></label>
+      <div id="search-results" class="search-results" hidden></div>
+      <nav id="sections" class="sections" aria-label="研究内容">
+        <button data-section="overview" class="nav-item active" disabled><span class="nav-icon">◈</span><span>研究全景</span><span class="nav-count" id="count-all">—</span></button>
+        <button data-section="sources" class="nav-item" disabled><span class="nav-icon">▤</span><span>依据与来源</span><span class="nav-count" id="count-sources">—</span></button>
+        <button data-section="trials" class="nav-item" disabled><span class="nav-icon">⌁</span><span>假设与试验</span><span class="nav-count" id="count-trials">—</span></button>
+        <button data-section="claims" class="nav-item" disabled><span class="nav-icon">◇</span><span>判断与边界</span><span class="nav-count" id="count-claims">—</span></button>
+        <button data-section="paper" class="nav-item" disabled><span class="nav-icon">▧</span><span>论文与图表</span><span class="nav-count">↗</span></button>
+        <button data-section="questions" class="nav-item" disabled><span class="nav-icon">＋</span><span>后续问题</span><span class="nav-count" id="count-questions">—</span></button>
       </nav>
-      <p class="sidebar-note">现有证据的冻结快照。<br>模型与 AgentArts 接入暂缓。</p>
+      <div class="nav-spacer"></div>
+      <div class="layout-panel">
+        <div class="layout-heading"><span>本浏览器布局</span><span id="layout-state" class="muted">未保存</span></div>
+        <div class="layout-buttons"><button id="save-layout" disabled>保存</button><button id="restore-layout" disabled>恢复</button><button id="reset-layout" disabled>重置</button></div>
+        <p>位置和视口仅保存在本浏览器。<br>不改变研究记录与证据。</p>
+      </div>
+      <div class="nav-footer"><span class="status-dot"></span><span>模型与平台接入暂缓</span><a href="/vendor-licenses.txt" target="_blank" rel="noopener noreferrer" aria-label="查看界面依赖许可">许可 ↗</a></div>
     </aside>
 
-    <main id="main-content" tabindex="-1">
-      <div id="load-state" class="page-state" role="status" aria-live="polite">
-        <span class="loading-mark" aria-hidden="true"></span>
-        <h1>正在读取研究项目</h1>
-        <p>读取本地已有证据，不会启动模型或试验。</p>
-      </div>
-      <div id="project-error" class="page-state error-state" role="alert" hidden>
-        <p class="eyebrow">项目暂未载入</p>
-        <h1>无法读取研究证据</h1>
-        <p id="project-error-message">请确认本地研究服务可用，再重试。</p>
-        <button id="retry-project" class="button secondary" type="button">重新读取</button>
-      </div>
+    <header id="topbar" class="topbar glass">
+      <div class="topbar-text"><div class="topbar-kicker"><span class="tiny-dot"></span><span>冻结的现有证据</span><span class="meta-divider">/</span><span>工程案例</span></div><h1 id="project-title">正在读取研究项目</h1></div>
+      <div class="topbar-actions"><button id="download-pdf" class="action-button primary" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m-3-3 3 3 3-3M4 13v4h12v-4"/></svg><span>研究报告 <b>PDF</b></span></button><button id="download-zip" class="action-button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14v11H3zM6 6V3h8v3M8 10h4"/></svg><span>复现附件</span></button></div>
+    </header>
 
-      <div id="project-content" hidden>
-        <header class="project-header">
-          <div class="header-meta"><span class="document-label">研究项目</span><span id="snapshot-mode" class="quiet-label">现有证据快照</span></div>
-          <h1 id="project-title"></h1>
-          <p id="project-question" class="lead"></p>
-          <div class="export-actions" aria-label="下载研究成果">
-            <button id="download-pdf" class="button primary" type="button" disabled><span aria-hidden="true">↓</span>下载研究报告 PDF</button>
-            <button id="download-reproduction" class="button secondary" type="button" disabled><span aria-hidden="true">↓</span>下载复现附件</button>
-          </div>
-          <p id="export-feedback" class="feedback" role="status" aria-live="polite"></p>
-          <p class="evidence-notice">当前展示已有证据：脚本决策与真实训练。模型及 AgentArts 接入暂缓，保存后续问题也不会触发执行。</p>
-        </header>
-
-        <section id="question" class="reading-section" aria-labelledby="question-heading">
-          <div class="section-heading"><span class="section-number">01</span><h2 id="question-heading">研究问题与边界</h2></div>
-          <p id="source-goal" class="source-goal"></p>
-          <dl id="project-labels" class="context-list"></dl>
-          <div id="claims-list" class="claims-list"></div>
-          <details class="provenance">
-            <summary>查看数据划分与快照记录</summary>
-            <dl id="dataset-record" class="record-list"></dl>
-          </details>
-        </section>
-
-        <section id="evidence" class="reading-section" aria-labelledby="evidence-heading">
-          <div class="section-heading"><span class="section-number">02</span><h2 id="evidence-heading">证据来源</h2></div>
-          <p class="section-intro">原始来源与已有记录共同限定本报告能够支持的结论。</p>
-          <ol id="sources-list" class="sources-list"></ol>
-        </section>
-
-        <section id="experiments" class="reading-section" aria-labelledby="experiments-heading">
-          <div class="section-heading"><span class="section-number">03</span><h2 id="experiments-heading">真实试验记录</h2></div>
-          <dl id="metric-strip" class="metric-strip"></dl>
-          <p id="best-trial" class="small-note"></p>
-          <p class="table-hint">表格在窄屏可横向滚动；“保留”只表示达到当前评价门槛。</p>
-          <div class="table-scroll" tabindex="0" role="region" aria-label="试验记录，可横向滚动">
-            <table>
-              <caption class="sr-only">现有试验的配方、验证误差、保留判定与证据记录</caption>
-              <thead><tr><th scope="col">试验</th><th scope="col">配方</th><th id="mse-heading" scope="col">验证 MSE</th><th scope="col">记录判定</th><th scope="col">追溯记录</th></tr></thead>
-              <tbody id="trials-body"></tbody>
-            </table>
-          </div>
-          <p id="trials-empty" class="empty-state" hidden>当前快照没有试验记录，不能推断模型效果。</p>
-        </section>
-
-        <section id="figures" class="reading-section" aria-labelledby="figures-heading">
-          <div class="section-heading"><span class="section-number">04</span><h2 id="figures-heading">结果图表</h2></div>
-          <div id="figures-list" class="figures-list"></div>
-        </section>
-
-        <section id="paper" class="reading-section" aria-labelledby="paper-heading">
-          <div class="section-heading"><span class="section-number">05</span><h2 id="paper-heading">论文式报告预览</h2></div>
-          <p class="section-intro">按当前证据组织的报告。预览及 PDF 均不代表同行评审、科研发现或临床验证。</p>
-          <article id="paper-preview" class="paper-preview" aria-label="研究报告正文"></article>
-        </section>
-
-        <section id="next" class="reading-section" aria-labelledby="next-heading">
-          <div class="section-heading"><span class="section-number">06</span><h2 id="next-heading">后续研究问题</h2></div>
-          <p class="section-intro">记录下一次需要核查的问题，保留继续研究的线索。这里只保存，不调用模型、不启动试验。</p>
-          <form id="question-form" class="question-form">
-            <label for="next-question">想继续研究什么？</label>
-            <textarea id="next-question" name="text" rows="4" required disabled aria-describedby="question-help question-count save-feedback" placeholder="例如：现有结论是否受到数据划分或实验条件缺失的影响？"></textarea>
-            <p id="question-help" class="small-note">问题会保存为“待人工执行”。请勿填入个人隐私、密钥或账号信息。</p>
-            <div class="form-footer"><span id="question-count" class="small-note">已输入 0 字</span><button id="save-question" class="button primary" type="submit" disabled>保存后续研究问题</button></div>
-            <p id="save-feedback" class="feedback" role="status" aria-live="polite"></p>
-          </form>
-          <div class="saved-heading"><h3>已保存的问题</h3><span id="questions-count" class="small-note"></span></div>
-          <ol id="questions-list" class="questions-list"></ol>
-          <p id="questions-empty" class="empty-state" hidden>还没有保存后续问题。可以先记下一个未解决的疑问，留给后续人工执行。</p>
-        </section>
-        <footer class="project-footer"><p>记录事实、保留负结果、说明尚未完成的工作。</p><p id="snapshot-footer" class="small-note"></p></footer>
-      </div>
+    <div id="board-intro" class="board-intro"><span id="snapshot-label">本地证据快照</span><span>单击查看 · 拖动排布 · 空白平移</span></div>
+    <main id="reading-view" class="reading-view" hidden tabindex="-1" aria-label="研究内容列表与全文阅读">
+      <div class="reading-heading"><div><span class="overline">同一份研究证据</span><h2 id="reading-title">研究全景</h2></div><button id="reading-to-canvas" class="quiet-button">回到画布 ↗</button></div>
+      <div id="reading-content"></div>
     </main>
+
+    <div id="page-state" class="page-state"><span class="loader" aria-hidden="true"></span><h2 id="state-title">正在读取本地证据</h2><p id="state-message">不会启动模型、训练或新的研究行动。</p><button id="retry" class="action-button" hidden>重新读取</button></div>
+    <div id="canvas-dock" class="canvas-dock glass" aria-label="画布与阅读工具">
+      <button id="view-canvas" class="dock-button active" aria-pressed="true" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="12" y="3" width="5" height="5" rx="1"/><rect x="7.5" y="12" width="5" height="5" rx="1"/></svg><span>画布</span></button>
+      <button id="view-list" class="dock-button" aria-pressed="false" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4h10M7 10h10M7 16h10M3 4h.1M3 10h.1M3 16h.1"/></svg><span>列表阅读</span></button>
+      <span class="dock-divider"></span>
+      <button id="zoom-out" class="dock-icon" aria-label="缩小" disabled>−</button><button id="zoom-reset" class="zoom-value" title="恢复100%缩放" disabled>—</button><button id="zoom-in" class="dock-icon" aria-label="放大" disabled>＋</button>
+      <span class="dock-divider"></span>
+      <button id="fit-view" class="dock-button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4"/></svg><span>适应全图</span></button>
+    </div>
+
+    <aside id="inspector" class="inspector glass" hidden aria-label="研究对象详情">
+      <div class="inspector-header"><div><span id="inspector-kind" class="overline">研究对象</span><h2 id="inspector-title" tabindex="-1"></h2></div><button id="close-inspector" class="icon-button" aria-label="关闭详情，返回原位置">×</button></div>
+      <div id="inspector-body" class="inspector-body"></div>
+    </aside>
+    <div id="toast" class="toast glass" role="status" aria-live="polite" hidden></div>
   </div>
 </body>
 </html>

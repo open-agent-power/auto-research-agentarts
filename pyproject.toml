@@ -21,4 +21,4 @@ autoresearch-runtime = "autoresearch.runtime:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-autoresearch = ["data/*.json.gz", "data/*.md", "web/*.html", "web/*.css", "web/*.js"]
+autoresearch = ["data/*.json.gz", "data/*.md", "web/*.html", "web/*.css", "web/*.js", "web/*.txt"]

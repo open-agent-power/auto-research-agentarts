@@ -1,4 +1,4 @@
-/* R6 design tokens only. Not imported by the running UI; no interaction is implemented here. */
+/* Shared design tokens, imported by frontend/src/styles.css during the UI build. */
 :root {
   color-scheme: light;
   --ar-canvas-surface: #f4f5f7;
@@ -50,7 +50,7 @@
   --ar-motion-ease: cubic-bezier(.2, .7, .2, 1);
 }
 
-/* A renderer must deliberately consume these variables before they affect a UI. */
+/* Functional behavior remains in the frontend; these variables only define presentation. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --ar-hud-surface: #fff;

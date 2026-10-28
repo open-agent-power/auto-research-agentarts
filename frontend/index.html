@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>空间研究 · Auto Research</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#reading-view">跳到研究阅读</a>
+  <div id="workspace" class="workspace">
+    <div id="graph" class="graph-surface" role="region" tabindex="0" aria-label="研究证据画布。拖动空白平移，Ctrl或⌘加滚轮缩放，Enter查看卡片，Escape关闭详情。"></div>
+    <div class="ambient" aria-hidden="true"></div>
+
+    <aside id="project-nav" class="project-nav glass" aria-label="项目导航">
+      <div class="brand">
+        <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3 28 10v12l-12 7L4 22V10Z"/><path d="m4 10 12 7 12-7M16 17v12M10 6.5l12 7v12"/></svg></span>
+        <span>空间研究<small>AUTO RESEARCH</small></span>
+      </div>
+      <div class="project-identity"><span class="overline">当前项目</span><strong id="nav-project-title">正在读取证据</strong><span class="project-local">本地研究工作区</span></div>
+      <label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="search" type="search" placeholder="搜索研究对象…" aria-label="搜索研究对象" autocomplete="off" disabled><kbd>/</kbd></label>
+      <div id="search-results" class="search-results" hidden></div>
+      <nav id="sections" class="sections" aria-label="研究内容">
+        <button data-section="overview" class="nav-item active" disabled><span class="nav-icon">◈</span><span>研究全景</span><span class="nav-count" id="count-all">—</span></button>
+        <button data-section="sources" class="nav-item" disabled><span class="nav-icon">▤</span><span>依据与来源</span><span class="nav-count" id="count-sources">—</span></button>
+        <button data-section="trials" class="nav-item" disabled><span class="nav-icon">⌁</span><span>假设与试验</span><span class="nav-count" id="count-trials">—</span></button>
+        <button data-section="claims" class="nav-item" disabled><span class="nav-icon">◇</span><span>判断与边界</span><span class="nav-count" id="count-claims">—</span></button>
+        <button data-section="paper" class="nav-item" disabled><span class="nav-icon">▧</span><span>论文与图表</span><span class="nav-count">↗</span></button>
+        <button data-section="questions" class="nav-item" disabled><span class="nav-icon">＋</span><span>后续问题</span><span class="nav-count" id="count-questions">—</span></button>
+      </nav>
+      <div class="nav-spacer"></div>
+      <div class="layout-panel">
+        <div class="layout-heading"><span>本浏览器布局</span><span id="layout-state" class="muted">未保存</span></div>
+        <div class="layout-buttons"><button id="save-layout" disabled>保存</button><button id="restore-layout" disabled>恢复</button><button id="reset-layout" disabled>重置</button></div>
+        <p>位置和视口仅保存在本浏览器。<br>不改变研究记录与证据。</p>
+      </div>
+      <div class="nav-footer"><span class="status-dot"></span><span>模型与平台接入暂缓</span><a href="/vendor-licenses.txt" target="_blank" rel="noopener noreferrer" aria-label="查看界面依赖许可">许可 ↗</a></div>
+    </aside>
+
+    <header id="topbar" class="topbar glass">
+      <div class="topbar-text"><div class="topbar-kicker"><span class="tiny-dot"></span><span>冻结的现有证据</span><span class="meta-divider">/</span><span>工程案例</span></div><h1 id="project-title">正在读取研究项目</h1></div>
+      <div class="topbar-actions"><button id="download-pdf" class="action-button primary" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m-3-3 3 3 3-3M4 13v4h12v-4"/></svg><span>研究报告 <b>PDF</b></span></button><button id="download-zip" class="action-button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14v11H3zM6 6V3h8v3M8 10h4"/></svg><span>复现附件</span></button></div>
+    </header>
+
+    <div id="board-intro" class="board-intro"><span id="snapshot-label">本地证据快照</span><span>单击查看 · 拖动排布 · 空白平移</span></div>
+    <main id="reading-view" class="reading-view" hidden tabindex="-1" aria-label="研究内容列表与全文阅读">
+      <div class="reading-heading"><div><span class="overline">同一份研究证据</span><h2 id="reading-title">研究全景</h2></div><button id="reading-to-canvas" class="quiet-button">回到画布 ↗</button></div>
+      <div id="reading-content"></div>
+    </main>
+
+    <div id="page-state" class="page-state"><span class="loader" aria-hidden="true"></span><h2 id="state-title">正在读取本地证据</h2><p id="state-message">不会启动模型、训练或新的研究行动。</p><button id="retry" class="action-button" hidden>重新读取</button></div>
+    <div id="canvas-dock" class="canvas-dock glass" aria-label="画布与阅读工具">
+      <button id="view-canvas" class="dock-button active" aria-pressed="true" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="12" y="3" width="5" height="5" rx="1"/><rect x="7.5" y="12" width="5" height="5" rx="1"/></svg><span>画布</span></button>
+      <button id="view-list" class="dock-button" aria-pressed="false" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4h10M7 10h10M7 16h10M3 4h.1M3 10h.1M3 16h.1"/></svg><span>列表阅读</span></button>
+      <span class="dock-divider"></span>
+      <button id="zoom-out" class="dock-icon" aria-label="缩小" disabled>−</button><button id="zoom-reset" class="zoom-value" title="恢复100%缩放" disabled>—</button><button id="zoom-in" class="dock-icon" aria-label="放大" disabled>＋</button>
+      <span class="dock-divider"></span>
+      <button id="fit-view" class="dock-button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4"/></svg><span>适应全图</span></button>
+    </div>
+
+    <aside id="inspector" class="inspector glass" hidden aria-label="研究对象详情">
+      <div class="inspector-header"><div><span id="inspector-kind" class="overline">研究对象</span><h2 id="inspector-title" tabindex="-1"></h2></div><button id="close-inspector" class="icon-button" aria-label="关闭详情，返回原位置">×</button></div>
+      <div id="inspector-body" class="inspector-body"></div>
+    </aside>
+    <div id="toast" class="toast glass" role="status" aria-live="polite" hidden></div>
+  </div>
+</body>
+</html>
+

@@ -195,6 +195,9 @@ class StudioTests(unittest.TestCase):
             status, headers, raw = request(server, "GET", "/api/project")
             self.assertEqual(status, 200)
             self.assertIn("default-src 'self'", headers["Content-Security-Policy"])
+            self.assertIn("script-src 'self';", headers["Content-Security-Policy"])
+            self.assertNotIn("unsafe-eval", headers["Content-Security-Policy"])
+            self.assertIn("style-src 'self' 'unsafe-inline';", headers["Content-Security-Policy"])
             self.assertNotIn("Access-Control-Allow-Origin", headers)
             token = json.loads(raw)["csrf_token"]
             host = "127.0.0.1:" + str(server.server_port)
@@ -233,7 +236,7 @@ class StudioTests(unittest.TestCase):
             token = json.loads(raw)["csrf_token"]
             host = "127.0.0.1:" + str(server.server_port)
             valid = {"Content-Type": "application/json", "X-Research-CSRF": token}
-            for path in ("/", "/app.css", "/app.js"):
+            for path in ("/", "/app.css", "/app.js", "/vendor-licenses.txt"):
                 status, headers, body = request(server, "GET", path)
                 self.assertEqual(status, 200)
                 self.assertTrue(body)
