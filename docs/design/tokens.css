@@ -1,0 +1,79 @@
+/* R6 design tokens only. Not imported by the running UI; no interaction is implemented here. */
+:root {
+  color-scheme: light;
+  --ar-canvas-surface: #f4f5f7;
+  --ar-canvas-dot-color: rgba(20, 34, 46, .14);
+  --ar-canvas-dot-radius: 1.25px;
+  --ar-canvas-grid: 24px;
+  --ar-canvas-dot-image: radial-gradient(circle, var(--ar-canvas-dot-color) var(--ar-canvas-dot-radius), transparent calc(var(--ar-canvas-dot-radius) + .1px));
+  --ar-content-surface: #fff;
+  --ar-content-text: #14222e;
+  --ar-content-muted: #52616d;
+  --ar-content-border: rgba(20, 34, 46, .12);
+  --ar-hud-surface: rgba(255, 255, 255, .78);
+  --ar-hud-filter: blur(20px) saturate(180%);
+  --ar-hud-border: 1px solid rgba(20, 34, 46, .08);
+  --ar-hud-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, .65);
+  --ar-hud-shadow: 0 12px 32px -4px rgba(20, 34, 46, .08), 0 2px 6px rgba(20, 34, 46, .04);
+  --ar-hud-elevation: var(--ar-hud-inner-highlight), var(--ar-hud-shadow);
+  --ar-radius-hud: 14px;
+  --ar-radius-card: 12px;
+  --ar-radius-control: 8px;
+  --ar-group-sage-surface: rgba(212, 230, 219, .45);
+  --ar-group-sage-border: rgba(47, 133, 90, .25);
+  --ar-group-sage-ink: #22583c;
+  --ar-group-sand-surface: rgba(238, 226, 205, .45);
+  --ar-group-sand-border: rgba(183, 121, 31, .25);
+  --ar-group-sand-ink: #74501c;
+  --ar-group-lavender-surface: rgba(226, 218, 240, .45);
+  --ar-group-lavender-border: rgba(107, 70, 193, .25);
+  --ar-group-lavender-ink: #594283;
+  --ar-focus-outline: 2px solid #245cb5;
+  --ar-focus-offset: 3px;
+  --ar-focus-halo: 0 0 0 5px rgba(36, 92, 181, .14);
+  --ar-font-ui: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  --ar-font-document: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --ar-font-mono: "Cascadia Code", Consolas, monospace;
+  --ar-font-size-body: 14px;
+  --ar-line-height-body: 1.65;
+  --ar-space-1: 4px;
+  --ar-space-2: 8px;
+  --ar-space-3: 12px;
+  --ar-space-4: 16px;
+  --ar-space-5: 24px;
+  --ar-space-6: 32px;
+  --ar-control-min-size: 36px;
+  --ar-drawer-reading-width: 420px;
+  --ar-document-reading-width: 72ch;
+  --ar-motion-fast: 140ms;
+  --ar-motion-standard: 220ms;
+  --ar-motion-ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+/* A renderer must deliberately consume these variables before they affect a UI. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --ar-hud-surface: #fff;
+    --ar-hud-filter: none;
+    --ar-hud-border: 1px solid rgba(20, 34, 46, .16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ar-motion-fast: 0ms;
+    --ar-motion-standard: 0ms;
+    --ar-motion-ease: linear;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --ar-hud-surface: #fff;
+    --ar-content-muted: #34434f;
+    --ar-content-border: #73808b;
+    --ar-hud-border: 1px solid #73808b;
+    --ar-focus-outline: 3px solid #174b9a;
+    --ar-focus-halo: none;
+  }
+}

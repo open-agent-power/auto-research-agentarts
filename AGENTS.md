@@ -1,5 +1,9 @@
 # Product working agreements
 
+- Start with `docs/README.md` for implementation boundaries and `DESIGN.md` before any UI work. The next UI direction is an infinite research canvas with restrained floating glass navigation; the current R5 screen is only a functional baseline, not the accepted visual design.
+- Keep actual implementation in `src/`, product architecture/design in `docs/`, reusable request examples in `examples/`, and local evidence in ignored `runs/` and `.agent/`. External source archives belong to the workspace reference library, never the product code tree.
+- Distinguish implemented modules from proposed architecture. Canvas positions and visual connectors must not overwrite experiments, citations, evaluation protocols or research state. A draft question or manual connector does not execute research or establish a scientific claim.
+
 - Mission: continuous cross-domain research with traceable experiments, evaluated strategy or model changes, and resumable execution. Topic generation is an entry point.
 - Root owns contracts, persistence, integration and final verification. Reuse existing agents; delegate only independent work worth parallelizing. Never revert another contributor's changes.
 - The engineering fixture does not establish biomedical, materials or cross-domain scientific validity. A local runner is not an AgentArts integration or an LLM weight-training result.
