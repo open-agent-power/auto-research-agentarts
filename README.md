@@ -2,7 +2,7 @@
 
 持续跨领域研究的执行底座：研究任务、实验或训练、独立评测、候选保留或拒绝、进度恢复。AgentArts 为产品主编排，领域计算通过受控适配器执行。
 
-已实现首轮本地闭环：SQLite 持久化、三次真实 CPU 参数训练、验证集选优、拒绝差候选、暂停恢复、终测锁定和结构化工具协议。当前调度策略是固定工程策略，未调用大语言模型或 AgentArts；科研有效性待真实场景验证。
+已实现本地闭环与官方 AgentArts SDK 的 HTTP 桥接：SQLite 持久化、三次真实 CPU 参数训练、验证集选优、拒绝差候选、暂停恢复、终测锁定和结构化工具协议。真实回环 HTTP 与服务进程重启已验证。当前调度策略是固定工程策略，尚无云端部署或平台 Trace；科研有效性待真实场景验证。
 
 此仓库仅保存产品代码与允许公开的工程样例；参考库、原始科研数据、凭据、浏览器会话和本地运行产物均留在仓库外。
 
@@ -53,4 +53,14 @@ python -m venv .venv
 
 拟合使用 scikit-learn 与 NumPy，循环机制参考已有研究项目，详见[复用与来源](THIRD_PARTY_NOTICES.md)。没有复制整个研究 Agent 框架。产品优先保持可替换领域适配器，后续用真实数据和 AgentArts 研究决策替换工程样例与固定策略。
 
-平台登录、资源与费用核查、发布流程、真实请求和 Trace 尚待验证。本地协议通过不代表 AgentArts 已接通。
+安装可选运行时后，可执行真实 HTTP 探针：
+
+```powershell
+.venv/Scripts/python.exe -m pip install -r agentarts/requirements-runtime.lock
+.venv/Scripts/python.exe -m pip install --no-deps -e .
+.venv/Scripts/python.exe agentarts/run_local_probe.py --workspace runs/my-http-probe
+```
+
+探针仅在 `127.0.0.1` 临时启动两次服务进程，执行训练、重试、暂停、恢复、候选拒绝和终测，结束后关闭自己启动的服务。请选择新的工作目录，已有证据不会被覆盖。详见[Runtime 接入说明](agentarts/README.md)。基础安装不包含 SDK 时，SDK 专项测试会跳过。
+
+平台权益、持久存储、入站认证、镜像部署、实际云请求和 Trace 尚待验证。本地 SDK HTTP 通过不代表 AgentArts 云端已接通。

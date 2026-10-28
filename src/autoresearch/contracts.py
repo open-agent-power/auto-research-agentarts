@@ -39,7 +39,7 @@ class Candidate:
         degree, alpha = value["degree"], value["alpha"]
         if type(degree) is not int or not 1 <= degree <= 3:
             raise ResearchError("INVALID_REQUEST", "degree must be an integer from 1 to 3")
-        if type(alpha) not in (int, float) or not math.isfinite(alpha) or not 0 <= alpha <= 1_000_000:
+        if type(alpha) not in (int, float) or not 0 <= alpha <= 1_000_000 or not math.isfinite(alpha):
             raise ResearchError("INVALID_REQUEST", "alpha must be finite and between 0 and 1000000")
         return cls(degree, float(alpha))
 
