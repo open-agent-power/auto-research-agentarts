@@ -91,6 +91,33 @@ class C01StudioTests(unittest.TestCase):
         finally:
             server.shutdown(); server.server_close(); worker.join(timeout=3)
 
+    def test_opt_in_continuation_http_csrf_idempotency_and_bound(self):
+        from test_c01_loop import fixture
+        for name,data in fixture().items(): (self.root/name).write_bytes(data)
+        self.manifest()
+        with tempfile.TemporaryDirectory() as separate:
+            server=create_server(self.root,self.source,0,continuation=Path(separate)/'study')
+            worker=threading.Thread(target=server.serve_forever,daemon=True);worker.start()
+            port=server.server_port
+            def request(method,path,payload=None,headers=None):
+                con=http.client.HTTPConnection('127.0.0.1',port,timeout=5)
+                con.request(method,path,body=payload,headers=headers or {})
+                res=con.getresponse();status=res.status;body=res.read();con.close();return status,body
+            try:
+                status,raw=request('GET','/api/c01/continuation');initial=json.loads(raw);self.assertEqual(status,200);self.assertEqual(initial['status'],'idle')
+                self.assertFalse((Path(separate)/'study').exists())
+                headers={'Content-Type':'application/json','Origin':f'http://127.0.0.1:{port}','X-Research-CSRF':initial['csrf_token']}
+                body=json.dumps({'request_id':'http_first_12345','observation_sha256':initial['observation_sha256']})
+                code,raw=request('POST','/api/c01/continuation/step',body,headers);self.assertEqual(code,200);self.assertEqual(json.loads(raw)['state']['status'],'paused')
+                code,raw=request('POST','/api/c01/continuation/step',body,headers);self.assertTrue(json.loads(raw)['replayed'])
+                _,latest=request('GET','/api/c01/continuation');current=json.loads(latest)['observation_sha256']
+                code,raw=request('POST','/api/c01/continuation/step',json.dumps({'request_id':'http_second_12345','observation_sha256':current}),headers);self.assertEqual(json.loads(raw)['state']['status'],'needs_review')
+                code,raw=request('POST','/api/c01/continuation/step',json.dumps({'request_id':'http_third_12345','observation_sha256':current}),headers);self.assertEqual(code,409)
+                self.assertTrue(request('GET','/api/c01/continuation/report.pdf')[1].startswith(b'%PDF'))
+                with zipfile.ZipFile(BytesIO(request('GET','/api/c01/continuation/reproduction.zip')[1])) as z:self.assertIn('verify_continuation.py',z.namelist())
+            finally:
+                server.shutdown();server.server_close();worker.join(timeout=3)
+
 
 if __name__ == '__main__':
     unittest.main()
