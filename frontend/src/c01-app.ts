@@ -143,6 +143,14 @@ export async function mountC01():Promise<void> {
     const grid=el("div","overview-grid"),a=section("当前研究"),b=section("还需要确认");
     p(a,`${data.data.sample_count} 个合金 · 两轮既有分析 · ${followup?.actions?.length||0} 项后续检查`);p(a,"后续检查沿用同一数据，不是独立验证。");a.append(link("查看研究推进 →","#/research"));
     p(b,"合金与生物标签的权威映射、星号含义、重复结构与部分字段单位仍待原论文或作者资料确认。");b.append(link("查看核验记录 →","#/knowledge"));grid.append(a,b);content.append(grid);
+    const summary=el("div","overview-bottom"),context=section("数据与评价范围"),figure=data.artifacts?.figures?.find(f=>f.path==="figures/loo_mae.svg");
+    p(context,`${data.data.sample_count} 个合金 · 留一比较：每次用其余 ${data.data.sample_count-1} 个合金训练并预测留下的合金。`);
+    data.rounds.forEach((round,index)=>{const better=round.metrics.filter(m=>m.better_than_baseline).length;p(context,`分析 ${String(index+1).padStart(2,"0")}：${better} / ${round.metrics.length} 项终点的 MAE 低于逐折均值基线。`);});
+    p(context,"两轮使用同一批数据；误差较低不代表通过独立验证。ARS 测量日期和部分标签含义仍待核对。","detail-note");context.append(link("查看完整分析 →","#/experiments"));
+    const chart=el("figure","figure-block");chart.append(el("h3","","分析结果摘要"));
+    if(figure){const img=el("img");img.src="/api/c01/"+figure.path;img.alt=figure.title;img.addEventListener("error",()=>img.replaceWith(el("p","figure-error","结果图暂未载入，可在实验中心查看分析记录。")),{once:true});chart.append(img,el("figcaption","",figure.caption+" 柱高是相对基线的误差，低于 1 表示该项误差较低。图中 d21 calcium 沿用原快照标签，实际为 ARS 染色读数，日期待核，不是直接钙测量。"));}
+    else chart.append(el("p","figure-error","当前运行没有结果图，可在实验中心查看分析记录。"));
+    chart.append(link("查看图表与指标 →","#/experiments"));summary.append(context,chart);content.append(summary);
     p(content,"公开数据的历史测量并非新做的细胞实验。关联、模型结果都不能推断临床疗效或因果机制。","page-boundary");
   };
   const research=():void=>{
