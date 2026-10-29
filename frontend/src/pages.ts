@@ -6,7 +6,7 @@ import { knowledgeItems, knowledgeCard, filterKnowledge, knowledgeTypes, knowled
 
 export type Page = "overview" | "research" | "experiments" | "knowledge" | "outputs" | "read";
 export const pageLabels: Record<Page, string> = { overview: "项目总览", research: "研究推进", experiments: "实验中心", knowledge: "知识空间", outputs: "成果与复现", read: "记录阅读" };
-export interface Route { page: Page; id?: string; type: KnowledgeType; topics: KnowledgeTopic[]; view: "cards" | "relations"; researchView: "flow" | "records"; panorama: boolean; from: string; }
+export interface Route { page: Page; id?: string; type: KnowledgeType; topics: KnowledgeTopic[]; view: "cards" | "relations"; researchView: "flow" | "records" | "demo"; panorama: boolean; from: string; }
 export interface PageContext extends ContentContext { read: (id: string) => void; navigate: (hash: string) => void; returnFromReader: () => void; }
 export function parseRoute(hash: string): Route {
   const [path, query = ""] = hash.replace(/^#\/?/, "").split("?");
@@ -17,7 +17,7 @@ export function parseRoute(hash: string): Route {
   const type = params.get("type");
   const topics = knowledgeTopics.filter((topic)=>params.getAll("topic").includes(topic));
   const from = params.get("from") || "#/knowledge";
-  return { page, id, type: knowledgeTypes.includes(type as KnowledgeType) ? type as KnowledgeType : "全部", topics, view: params.get("view") === "relations" ? "relations" : "cards", researchView: params.get("view")==="records"||params.get("section")==="questions"?"records":"flow", panorama: params.get("scope") === "all", from: /^#\/(overview|research|experiments|knowledge|outputs)(\?|$)/.test(from) ? from : "#/knowledge" };
+  return { page, id, type: knowledgeTypes.includes(type as KnowledgeType) ? type as KnowledgeType : "全部", topics, view: params.get("view") === "relations" ? "relations" : "cards", researchView: params.get("view")==="demo"?"demo":params.get("view")==="records"||params.get("section")==="questions"?"records":"flow", panorama: params.get("scope") === "all", from: /^#\/(overview|research|experiments|knowledge|outputs)(\?|$)/.test(from) ? from : "#/knowledge" };
 }
 export function knowledgeHash(route: Partial<Route>): string {
   const params = new URLSearchParams();
@@ -29,8 +29,8 @@ export function knowledgeHash(route: Partial<Route>): string {
 }
 export function researchHash(route:Partial<Route>):string{
   const params=new URLSearchParams();
-  if(route.researchView==="records")params.set("view","records");
-  if(route.panorama)params.set("scope","all");
+  if(route.researchView==="records"||route.researchView==="demo")params.set("view",route.researchView);
+  if(route.panorama&&route.researchView!=="demo")params.set("scope","all");
   return "#/research"+(params.size?"?"+params.toString():"");
 }
 function action(label: string, click: () => void, cls = "quiet-button"): HTMLButtonElement { const button = el("button", cls, label); button.addEventListener("click", click); return button; }
@@ -107,9 +107,10 @@ function research(container:HTMLElement,route:Route,context:PageContext):ReturnT
   pageHead(container,"research","当前研究流程、实验判定和待处理问题。");
   const change=(patch:Partial<Route>)=>context.navigate(researchHash({...parseRoute(location.hash),...patch}));
   const bar=el("div","research-viewbar glass");const views=el("div","segmented");views.setAttribute("role","group");views.setAttribute("aria-label","研究推进视图");
-  for(const [value,label] of [["flow","流程画布"],["records","过程记录"]] as const){const button=action(label,()=>change({researchView:value}),route.researchView===value?"active":"");button.dataset.researchView=value;button.setAttribute("aria-pressed",String(route.researchView===value));views.append(button);}
+  for(const [value,label] of [["flow","流程画布"],["records","过程记录"],["demo","本地实验"]] as const){const button=action(label,()=>change({researchView:value}),route.researchView===value?"active":"");button.dataset.researchView=value;button.setAttribute("aria-pressed",String(route.researchView===value));views.append(button);}
   const questions=action("待处理问题 "+context.project.next_questions.length+" →",()=>context.navigate("#/research?view=records&section=questions"),"quiet-button research-questions-link");questions.dataset.questionsLink="true";bar.append(views,questions);container.append(bar);
   if(route.researchView==="records"){researchRecords(container,context);return;}
+  if(route.researchView==="demo"){const demo=el("section","local-demo");demo.id="local-demo";demo.setAttribute("aria-label","本地脚本实验");demo.append(el("p","empty-state","正在读取本地实验状态…"));container.append(demo);return;}
   const controls=el("div","research-flow-controls");const scopes=el("div","segmented");scopes.setAttribute("aria-label","画布记录范围");
   for(const [all,label] of [[false,"当前流程"],[true,"全景展开"]] as const){const button=action(label,()=>change({panorama:all}),route.panorama===all?"active":"");button.dataset.researchScope=all?"all":"current";button.setAttribute("aria-pressed",String(route.panorama===all));scopes.append(button);}
   controls.append(scopes,el("p","","连线表示原记录引用；流程顺序用于浏览。"));container.append(controls);

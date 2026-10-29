@@ -66,6 +66,7 @@ def main(argv=None):
     studio = subs.add_parser("studio", help="Serve a prepared research project on loopback only")
     studio.add_argument("--workspace", required=True)
     studio.add_argument("--port", type=int, default=8766)
+    studio.add_argument("--local-demo", action="store_true", help="Enable a separate two-step local script demo; never enable a live model")
     paper = subs.add_parser("paper-export", help="Export the prepared project paper and validation reproduction ZIP")
     paper.add_argument("--workspace", required=True)
     args = parser.parse_args(argv)
@@ -77,7 +78,7 @@ def main(argv=None):
             return 0
         if args.command == "studio":
             from .studio import serve
-            serve(args.workspace,args.port)
+            serve(args.workspace,args.port,local_demo=args.local_demo)
             return 0
         if args.command == "paper-export":
             from .studio_outputs import ProjectOutputs

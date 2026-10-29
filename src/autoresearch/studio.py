@@ -1,14 +1,16 @@
-"""Single-operator loopback viewer. No execution or model-call endpoints."""
+"""Single-operator loopback viewer with an explicitly enabled local-only demo."""
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import secrets
+import sqlite3
 import time
 
 from .contracts import ResearchError, canonical
 from .studio_project import ProjectStore
 from .studio_outputs import ProjectOutputs
+from .local_demo import LocalDemo
 
 
 def _object(pairs):
@@ -24,12 +26,13 @@ def _nonfinite(value):
     raise ValueError("nonfinite JSON")
 
 
-def create_server(workspace, port=8766):
+def create_server(workspace, port=8766, *, local_demo=False):
     if type(port) is not int or not 0 <= port <= 65535:
         raise ResearchError("INVALID_REQUEST", "invalid local port")
     store = ProjectStore(workspace)
     store.verify()
     outputs = ProjectOutputs(store)
+    demo = LocalDemo(store.root, store.project()["snapshot"]["sha256"], enabled=local_demo)
     token = secrets.token_urlsafe(32)
     assets = Path(__file__).with_name("web")
 
@@ -103,6 +106,9 @@ def create_server(workspace, port=8766):
                     return self.send(200, (assets/name).read_bytes(), mime)
                 if self.path == "/api/project":
                     return self.reply(200, {**store.project(), "csrf_token":token})
+                if self.path == "/api/local-demo":
+                    store.verify()
+                    return self.reply(200, demo.status())
                 figures = {"/api/figures/validation.svg":"validation.svg", "/api/figures/prediction.svg":"prediction.svg"}
                 if self.path in figures:
                     return self.send(200,outputs.figure(figures[self.path]),"image/svg+xml")
@@ -129,8 +135,11 @@ def create_server(workspace, port=8766):
             tokens = self.headers.get_all("X-Research-CSRF", [])
             if len(tokens) != 1 or not tokens[0].isascii() or not hmac.compare_digest(tokens[0], token):
                 return self.error(403,"CSRF_DENIED","refresh the project before saving")
-            if self.path != "/api/questions":
+            if self.path not in {"/api/questions", "/api/local-demo/step"}:
                 return self.error(404,"NOT_FOUND","no research execution endpoint is exposed")
+            is_demo = self.path == "/api/local-demo/step"
+            if is_demo and not demo.enabled:
+                return self.error(403,"LOCAL_DEMO_DISABLED","本地演示未启用。")
             if self.headers.get_content_type() != "application/json":
                 return self.error(415,"INVALID_REQUEST","JSON content type is required")
             sizes = self.headers.get_all("Content-Length", [])
@@ -138,30 +147,43 @@ def create_server(workspace, port=8766):
                     or not sizes[0].isascii() or not sizes[0].isdigit() or not 1 <= int(sizes[0]) <= 8192):
                 return self.error(413,"INVALID_REQUEST","request must have a bounded JSON body")
             self.connection.settimeout(5)
+            executing_demo = False
             try:
                 raw = self.rfile.read(int(sizes[0]))
                 self._body_consumed = True
                 if len(raw) != int(sizes[0]):
                     raise ValueError("incomplete body")
                 value = json.loads(raw.decode("utf-8"), object_pairs_hook=_object, parse_constant=_nonfinite)
-                if not isinstance(value,dict) or set(value) != {"text"}:
-                    raise ValueError("only the text field is accepted")
+                expected = {"request_id"} if is_demo else {"text"}
+                if not isinstance(value,dict) or set(value) != expected:
+                    raise ValueError("unsupported request fields")
+                if is_demo:
+                    executing_demo = True
+                    store.verify()
+                    result = demo.step(value["request_id"])
+                    return self.reply(200 if result["replayed"] else 202,result)
                 item = store.add_question(value["text"])
                 return self.reply(201,{"ok":True,"question":item})
             except ResearchError as exc:
-                return self.error(400,exc.code,str(exc))
+                status = (403 if exc.code == "LOCAL_DEMO_DISABLED" else 400 if exc.code == "INVALID_REQUEST" else 409) if is_demo else 400
+                return self.error(status,exc.code,str(exc))
+            except sqlite3.Error:
+                return self.error(500,"LOCAL_DEMO_STORAGE_ERROR","本地演示存储不可用，请核查后重试。")
             except (ValueError, UnicodeError, RecursionError, OSError):
+                if executing_demo:
+                    return self.error(500,"LOCAL_DEMO_STORAGE_ERROR","本地演示存储不可用，请核查后重试。")
                 return self.error(400,"INVALID_REQUEST","a complete UTF-8 JSON question is required")
 
     server = ThreadingHTTPServer(("127.0.0.1",port),Handler)
     server.daemon_threads = True
     server.project_store = store
     server.project_outputs = outputs
+    server.local_demo = demo
     return server
 
 
-def serve(workspace, port=8766):
-    with create_server(workspace, port) as server:
+def serve(workspace, port=8766, *, local_demo=False):
+    with create_server(workspace, port, local_demo=local_demo) as server:
         print(canonical({"ready":True,"url":f"http://127.0.0.1:{server.server_port}","cloud_calls":0}),flush=True)
         try:
             server.serve_forever()

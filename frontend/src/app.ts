@@ -6,6 +6,7 @@ import { renderDetails } from "./content";
 import { kindLabels, objectsFor } from "./model";
 import { knowledgeHash, researchHash, pageLabels, parseRoute, renderPage, type Page, type PageContext } from "./pages";
 import { relationObjects } from "./knowledge";
+import { mountLocalDemo } from "./local-demo";
 import type { Layout, Project, ResearchObject } from "./types";
 
 let project: Project | null = null;
@@ -160,6 +161,7 @@ function renderRoute(): void {
   document.querySelectorAll<HTMLAnchorElement>("[data-page]").forEach((link)=>{const active=link.dataset.page===activePage;link.classList.toggle("active",active);if(active)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");});
   const result=renderPage(content,route,context());
   if(result?.boardContainer) createBoard(route,result);
+  if(route.page==="research" && route.researchView==="demo") mountLocalDemo($("local-demo"),project.csrf_token || "",project.snapshot.sha256);
   controls();
   const saved=bookmarks.get(hash);
   requestAnimationFrame(()=>{
