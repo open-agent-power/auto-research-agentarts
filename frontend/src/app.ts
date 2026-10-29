@@ -7,6 +7,7 @@ import { kindLabels, objectsFor } from "./model";
 import { knowledgeHash, researchHash, pageLabels, parseRoute, renderPage, type Page, type PageContext } from "./pages";
 import { relationObjects } from "./knowledge";
 import { mountLocalDemo } from "./local-demo";
+import { mountC01 } from "./c01-app";
 import type { Layout, Project, ResearchObject } from "./types";
 
 let project: Project | null = null;
@@ -195,6 +196,9 @@ async function load(): Promise<void> {
     $("state-message").textContent=error instanceof Error ? error.message : "请确认本地服务仍在运行。"; $("retry").hidden=false; controls();
   }
 }
+if (document.body.dataset.case === "c01") {
+  void mountC01();
+} else {
 $("download-pdf").addEventListener("click",()=>{void download("pdf");}); $("download-zip").addEventListener("click",()=>{void download("reproduction");});
 $("close-inspector").addEventListener("click",()=>closePreview()); $("inspector-backdrop").addEventListener("click",()=>closePreview());
 $("read-object").addEventListener("click",()=>{
@@ -218,3 +222,4 @@ document.addEventListener("keydown",(event)=>{
   if(event.key==="/" && inspector.hidden && !["INPUT","TEXTAREA","SELECT"].includes(tag)){event.preventDefault();$("search").focus();}
 });
 void load();
+}

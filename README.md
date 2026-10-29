@@ -4,6 +4,17 @@
 
 产品目标是基于AgentArts持续推进科研项目，交付有证据支撑的论文式PDF、复现附件及可继续的项目。当前已实现受控实验与决策底座，以及读取既有钢材实验的本地研究工作台、五页中文报告与验证复算附件；领域主案例、真实模型和云端仍需独立验收。
 
+## C01：钛合金与体外成骨细胞
+
+C01 是独立的公开数据研究案例，原始资料和队员交接包存放在工作区 `references/auto-research/08-c01-tnzst/`。按实际路径运行（输出目录必须不存在或为空）：
+
+```powershell
+.venv/Scripts/python.exe -m autoresearch.c01 --archive "../../references/auto-research/08-c01-tnzst/案例输入包-C01-TNZST-20261028.zip" --output runs/c01-your-new-run
+.venv/Scripts/python.exe -m autoresearch.c01_studio --archive "../../references/auto-research/08-c01-tnzst/案例输入包-C01-TNZST-20261028.zip" --workspace runs/c01-your-new-run --port 8769
+```
+
+打开 `http://127.0.0.1:8769/` 查看独立案例及其报告与复现附件。脚本执行两轮本地留一分析，第二轮沿用相同样本，只作敏感性比较；原始标签映射及实验重复等仍待核验。C01 是公开数据上的探索，不是新做的体外实验、临床研究或真实大模型自主研究；不覆盖钢材快照、不使用云或模型服务。原论文已研究该数据，不能把复现关联说成新发现。
+
 已实现本地闭环与官方AgentArts SDK的HTTP桥接，以及产品自身的HTTP模型客户端和持续决策控制器。控制器可以读取真实观察、接收模型的实验／暂停／停止决定、训练候选并恢复。调用前预留请求与费用预算，未知请求不自动重发。真实LLM与AgentArts云端尚未验收；用户已明确暂缓平台接入，本轮仅用明确标注的脚本HTTP端点验证流程并执行真实CPU训练。
 
 此仓库保存产品代码、工程样例与明确署名的固定公开材料数据；参考库、私有科研数据、凭据、浏览器会话和本地运行产物均不入 Git。
