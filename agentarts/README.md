@@ -1,8 +1,12 @@
-# AgentArts Runtime 接入
+# AgentArts 接入
+
+2026-10-30，已在中国站低代码平台完成 C01 纯代码工作流的真实试运行，源码、公开输入和重建步骤见 [C01敏感性核验](c01-sensitivity/README.md)。它是控制台草稿中的独立工具，尚未接入本地持续研究循环；此页下方的高代码 Runtime 是另一条待部署路径。
+
+## 高代码 Runtime
 
 已实现官方 SDK 0.1.8 的 HTTP 入口，保留现有研究协议。真实本地 HTTP、服务进程重启、幂等和模型参数产物已验证；云端镜像、认证、存储和平台 Trace 尚待验证。
 
-R4新增的产品决策循环通过本地CLI调用独立HTTP模型接口，随后使用同一实验内核；它没有自动注册成此Runtime的工具，也没有据此完成平台主编排。用户已暂缓平台接入验证，真实模型与云端调用保持pending。localhost脚本模型端点只算显式fixture，入口和恢复方式见[自主研究接入说明](../examples/autonomous-research.md)。
+R4新增的产品决策循环通过本地CLI调用独立HTTP模型接口，随后使用同一实验内核；它没有自动注册成此Runtime的工具，也没有据此完成平台主编排。当前恢复的平台验证先走独立低代码工具；本Runtime部署与真实模型决策仍保持pending。localhost脚本模型端点只算显式fixture，入口和恢复方式见[自主研究接入说明](../examples/autonomous-research.md)。
 
 ## 启动与复用
 

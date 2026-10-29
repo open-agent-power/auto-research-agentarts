@@ -1,0 +1,45 @@
+{
+  "source_doi": "10.17632/tt7gwkpck8.1",
+  "samples": [
+    {
+      "sample_id": "Alloy 1",
+      "water_contact_angle_deg": 71.39,
+      "cell_seeding_efficiency_24h_pct": 86.53474784747849
+    },
+    {
+      "sample_id": "Alloy 2",
+      "water_contact_angle_deg": 71.98,
+      "cell_seeding_efficiency_24h_pct": 88.19526445264454
+    },
+    {
+      "sample_id": "Alloy 3",
+      "water_contact_angle_deg": 72.51,
+      "cell_seeding_efficiency_24h_pct": 87.61613366133662
+    },
+    {
+      "sample_id": "Alloy 4",
+      "water_contact_angle_deg": 46.66,
+      "cell_seeding_efficiency_24h_pct": 82.41420664206642
+    },
+    {
+      "sample_id": "Alloy 5",
+      "water_contact_angle_deg": 70.19,
+      "cell_seeding_efficiency_24h_pct": 92.1108036080361
+    },
+    {
+      "sample_id": "Alloy 6",
+      "water_contact_angle_deg": 69.81,
+      "cell_seeding_efficiency_24h_pct": 95.10383353833538
+    },
+    {
+      "sample_id": "Alloy 7",
+      "water_contact_angle_deg": 66.34,
+      "cell_seeding_efficiency_24h_pct": 93.97632226322263
+    },
+    {
+      "sample_id": "Alloy 8",
+      "water_contact_angle_deg": 68.89,
+      "cell_seeding_efficiency_24h_pct": 95.01158261582617
+    }
+  ]
+}
