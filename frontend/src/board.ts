@@ -2,13 +2,14 @@ import { Graph, Shape, Node } from "@antv/x6";
 import type { Layout, Project, ResearchObject, Viewport } from "./types";
 import { el, numeric } from "./dom";
 import { kindLabels } from "./model";
+import { nodeVisual } from "./node-visual";
 
 const GROUPS = {
-  evidence: { id: "group-evidence", title: "01  依据与研究线索", x: 36, color: "sage", width: 316 },
-  experiments: { id: "group-experiments", title: "02  假设与真实试验", x: 394, color: "sand", width: 350 },
-  conclusions: { id: "group-conclusions", title: "03  判断与研究成果", x: 794, color: "lavender", width: 350 },
+  evidence: { id: "group-evidence", title: "01  当前问题与依据", x: 28, color: "sage", width: 364 },
+  experiments: { id: "group-experiments", title: "02  提案与实验", x: 458, color: "sand", width: 364 },
+  conclusions: { id: "group-conclusions", title: "03  判断与下一步", x: 888, color: "lavender", width: 364 },
 };
-const sizes = { question: { width: 350, height: 176 }, source: { width: 278, height: 175 }, trial: { width: 312, height: 202 }, claim: { width: 312, height: 151 }, paper: { width: 312, height: 158 }, questions: { width: 278, height: 160 } };
+const sizes = { question: { width: 324, height: 280 }, source: { width: 324, height: 280 }, trial: { width: 324, height: 324 }, claim: { width: 324, height: 296 }, paper: { width: 324, height: 280 }, questions: { width: 324, height: 280 } };
 type Events = { select: (id: string) => void; change: (zoom: number, dirty: boolean) => void; message: (message: string, error?: boolean) => void; blank: () => void };
 function isRecord(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function finite(value: unknown, limit = 100000): value is number { return typeof value === "number" && Number.isFinite(value) && Math.abs(value) <= limit; }
@@ -25,9 +26,9 @@ export class ResearchBoard {
   private selected = "";
   readonly storageKey: string;
 
-  constructor(container: HTMLElement, project: Project, objects: ResearchObject[], private events: Events) {
+  constructor(container: HTMLElement, project: Project, objects: ResearchObject[], private events: Events, scope = "current") {
     this.project = project; this.objects = objects;
-    this.storageKey = "autoresearch-layout:v1:" + encodeURIComponent(project.id) + ":" + project.snapshot.sha256;
+    this.storageKey = "autoresearch-layout:v3-flow:" + encodeURIComponent(project.id) + ":" + project.snapshot.sha256 + ":" + encodeURIComponent(scope);
     Shape.HTML.register({
       shape: "research-object", effect: ["data"], html: (cell) => this.card(cell as Node),
     });
@@ -43,13 +44,13 @@ export class ResearchBoard {
       connecting: { allowBlank: false, allowLoop: false, allowEdge: false, allowNode: false },
     });
     this.addNodes(); this.addEdges();
-    this.graph.zoomTo(.86);
-    this.graph.translate(window.innerWidth <= 720 ? 25 : (window.innerWidth <= 1150 ? 250 : 280), 110);
+    this.graph.zoomTo(Math.max(.68,Math.min(.92,(container.clientWidth-45)/1280)));
+    this.graph.translate(12, 18);
     this.defaults = this.capture();
     this.graph.on("node:click", ({ node }) => { if (this.objects.some((object) => object.id === node.id)) this.events.select(node.id); });
     this.graph.on("blank:click", () => this.events.blank());
     this.graph.on("node:moved", () => this.changed());
-    this.graph.on("node:change:position", () => this.changed());
+    this.graph.on("node:change:position", () => {if(!this.applying)this.routeEdges();this.changed();});
     this.graph.on("scale", () => this.changed());
     this.graph.on("translate", () => this.changed());
     this.applying = false;
@@ -60,12 +61,12 @@ export class ResearchBoard {
   private card(node: Node): HTMLElement {
     const object = node.getData<ResearchObject>();
     const card = el("div", "research-card" + (this.selected === object.id ? " selected" : ""));
-    card.dataset.kind = object.kind; card.dataset.objectId = object.id; card.tabIndex = 0;
+    card.dataset.kind = object.kind; card.dataset.objectId = object.id; card.dataset.focusId=object.id;card.tabIndex = 0;
     card.setAttribute("role", "button"); card.setAttribute("aria-label", kindLabels[object.kind] + "：" + object.title + "，Enter查看详情");
     card.setAttribute("aria-pressed", String(this.selected === object.id));
     const meta = el("div", "node-meta");
     meta.append(el("span", "node-category", kindLabels[object.kind]), el("span", "node-tag " + (["rejected", "limitation"].includes(object.status) ? object.status : ""), object.tag));
-    card.append(meta, el("div", "node-title", object.title));
+    card.append(meta, nodeVisual(object,this.project),el("div", "node-title", object.title));
     if (object.kind === "trial") {
       const metric = el("div", "node-metric");
       const trial = object.data as Project["trials"][number];
@@ -75,7 +76,7 @@ export class ResearchBoard {
     card.append(el("p", "node-summary", object.summary));
     const footer = el("div", "node-footer");
     const label = object.kind === "trial" && object.rawId === this.project.metrics.best_trial_id ? "当前保留模型" : (object.rawId.length > 22 ? object.rawId.slice(0, 10) + "…" : object.rawId);
-    footer.append(el("span", "", label), el("span", "node-arrow", "↗")); card.append(footer);
+    footer.append(el("span", "", label), el("span", "node-arrow", object.kind==="source"?"资料记录 ↗":"查看记录 ↗")); card.append(footer);
     card.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); this.events.select(object.id); }
       const movement: Record<string, [number, number]> = { ArrowLeft: [-24, 0], ArrowRight: [24, 0], ArrowUp: [0, -24], ArrowDown: [0, 24] };
@@ -93,29 +94,28 @@ export class ResearchBoard {
     const groupNodes = new Map<string, Node>();
     for (const [key, group] of Object.entries(GROUPS)) {
       const members = this.objects.filter((object) => object.group === key);
-      const height = 76 + members.reduce((sum, object) => sum + sizes[object.kind].height + 18, 0);
+      const height = 86 + members.reduce((sum, object) => sum + sizes[object.kind].height + 24, 0);
       const node = this.graph.addNode({
-        id: group.id, shape: "rect", x: group.x, y: 252, width: group.width, height: Math.max(190, height), zIndex: 0,
+        id: group.id, shape: "rect", x: group.x, y: 24, width: group.width, height: Math.max(230, height), zIndex: 0,
         attrs: {
           body: { fill: "var(--ar-group-" + group.color + "-surface)", stroke: "var(--ar-group-" + group.color + "-border)", strokeWidth: 1, rx: 18, ry: 18 },
-          label: { text: group.title, fill: "var(--ar-group-" + group.color + "-ink)", fontSize: 12, fontWeight: 600, fontFamily: "Segoe UI, Microsoft YaHei, sans-serif", refX: 20, refY: 29, textAnchor: "start", textVerticalAnchor: "middle" },
+          label: { text: group.title+" · "+(members.length?members.length+" 项":"暂无记录"), fill: "var(--ar-group-" + group.color + "-ink)", fontSize: 13, fontWeight: 600, fontFamily: "Segoe UI, Microsoft YaHei, sans-serif", refX: 20, refY: 34, textAnchor: "start", textVerticalAnchor: "middle" },
         },
       });
       groupNodes.set(key, node); this.ids.add(group.id);
     }
-    const offsets: Record<string, number> = { evidence: 309, experiments: 309, conclusions: 309 };
-    // Place the report first in the conclusions column; all claims keep their original IDs.
-    const ordered = [...this.objects].sort((a, b) => (a.kind === "paper" ? -1 : 0) - (b.kind === "paper" ? -1 : 0));
+    const offsets: Record<string, number> = { evidence: 105, experiments: 105, conclusions: 105 };
+    const ordered = [...this.objects];
     ordered.forEach((object) => {
       const size = sizes[object.kind];
       const group = object.group ? GROUPS[object.group] : null;
-      const x = group ? group.x + 19 : 394;
-      const y = object.group ? offsets[object.group] : 35;
+      const x = group ? group.x + 20 : 48;
+      const y = object.group ? offsets[object.group] : 105;
       const node = this.graph.addNode({ id: object.id, shape: "research-object", x, y, ...size, zIndex: 3, data: object });
       this.ids.add(object.id);
       if (object.group) {
         groupNodes.get(object.group)?.addChild(node);
-        offsets[object.group] += size.height + 18;
+        offsets[object.group] += size.height + 24;
       }
     });
   }
@@ -130,13 +130,28 @@ export class ResearchBoard {
         const pair = source.id + "->" + object.id;
         if (seen.has(pair)) continue;
         seen.add(pair);
+        const same=source.group===object.group;
         this.graph.addEdge({
-          source: { cell: source.id }, target: { cell: object.id }, zIndex: 1,
+          source: { cell: source.id,anchor:{name:same?"left":"right"} }, target: { cell: object.id,anchor:{name:"left"} }, zIndex: 1,
           router: { name: "orth" }, connector: { name: "rounded", args: { radius: 10 } },
-          attrs: { line: { stroke: "#a8b8b0", strokeWidth: 1.15, strokeOpacity: .72, targetMarker: { name: "classic", size: 5 } } },
+          attrs: { line: { stroke: "#91a886", strokeWidth: 1.4, strokeOpacity: .8, targetMarker: { name: "classic", size: 5 } } },
           data: { relation: "recorded_reference", source_id: source.rawId, target_id: object.rawId },
         });
       }
+    }
+    this.routeEdges();
+  }
+
+  private routeEdges():void{
+    const groups=Object.keys(GROUPS);
+    for(const edge of this.graph.getEdges()){
+      const fromNode=edge.getSourceCell();const toNode=edge.getTargetCell();if(!fromNode||!toNode)continue;
+      const source=this.objects.find((item)=>item.id===fromNode.id);const target=this.objects.find((item)=>item.id===toNode.id);if(!source||!target)continue;
+      const from=fromNode.getBBox();const to=toNode.getBBox();const sourceKey=source.group||"evidence";const targetKey=target.group||"evidence";
+      const a=this.graph.getCellById(GROUPS[sourceKey].id)!.getBBox();const b=this.graph.getCellById(GROUPS[targetKey].id)!.getBBox();
+      const same=sourceKey===targetKey;const gutter=same?Math.min(from.x,to.x,a.x)-28:Math.min(to.x,b.x)-30;
+      const adjacent=groups.indexOf(targetKey)-groups.indexOf(sourceKey)===1;
+      edge.setVertices(same||adjacent?[{x:gutter,y:from.center.y},{x:gutter,y:to.center.y}]:[{x:a.right+30,y:from.center.y},{x:a.right+30,y:Math.min(a.y,b.y)-24},{x:gutter,y:Math.min(a.y,b.y)-24},{x:gutter,y:to.center.y}]);
     }
   }
 
@@ -147,27 +162,33 @@ export class ResearchBoard {
       element.classList.toggle("selected", key === id); element.setAttribute("aria-pressed", String(key === id));
     }
   }
+  focusElement(id:string):boolean{
+    const element=this.elements.get(id);if(!element?.isConnected)return false;
+    const box=element.getBoundingClientRect();const frame=this.graph.container.getBoundingClientRect();
+    const left=Math.max(frame.left,0),right=Math.min(frame.right,window.innerWidth),top=Math.max(frame.top,0),bottom=Math.min(frame.bottom,window.innerHeight-(window.innerWidth<=720?88:0));
+    if(box.right<=left+8||box.left>=right-8||box.bottom<=top+8||box.top>=bottom-8)this.focus(id);
+    this.select(id);element.focus({preventScroll:true});return document.activeElement===element;
+  }
   focus(id: string): void {
     const cell = this.graph.getCellById(id);
     if (!cell || !cell.isNode()) return;
     const box = cell.getBBox(); const width = this.graph.container.clientWidth; const height = this.graph.container.clientHeight;
-    const mobile = width <= 720; const left = mobile ? 18 : (width <= 1150 ? 245 : 275);
-    const right = !mobile && document.body.classList.contains("has-inspector") ? 455 : 25;
-    const top = mobile ? 260 : 145; const bottom = 105;
+    const left = 25; const right = 25;
+    const top = 30; const bottom = 85;
     const zoom = Math.max(this.graph.zoom(), .75);
     this.graph.zoomTo(zoom);
     this.graph.translate((left + width - right) / 2 - (box.x + box.width / 2) * zoom, (top + height - bottom) / 2 - (box.y + box.height / 2) * zoom);
   }
   focusGroup(name: string): void {
-    const group = (GROUPS as Record<string, { id: string }>)[name]; if (group) this.focus(group.id);
+    const first=this.objects.find((object)=>object.group===name);
+    const group = (GROUPS as Record<string, { id: string }>)[name];if(first)this.focus(first.id);else if(group)this.focus(group.id);
   }
   zoom(delta: number): void { this.graph.zoomTo(Math.max(.35, Math.min(1.6, this.graph.zoom() + delta))); }
   zoomReset(): void { this.graph.zoomTo(1); }
   viewport(): Viewport { const value = this.graph.translate(); return { zoom: this.graph.zoom(), x: value.tx, y: value.ty }; }
   restoreViewport(value: Viewport): void { this.graph.zoomTo(value.zoom); this.graph.translate(value.x, value.y); }
   fit(): void {
-    const width = this.graph.container.clientWidth;
-    this.graph.zoomToFit({ padding: { top: width <= 720 ? 260 : 150, bottom: 110, left: width <= 720 ? 20 : (width <= 1150 ? 245 : 280), right: width > 720 && document.body.classList.contains("has-inspector") ? 455 : 35 }, maxScale: 1, minScale: .35, useCellGeometry: true });
+    this.graph.zoomToFit({ padding: { top: 32, bottom: 110, left: 32, right: 32 }, maxScale: 1, minScale: .35, useCellGeometry: true });
   }
   capture(): Layout {
     const positions: Layout["positions"] = {};
@@ -190,7 +211,12 @@ export class ResearchBoard {
       const node = this.graph.getCellById(id); if (node?.isNode()) node.position(position.x, position.y);
     }
     this.graph.zoomTo(layout.viewport.zoom); this.graph.translate(layout.viewport.x, layout.viewport.y);
+    this.routeEdges();
     this.applying = false; this.events.change(this.graph.zoom(), false);
+  }
+  restoreSession(layout:unknown,dirty:boolean):boolean{
+    try{this.apply(this.validate(layout));this.events.change(this.graph.zoom(),dirty===true);return true;}
+    catch{this.events.message("未恢复不适用的会话布局，原始记录仍可查看。",true);return false;}
   }
   save(): void {
     try { const value = this.validate(this.capture()); localStorage.setItem(this.storageKey, JSON.stringify(value)); this.events.change(this.graph.zoom(), false); this.events.message("布局已保存在本浏览器，不改变研究记录。"); }

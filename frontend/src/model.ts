@@ -6,7 +6,7 @@ export const kindLabels: Record<ResearchObject["kind"], string> = { question: "�
 export function objectsFor(project: Project): ResearchObject[] {
   const objects: ResearchObject[] = [{
     id: nodeId("question", project.id), rawId: project.id, kind: "question", title: project.question,
-    summary: project.source_goal, status: "frozen", tag: "冻结问题", group: null, references: [], data: project,
+    summary: "已有研究记录", status: "frozen", tag: "当前问题", group: "evidence", references: [], data: project,
   }];
   project.sources.forEach((source) => objects.push({
     id: nodeId("source", source.id), rawId: source.id, kind: "source", title: source.title, summary: source.description,
@@ -21,7 +21,7 @@ export function objectsFor(project: Project): ResearchObject[] {
   }));
   project.claims.forEach((claim) => objects.push({
     id: nodeId("claim", claim.id), rawId: claim.id, kind: "claim", title: claim.statement,
-    summary: claim.status === "limitation" ? "适用边界须与结果一起阅读。" : "判断依据保留在原始记录与引用中。",
+    summary: claim.status === "limitation" ? "研究限制，详见引用记录。" : "见原始判断及引用记录。",
     status: claim.status, tag: ({ observed: "记录事实", limitation: "适用边界", planned: "待执行" } as Record<string, string>)[claim.status] || "待核",
     group: "conclusions", references: claim.evidence_ids || [], data: claim,
   }));
@@ -30,9 +30,9 @@ export function objectsFor(project: Project): ResearchObject[] {
     summary: project.report.sections.length + " 个章节 · " + project.figures.length + " 张结果图。全文与图表使用同一份冻结证据。",
     status: "paper", tag: "可阅读 / 导出", group: "conclusions", references: [], data: project,
   }, {
-    id: nodeId("questions", project.id), rawId: "next_questions", kind: "questions", title: "继续研究的问题",
-    summary: project.next_questions.length ? project.next_questions.length + " 条人工问题已保存，尚未执行。" : "暂未保存后续问题。记录一个未决疑问，留待人工安排。",
-    status: "planned", tag: "待人工执行", group: "evidence", references: [], data: project,
+    id: nodeId("questions", project.id), rawId: "next_questions", kind: "questions", title: "待处理问题",
+    summary: project.next_questions.length ? project.next_questions[project.next_questions.length-1].text : "尚无待处理问题。可在研究推进页保存，保存不会执行研究。",
+    status: "planned", tag: "待人工执行", group: "conclusions", references: [], data: project,
   });
   return objects;
 }

@@ -1,6 +1,6 @@
 # Product working agreements
 
-- Start with `docs/README.md` for implementation boundaries and `DESIGN.md` before any UI work. The unified UI uses an X6 research canvas with restrained floating glass navigation, solid reading surfaces and a mobile list fallback. Edit `frontend/` and rebuild the packaged `web/` assets, never maintain a second hand-edited runtime theme.
+- Start with `docs/README.md` for implementation boundaries and `DESIGN.md` before any UI work. The UI defaults to project overview and has distinct research, experiments, knowledge and deliverable pages. Research defaults to an X6 workflow canvas; knowledge uses categorized visual cards, a record reader and a relation view; navigation uses floating glass while long-form content stays solid. Edit `frontend/` and rebuild the packaged `web/` assets, never maintain a second hand-edited runtime theme.
 - Keep actual implementation in `src/`, product architecture/design in `docs/`, reusable request examples in `examples/`, and local evidence in ignored `runs/` and `.agent/`. External source archives belong to the workspace reference library, never the product code tree.
 - Distinguish implemented modules from proposed architecture. Canvas positions and visual connectors must not overwrite experiments, citations, evaluation protocols or research state. A draft question or manual connector does not execute research or establish a scientific claim.
 

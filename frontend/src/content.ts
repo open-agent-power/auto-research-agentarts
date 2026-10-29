@@ -29,7 +29,7 @@ function refs(container: HTMLElement, ids: string[], context: ContentContext): v
   });
   container.append(list);
 }
-function figures(container: HTMLElement, context: ContentContext): void {
+export function figures(container: HTMLElement, context: ContentContext): void {
   const allow = ["/api/figures/validation.svg", "/api/figures/prediction.svg"];
   context.project.figures.forEach((figure) => {
     const block = el("figure", "figure-block");
@@ -54,11 +54,11 @@ function report(container: HTMLElement, context: ContentContext): void {
   container.append(article);
 }
 let formSequence = 0;
-function questionForm(container: HTMLElement, context: ContentContext): void {
-  paragraph(container, "问题保存到本地服务，状态为待人工执行。保存不会调用模型、启动训练或改写既有证据。", "detail-note");
+export function questionForm(container: HTMLElement, context: ContentContext): void {
+  paragraph(container, "问题保存到本地，待人工执行；不会调用模型或启动训练。", "detail-note");
   const form = el("form", "question-form");
   const id = "followup-" + (++formSequence);
-  const label = el("label", "", "下一步想核查什么？"); label.htmlFor = id;
+  const label = el("label", "", "问题内容"); label.htmlFor = id;
   const input = el("textarea"); input.id = id; input.rows = 4; input.value = context.draft();
   input.placeholder = "例如：缺少加工条件是否限制了现有结论的解释？"; input.required = true;
   const meta = el("div", "form-meta");
@@ -71,7 +71,7 @@ function questionForm(container: HTMLElement, context: ContentContext): void {
   const renderSaved = () => {
     saved.replaceChildren();
     heading(saved, "已保存 · " + context.project.next_questions.length + " 条");
-    if (!context.project.next_questions.length) paragraph(saved, "暂无后续问题。先保留一个未决疑问即可。", "empty-state");
+    if (!context.project.next_questions.length) paragraph(saved, "暂无待处理问题。", "empty-state");
     [...context.project.next_questions].reverse().forEach((question) => {
       const row = el("div", "saved-question");
       paragraph(row, question.text);
@@ -119,22 +119,17 @@ export function renderDetails(container: HTMLElement, object: ResearchObject, co
     field(record, "固定划分", splits ? "训练 " + text(splits.train) + " / 验证 " + text(splits.validation) + " / 测试 " + text(splits.test) : "未提供");
     field(record, "输入特征", Array.isArray(data.feature_names) ? data.feature_names.map((value) => text(value)).join("、") : "未提供");
     container.append(record);
-    paragraph(container, "本页使用冻结的已有证据。画布位置与布局分组不改变研究结果、实验父关系或科学引用。", "detail-note");
-    heading(container, "本浏览器布局");
-    const controls = el("div", "detail-ref-list");
-    for (const [title, action] of [["保存布局", context.layout.save], ["恢复布局", context.layout.restore], ["重置布局", context.layout.reset]] as const) {
-      const button = el("button", "quiet-button", title); button.addEventListener("click", action); controls.append(button);
-    }
-    container.append(controls);
+    paragraph(container, "本页为已有证据快照。布局不改变研究结果、父关系和引用。", "detail-note");
   } else if (object.kind === "source") {
     const source = object.data as Source;
+    paragraph(container, "当前快照仅有摘记和来源信息，原文请访问原始来源。", "detail-note source-record-boundary");
     heading(container, "来源与使用范围"); paragraph(container, source.description);
     const url = safeUrl(source.url);
     if (url) { const link = el("a", "source-link", "打开原始来源 ↗"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer"; container.append(link); paragraph(container, url, "source-url"); }
     else paragraph(container, "链接未提供或不符合 HTTPS 要求。", "detail-note");
     const record = el("dl", "detail-dl"); field(record, "来源编号", source.id);
     container.append(record);
-    paragraph(container, "来源可读不等于结论成立。具体版本、许可与数据使用边界应与复现附件中的来源记录一起核对。", "detail-note");
+    paragraph(container, "版本、许可和使用范围见复现附件中的来源记录。", "detail-note");
   } else if (object.kind === "trial") {
     const trial = object.data as Trial; const metrics = trial.metrics || {};
     container.append(badge(trial.status));
@@ -148,7 +143,7 @@ export function renderDetails(container: HTMLElement, object: ResearchObject, co
     heading(container, "原提案假设"); paragraph(container, trial.proposal?.hypothesis || trial.reason || "原始记录未提供。");
     if (trial.proposal?.expected_effect) { heading(container, "待检验的预期"); paragraph(container, trial.proposal.expected_effect); }
     heading(container, "采用／拒绝依据"); paragraph(container, trial.decision_reason || "原始记录未提供判定理由。");
-    paragraph(container, "提案预期不是实验结论。当前仅比较固定公开数据和预设规则，不据此声称材料发现或模型策略增益。", "detail-note");
+    paragraph(container, "预期效果未经确认。当前结果只适用于固定数据和评价规则。", "detail-note");
     heading(container, "实际引用"); refs(container, object.references, context);
     const audit = el("dl", "detail-dl"); field(audit, "试验 ID", trial.id, true); field(audit, "父试验", trial.parent_trial_id || "无 / 未记录", true);
     field(audit, "模型 SHA", trial.model_sha256 || "未记录", true); field(audit, "配方 SHA", trial.recipe_sha256 || "未记录", true);
@@ -157,7 +152,7 @@ export function renderDetails(container: HTMLElement, object: ResearchObject, co
   } else if (object.kind === "claim") {
     const claim = object.data as Claim; container.append(badge(claim.status)); heading(container, "原始主张"); paragraph(container, claim.statement);
     heading(container, "引用的证据记录"); refs(container, claim.evidence_ids, context);
-    paragraph(container, "连线仅表达原记录的引用。卡片分组与接近关系不代表支持、反驳或因果关系；科学判断仍需对应依据。", "detail-note");
+    paragraph(container, "连线表示原始引用；分组和位置不代表支持、反驳或因果。", "detail-note");
   } else if (object.kind === "paper") {
     paragraph(container, "由冻结证据生成的论文式报告；不是同行评审、临床验证或科研发现认证。", "detail-note");
     const controls = el("div", "detail-ref-list");
