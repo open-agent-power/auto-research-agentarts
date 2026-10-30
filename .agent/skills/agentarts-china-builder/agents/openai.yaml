@@ -1,4 +1,4 @@
 interface:
   display_name: "华为云 AgentArts 中国站搭建"
   short_description: "通过已验证的浏览器流程搭建科研工具，核对运行结果、费用与可复用边界"
-  default_prompt: "使用 $agentarts-china-builder 在华为云中国站检查现有草稿、搭建指定工作流并保存可核对的运行证据。"
+  default_prompt: "使用 $agentarts-china-builder 打开中国站AgentArts；未登录时进入华为云账号的华为云APP扫码页，等待我扫码确认，核对账号和区域后再接管指定任务。"
