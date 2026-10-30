@@ -1,5 +1,9 @@
 .venv/
-.agent/
+# Share only the requested project skill; keep machine state and evidence ignored.
+.agent/*
+!.agent/skills/
+.agent/skills/*
+!.agent/skills/agentarts-china-builder/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -18,3 +22,8 @@ frontend/node_modules/
 *.log
 *.pem
 *.key
+
+# This operating note is part of the shared skill, not an external source archive.
+!.agent/skills/agentarts-china-builder/references/
+.agent/skills/agentarts-china-builder/references/*
+!.agent/skills/agentarts-china-builder/references/browser-notes.md

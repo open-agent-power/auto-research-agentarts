@@ -1,0 +1,2 @@
+# This fixed engineering fixture is verified byte-for-byte by the dataset test.
+src/autoresearch/fixture.py text eol=lf

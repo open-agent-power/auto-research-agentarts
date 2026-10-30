@@ -9,6 +9,8 @@
 | 复用白板或组件 | [UI参考与选型](design/ui-references.md) | 官方示例、具体许可、适配成本 |
 | 开发、验证与交接 | [开发边界与代码地图](development.md) | 仓库README中的运行命令与对应测试 |
 | 复用已在AgentArts运行的C01工具 | [敏感性核验源码与平台步骤](../agentarts/c01-sensitivity/README.md) | 真实云端结果、公开输入、测试与尚未接通部分 |
+| 让队友的Agent操作平台 | [AgentArts搭建skill](../.agent/skills/agentarts-china-builder/SKILL.md) | 浏览器实操、失败处理与费用核对 |
+| 给队友安排可验收的工作 | [队友任务书](team-handoff.md) | 独立复现、正式赛事依据和少量数据复核 |
 
 工作区级的项目计划、队员任务和资料归档在 `ICT/docs/`；第三方源码和论文在 `ICT/references/`，不复制进产品仓库。仅克隆本仓库也能阅读以上设计与运行说明。
 

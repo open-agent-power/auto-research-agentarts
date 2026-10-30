@@ -9,7 +9,8 @@
 - The engineering fixture does not establish biomedical, materials or cross-domain scientific validity. A local runner is not an AgentArts integration or an LLM weight-training result.
 - Keep execution state, scientific status, and candidate promotion separate. Evaluators and hidden labels must not be editable through candidate requests.
 - No arbitrary Python, shell commands, pickle loading or user-selected filesystem paths through the tool protocol. Initial tools are explicitly allowlisted.
-- Never commit credentials, private data, browser state, reference repositories, run outputs or local focus checkpoints.
+- Never commit credentials, private data, browser state, reference repositories, run outputs or local focus checkpoints. The user-approved exception under `.agent/` is the reusable skill `.agent/skills/agentarts-china-builder/`; other state there remains ignored.
 - Use one ignored `.agent/focus.json` for the active development round. Preserve actual failures and missing integration evidence.
+- For AgentArts China browser operation or workflow reproduction, read `.agent/skills/agentarts-china-builder/SKILL.md` and follow its links. This custom location does not imply automatic skill discovery by every agent tool. Team assignments and deliverables are in `docs/team-handoff.md`.
 - Validate persistent state, idempotency, budget accounting, candidate rejection and recovery with real execution before claiming completion.
 - UI work must be checked using actual rendered screenshots under the user's visual inspection rules.
