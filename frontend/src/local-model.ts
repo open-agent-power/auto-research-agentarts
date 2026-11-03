@@ -12,6 +12,7 @@ const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obje
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
 const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 const number = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(value) : "未记录";
+const estimate = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(Number(value.toPrecision(8))) : "未记录";
 const pendingStates = new Set(["prepared", "sending", "unknown", "received"]);
 const resumableStates = new Set([...pendingStates, "applied"]);
 const states: Record<string, string> = {
@@ -38,8 +39,9 @@ export function createLocalModelPanel(host: Host): {
   for (let value = 1; value <= 8; value++) { const option = el("option", "", `累计最多${value}次决策`); option.value = String(value); limit.append(option); }
   const cap = el("input"); cap.type = "number"; cap.min = "0"; cap.max = "0.10"; cap.step = "any"; cap.value = "0.10"; cap.required = true;
   const reason = el("textarea"); reason.rows = 3; reason.maxLength = 1000; reason.required = true; reason.placeholder = "说明本次允许模型推进的范围与理由。";
-  const grantNote = el("p", "detail-note", "首次提交后固定累计限额和理由；准备请求即占一次名额，换ID不会重置额度。费用上限约束CLI报告估值，现金结算仍需另行核对。");
-  const grid = el("div", "local-form-grid"); grid.append(field("累计决策限额", limit), field("累计CLI估值上限（USD，至多0.10）", cap));
+  const thresholdNote = "单次CLI调用可能超出阈值，不能保证硬支出上限；达到阈值将阻止后续发送，现金结算仍未知。";
+  const grantNote = el("p", "detail-note", "首次提交后固定决策名额、CLI配置阈值和理由，准备即占一次名额。" + thresholdNote);
+  const grid = el("div", "local-form-grid"); grid.append(field("累计决策限额", limit), field("CLI配置阈值（USD，至多0.10）", cap));
   fields.append(grid, field("本次范围与理由", reason), grantNote);
   const start = el("button", "action-button primary", "用模型选择并执行一步"); start.type = "submit";
   form.append(fields, start, el("p", "detail-note", "每次最多提交一个合法行动；页面刷新、换页和读取状态都不会调用模型。"));
@@ -71,13 +73,24 @@ export function createLocalModelPanel(host: Host): {
   }
   function usageText(): void {
     const journal = object(view.journal), counts = object(journal.usage);
+    const threshold = grant().cli_budget_usd, known = counts.known_cli_reported_cost_usd;
     const savedNative = object(journal.native_local_model_budget), native = Object.keys(savedNative).length ? savedNative : object(project.budget);
     usage.replaceChildren(
       el("p", "detail-note", `原生本地模型：已用${number(native.new_model_requests)} / 允许${number(native.model_requests_allowed)}，预留${number(native.model_requests_reserved)}。`),
       el("p", "detail-note", Object.keys(journal).length
-        ? `本项目宿主记录：决策${number(counts.decision_slots_used)}次，CLI启动尝试${number(counts.cli_launch_attempts)}次；已知报告估值${number(counts.known_cli_reported_cost_usd)} USD${counts.cli_cost_unknown === true ? "，另有未知CLI费用" : ""}。`
-        : "本项目尚无宿主模型请求记录。"),
-      el("p", "detail-note", "原生计数不包含外部CLI或子代理；CLI路由和估值以原回执自报为准，现金结算未知。"));
+        ? `本项目宿主记录：决策${number(counts.decision_slots_used)}次，CLI启动尝试${number(counts.cli_launch_attempts)}次；已知报告估值${estimate(known)} USD。`
+        : "本项目尚无宿主模型请求记录。"));
+    if (typeof threshold === "number" && typeof known === "number" && known >= threshold) usage.append(el("p", "notice error",
+      `已停止新发送：CLI报告估值${estimate(known)} USD，${known > threshold ? "已超出" : "已达到"}配置阈值${estimate(threshold)} USD。原记录仍可查看和下载。`));
+    if (counts.cli_cost_unknown === true) {
+      const reasons = new Set(records.filter(record => record.provider === "claude_cli" && record.cli_launch_attempted === true
+        && !(typeof record.reported_cost_usd === "number" && Number.isFinite(record.reported_cost_usd)))
+        .map(record => ["sending", "unknown"].includes(text(record.status, "")) ? "原CLI调用结果与费用待核对"
+          : record.status === "failed" ? "调用失败，费用尚未核对"
+            : record.status === "invalid" ? "回答无效，费用尚未核对" : "费用尚未核对"));
+      usage.append(el("p", "notice error", "已停止新发送：" + ([...reasons].join("；") || "有CLI费用未取得可核对报告") + "。未知费用不能按0计算，保留原ID核对。"));
+    }
+    usage.append(el("p", "detail-note", "原生计数不包含外部CLI或子代理；CLI路由和金额以原回执自报为准，报告估值不等于现金结算。"));
     if (counts.prior_external_usage === "unknown_not_zero") usage.append(el("p", "detail-note", "还有未关联到本日志的历史外部选择，用量未知，不计为零。"));
     if (typeof counts.delegated_outputs_received === "number" && counts.delegated_outputs_received > 0)
       usage.append(el("p", "detail-note", `另有${counts.delegated_outputs_received}份子代理回答导入；内部推理次数、模型和费用未知。`));
@@ -98,6 +111,13 @@ export function createLocalModelPanel(host: Host): {
       const route = strings(record.reported_models).join("、");
       card.append(el("p", "detail-note", "提供方记录：" + (record.provider === "claude_cli" ? "Claude CLI；自报路由 " + (route || "未知") : "子代理回答导入；实际执行未核验")),
         el("p", "detail-note", "模型解释：" + text(arguments_.rationale, "尚无通过解析的模型解释。")));
+      if (record.provider === "claude_cli") {
+        const cost = record.reported_cost_usd, reported = typeof cost === "number" && Number.isFinite(cost);
+        const costNote = record.cli_launch_attempted === false ? "尚未启动CLI，无费用报告。"
+          : reported ? `本次CLI报告估值：${estimate(cost)} USD；${["failed", "invalid"].includes(text(record.status, "")) ? states[text(record.status)] + "也计入累计" : "已计入累计"}。`
+            : "本次CLI费用尚未核对，不能按0计算。";
+        card.append(el("p", "detail-note", costNote));
+      }
       const choice = object(arguments_.choice);
       if (choice.kind) card.append(el("p", "detail-note", "模型选择：" + (choice.kind === "wait" ? "等待" : "执行候选 " + text(choice.candidate_id))));
       if (outcome.status) card.append(el("p", "notice", "控制器结果：" + (outcomes[text(outcome.status)] ?? text(outcome.status))));
@@ -130,7 +150,7 @@ export function createLocalModelPanel(host: Host): {
         : typeof fixed.decision_limit === "number" && typeof counts.decision_slots_used === "number" && counts.decision_slots_used >= fixed.decision_limit
           ? "累计决策名额已用完，已有结果和原请求保留。"
           : typeof fixed.cli_budget_usd === "number" && typeof counts.known_cli_reported_cost_usd === "number" && counts.known_cli_reported_cost_usd >= fixed.cli_budget_usd
-            ? "CLI报告估值已达到原累计上限，不能继续发送。" : "当前有合法候选。填写范围并明确提交后，才会调用模型。";
+            ? "已达到CLI配置阈值，新发送已停止；原请求仍可核对。" : "当前有合法候选。填写范围并明确提交后，才会调用模型。";
     }
   }
   async function refresh(nextId: string, nextProject: Obj, nextContext: Obj | null): Promise<void> {
@@ -148,7 +168,7 @@ export function createLocalModelPanel(host: Host): {
       view = result; records = objects(result.records); loaded = true;
       const fixed = grant();
       if (Object.keys(fixed).length) { limit.value = number(fixed.decision_limit); cap.value = number(fixed.cli_budget_usd); reason.value = text(fixed.reason, ""); }
-      grantNote.textContent = Object.keys(fixed).length ? "本项目已固定上述累计限额与理由，准备名额不能回收，换ID或刷新不会重置。" : "首次提交后固定累计限额和理由；准备请求即占一次名额，换ID不会重置额度。费用上限约束CLI报告估值，现金结算仍需另行核对。";
+      grantNote.textContent = (Object.keys(fixed).length ? "本项目决策名额、CLI配置阈值和理由已固定，换ID或刷新不会重置。" : "首次提交后固定决策名额、CLI配置阈值和理由，准备即占一次名额。") + thresholdNote;
       usageText(); savedRequests(); statusText();
     } catch (error) {
       if (generation !== refreshId) return;
@@ -160,7 +180,7 @@ export function createLocalModelPanel(host: Host): {
     event.preventDefault(); if (!available() || !form.reportValidity() || !context) return;
     const fixed = grant(), decisionLimit = Number(fixed.decision_limit ?? limit.value), cliBudget = Number(fixed.cli_budget_usd ?? cap.value), actualReason = text(fixed.reason, reason.value.trim());
     if (!Number.isInteger(decisionLimit) || decisionLimit < 1 || decisionLimit > 8 || !(cliBudget > 0 && cliBudget <= 0.10) || !actualReason.trim()) {
-      host.announce("请填写1至8次累计决策、至多0.10USD的正数估值上限与范围理由。", true); return;
+      host.announce("请填写1至8次累计决策、至多0.10USD的正数CLI配置阈值及范围理由。", true); return;
     }
     void host.submit("model-advance", { project_id: projectId, expected_state_version: context.state_version,
       decision_limit: decisionLimit, cli_budget_usd: cliBudget, reason: actualReason });
