@@ -2,6 +2,14 @@
 
 `scripts/run_host_selection.py` 把真实项目 context 交给已安装的 Claude CLI，保存原始回答，再通过原 `ProjectController.advance_selection` 最多执行一个候选行动。也可以导入子代理回答。模型只选候选或等待，不能提供工具参数、增加额度或批准科学结论。完整选择协议见[选择提案](project-selection.md)，已有实跑见[外部模型验证](external-model-validation.md)。
 
+## 已验证到哪里
+
+- **A27：同项目两次显式CLI提交已走通。** 同一hiMSC集成项目先完成主质量检查，再完成绑定该action/result的分组画像；第二次冻结context与第一次执行后的context具有相同项目、版本、快照和context身份。两次请求均applied，控制器结果与子行动均completed，CLI报告合计0.048195USD。见[原反馈context](../runs/a27-workbench-model-20261103/after-first-context.json)、[原用量](../runs/a27-workbench-model-20261103/host-status.json)及[原验证记录](../runs/a27-workbench-model-20261103/validation.json)。这是两次明确提交，不能据此认定`advance-batch`已在真实任务中自动连续成功两次。
+- **A25：同项目一次CLI加一次子代理接续已走通。** CLI选择来源读取后，子代理收到真实反馈和引用，再选择分组画像并完成执行；较早的主质量bootstrap由主控执行。不能把它写成两次CLI或内部恰好两次推理，见[原验证说明](external-model-validation.md)。
+- **A34：原软件批次第二次CLI仍失败。** 第一次来源读取完成，第二次含新增引用但返回预算错误；该软件批次没有取得第二个合法选择或行动。它不覆盖A25/A27已有工程成功，也不能借其他项目成功改写本次失败。各路径的对照出处见[限定原件核对](../runs/a42-key-node-readiness-20261104/model-chain-readback.json)。
+
+以上支持特定集成项目的选择、真实执行与反馈接续；CLI品牌以自报路由为准，内部推理次数和现金结算未独立核实。领域解释、独立用户收益与自动研究优势仍须分别验证。
+
 ## 先确认项目和本轮额度
 
 在产品根运行。下列示例需要把项目目录和原生 Claude 可执行文件路径换成自己的已安装路径；不安装依赖、不下载模型。CLI分支必须明确传入 `--claude-executable`；Windows请选择原生 `claude.exe`，不要传Volta的 `.cmd` 启动包装。`--workspace` 指向已有 ResearchProject，不是工作台 manager 目录。
@@ -67,7 +75,7 @@ $hostArgs = @(
 
 2026-11-04，原A16钢材项目在同一ID/Run上从v5显式升级并登记版本匹配资料，随后真实CLI批次从v7执行一次来源读取至v11。CLI报告路由为`deepseek-flash`，估值0.040875USD、实际结算unknown；来源1/8，本地数值仍1/1，原生模型和拟合新增0。下一步无合法候选，批次保存`waiting/completed`，没有调用第二次模型。三个原登记/升级/批次ID重放均无新增，六页报告含批次及14份原件，见[A33结果](../runs/a33-bounded-model-20261104/README.md)。真实任务本次只有一次模型选择；双模型反馈及中断/未知恢复由两项工程夹具验证，不写成已在真实任务观察到两次连续模型决定。
 
-同日A34沿原软件项目执行两次真实CLI尝试。第一请求完成官方Python文档选区读取，第二请求的冻结prompt确实包含第一次产生的2条新引用，但返回`error_max_budget_usd`、退出1，没有可执行选择或第二来源行动。两次CLI自报估值分别0.06301、0.061025USD，合计0.124035USD，超过原0.10USD配置阈值。原失败保留；离线费用补记后，当前报告明确显示超阈值与现金结算unknown，没有追加调用或扩大grant。原项目v11、数值仍1/1、来源2/8；第二份已登记资料仍未读。五个原ID核对零新增，5页报告与21份附件已核；两次连续成功尚未证明，详见[A34实跑与修复](../runs/a34-two-model-decisions-20261104/README.md)。
+同日A34沿原软件项目执行两次真实CLI尝试。第一请求完成官方Python文档选区读取，第二请求的冻结prompt确实包含第一次产生的2条新引用，但返回`error_max_budget_usd`、退出1，没有可执行选择或第二来源行动。两次CLI自报估值分别0.06301、0.061025USD，合计0.124035USD，超过原0.10USD配置阈值。原失败保留；离线费用补记后，当前报告明确显示超阈值与现金结算unknown，没有追加调用或扩大grant。原项目v11、数值仍1/1、来源2/8；第二份已登记资料仍未读。五个原ID核对零新增，5页报告与21份附件已核；本次软件批次没有完成两次连续成功，详见[A34实跑与修复](../runs/a34-two-model-decisions-20261104/README.md)。
 
 ## 分步执行与检查
 
