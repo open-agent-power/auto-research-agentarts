@@ -7,5 +7,6 @@
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
 - [开发者导航](../.agent/README.md)
+- [队友任务书：科研配方、资料补缺、PR 与实验](teammate-recipe-task.md)
 
 源码分发保留实现、使用说明、正式设计和模板。本机研究账本、模型响应、试验记录及生成成果不随源码发布。
