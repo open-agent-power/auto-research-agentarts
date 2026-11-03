@@ -26,6 +26,7 @@
 - [knowledge_sources](../../src/autoresearch/knowledge_sources.py) 的 `collect_documents` 提取来源；[knowledge](../../src/autoresearch/knowledge.py) 的 `build_index/KnowledgeIndex` 是本地索引；[c01_knowledge](../../src/autoresearch/c01_knowledge.py) 的 `build_case_index` 绑定案例。见 [知识入口](../../docs/knowledge.md)。
 - [ResearchMemory](../../src/autoresearch/research_memory.py) 的 `_import_derived/recall/set_status` 保存条件化记录；见 [研究记忆](../../docs/research-memory.md)。
 - [project_report](../../src/autoresearch/project_report.py)只读导出三域当前项目快照；`registered_inputs`及输入包保留`registered_unread`与原字节，不把登记算作已提取。报告和[只读服务](../../src/autoresearch/project_workbench.py)按项目/snapshot绑定，过期拒绝。
+- 当前报告在前部展示最新已完成来源行动保存的提交者、未核验主张和未决问题，失败或未读资料不替代该段。节选按最新读取优先，同一来源与定位使用最新展示主张，PDF最多8处；完整JSON、inputs与历史不截断。见[本地工作台](../../docs/local-workbench.md)。
 - [dossier_data](../../src/autoresearch/research_dossier.py) 汇总封存数据，[export_dossier](../../src/autoresearch/research_dossier_render.py) 导出报告；[build_handoff](../../src/autoresearch/chemotopo_bundle.py) 打包，[snapshot_viewer](../../src/autoresearch/snapshot_viewer.py) 验证并只读服务。见 [研究综合报告](../../docs/research-dossier.md)与[离线工作台](../../docs/portable-workbench.md)。
 
 ## AgentArts 边界

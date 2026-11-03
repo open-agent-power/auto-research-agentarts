@@ -221,7 +221,7 @@ def collect_report(workspace) -> dict:
 def _source_notes(report):
     notes = []
     seen = set()
-    for selected in report["source_selections"]:
+    for selected in reversed(report["source_selections"]):
         source, locator = selected.get("source", {}), selected.get("locator", {})
         key = (source.get("sha256"), canonical(locator))
         if key in seen:
@@ -233,8 +233,32 @@ def _source_notes(report):
         notes.append({"id": selected.get("id", "未知"), "url": source.get("url", "未知"),
                       "sha256": source.get("sha256", "未知"), "locator": canonical(locator),
                       "license_note": source.get("license_note", "未知"),
-                      "excerpt": _text(extraction.get("text", ""), 110), "claim": _text(claim_text, 150)})
+                      "excerpt": _text(extraction.get("text", ""), 110), "claim": _text(claim_text, 150),
+                      "claim_status": claim.get("status", "未记录") if isinstance(claim, dict) else "未记录"})
     return notes
+
+
+def _latest_source_review_lines(report):
+    for entry in reversed(report["action_results"]):
+        if entry["status"] != "completed" or entry["command"] not in ("research.source-selection", "p02.source-mapping-check"):
+            continue
+        result = (entry.get("tool_result") or {}).get("result") or {}
+        contributor = result.get("contributor") or {}
+        lines = ["原行动：" + entry["action_id"],
+                 "提交者记录 / 未经作者或科学确认。role：" + _text(contributor.get("role"), 100)
+                 + "；label：" + _text(contributor.get("label"), 300),
+                 "保存的映射状态 mapping_status：" + _text(result.get("mapping_status"), 100)
+                 + "；终点资格 endpoint_eligibility：" + _text(result.get("endpoint_eligibility"), 100)]
+        claims = [selected["submitted_claim"] for selected in result.get("selections", [])
+                  if isinstance(selected.get("submitted_claim"), dict) and selected["submitted_claim"].get("text")]
+        for index, claim in enumerate(claims[:6], 1):
+            lines.append(f"提交者主张 {index}（" + _text(claim.get("status"), 100) + "）：" + _text(claim["text"], 400))
+        questions = result.get("remaining_questions") or []
+        lines.extend(f"未决问题 {index}：" + _text(question, 400) for index, question in enumerate(questions[:6], 1))
+        if len(claims) > 6 or len(questions) > 6:
+            lines.append("本段至多展示6条已保存主张和6条未决问题；其余完整记录见JSON。")
+        return lines
+    return []
 
 
 def _budget_rows(report):
@@ -410,9 +434,15 @@ def _markdown(report):
         "based_on_action_id", "based_on_observation_ids") if key in saved_decision}
     lines = ["# " + report["title"], "", "## 问题与摘要", "", _text(state["registration"]["goal"], 800), "",
              "本报告绑定项目快照 `" + report["project_snapshot_ref"] + "`；只读汇总保存事实，不新增研究。",
-             "", "## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
-             "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
              ""]
+    latest_source = _latest_source_review_lines(report)
+    if latest_source:
+        lines.extend(["## 最新来源核对与未决问题", ""])
+        for line in latest_source:
+            lines.extend([line, ""])
+    lines.extend(["## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
+             "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
+             ""])
     if summary.get("numeric_headers"):
         lines.extend(["## 数值字段计数", "", _markdown_table(summary["numeric_headers"], summary["numeric_rows"]),
                       "", "零包含在有限计数中；空串与声明缺失分别计数，最小/最大仅针对有限值。", "",
@@ -434,7 +464,7 @@ def _markdown(report):
     for index, source in enumerate(_source_notes(report), 1):
         lines.extend([f"{index}. 来源：{source['url']}；定位：`{source['locator']}`；SHA：`{source['sha256']}`。",
                       "   许可/访问说明：" + source["license_note"],
-                      "   原文抽取节选：" + source["excerpt"], "   提交者主张（未审定）：" + source["claim"], ""])
+                      "   原文抽取节选：" + source["excerpt"], "   提交者主张（未审定；" + source["claim_status"] + "）：" + source["claim"], ""])
     if not report["source_selections"]:
         lines.append("尚无实际提取的来源选区；已登记原件保存在input.json，未读不计为研究观察或知识命中。")
     unread = sum(item["read_status"] == "registered_unread" for item in report.get("registered_inputs", []))
@@ -517,6 +547,11 @@ def _pdf(report):
     h("一、问题与摘要")
     story.append(p(state["registration"]["goal"], limit=430))
     story.append(p("执行状态：" + str(state["execution_status"]) + "；研究状态：" + str(state["research_status"]) + "。只读导出未调用工具、模型或拟合。", small))
+    latest_source = _latest_source_review_lines(report)
+    if latest_source:
+        h("最新来源核对与未决问题")
+        for line in latest_source:
+            story.append(p(line, small, 650))
     h("二、方法与冻结评价")
     story.append(p(summary["method"], limit=500))
     h("三、实际结果")
@@ -578,14 +613,14 @@ def _pdf(report):
     unread = sum(item["read_status"] == "registered_unread" for item in report.get("registered_inputs", []))
     if unread:
         story.append(p(f"另有{unread}份收据仅完成原件登记，未执行提取、未形成观察或FTS命中；其原件与任务身份仅在输入附件保留。", small))
-    for index, source in enumerate(sources[:4], 1):
+    for index, source in enumerate(sources[:8], 1):
         story.append(p(f"来源 {index}：{source['id']} | {source['url']}", small, 230))
         story.append(p("坐标：" + source["locator"] + "；SHA：" + source["sha256"], small, 260))
         story.append(p("许可/访问：" + source["license_note"], small, 180))
         story.append(p("原文抽取节选：" + source["excerpt"], small, 150))
-        story.append(p("提交者主张（未审定）：" + source["claim"], small, 160))
-    if len(sources) > 4:
-        story.append(p(f"另有{len(sources) - 4}个选区，完整原文、坐标和主张见JSON；本页不将节选当作完整材料。", small))
+        story.append(p("提交者主张（未审定；" + source["claim_status"] + "）：" + source["claim"], small, 260))
+    if len(sources) > 8:
+        story.append(p(f"另有{len(sources) - 8}个去重展示选区未列出，全部原始选区（含重复历史主张）、坐标和原文仍保留在JSON。", small))
     h("真实失败与未知")
     incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
     if incomplete:

@@ -94,7 +94,8 @@ def query(root, project, *, need, point="interpretation", limit=5):
     if not isinstance(need, str) or not 1 <= len(need.strip()) <= 512:
         raise ResearchError("INVALID_REQUEST", "Knowledge need must contain 1..512 characters.")
     evidence, indexes = [], []
-    for ref in project.get("knowledge_refs", []):
+    # New completed extractions must reach the bounded context before older hits.
+    for ref in reversed(project.get("knowledge_refs", [])):
         relative = Path(ref["directory"])
         if relative.parts != ("knowledge", ref["action_id"]):
             raise ResearchError("EVIDENCE_CHANGED", "Invalid knowledge reference path.")
