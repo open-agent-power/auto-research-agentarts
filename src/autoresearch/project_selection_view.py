@@ -2,7 +2,7 @@
 
 import copy
 
-from . import method_registry, project_selection
+from . import method_registry, project_selection, research_recipe
 from .contracts import ResearchError, fingerprint, identifier
 
 
@@ -13,7 +13,7 @@ def _require(condition):
 
 def _imported(parent):
     return ("selection_context" in parent
-            or parent.get("request", {}).get("command") == "controller.advance_selection")
+            or parent.get("request", {}).get("command") in ("controller.advance_selection", "controller.advance_recipe"))
 
 
 def _verify(state, parent):
@@ -22,10 +22,21 @@ def _verify(state, parent):
         context = parent["selection_context"]
         selected = project_selection.validate_proposal(context, request["proposal"])
         candidate = selected["candidate"]
+        recipe = request.get("command") == "controller.advance_recipe"
+        fields = {"project_id", "command", "need", "expected_state_version", "proposal"}
+        if recipe:
+            fields.add("recipe_decision")
+            compiled = research_recipe.compile_recipe(request["recipe_decision"]["recipe"], context)
+            _require(request["recipe_decision"] == compiled and request["proposal"] == compiled["proposal"]
+                     and decision["policy_ref"] == {"id": compiled["recipe_id"], "version": compiled["recipe_version"],
+                                                    "kind": "deterministic_recipe"}
+                     and decision["selection_ref"]["external_usage"] == "no_model_invocation_by_recipe_compiler")
+        elif "policy_ref" in decision:
+            _require(decision["policy_ref"] == {"id": "external-proposal", "version": "1"})
         identifier(parent["request_id"])
         _require(parent["schema_version"] == "project-controller-request-v1"
-                 and set(request) == {"project_id", "command", "need", "expected_state_version", "proposal"}
-                 and request["command"] == "controller.advance_selection"
+                 and set(request) == fields
+                 and request["command"] in ("controller.advance_selection", "controller.advance_recipe")
                  and parent["request_sha256"] == fingerprint(request)
                  and parent["decision_sha256"] == fingerprint(decision)
                  and parent["project_id"] == request["project_id"] == context["project_id"] == state["id"]
@@ -97,6 +108,8 @@ def _verify(state, parent):
                      and ref["provider_claim"] == selected["provider"]
                      and ref["evidence_citation_ids"] == selected["evidence_citation_ids"]
                      and ref["provider_verified"] is False and ref["model_execution_verified"] is False)
+            if not recipe and "external_usage" in ref:
+                _require(ref["external_usage"] == "unknown_not_counted_as_zero")
         return selected
     except ResearchError as error:
         if error.code == "EVIDENCE_CHANGED":
@@ -135,6 +148,8 @@ def selection_view(state) -> dict:
             "child": copy.deepcopy((parent.get("result") or {}).get("child")),
             "request_sha256": parent["request_sha256"], "decision_sha256": parent["decision_sha256"],
         })
+        if parent["request"]["command"] == "controller.advance_recipe":
+            records[-1]["recipe_decision"] = copy.deepcopy(parent["request"]["recipe_decision"])
     records.sort(key=lambda item: item["state_version_before"], reverse=True)
     return {"schema_version": "project-selection-view-v1", "available": True,
             "records": records[:12], "total": len(records), "omitted": max(0, len(records) - 12)}

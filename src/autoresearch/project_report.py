@@ -184,6 +184,10 @@ def collect_report(workspace) -> dict:
                 source_manifest.append({"name": name, "role": "captured_original", **_digest(original), "read_status": read_status,
                                         "url": source["url"], "license_note": source["license_note"]})
     selection_history = project_selection_view.selection_view(before)
+    recipe_selections = [{"request_id": parent["request_id"], "context": parent["selection_context"],
+                          "decision": parent["request"]["recipe_decision"]}
+                         for parent in before.get("controller_requests", [])
+                         if parent.get("request", {}).get("command") == "controller.advance_recipe"]
     host_models = host_model_report.capture_host_models(project.root)
     for asset in host_models["assets"]:
         assets[asset["name"]] = {key: value for key, value in asset.items() if key != "role"}
@@ -202,6 +206,7 @@ def collect_report(workspace) -> dict:
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
+                        "recipe_selections": recipe_selections,
                         "host_models": {"snapshot_sha256": host_models["snapshot_sha256"], "status": host_models["status"],
                                         "asset_names": [asset["name"] for asset in host_models["assets"]]}},
               "exporter_code_identity": hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
@@ -323,9 +328,27 @@ def _duplicate_locations(summary):
 
 
 def _selection_provider(record):
+    recipe = record.get("recipe_decision")
+    if recipe is not None:
+        return "确定性科研配方（无模型）：" + _text(recipe["recipe_id"], 100) + " v" + str(recipe["recipe_version"])
     claim = record["provider_claim"]
     names = {"operator_assistant": "操作者助手", "human": "人", "external_model": "外部模型"}
     return names.get(claim.get("kind"), "未知来源") + "（仅声明，未核验）：" + _text(claim.get("label"), 100)
+
+
+def _selection_recipe_notes(record):
+    decision = record.get("recipe_decision")
+    if decision is None:
+        return []
+    reasons = {"FIRST_MATCHING_HOST_CANDIDATE": "首个匹配宿主候选", "LOWER_RECIPE_PRIORITY": "位于已选方法之后",
+               "NO_MATCHING_HOST_CANDIDATE": "当前无匹配候选", "HOST_BLOCKERS": "宿主条件阻断",
+               "SCOPE_MISMATCH": "领域或契约不匹配", "NEED_MISMATCH": "当前需求不匹配"}
+    order = " → ".join(_selection_action(method["method_id"], {}) for method in decision["recipe"]["ordered_methods"])
+    choices = "；".join(_selection_action(item["method_id"], {}) + "："
+                        + ("选用，" if item["outcome"] == "selected" else "跳过，") + reasons.get(item["reason"], item["reason"])
+                        for item in decision["method_decisions"])
+    return ["配方顺序：" + order, "配方取舍：" + choices,
+            "确定性编译，不调用模型；完整配方、当时context及全部候选取舍见input.json.recipe_selections。"]
 
 
 def _selection_status(value):
@@ -419,13 +442,17 @@ def _markdown(report):
         lines.append(f"已登记未读收据：{unread}份。仅保存原件、坐标及任务身份；没有执行选区提取或FTS建索引。")
     records = _selection_records(report)
     if records:
-        lines.extend(["", "## 已保存的外部选择", "", "以下为最近3条以内的父请求记录。提案提供方为声明，宿主派发证据见下方模型记录；等待只约束该父请求，项目状态仍为 "
+        has_recipe = any(record.get("recipe_decision") is not None for record in records)
+        provider_note = ("配方为确定性编译，不调用模型；其他提案提供方为声明，" if has_recipe else "提案提供方为声明，")
+        lines.extend(["", "## 已保存的选择提案" if has_recipe else "## 已保存的外部选择", "", "以下为最近3条以内的父请求记录。" + provider_note + "宿主派发证据见下方模型记录；等待只约束该父请求，项目状态仍为 "
                       + _selection_status(state["research_status"]) + "，不表示全局暂停、方法耗尽或科学完成。", ""])
         for record in records[:3]:
             choice = "本父等待" if record["decision_kind"] == "external_wait" else _selection_action(record["method_id"], record["parameters"])
             lines.extend(["### " + record["request_id"], "", "提案来源：" + _selection_provider(record),
-                          "", "外部选择：" + choice + "；父状态：" + _selection_status(record["status"]) + "；" + _selection_child(record),
+                          "", ("配方选择：" if record.get("recipe_decision") is not None else "外部选择：") + choice + "；父状态：" + _selection_status(record["status"]) + "；" + _selection_child(record),
                           "", "理由：" + _text(record["rationale"], 500), "", "固定建议（同一历史上下文）：" + _selection_baseline(record)])
+            for note in _selection_recipe_notes(record):
+                lines.extend(["", note])
             for hit in record["evidence"][:2]:
                 lines.extend(["", _selection_citation(hit), "", "宿主摘录节选：" + _text(hit["quote"], 160)])
             if not record["evidence"]:
@@ -526,14 +553,18 @@ def _pdf(report):
     story.append(PageBreak())
     records = _selection_records(report)
     if records:
-        h("最近外部选择（已保存父请求）")
-        story.append(p("仅展示最近2条；提案提供方为声明，宿主派发证据另见模型记录。等待只使本父请求无子行动，项目状态仍为 "
+        has_recipe = any(record.get("recipe_decision") is not None for record in records)
+        h("最近选择提案（已保存父请求）" if has_recipe else "最近外部选择（已保存父请求）")
+        provider_note = ("配方为确定性编译，不调用模型，其他提案提供方为声明，" if has_recipe else "提案提供方为声明，")
+        story.append(p("仅展示最近2条；" + provider_note + "宿主派发证据另见模型记录。等待只使本父请求无子行动，项目状态仍为 "
                        + _selection_status(state["research_status"]) + "；其余记录和完整上下文见JSON。", small, 220))
         for record in records[:2]:
             choice = "本父等待" if record["decision_kind"] == "external_wait" else _selection_action(record["method_id"], record["parameters"])
             story.append(p(record["request_id"] + " | " + _selection_provider(record), small, 180))
-            story.append(p("外部选择：" + choice + "；父状态：" + _selection_status(record["status"]) + "；" + _selection_child(record), small, 180))
+            story.append(p(("配方选择：" if record.get("recipe_decision") is not None else "外部选择：") + choice + "；父状态：" + _selection_status(record["status"]) + "；" + _selection_child(record), small, 180))
             story.append(p("理由：" + record["rationale"], small, 140))
+            for note in _selection_recipe_notes(record):
+                story.append(p(note, small, 280))
             story.append(p("固定建议（历史上下文）：" + _selection_baseline(record), small, 160))
             for hit in record["evidence"][:1]:
                 story.append(p(_selection_citation(hit), small, 290))

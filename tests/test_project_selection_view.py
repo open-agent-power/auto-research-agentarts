@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from autoresearch.contracts import ResearchError, fingerprint
 from autoresearch.project_selection import seal_context
+from autoresearch.research_recipe import compile_recipe
 from autoresearch.project_selection_view import read_selection_request, selection_view
 from autoresearch.project_workbench import create_project_server
 
@@ -76,6 +77,65 @@ class ProjectSelectionViewTests(unittest.TestCase):
         with self.assertRaises(ResearchError) as caught:
             read_selection_request(state, "missing")
         self.assertEqual(caught.exception.code, "ARTIFACT_NOT_FOUND")
+
+    def test_recipe_parent_keeps_compilation_bound_to_original_context_and_proposal(self):
+        original = self.state()
+        self.assertNotIn("recipe_decision", selection_view(original)["records"][0])
+        self.assertEqual(read_selection_request(original, "selection-1"), original["controller_requests"][0])
+        recipe = {"schema_version": "research-recipe-v1", "id": "saved-choice-order", "version": 1,
+                  "question": "Check the matching saved method without calling a model.",
+                  "scope_match": {"domain": "materials", "contract": "steel-saved-evaluation-v1"},
+                  "need": "next_check", "on_no_match": "wait",
+                  "ordered_methods": [{"method_id": "research.source-selection", "evaluation_ref": "source-check-v1"},
+                                      {"method_id": "materials.saved-steel-audit", "evaluation_ref": "materials-composition-holdout-v1"}]}
+        for execute in (False, True):
+            with self.subTest(execute=execute):
+                state = self.state(execute=execute); parent = state["controller_requests"][0]
+                context = parent["selection_context"]
+                if execute:
+                    context = seal_context({**{key: value for key, value in context.items() if key != "context_sha256"},
+                                            "domain_scope": recipe["scope_match"]})
+                    parent["selection_context"] = context
+                compiled = compile_recipe(recipe, context)
+                parent["request"].update(command="controller.advance_recipe", recipe_decision=compiled,
+                                         proposal=copy.deepcopy(compiled["proposal"]))
+                parent["decision"]["reason"] = compiled["proposal"]["rationale"]
+                parent["decision"]["policy_ref"] = {"id": recipe["id"], "version": recipe["version"], "kind": "deterministic_recipe"}
+                parent["decision"]["selection_ref"] = {"context_sha256": context["context_sha256"],
+                    "candidate_id": compiled["selected_candidate_id"], "provider_claim": compiled["proposal"]["provider"],
+                    "evidence_citation_ids": [], "provider_verified": False, "model_execution_verified": False,
+                    "external_usage": "no_model_invocation_by_recipe_compiler"}
+                parent["request_sha256"] = fingerprint(parent["request"])
+                parent["decision_sha256"] = fingerprint(parent["decision"])
+                record = selection_view(state)["records"][0]
+                self.assertEqual(record["recipe_decision"], compiled)
+                self.assertEqual(record["provider_claim"]["kind"], "operator_assistant")
+                self.assertEqual(compiled["selected_candidate_id"], "primary" if execute else None)
+                self.assertEqual(read_selection_request(state, "selection-1"), parent)
+                record["recipe_decision"]["recipe"]["version"] = 9
+                self.assertEqual(parent["request"]["recipe_decision"]["recipe"]["version"], 1)
+                for mutate in (
+                    lambda request: request["recipe_decision"]["recipe"].update(version=2),
+                    lambda request: request["recipe_decision"].update(context_sha256="0" * 64),
+                    lambda request: request["recipe_decision"]["method_decisions"][0].update(reason="invented"),
+                    lambda request: request["proposal"]["provider"].update(label="changed policy"),
+                ):
+                    changed = copy.deepcopy(state); saved = changed["controller_requests"][0]
+                    mutate(saved["request"]); saved["request_sha256"] = fingerprint(saved["request"])
+                    with self.assertRaises(ResearchError) as caught:
+                        selection_view(changed)
+                    self.assertEqual(caught.exception.code, "EVIDENCE_CHANGED")
+                for marker, value in (("policy_ref", {"id": "external-proposal", "version": "1"}),
+                                      ("external_usage", "unknown_not_counted_as_zero")):
+                    changed = copy.deepcopy(state); saved = changed["controller_requests"][0]
+                    if marker == "policy_ref":
+                        saved["decision"][marker] = value
+                    else:
+                        saved["decision"]["selection_ref"][marker] = value
+                    saved["decision_sha256"] = fingerprint(saved["decision"])
+                    with self.assertRaises(ResearchError) as caught:
+                        selection_view(changed)
+                    self.assertEqual(caught.exception.code, "EVIDENCE_CHANGED")
 
     def test_changed_bindings_and_existing_child_parameters_are_rejected(self):
         for mutate in (

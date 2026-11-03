@@ -1,0 +1,22 @@
+{
+  "schema_version": "research-recipe-v1",
+  "id": "tabular-group-first",
+  "version": 1,
+  "question": "出现零值后，下一步优先核对分组分布还是读取已登记来源？",
+  "scope_match": {
+    "domain": "data",
+    "contract": "tabular-quality-v1"
+  },
+  "need": "next_check",
+  "ordered_methods": [
+    {
+      "method_id": "data.grouped-quality-profile",
+      "evaluation_ref": "grouped-quality-profile-v1"
+    },
+    {
+      "method_id": "research.source-selection",
+      "evaluation_ref": "source-extraction-only-not-scientific-approval"
+    }
+  ],
+  "on_no_match": "wait"
+}

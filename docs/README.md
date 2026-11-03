@@ -8,6 +8,7 @@
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
 - [开发者导航](../.agent/README.md)
 - [队友任务书：科研配方、资料补缺、PR 与实验](teammate-recipe-task.md)
+- [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)
 - [Claude CLI 与子代理的真实选择/执行验证](external-model-validation.md)
 - [Claude CLI 与子代理的正式请求入口](host-model-selection.md)
 
