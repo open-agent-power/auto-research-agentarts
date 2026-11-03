@@ -150,14 +150,14 @@ class ManagedJob:
     def __exit__(self, *_):
         self.close()
 
-    def spawn(self, args, *, env=None, cwd=None, stdout=None, stderr=None):
+    def spawn(self, args, *, env=None, cwd=None, stdin=subprocess.DEVNULL, stdout=None, stderr=None):
         if not isinstance(args, (list, tuple)) or not args:
             raise ResearchError("INVALID_REQUEST", "owned process requires an executable argument list")
         with self._lock:
             if self._handle is None: raise ResearchError("LOCAL_PROCESS_CLOSED", "owned job is already closed")
             process = None
             try:
-                process = subprocess.Popen(args, env=env, cwd=cwd, stdin=subprocess.DEVNULL,
+                process = subprocess.Popen(args, env=env, cwd=cwd, stdin=stdin,
                     stdout=stdout, stderr=stderr, shell=False, close_fds=True,
                     creationflags=0x00000004 | subprocess.CREATE_NO_WINDOW)  # CREATE_SUSPENDED
                 self._children.append(process)

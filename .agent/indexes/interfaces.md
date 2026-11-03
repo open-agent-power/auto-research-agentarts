@@ -45,3 +45,5 @@
 [run_research_project.py](../../scripts/run_research_project.py)新增`selection-context --workspace [--need]`只读真实候选/条件/预算/原文，并封印snapshot/core/controller身份；`advance-selection --workspace --request-id --proposal <file> [--need] [--expected-state-version]`安全读取64KiB严格JSON提案。提案只能选择context.candidates[].id或wait，不接参数/命令/批准字段；完整context/proposal保存在原controller父请求，相同ID与原expected版本恢复同一child。provider是未核验声明，不会据此发送模型或证明模型已读。等待只约束此父请求，未读候选仍保留。完整协议/实跑边界见[选择提案](../../docs/project-selection.md)。
 
 - A16 `prepare-source --method data.tabular-quality-audit --input <directory>`捕获spec+CSV原字节，再走原create/selection/advance/report；[字段与限制](../../docs/tabular-quality.md)。数据独立页18790沿同一只读GET，无新增写入HTTP。
+
+- A26 [run_host_selection.py](../../scripts/run_host_selection.py) 提供 `prepare/request/import-response/consume/advance/status`：prepare 冻结项目真实 context/provider/版本及不可重置的 grant（决策1至8次，累计CLI报告估值至多0.10 USD）；advance 显式串行一次CLI选择和至多一个原控制器行动。同ID及原参数重放不再派发或执行，sending/unknown只核对原收据，不自动重发；子代理文件导入不证明实际执行或费用。status只读分列native/host用量，原核心PDF尚未合并host账本，无新增HTTP写入口。具体命令、严格JSON与恢复见[Claude CLI与子代理入口](../../docs/host-model-selection.md)。

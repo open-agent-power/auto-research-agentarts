@@ -64,6 +64,14 @@ CLI rationale出现“残差优先”等不适用于本表格任务的用语，�
 - [最终context](../runs/a25-claude-selection-20261103/final-context.json) / [最终状态](../runs/a25-claude-selection-20261103/final-state.json)。
 - 当前报告：[PDF](../runs/a25-claude-selection-20261103/final-report/report.pdf)、[Markdown](../runs/a25-claude-selection-20261103/final-report/report.md)、[完整JSON](../runs/a25-claude-selection-20261103/final-report/report.json)、[重现输入](../runs/a25-claude-selection-20261103/final-report/input.json)、[SHA清单](../runs/a25-claude-selection-20261103/final-report/manifest.json)。早期 `report/` 不作为最终报告。
 
+## A26：正式命令已实际跑通
+
+已把上述手动接线固化为[正式请求入口](host-model-selection.md)。真实归档钢材CSV的312行通过 `run_host_selection.py advance` 完成一次实际Claude CLI选择和原控制器质量检查；原ID再次执行返回同一结果，新增模型调用与工具行动均为0。新ID不能重置已用尽的1次决策额度。
+
+本次CLI报告路由 `deepseek-flash`、估算费用0.02707USD，配置上限0.10USD，现金结算仍unknown。实际检查为312行、2列，目标列缺失/零值及完整重复行均为0，原值保留；独立CSV计数一致。请求日志分别保存外部用量和原生本地模型计数，核心PDF须配套读取外部日志，不能把原生计数0解释为没有LLM调用。
+
+证据在 [A26验证记录](../runs/a26-host-selection-20261103/README.md)、[机器核对结果](../runs/a26-host-selection-20261103/validation.json)、[外部用量](../runs/a26-host-selection-20261103/host-status.json)与[当前报告](../runs/a26-host-selection-20261103/report/report.pdf)。首次入口在模型发送前因日志目录未创建退出，失败原件保留；修复后才发生上述唯一一次真实发送。原钢材、hiMSC项目及用户已有修改核对不变。
+
 ## Limitations
 
 `runs/`是本机忽略证据目录，普通克隆不含上述附件。共享给队友时应连同获准分发的输入和证据包提供，不提交账户、凭据或会话数据。核心报告的“新增模型请求0”只对应其原生模型账本，外部用量须结合本轮模型sidecar读取。本轮证明外部选择能沿保存反馈接入同一执行链并保持原ID重放；未证明独立领域效果、科学批准或自动研究增益。

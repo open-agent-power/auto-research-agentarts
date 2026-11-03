@@ -94,6 +94,16 @@ class ManagedJobTests(unittest.TestCase):
         with self.assertRaises(ResearchError) as error: self.spawn(job)
         self.assertEqual(error.exception.code, "LOCAL_PROCESS_CLOSED")
 
+    def test_stdin_pipe_passes_exact_utf8_bytes_and_closes_owned_job(self):
+        incoming = "Bound host input: 零值保持原样\n".encode("utf-8")
+        with local_process.ManagedJob() as job:
+            child = job.spawn([sys.executable, "-B", "-c",
+                               "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())"],
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = child.communicate(input=incoming, timeout=10)
+            self.assertEqual((child.returncode, stdout, stderr), (0, incoming, b""))
+        self.assertEqual(job.pids(), [])
+
     def test_context_exception_cleans_and_job_handle_is_not_inheritable(self):
         self.kernel.GetHandleInformation.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32)]
         self.kernel.GetHandleInformation.restype = ctypes.c_int

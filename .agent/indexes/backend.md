@@ -1,8 +1,8 @@
 # 后端索引
 
-本页导航现有实现；项目入口见 [docs/README](../../docs/README.md)。同一项目已连接登记白名单方法、条件选择一步、来源反馈与恢复；各领域Observation保留自身含义。开放式方法扩展、研究模型决策及跨域收益仍待实现/验证，目标设计见[自适应研究](../../docs/research/adaptive-research.md)。
+本页导航现有实现；项目入口见 [docs/README](../../docs/README.md)。同一项目已连接登记白名单方法、条件选择一步、来源反馈与恢复；各领域Observation保留自身含义。开放式方法扩展仍待实现，有界模型选择的跨域收益仍待验证，目标设计见[自适应研究](../../docs/research/adaptive-research.md)。
 
-架构基线见[底层模块与依赖](../../docs/architecture/foundation.md)和[状态/能力契约](../../docs/architecture/research-contracts.md)。已实现的是有限本地命令/目录与固定规则协调，不等于目标契约全部端口或LLM自主科研。
+架构基线见[底层模块与依赖](../../docs/architecture/foundation.md)和[状态/能力契约](../../docs/architecture/research-contracts.md)。已实现的是有限本地命令/目录、有界选择与既有执行协调，不等于目标契约全部端口或LLM自主科研。
 
 ## 项目与状态
 
@@ -43,3 +43,5 @@ A18 [LocalWorkbench](../../src/autoresearch/local_workbench.py)仅管理宿主�
 A19 `LocalWorkbench.register_evidence`将界面原件捕获到固定宿主目录，再调用原项目登记；冻结请求、原件SHA和核心回执，原ID可核对已提交核心结果，核心未登记的partial不自动补做。同项目未决登记拒绝替换ID；提取仍用原条件选择/来源预算。非P02在来源读取后恢复最近已完成分析的完整取证要求，包含后续方法新增问题；旧结果不回写。
 
 A20 `LocalWorkbench.batch/batch_record`在原manager账本冻结有界grant及逐步意图/结果，复用`ProjectController.advance`；本地编排/核心/controller身份和原parent/child可核对。已完成批次原ID冻结回放，未完成只沿原ID显式核对，unknown不派发；不同步扩预算或授权未来资料。manager保存批次不替代核心执行真相，当前报告包与批次JSON分别取得。实际受控进程退出/重开及失败链见[本地用法](../../docs/local-workbench.md)。
+
+A26 [HostModelSelection](../../src/autoresearch/host_model_selection.py)在项目内保存独立 host journal；[host_selection_protocol](../../src/autoresearch/host_selection_protocol.py)只解析真实 context 下的候选选择，[claude_selection_transport](../../src/autoresearch/claude_selection_transport.py)用现有受控进程运行一次 CLI、保留原始输出与退出收据。prepare 固定累计决策/CLI报告估值 grant；request 不自动重发，consume 复用原 `advance_selection` 和原 child。导入子代理只声明未核验执行，native Qwen 历史不改，旧外部 unknown 不计零；核心报告尚未合并 host 用量。见[正式入口与恢复](../../docs/host-model-selection.md)。
