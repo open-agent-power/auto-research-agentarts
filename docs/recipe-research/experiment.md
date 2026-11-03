@@ -65,7 +65,33 @@
 .venv/Scripts/python.exe scripts/compile_research_recipe.py --recipe examples/research-recipes/tabular-source-first.json --context runs/recipe-pilot-20261103/context.json --output runs/recipe-pilot-20261103/manual-source-first
 ```
 
-9 项专项测试退出 0。没有重跑全量研究、旧六臂比较、训练或模型。一次 fresh-context 只读复核未发现阻塞问题。提交门禁：frontend 使用任务书的 offline pnpm 前缀，format 退出0（32文件，0修改）；lint/typecheck 均退出1，缺现有 `frontend/node_modules` 和 `tsc`，未自动安装。环境门禁尚未全部通过，PR 以 draft 交付。
+9 项专项测试退出 0。没有重跑全量研究、旧六臂比较、训练或模型。一次 fresh-context 只读复核未发现阻塞问题。首次提交门禁：frontend 使用任务书的 offline pnpm 前缀，format 退出0（32文件，0修改）；lint/typecheck 均退出1，缺现有 `frontend/node_modules` 和 `tsc`，首次未安装，PR 因而先以 draft 交付。该历史失败保留；下面的续办已关闭环境门禁缺口。
+
+## 续办：前端门禁已通过，真实资料仍待交接
+
+2026-11-03 用户要求继续完成未完成部分。先核对本机缓存，只有部分包可用，不能用不同版本冒充锁定工具链；随后显式恢复已有锁文件中的开发依赖，安装与门禁分开执行，禁用安装脚本：
+
+```powershell
+# frontend 目录；只恢复已有依赖，不新增或升级依赖项。
+npm ci --ignore-scripts --no-audit --fund=false --fetch-retries=0 --fetch-timeout=30000
+pnpm --config.verify-deps-before-run=false --config.offline=true --config.update-notifier=false run format
+pnpm --config.verify-deps-before-run=false --config.offline=true --config.update-notifier=false run lint
+pnpm --config.verify-deps-before-run=false --config.offline=true --config.update-notifier=false run typecheck
+```
+
+安装退出0，恢复10个包；核对顶层版本为TypeScript7.0.2、X6 3.1.8、tslib2.8.1、esbuild0.28.2，package.json/package-lock.json的前后SHA相同，没有新增依赖项、版本升级或安装脚本执行。依赖包下载有开发环境网络/I/O成本，不属于研究工具、模型、拟合或来源读取次数。
+
+| 本次实际门禁 | 退出码 | 结果 |
+|---|---|---|
+| format | 0 | 32文件，0改动 |
+| lint | 0 | 原tsc --noEmit --noUnusedLocals --noUnusedParameters通过 |
+| typecheck | 0 | 原tsc --noEmit通过 |
+
+续办仅更新文档与开发依赖环境，不改配方、编译器、执行内核和研究输入；前述测试及同项目实际试点按原身份与范围保留，没有另跑第二次研究实验或消耗历史预算。PR1的续办说明同步进入本PR，仍保留两PR的依赖关系。
+
+真实资料补查覆盖ICT、已给参考库及桌面/Downloads相关ZIP清单；未取得对应钢材CSV/spec/保存质量与分组项目，旧参考运行明确是engineering-polynomial-v1人工夹具，不能替代钢材证据。原始记录、查找范围和最小补件见 [gaps.md](gaps.md#续办核查与最小补件)。11月1日审查笔记缺失可由现有三项一手来源支撑有限工程设计，真实字段解释和领域判断则仍需可对应的材料。
+
+工程门禁已完成，原型可进入审阅；真实效果验证仍未完成。下一步只需交接具体CSV/spec身份、已有结果/context及对应零值/分组解释，不继续检索无关数据或把未审定解释写成科学确认。
 
 ## 真实问题：反馈前后下一决定
 
