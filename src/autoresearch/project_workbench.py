@@ -317,6 +317,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 commands = {"/api/local-workbench/create": "create", "/api/local-workbench/select": "select",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
+                            "/api/local-workbench/advance-recipe": "advance_recipe",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
                             "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume"}
                 _require(not parsed.scheme and not parsed.netloc and not parsed.query and not parsed.fragment
@@ -383,6 +384,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 if parsed.path == "/api/local-workbench/model" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Model journal does not accept a query.")
                     return self.send_json(200, local_workspace.model_view(enabled=claude_executable is not None))
+                if parsed.path == "/api/local-workbench/recipes" and local_workspace is not None:
+                    _require(not parsed.query, "INVALID_QUERY", "Recipe previews do not accept a query.")
+                    return self.send_json(200, local_workspace.recipes())
                 if parsed.path.startswith("/api/local-workbench/batch/") and local_workspace is not None:
                     _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved batch JSON identifier.")
                     encoded = parsed.path.removeprefix("/api/local-workbench/batch/")[:-5]

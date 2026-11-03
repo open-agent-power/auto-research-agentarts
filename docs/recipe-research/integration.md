@@ -13,6 +13,10 @@
 
 有宿主 blockers、范围或 need 不匹配、没有可匹配候选时选择 wait，并记录原因。结构非法或 context 封印无效则报错。配置只接受 `research-recipe-v1` 的八个字段：`schema_version/id/version/question/scope_match/need/ordered_methods/on_no_match`。`question` 是研究问题文本，`on_no_match` 固定为 `wait`，不执行配置中的文字。完整适用条件、研究依据及零值含义的缺口见[研究说明](README.md)、[来源表](sources.csv)和[缺口记录](gaps.md)。
 
+## 在工作台推进
+
+研究页保留原五页导航和 X6 画布。展开操作区，在“按配方推进”选择顺序，先看当前预览，再明确提交一步或保存本次等待。反馈返回后才更新下一步；配方是确定性规则，不调用模型。模型、手工及有界批次入口保留各自身份。完整网页步骤与接口见[本地工作台](../local-workbench.md#按配方推进一步)，下面是同一控制器的 CLI 用法。
+
 ## 用现有项目推进一步
 
 在产品根运行。项目应已完成主质量检查，并有真实可执行候选；来源只有在同项目登记后才可能成为候选。先读取当前状态和候选，保留这次的版本值：
@@ -64,6 +68,12 @@ $decisionVersion = $state.state_version
 原四文件包一次导出成功，`input.recipe_selections` 保存 3 条决定，逐条用原配方和原 context 重编译完全一致；清单中四文件的 SHA-256/字节数核对通过，6 页 PDF 已逐页看图，无裁切或重叠。本轮 format/lint/typecheck 均退出 0，format 检查 33 文件、修改 0；迁入的 10 文件门禁前后原字节未变。集成证据保存在本机 ignored [`runs/a29-recipe-integration-20261104/`](../../runs/a29-recipe-integration-20261104/)，见[报告核对](../../runs/a29-recipe-integration-20261104/report-validation.json)和[本轮门禁](../../runs/a29-recipe-integration-20261104/frontend-gates/result.json)。
 
 本轮驱动的两处问题分别保留：首次来源 manifest 错用 schema，原件另存为 `manifest.failed-schema.json` 后在同项目按正式 `project-evidence-bundle-v1` 修正，没有重建或重跑主检查；导出后核对代码误把 SHA 字符串与清单对象直接比较，修正为核对 `sha256/bytes`，保留同一份原报告，没有重新导出。这是集成验证，source-first 臂仅编译未执行，没有证明配方优于固定流程。
+
+## A30 网页实跑
+
+2026-11-04，原五页/X6研究操作区已支持两份配方预览与明确推进。归档真实hiMSC输入在[18793](http://127.0.0.1:18793/#/research)通过实际按钮完成分组→作者原件读取→等待；主质量bootstrap计一次，本地2/2、来源1/8、模型0/拟合0。三个捕获的原请求经同HTTP入口重放，原child与状态/用量不变。
+
+一次浏览器报告导出及PDF下载成功，四HTTP下载与保存文件一致；input保存3份完整配方，6页PDF逐页看图。桌面/手机全页与分段实看，两端五页切换/草稿/键盘已核；一次模拟预览GET失败只验证禁用和清除旧预览，不是实际资料故障。2项后端必要检查及最终前端门禁通过。旧项目和额度保留，未另跑source-first收益比较，详细[证据](../../runs/a30-recipe-workbench-20261104/validation.json)仅支持工程接入范围。
 
 ## 怎样评价后续推进
 

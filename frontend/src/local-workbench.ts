@@ -4,6 +4,7 @@ import { createProjectPages } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
+import { createLocalRecipePanel } from "./local-recipe";
 
 type Obj = Record<string, unknown>;
 type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean };
@@ -160,8 +161,9 @@ export async function mountLocalWorkbench(): Promise<void> {
   const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(name === "model-resume"
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
     : command(name, body)), announce });
+  const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    operations: [modelPanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
+    operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
   function otherModelBlockers(): boolean {
     return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain
       || !!lastRequest?.uncertain && !["model-advance", "model-resume"].includes(lastRequest.command);
@@ -197,6 +199,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     evidencePanel.setLocked(locked);
     batchPanel.setLocked(locked || typeof current.state_version !== "number" || current.id !== activeId());
     modelPanel.setLocked(busy || description.enabled !== true || otherModelBlockers());
+    recipePanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
     candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
     citationList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked; });
@@ -344,6 +347,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   async function refresh(): Promise<void> {
     const previousId = activeId(); context = null; candidates();
     modelPanel.setLocked(true);
+    recipePanel.invalidate(); recipePanel.setLocked(true);
     batchPanel.setLocked(true);
     await evidencePanel.refresh("", {});
     description = await read("/api/local-workbench");
@@ -371,8 +375,8 @@ export async function mountLocalWorkbench(): Promise<void> {
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
       candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
-      await modelPanel.refresh(now, current, context); await workspacePages.update(current);
-    } else { batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await workspacePages.update({}); }
+      await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current);
+    } else { batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
   }
@@ -413,6 +417,12 @@ export async function mountLocalWorkbench(): Promise<void> {
           const labels: Record<string, string> = { waiting: "等待后续条件", limit_reached: "达到本次授权上限", not_authorized: "下一步未获本次授权", blocked: "当前条件或原额度阻断", failed: "行动失败，原记录保留", needs_review: "待核对，未知行动不重发" };
           outcomeMessage = `批次已保存${count}步记录：${labels[text(result.status)] ?? "请核对原批次状态"}。` + text(stop.reason, "") + " 没有自动扩大授权或生成下一批次。";
           failed = pending.uncertain || result.status === "failed";
+        }
+        if (pending.command === "advance-recipe") {
+          pending.uncertain = result.status === "needs_review"; failed = pending.uncertain || result.status === "failed";
+          outcomeMessage = result.status === "waiting" ? "本次配方等待已保存，没有新行动；选择规则未调用模型。"
+            : result.status === "completed" ? "配方已推进一步并保存实际反馈；选择规则未调用模型。"
+              : "配方请求已保存，请核对实际行动和原请求状态；没有自动继续。";
         }
         if (modelCommand) {
           const record = obj(result.model_record), outcome = obj(record.outcome), state = text(record.status, ""), actual = text(outcome.status, "尚未提交行动");

@@ -53,3 +53,5 @@ A28 [host_model_report](../../src/autoresearch/host_model_report.py)提供 `capt
 原A27项目已实际重导出，核心v8/快照与CLI2次/0.048195USD不变，新增调用/行动0，15份模型原件核对、四下载身份及2项证据/2项HTTP检查通过；5页PDF逐页实看无重叠/截断。实际导出下载使用本地HTTP，未验证浏览器点击，见[A28核对](../../runs/a28-model-report-20261104/validation.json)。
 
 A29 [research_recipe](../../src/autoresearch/research_recipe.py)把明确的 `ordered_methods` 编译成原六字段 proposal 和独立 `research-recipe-decision-v1`。`ProjectController.advance_recipe`在真实 context 中选择一步，将完整配方 decision 存入原父请求；原 child、预算、事务与重放机制共用，不发送模型。范围/need/blockers及方法评价匹配控制可选项，跳过原因留存；报告 `input.recipe_selections` 保留原 context/decision，PDF/Markdown展示顺序与选择。队友原型固定版本、主线接入用法及本轮证据见[配方整合](../../docs/recipe-research/integration.md)，研究依据与历史失败仍见[原研究记录](../../docs/recipe-research/experiment.md)。配置分歧不证明研究收益。
+
+- A30 [LocalWorkbench.recipes/advance_recipe](../../src/autoresearch/local_workbench.py)将两份固定配方接回原本地会话；GET用真实context编译且复核快照，POST复用原writer/活动项目/pending及A29控制器，不另建预算或执行账本。新HTTP路径见[接口](interfaces.md)。

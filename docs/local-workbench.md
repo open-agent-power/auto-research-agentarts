@@ -65,6 +65,16 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 2026-11-04已沿本地HTTP接口重导出原A27项目，四个下载身份一致，输入内15份模型原件逐字节核对；[新5页PDF](../runs/a28-model-report-20261104/report/report.pdf)逐页渲染实看无重叠/截断。项目仍v8、快照不变，CLI仍2次/0.048195USD，本轮新增调用和行动0。旧A27报告判stale，新导出current；18791无外部的旧报告仍available。浏览器控制API不可用，此次未验证页面点击；完整核对与范围见[结果](../runs/a28-model-report-20261104/validation.json)及[A28说明](../runs/a28-model-report-20261104/README.md)。
 
+## 按配方推进一步
+
+进入“研究推进”，展开画布下方的操作区，在“按配方推进”中选择“先看分组，再读来源”或“先读来源，再看分组”。页面显示实际配置版本、方法顺序和当前预览；预览由同一项目的真实候选编译，读取或换选项都不执行。
+
+点“按此配方推进一步”才会提交最多一个合法行动；没有匹配候选时可明确保存本次等待。完成后读取新反馈，预览可能转到后一项方法。配方不启动模型、不改变工具参数或增加额度，原始值、未知和来源要求继续保留。它与“模型选择与执行”、手工选择、有界批次分别操作。
+
+刷新会先停用旧预览，再核对项目、版本及 context；读取失败保留配方选择并显示错误，不能提交旧预览。换页保留选择。请求身份、原配方、原版本和实际结果由既有控制器保存；网络结果不明时核对原请求，不能换 ID 重发。方法选择记录区标明配方 id/version、顺序与取舍，完整原件和报告仍沿用原入口。
+
+网页只读接口为 `GET /api/local-workbench/recipes`，固定读取两份正式配方，返回 `project_id/state_version/context_sha256/recipes`；每项包含 `recipe/decision`。无活动项目返回 null/空列表。`POST /api/local-workbench/advance-recipe` 只接受 `request_id/project_id/expected_state_version/recipe`，沿用启动写操作开关、本机会话、活动项目和未完成操作限制，`need` 固定为 `next_check`。配置全文进入原请求，原 ID 重放保留当时的配置与 context，不重新选当前候选。CLI 用法见[配方集成](recipe-research/integration.md)。
+
 ## 在同一项目登记资料，再明确读取
 
 “补充资料”面板读取当前项目的实际取证任务，绑定`task_ref / state_version / snapshot_ref`。如果尚无任务，显示“先执行一次检查”，不妨碍创建、选择项目或已有候选操作。任务所需证据及其绑定可展开核对；后续分析提供的证据要求不改写原取证任务身份。

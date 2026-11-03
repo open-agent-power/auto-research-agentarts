@@ -129,7 +129,7 @@ body[data-case="p02"] #main-content:focus { outline: none; box-shadow: none; }
 /* Explicit local workbench; established glass shell and saved-result surfaces remain shared. */
 .local-workbench{display:grid;gap:24px;color:var(--ar-content-text)}
 .local-workbench>*{min-width:0}.local-workbench h1{font-size:clamp(25px,3vw,35px);line-height:1.45;margin:0 0 14px}
-.local-model .detail-note{font-size:14px;line-height:1.85;color:var(--ar-content-text);background:transparent;padding:0;max-width:75ch}.local-model-usage{padding:12px 0;margin-bottom:18px;border-bottom:1px solid var(--ar-content-border)}.local-model-record>.notice{font-weight:550}
+.local-model .detail-note,.local-recipe .detail-note,.project-recipe-note{font-size:14px;line-height:1.85;color:var(--ar-content-text);background:transparent;padding:0;max-width:75ch}.local-model-usage{padding:12px 0;margin-bottom:18px;border-bottom:1px solid var(--ar-content-border)}.local-model-record>.notice{font-weight:550}
 .local-workbench p,.local-workbench label,.local-workbench summary{overflow-wrap:anywhere;line-height:1.85}
 .local-intro,.local-panel{border:1px solid var(--ar-content-border);background:var(--ar-content-surface);border-radius:var(--ar-radius-card);padding:28px;margin:0}
 .local-panel>.section-title{margin-bottom:12px}.local-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}

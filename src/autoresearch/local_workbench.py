@@ -15,6 +15,7 @@ from .project_controller import ProjectController
 from .host_model_selection import HostModelSelection
 from .host_model_report import host_model_report_current
 from .research_project import ResearchProject, safe_path, write_bytes_once
+from .research_recipe import MAX_RECIPE_BYTES, compile_recipe, parse_json
 
 MAX_PROJECTS = 32
 
@@ -255,6 +256,40 @@ class LocalWorkbench:
             # The original core request ID performs all replay, unknown and version checks.
             return ProjectController(project.root).advance_selection(request_id=body["request_id"], proposal=body["proposal"],
                                                                      expected_state_version=body["expected_state_version"])
+
+    def recipes(self):
+        view = {"schema_version": "local-research-recipes-v1", "project_id": None,
+                "state_version": None, "context_sha256": None, "recipes": []}
+        with self._connect(readonly=True) as con:
+            active = self._active(con)
+            project = self._project(con, active)[1] if active is not None else None
+        if project is None:
+            return view
+        context = ProjectController(project.root).selection_context()
+        directory = Path(__file__).resolve().parents[2] / "examples/research-recipes"
+        for name in ("tabular-group-first.json", "tabular-source-first.json"):
+            recipe = parse_json(reader._read_file(safe_path(directory / name), MAX_RECIPE_BYTES),
+                                maximum=MAX_RECIPE_BYTES, code="INVALID_RESEARCH_RECIPE")
+            view["recipes"].append({"recipe": recipe, "decision": compile_recipe(recipe, context)})
+        _require(project.status()["snapshot_ref"] == context["snapshot_ref"],
+                 "STALE_STATE", "Project changed while previewing recipes.")
+        view.update(project_id=context["project_id"], state_version=context["state_version"],
+                    context_sha256=context["context_sha256"])
+        return view
+
+    def advance_recipe(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "recipe"))
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "An exact saved state version is required.")
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                old = self._old(con, body, digest)
+                if old is None:
+                    self._accept(con, body, digest, "advance_recipe", {"project_id": body["project_id"], "request_sha256": digest})
+            return ProjectController(project.root).advance_recipe(request_id=body["request_id"], recipe=body["recipe"],
+                                                                  expected_state_version=body["expected_state_version"])
 
     def model_view(self, *, enabled=False):
         with self._connect(readonly=True) as con:

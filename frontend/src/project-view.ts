@@ -1,5 +1,6 @@
 /** Read saved active-project facts; this page never submits research commands. */
 import { $, el, field, numeric, safeUrl } from "./dom";
+import { recipeName, recipeOrder, recipeReason } from "./local-recipe";
 
 type Obj = Record<string, unknown>;
 const isObject = (value: unknown): value is Obj => !!value && typeof value === "object" && !Array.isArray(value);
@@ -463,13 +464,22 @@ function choiceTitle(project: Obj, action: Obj): string {
 function selectionCard(project: Obj, record: Obj): HTMLElement {
   const card = el("article", "project-selection-card"), action = { kind: record.decision_kind, method_id: record.method_id, parameters: record.parameters };
   const provider = object(record.provider_claim), child = object(record.child), baseline = object(record.baseline_decision);
+  const recipeDecision = object(record.recipe_decision), recipe = object(recipeDecision.recipe), isRecipe = recipeDecision.schema_version === "research-recipe-decision-v1";
   const providerNames: Record<string, string> = { operator_assistant: "开发助手", human: "人工提交", external_model: "外部模型声明" };
   card.append(el("h3", "", choiceTitle(project, action)));
   const statuses = el("div", "project-status-row");
   statuses.append(el("span", "status-badge project-status", record.decision_kind === "external_wait" ? "本请求没有新行动" : "关联行动：" + state(child.status ?? record.status)));
-  card.append(statuses, el("p", "detail-note", "提交来源：" + (providerNames[string(provider.kind)] ?? "未记录") + "；来源声明尚未核验。"),
-    el("p", "project-selection-rationale", string(record.rationale, "未保存选择理由。")));
-  if (record.decision_kind === "external_wait") card.append(el("p", "detail-note", "这次等待没有创建新行动。项目仍可继续，尚未读取的资料保留供下一次决定。"));
+  card.append(statuses, el("p", isRecipe ? "detail-note project-recipe-note" : "detail-note", isRecipe ? `确定性科研配方：${recipeName(recipe)} · ${string(recipeDecision.recipe_id)} v${String(recipeDecision.recipe_version)}；选择不调用模型。`
+    : "提交来源：" + (providerNames[string(provider.kind)] ?? "未记录") + "；来源声明尚未核验。"),
+    el("p", "project-selection-rationale", isRecipe ? recipeReason(recipeDecision.reason) : string(record.rationale, "未保存选择理由。")));
+  if (isRecipe) {
+    card.append(el("p", "detail-note project-recipe-note", "方法顺序：" + recipeOrder(recipe)));
+    for (const item of objects(recipeDecision.method_decisions)) card.append(el("p", "detail-note project-recipe-note",
+      (item.outcome === "selected" ? "选用" : "跳过") + method(item.method_id) + "：" + recipeReason(item.reason) + "。"));
+  }
+  if (record.decision_kind === "external_wait") card.append(el("p", isRecipe ? "detail-note project-recipe-note" : "detail-note", isRecipe
+    ? "这次等待没有创建新行动。取得新资料后可用新请求重新决定。"
+    : "这次等待没有创建新行动。项目仍可继续，尚未读取的资料保留供下一次决定。"));
   const comparison = el("div", "project-selection-compare");
   for (const [label, title] of [["这次提交的选择", choiceTitle(project, action)], ["当时的固定建议", choiceTitle(project, object(baseline.next_action))]]) {
     const part = el("div", "project-selection-cell"); part.append(el("p", "overline", label), el("p", "", title)); comparison.append(part);
@@ -484,7 +494,8 @@ function selectionCard(project: Obj, record: Obj): HTMLElement {
     const link = sourceLink(source.url); if (link) quote.append(link);
     quote.append(details("引用身份与定位", { citation_id: hit.citation_id, source, location: hit.location })); citations.append(quote);
   }
-  if (!evidence.length) citations.append(el("p", "detail-note", "本次提案没有声明引用上下文片段；不能据此推断模型已读取资料。"));
+  if (!evidence.length) citations.append(el("p", "detail-note", isRecipe ? "本次按宿主候选和配方顺序决定，未调用模型；没有声明引用来源摘录。"
+    : "本次提案没有声明引用上下文片段；不能据此推断模型已读取资料。"));
   card.append(citations);
   if (typeof record.request_id === "string" && /^[A-Za-z0-9_.:-]{1,80}$/.test(record.request_id)) {
     const link = el("a", "text-button", "下载这次选择的完整记录 JSON ↓");
@@ -494,6 +505,7 @@ function selectionCard(project: Obj, record: Obj): HTMLElement {
     snapshot_ref_before: record.snapshot_ref_before, state_version_before: record.state_version_before,
     request_sha256: record.request_sha256, decision_sha256: record.decision_sha256, child,
     provider_claim: provider, provider_verified: record.provider_verified, model_execution_verified: record.model_execution_verified,
+    recipe_decision: record.recipe_decision,
     controller_code_identity: record.controller_code_identity, project_code_identity: record.project_code_identity }));
   return card;
 }
