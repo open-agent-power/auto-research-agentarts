@@ -257,6 +257,8 @@ class ResearchProject:
             preview = self.status()
             preview["evidence_actions"] = [a for a in preview["evidence_actions"] if a["id"] != action["id"]] + [action]
             preview["knowledge_refs"] = preview.get("knowledge_refs", []) + [knowledge_ref]
+            preview["next_decision"] = {**(preview.get("next_decision") or {}),
+                                        "remaining_questions": result["result"]["remaining_questions"]}
             queries = project_knowledge.decision_needs(preview)
             contexts = [project_knowledge.query(self.root, preview, need=queries[point], point=point)
                         for point in project_knowledge.POINTS]

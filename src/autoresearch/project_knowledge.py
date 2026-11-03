@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import uuid
 
 from . import knowledge
@@ -31,11 +32,34 @@ def _data_interpretation(scope):
     return query
 
 
+def _remaining_question_need(project):
+    questions = (project.get("next_decision") or {}).get("remaining_questions", [])
+    if type(questions) is not list:
+        return None
+    for question in questions:
+        if type(question) is not str:
+            continue
+        query = question.strip()
+        if not query or len(query) > 512 or not 1 <= len(set(knowledge.tokens(query))) <= 64:
+            continue
+        # Keep the literal identifier while also matching separately stored field/value tokens.
+        aliases = dict.fromkeys(re.sub(r"(?<=[A-Za-z])(?=\d)|(?<=\d)(?=[A-Za-z])", " ", term)
+                                for term in re.findall(r"[A-Za-z_][A-Za-z_0-9]*", query)
+                                if re.search(r"[A-Za-z]\d|\d[A-Za-z]", term))
+        for alias in aliases:
+            candidate = query + " " + alias
+            if len(candidate) <= 512 and len(set(knowledge.tokens(candidate))) <= 64:
+                query = candidate
+        return query
+    return None
+
+
 def decision_needs(project):
     method = project.get("registration", {}).get("method_id", "p02.saved-oof-residuals")
     if method == "data.tabular-quality-audit":
         return {"clarification": "dataset columns target unit", "design": "group key independence duplicates",
-                "preparation": "numeric_columns missing_tokens group_columns", "interpretation": _data_interpretation(project.get("source_scope", {}))}
+                "preparation": "numeric_columns missing_tokens group_columns",
+                "interpretation": _remaining_question_need(project) or _data_interpretation(project.get("source_scope", {}))}
     if method == "materials.saved-steel-audit":
         return {"clarification": "yield strength composition MPa", "design": "linear interaction validation holdout",
                 "preparation": "composition processing heat treatment microstructure", "interpretation": "validation MSE threshold external validation"}
