@@ -8,6 +8,9 @@ import { knowledgeHash, researchHash, pageLabels, parseRoute, renderPage, type P
 import { relationObjects } from "./knowledge";
 import { mountLocalDemo } from "./local-demo";
 import { mountC01 } from "./c01-app";
+import { mountP02 } from "./p02-app";
+import { mountStandaloneProject } from "./project-view";
+import { mountLocalWorkbench } from "./local-workbench";
 import type { Layout, Project, ResearchObject } from "./types";
 
 let project: Project | null = null;
@@ -198,6 +201,12 @@ async function load(): Promise<void> {
 }
 if (document.body.dataset.case === "c01") {
   void mountC01();
+} else if (document.body.dataset.case === "p02") {
+  void mountP02();
+} else if (document.body.dataset.case === "project") {
+  void mountStandaloneProject();
+} else if (document.body.dataset.case === "local-workbench") {
+  void mountLocalWorkbench();
 } else {
 $("download-pdf").addEventListener("click",()=>{void download("pdf");}); $("download-zip").addEventListener("click",()=>{void download("reproduction");});
 $("close-inspector").addEventListener("click",()=>closePreview()); $("inspector-backdrop").addEventListener("click",()=>closePreview());

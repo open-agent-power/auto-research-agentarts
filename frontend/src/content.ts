@@ -197,4 +197,3 @@ export function renderReading(container: HTMLElement, section: SectionName, cont
     const questions = el("section", "reading-section"); questions.append(el("h2", "", "后续研究问题")); questionForm(questions, context); container.append(questions);
   }
 }
-

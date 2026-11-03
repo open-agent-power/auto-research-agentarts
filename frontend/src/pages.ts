@@ -1,4 +1,4 @@
-import type { Project, ResearchObject, Trial } from "./types";
+import type { Project, ResearchObject } from "./types";
 import type { ContentContext } from "./content";
 import { badge, figures, questionForm, renderDetails } from "./content";
 import { date, el, field, numeric, paragraph, safeUrl, text } from "./dom";

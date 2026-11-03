@@ -1,17 +1,11 @@
-# 开发文档入口
+# 产品文档入口
 
-本目录随产品代码版本管理。产品定位、实现架构、界面设计各有一份权威说明，避免把调研、方案和已运行能力混在一起。
+- [产品计划](plan.md)与[自适应研究设计](research/adaptive-research.md)
+- [当前实现范围](current-progress.md)
+- [系统架构](architecture.md)与[开发地图](development.md)
+- [项目使用说明](project-slice.md)与[本地工作台](local-workbench.md)
+- [知识服务](knowledge.md)与[条件记忆](research-memory.md)
+- [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
+- [开发者导航](../.agent/README.md)
 
-| 要做的事 | 先读 | 接着看 |
-|---|---|---|
-| 理解我们在构建什么 | [产品与架构](architecture.md) | 当前实现、目标架构和缺口分别标注 |
-| 修改任何界面 | [DESIGN](../DESIGN.md) | [空间工作台设计](design/workspace.md)、[设计令牌](design/tokens.css) |
-| 复用白板或组件 | [UI参考与选型](design/ui-references.md) | 官方示例、具体许可、适配成本 |
-| 开发、验证与交接 | [开发边界与代码地图](development.md) | 仓库README中的运行命令与对应测试 |
-| 复用已在AgentArts运行的C01工具 | [敏感性核验源码与平台步骤](../agentarts/c01-sensitivity/README.md) | 真实云端结果、公开输入、测试与尚未接通部分 |
-| 让队友的Agent操作平台 | [AgentArts搭建skill](../.agent/skills/agentarts-china-builder/SKILL.md) | 浏览器实操、失败处理与费用核对 |
-| 给队友安排可验收的工作 | [队友任务书](team-handoff.md) | 独立复现、正式赛事依据和少量数据复核 |
-
-工作区级的项目计划、队员任务和资料归档在 `ICT/docs/`；第三方源码和论文在 `ICT/references/`，不复制进产品仓库。仅克隆本仓库也能阅读以上设计与运行说明。
-
-R8按总览、研究推进、实验、知识空间、成果复现分为五页；研究推进默认显示X6流程画布，知识空间提供分类图文卡片、资料阅读和关联视图，问题保存和导出沿用原接口。布局没有跨设备同步，可选本地演示允许单步执行独立脚本实验；它不等于真实模型或平台接入。R14已恢复AgentArts验证并在控制台跑通独立C01工作流；本地产品到云端的调用、真实模型和高代码部署仍待验证。开发检查点在被Git忽略的 `.agent/focus.json`，文档目录不再复制一套运行进度。
+源码分发保留实现、使用说明、正式设计和模板。本机研究账本、模型响应、试验记录及生成成果不随源码发布。

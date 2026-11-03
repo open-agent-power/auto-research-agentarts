@@ -1,9 +1,25 @@
 .venv/
-# Share only the requested project skill; keep machine state and evidence ignored.
+# Share development navigation and approved skills; keep machine state ignored.
 .agent/*
+!.agent/README.md
+!.agent/indexes/
+.agent/indexes/*
+!.agent/indexes/aesthetics.md
+!.agent/indexes/components.md
+!.agent/indexes/backend.md
+!.agent/indexes/interfaces.md
+!.agent/indexes/knowledge.md
+!.agent/indexes/evaluation.md
+!.agent/indexes/references.md
 !.agent/skills/
 .agent/skills/*
 !.agent/skills/agentarts-china-builder/
+!.agent/skills/research-dev-router/
+.agent/skills/research-dev-router/*
+!.agent/skills/research-dev-router/SKILL.md
+!.agent/skills/research-dev-router/agents/
+.agent/skills/research-dev-router/agents/*
+!.agent/skills/research-dev-router/agents/openai.yaml
 __pycache__/
 *.py[cod]
 *.egg-info/

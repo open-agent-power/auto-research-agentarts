@@ -1,0 +1,54 @@
+{
+  "schema_version": "p02-workbench-recipe-v1",
+  "label": "P02 工作簿研读与来源核对",
+  "sources": {
+    "baseline_directory": {
+      "directory": "runs/r58-publication-final",
+      "snapshot_sha256": "bbe97d0d23ec5bbc9b7d39a66df7e8886fac84a5b4dce15842a4c3b6cfb2c354"
+    },
+    "iteration_directory": {
+      "directory": "runs/r74-publication",
+      "snapshot_sha256": "35f4678f7f205b18bae97e335205dc9735d4700baa1bd88e1cff42307e647f52"
+    },
+    "postrun_directory": {
+      "directory": "runs/r74-revision-publication",
+      "snapshot_sha256": "8847ef82af67cbf5b7613e0b0a08d58744fff4aa77dd6d06548e23ffd259d91f"
+    },
+    "diagnostic_directory": {
+      "directory": "runs/r78-diagnostic-publication",
+      "snapshot_sha256": "7ddf762baaa725c9f9e1129aee6e14d68de96a3fd9ece41d1b09d63f2cb8ac95"
+    },
+    "handoff_directory": {
+      "directory": "runs/r80-task-publication",
+      "snapshot_sha256": "22b3962ac5d33583e0532849ccf8391a91f4dfd3c11027299d8e956bb377edf7"
+    },
+    "source_progress_directory": {
+      "directory": "runs/r83-evidence-workflow/history/progress-3-6dca24e688257b083472c436",
+      "snapshot_sha256": "600d4865caf6a1627230c568a21c579d5a215cfc346d9d23cef900af04c0566a"
+    },
+    "prepared_input_directory": {
+      "directory": "runs/r88-tabular-publication",
+      "snapshot_sha256": "2e2cff6190a6e1a2484362930fc2fb212091cb1277e5f39c8bc63f3be8525601"
+    },
+    "source_continuation_directory": {
+      "directory": "runs/r91-continuation-publication-final",
+      "snapshot_sha256": "c21bce69e3a6c5b22d7c93721242d726bc24e19dec832ad63a993ea139c12463"
+    },
+    "pipeline_input_directory": {
+      "directory": "runs/r93-pipeline-publication",
+      "snapshot_sha256": "d354fa7374a37e724796cb78e937aa8710e07ce9ff183a0a3b854e31b6bfc134"
+    },
+    "pipeline_research_directory": {
+      "directory": "runs/r96-pipeline-publication",
+      "snapshot_sha256": "68e26f8132a0e8a344ceb9a6996291db68395034e3d4e9b978ee6f1215b25408"
+    },
+    "tabular_research_directory": {
+      "directory": "runs/r98-tabular-publication",
+      "snapshot_sha256": "5a0fe663ef0031874579df4fa4c1d30b2ad5d12d01083c317e9b76b8a9ed345a"
+    },
+    "dossier_directory": {
+      "directory": "runs/r100-dossier",
+      "snapshot_sha256": "f6070f836be6276166c704af41b91f39d640187cc7fef03cd3957d7c12852277"
+    }
+  }
+}

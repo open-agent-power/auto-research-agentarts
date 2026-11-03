@@ -1,0 +1,15 @@
+{
+  "purpose": "Required-source retrieval checks; not a scientific QA benchmark. Extend before changing retrieval rules.",
+  "tasks": [
+    {"id":"code-limits","query":"代码节点 超时时间 Tokens 沙箱","kinds":["official_doc"],"expected_paths":["06-agentarts-platform/official-docs/2026-10-27/markdown/lowcode-agentarts/agentarts_05_0067.md"]},
+    {"id":"sandbox-conflict","query":"代码节点 不支持 沙箱执行 服务","kinds":["official_doc"],"expected_paths":["06-agentarts-platform/official-docs/2026-10-27/markdown/lowcode-agentarts/agentarts_05_0067.md","06-agentarts-platform/official-docs/2026-10-27/markdown/lowcode-agentarts/agentarts_05_0228.md"]},
+    {"id":"runtime-sdk","query":"AgentArts Runtime SDK HTTP 运行时","kinds":["official_doc"],"expected_paths":["06-agentarts-platform/official-docs/2026-10-27/markdown/highcode-agentarts/agentarts_10_041.md"]},
+    {"id":"biomni-tools","query":"Biomni 工具 数据 检索","kinds":["research_profile"],"expected_paths":["profiles/biomni.md"]},
+    {"id":"negative-evidence","query":"LLM AutoSciLab negative evidence 主动学习","kinds":["research_profile"],"expected_paths":["profiles/LLM-AutoSciLab.md"]},
+    {"id":"scientist-v2-license","query":"AI Scientist v2 许可","kinds":["research_profile"],"expected_paths":["profiles/AI-Scientist-v2.md"]},
+    {"id":"c01-boundary","query":"C01 TNZST 8 独立 样本","kinds":["reuse_note"],"expected_paths":["08-c01-tnzst/README.md"]},
+    {"id":"autoresearch-loop","query":"autoresearch 训练 递归 权重","kinds":["reuse_note"],"expected_paths":["07-autoresearch-loop/README.md"]},
+    {"id":"biomni-primary","query":"Biomni general purpose biomedical agent","kinds":["research_paper"],"requires_kind":"research_paper","expected_paths":["02-biomedical/biomni/papers/paper.pdf"]},
+    {"id":"unsupported","query":"qxvnonexistent7319az","expect_empty":true,"expected_paths":[]}
+  ]
+}

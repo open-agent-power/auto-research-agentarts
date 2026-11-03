@@ -1,0 +1,568 @@
+"""Export saved project evidence as a bounded paper, without research execution."""
+
+import base64
+from io import BytesIO
+import hashlib
+import json
+import math
+from pathlib import Path
+from xml.sax.saxutils import escape
+
+from . import paper_export, project_workbench, project_selection_view, snapshot_viewer
+from .contracts import ResearchError, canonical, fingerprint
+from .research_project import ResearchProject, safe_path
+
+
+KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel",
+         "software.source-integrity-check": "software", "data.tabular-quality-audit": "tabular"}
+TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存模型与评价复核报告",
+          "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告"}
+
+
+def _require(condition, code, message):
+    if not condition:
+        raise ResearchError(code, message)
+
+
+def _digest(raw):
+    return {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+
+
+def _text(value, limit=600):
+    if value is None:
+        return "未知"
+    value = str(value).translate(paper_export._DASHES)
+    value = "".join(char for char in value if ord(char) >= 32 or char in "\n\t")
+    return value[:limit] + ("（节选，全文见JSON）" if len(value) > limit else "")
+
+
+def _number(value):
+    return f"{value:.8g}" if type(value) in (int, float) and math.isfinite(value) else "未知"
+
+
+def _summary(kind, state, results):
+    primary = state["registration"].get("method_id", "p02.saved-oof-residuals")
+    complete = [item["tool_result"] for item in results if item["command"] == primary and item["tool_result"] is not None]
+    tool = complete[-1] if complete else None
+    if kind == "p02":
+        method = "读取冻结四规则的已保存OOF预测，在同规则内相对化学基线诊断；残差为预测减目标，MAE单位为无量纲比值。不新增拟合，不将红通道代理认定为ALP。"
+        headers = ["处理规则", "候选 MAE", "化学 MAE", "差值", "单位"]
+        rows = []
+        if tool:
+            for policy, entry in tool["result"]["summary"]["policies"].items():
+                methods = entry["methods"]
+                row = methods["current_candidate"]
+                rows.append([policy, _number(row["mae"]), _number(methods["chemistry"]["mae"]),
+                             _number(row["delta_mae_vs_chemistry"]), "比值"])
+        detail = "结果来自既存已查看数据及同section实测平坦对照；四处理规则改变目标，不能跨规则按MAE选优。材料组合及分组不是独立生物重复，数值复核不构成新发现。"
+    elif kind == "steel":
+        method = "对既存五个JSON模型的保存预测与原训练/验证MSE进行审计，采用原固定划分与1%采用门槛。目标为屈服强度MPa，MSE为MPa^2；不重新拟合，也不改变候选排序。"
+        headers = ["方案", "degree / alpha", "训练 MSE", "验证 MSE", "原决定"]
+        rows = []
+        if tool:
+            for index, row in enumerate(tool["result"]["trials"], 1):
+                rows.append([str(index), f"{row['candidate']['degree']} / {_number(row['candidate']['alpha'])}",
+                             _number(row["metrics"]["training_mse"]), _number(row["metrics"]["validation_mse"]), row["decision"]])
+        detail = "表中MSE单位均为MPa^2。测试集只核对原先已选基线，不用测试集重新排名；当前固定划分不是官方Matbench成绩或跨实验室材料有效性证明。"
+        if tool:
+            check = tool["result"].get("baseline_only_test_check", {})
+            detail += " 原基线测试MSE=" + _number(check.get("test_mse")) + " MPa^2；n=" + str(check.get("n", "未知")) + "。"
+    elif kind == "tabular":
+        method = "只读核对已捕获的CSV与spec原字节，按提交者声明的键、分组和数值列统计记录数、重复、缺失、非法及非有限值。不执行内容、不拟合、不改变数据或构造训练标签。"
+        headers = ["核对项", "实际计数或状态"]
+        rows = []
+        if tool:
+            profile = tool["result"]["profile"]
+            rows = [["数据记录（不含表头）", profile["rows"]], ["列数", profile["columns"]],
+                    ["完全重复额外记录", profile["exact_duplicate_rows"]], ["机械核对状态", profile["mechanical_status"]]]
+        detail = "记录数不等于独立样本量；分组重复不自动作为错误。零值是有限数子集，不自动转为缺失，Count=0也不自动视为缺失或有效终点。字段角色、sample_unit、目标单位、来源和许可均为提交者声明；target资格仍为declared_unconfirmed，具体目标含义、单位、训练资格或领域结论仍未核验。"
+    else:
+        method = "把宿主选择的真实源码作为原字节数据捕获，在任务专有临时副本上做固定文件I/O检查。源码不被执行；正常读写与确定性故障注入分开记录，不调用模型或网络。"
+        headers = ["检查", "类型", "结果", "实际反馈"]
+        rows = []
+        if tool:
+            for check in tool["result"]["checks"]:
+                feedback = ("跨API差异：" + ", ".join(check.get("cross_api_different_fields", []))) if check["id"] == "normal_capture" else str(check.get("actual_code") or "未拒绝")
+                rows.append([check["id"], "正常I/O" if check["classification"] == "actual_normal_io" else "故障注入",
+                             "符合预期" if check["passed"] else "未通过", feedback])
+        detail = "五项check属于本机软件验证，单位为检查项；不使用MAE、ALP或生物终点。真实追加由读取边界hook安排时机，OS metadata未伪造；未穷尽文件系统、全部竞态或生产安全。"
+    summary = {"method": method, "headers": headers, "rows": rows, "result_notice": detail,
+               "has_completed_primary_result": bool(tool), "scope": state.get("source_scope", {})}
+    if kind == "tabular" and tool:
+        profile = tool["result"]["profile"]
+        summary["numeric_headers"] = ["数值列", "有限", "零", "空串", "声明缺失", "非法", "非有限", "最小", "最大"]
+        summary["numeric_rows"] = [[row["name"], *[row["counts"][key] for key in
+                                   ("finite", "zero", "empty", "declared_missing", "invalid_numeric", "nonfinite")],
+                                   _number(row["min"]), _number(row["max"])] for row in profile["numeric_columns"]]
+        summary["group_headers"] = ["键或分组核对", "实际计数"]
+        key, group = profile["key_columns"], profile["group_columns"]
+        summary["group_rows"] = ([["键核对", "未声明键，未计算"]] if all(value is None for value in key.values()) else [
+            ["键完整 / 不完整记录", f"{key['complete_rows']} / {key['incomplete_rows']}"],
+            ["重复键额外行 / 重复组 / 冲突组", f"{key['duplicate_rows']} / {key['duplicate_groups']} / {key['conflict_groups']}"]])
+        summary["group_rows"] += ([["分组核对", "未声明分组，未计算"]] if all(value is None for value in group.values()) else [
+            ["分组数 / 单记录组 / 重复组", f"{group['group_count']} / {group['singletons']} / {group['repeated_groups']}"],
+            ["重复组内 / 分组字段不完整记录", f"{group['rows_in_repeated_groups']} / {group['incomplete_group_rows']}"],
+            ["最小 / 最大组大小", f"{_number(group['min_group_size'])} / {_number(group['max_group_size'])}"]])
+        summary["quality_flags"] = profile["flags"]
+        summary["duplicate_examples"] = [example for example in profile["examples"] if example["kind"] == "exact_duplicate_row"][:5]
+    return summary
+
+
+def collect_report(workspace) -> dict:
+    """Read a stable project snapshot and verify every completed saved artifact."""
+    project = ResearchProject(workspace)
+    before = project.status()
+    method_id = before["registration"].get("method_id", "p02.saved-oof-residuals")
+    _require(method_id in KINDS, "UNSUPPORTED_REPORT", "This exporter supports the registered local report methods.")
+    source_raw = snapshot_viewer._read(safe_path(project.root / "source.json"), snapshot_viewer.MAX_FILE)
+    _require(hashlib.sha256(source_raw).hexdigest() == before["registration"]["source_sha256"],
+             "EVIDENCE_CHANGED", "Registered report input bytes differ.")
+    source_packet = snapshot_viewer._json(source_raw)
+    _require(source_packet.get("snapshot_sha256") == before["source_snapshot_sha256"]
+             and source_packet["snapshot_sha256"] == fingerprint({key: value for key, value in source_packet.items() if key != "snapshot_sha256"}),
+             "EVIDENCE_CHANGED", "Registered report input snapshot differs.")
+    source_manifest = [{"name": "source.json", "role": "registered_input", **_digest(source_raw),
+                        "snapshot_sha256": source_packet["snapshot_sha256"]}]
+    if KINDS[method_id] == "software":
+        origin = source_packet["source"]
+        source_manifest.append({"name": "embedded:" + origin["file_name"], "role": "embedded_original_code_bytes",
+                                "sha256": origin["sha256"], "bytes": origin["bytes"], "license_note": origin["license_note"]})
+    elif KINDS[method_id] == "steel":
+        origin = source_packet["source_export"]
+        source_manifest.append({"name": origin["name"], "role": "archived_origin_identity", "sha256": origin["sha256"], "bytes": origin["bytes"]})
+        source_manifest.extend({"name": model["source_name"], "role": "embedded_saved_model",
+                                "sha256": model["sha256"], "bytes": model["bytes"]} for model in source_packet["models"])
+    elif KINDS[method_id] == "tabular":
+        spec, csv_source, spec_source = source_packet["spec"], source_packet["source"], source_packet["spec_source"]
+        source_manifest.extend([
+            {"name": "embedded:" + spec_source["file_name"], "role": "embedded_submitted_spec_bytes",
+             "sha256": spec_source["sha256"], "bytes": spec_source["bytes"]},
+            {"name": "embedded:" + csv_source["file_name"], "role": "embedded_audited_csv_bytes",
+             "sha256": csv_source["sha256"], "bytes": csv_source["bytes"], "url": spec["source_url"],
+             "license_note": spec["license_note"], "provenance_claim": spec["provenance"],
+             "notice": "These are the audited CSV input bytes; upstream origin, transformation and licence are submitter declarations, not a verified original external CSV."}])
+    results, receipts, assets, source_selections = [], [], {}, []
+    registered = {item["receipt_snapshot_sha256"]: dict(item) for item in before.get("evidence_sources", [])}
+    for action in before["actions"] + before["evidence_actions"]:
+        entry = {"action_id": action["id"], "command": action["command"], "status": action["status"],
+                 "failure": action.get("failure"), "tool_result": None}
+        if action["status"] == "completed":
+            raw = project_workbench._artifact(project, before, action["id"])
+            envelope = snapshot_viewer._json(raw)
+            entry.update(envelope=envelope, tool_result=envelope["tool_result"])
+            source_manifest.append({"name": action["artifact"], "role": "completed_action_artifact", **_digest(raw),
+                                    "action_id": action["id"], "result_sha256": action["result_sha256"]})
+            tool = envelope["tool_result"]
+            source_selections.extend(tool.get("result", {}).get("selections", []))
+            if action.get("input_receipt"):
+                registered.setdefault(action["receipt_snapshot_sha256"], {
+                    "receipt_snapshot_sha256": action["receipt_snapshot_sha256"],
+                    "input_receipt": action["input_receipt"]})
+        results.append(entry)
+    receipt_states = []
+    for receipt_sha, source_ref in registered.items():
+        # Capturing an unread input for reproduction is not selection extraction.
+        receipt, original_assets, relative = project._load_evidence_input(
+            before, receipt_sha, input_receipt=source_ref.get("input_receipt"), task_ref=source_ref.get("task_ref"))
+        receipt_raw = snapshot_viewer._read(safe_path(project.root.joinpath(*relative.split("/"))), snapshot_viewer.MAX_FILE)
+        _require(snapshot_viewer._json(receipt_raw) == receipt, "EVIDENCE_CHANGED", "Receipt changed during report collection.")
+        attempts = [action for action in before["evidence_actions"] if action.get("receipt_snapshot_sha256") == receipt_sha]
+        read_status = ("read" if any(action["status"] == "completed" for action in attempts)
+                       else attempts[-1]["status"] if attempts else "registered_unread")
+        receipt_states.append({"receipt_snapshot_sha256": receipt_sha, "input_receipt": relative,
+                               "task_ref": receipt["task_ref"], "read_status": read_status,
+                               "source_count": len(receipt["sources"]), "selection_count": len(receipt["selections"])})
+        receipts.append(receipt)
+        source_manifest.append({"name": relative, "role": "captured_receipt", **_digest(receipt_raw),
+                                "snapshot_sha256": receipt_sha, "read_status": read_status})
+        for source in receipt["sources"]:
+            digest = source["asset_sha256"]
+            name = "evidence-inputs/" + receipt_sha + "/" + digest + ".bin"
+            if name not in assets:
+                original = original_assets[source["id"]]
+                assets[name] = {"name": name, **_digest(original), "bytes_base64": base64.b64encode(original).decode("ascii")}
+                source_manifest.append({"name": name, "role": "captured_original", **_digest(original), "read_status": read_status,
+                                        "url": source["url"], "license_note": source["license_note"]})
+    selection_history = project_selection_view.selection_view(before)
+    after = project.status()
+    _require(after["snapshot_ref"] == before["snapshot_ref"], "PROJECT_CHANGED", "Project changed while collecting this report.")
+    kind = KINDS[method_id]
+    report = {"schema_version": "research-project-report-v1", "kind": kind, "title": TITLES[kind],
+              "project_id": before["id"], "project_snapshot_ref": before["snapshot_ref"], "project": before,
+              "action_results": results, "summary": _summary(kind, before, results),
+              "source_selections": source_selections, "source_manifest": source_manifest, "registered_inputs": receipt_states,
+              "selection_history": selection_history,
+              "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
+                        "source_file_identity": _digest(source_raw), "receipts": receipts,
+                        "receipt_states": receipt_states, "assets": list(assets.values())},
+              "exporter_code_identity": hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
+                                                       + Path(project_selection_view.__file__).read_bytes()).hexdigest(),
+              "scientific_validation": False,
+              "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
+    report["snapshot_sha256"] = fingerprint(report)
+    return report
+
+
+def _source_notes(report):
+    notes = []
+    seen = set()
+    for selected in report["source_selections"]:
+        source, locator = selected.get("source", {}), selected.get("locator", {})
+        key = (source.get("sha256"), canonical(locator))
+        if key in seen:
+            continue
+        seen.add(key)
+        claim = selected.get("submitted_claim", {})
+        claim_text = claim.get("text", "") if isinstance(claim, dict) else str(claim)
+        extraction = selected.get("extraction", {})
+        notes.append({"id": selected.get("id", "未知"), "url": source.get("url", "未知"),
+                      "sha256": source.get("sha256", "未知"), "locator": canonical(locator),
+                      "license_note": source.get("license_note", "未知"),
+                      "excerpt": _text(extraction.get("text", ""), 110), "claim": _text(claim_text, 150)})
+    return notes
+
+
+def _budget_rows(report):
+    budget = report["project"].get("budget", {})
+    labels = [("lineage_ref", "原预算谱系"), ("new_model_requests", "新增模型请求"),
+              ("model_requests_reserved", "模型请求预留"), ("new_fits", "新增拟合"),
+              ("local_tool_call_limit", "本地工具上限"),
+              ("local_tool_calls_used", "本地工具已用"), ("local_tool_calls_reserved", "本地工具预留"),
+              ("evidence_reads_used", "来源读取已用"), ("evidence_reads_reserved", "来源读取预留"),
+              ("source_requests_used", "公开来源GET已用"), ("source_requests_reserved", "公开来源GET预留"),
+              ("source_request_limit", "公开来源GET上限"),
+              ("historical_spend_cny", "历史现金支出"), ("cash_settlement", "现金结算"),
+              ("historical_unknowns_resolved", "历史未知是否解决"), ("existing_cash_cap_cny", "既有现金上限/元")]
+    return [[label, "未知" if budget.get(key) is None else str(budget[key])] for key, label in labels]
+
+
+def _selection_records(report):
+    return report.get("selection_history", {}).get("records", [])
+
+
+_GROUP_EVENTS = (("zero", "零值"), ("empty", "空串"), ("declared_missing", "声明缺失"),
+                 ("invalid_numeric", "非法数值"), ("nonfinite", "非有限"))
+
+
+def _grouped_quality_notes(report):
+    notes = []
+    for entry in report["action_results"]:
+        tool = entry.get("tool_result") or {}
+        result = tool.get("result") or {}
+        if result.get("schema_version") == "grouped-quality-profile-v1":
+            notes.append({"action_id": entry["action_id"], "summary": result["summary"], "scope": result["scope"],
+                          "predecessor": result["predecessor"], "examples": result["examples"]})
+    return notes[-3:]
+
+
+def _grouped_quality_rows(summary, limit):
+    rows = []
+    for column in summary["numeric_columns"][:limit]:
+        rows.append([column["name"], *[f"{column['concentration'][kind]['total']} / {column['concentration'][kind]['affected_groups']}"
+                                      for kind, _ in _GROUP_EVENTS]])
+    return rows
+
+
+def _grouped_quality_locations(note):
+    return "；".join(str(item["column"]) + " / " + dict(_GROUP_EVENTS).get(item["kind"], str(item["kind"]))
+                     + "，逻辑记录 " + str(item["logical_record"]) + " / 结束物理行 " + str(item["physical_line_end"])
+                     + "，组 " + (str(item["group_id"])[:12] if item["group_id"] is not None else "分组不完整")
+                     for item in note["examples"][:5]) or "无所选事件代表；不据此批准字段或目标资格。"
+
+
+def _duplicate_locations(summary):
+    examples = summary.get("duplicate_examples", [])
+    if not examples:
+        return None
+    locations = "；".join(f"逻辑记录 {item['logical_record']}/{item['first_logical_record']}，结束物理行 {item['physical_line_end']}/{item['first_physical_line_end']}"
+                         for item in examples[:5])
+    return ("重复代表定位（至多5例，后记录/首次记录）：" + locations
+            + "。逻辑记录从1起且不含表头；物理行是该CSV记录的结束行号，包含表头及带引号换行。原记录未删除或改写。")
+
+
+def _selection_provider(record):
+    claim = record["provider_claim"]
+    names = {"operator_assistant": "操作者助手", "human": "人", "external_model": "外部模型"}
+    return names.get(claim.get("kind"), "未知来源") + "（仅声明，未核验）：" + _text(claim.get("label"), 100)
+
+
+def _selection_status(value):
+    return {"prepared": "已保存选择", "running": "执行中", "waiting": "等待", "completed": "已完成",
+            "failed": "失败", "unknown": "未知", "needs_review": "待核对", "active": "可继续"}.get(value, value)
+
+
+def _selection_action(method, parameters):
+    names = {"p02.saved-oof-residuals": "保存OOF诊断", "materials.saved-steel-audit": "钢材保存模型审计",
+             "software.source-integrity-check": "原件捕获检查", "research.source-selection": "来源读取",
+             "p02.source-mapping-check": "来源读取", "data.tabular-quality-audit": "表格质量审计"}
+    names["data.grouped-quality-profile"] = "分组质量画像"
+    label = names.get(method, method or "未指定方法")
+    if parameters.get("receipt_snapshot_sha256"):
+        label += "，收据 " + parameters["receipt_snapshot_sha256"][:12]
+    elif parameters.get("dimension"):
+        label += "，分组 " + parameters["dimension"]
+    return label
+
+
+def _selection_baseline(record):
+    baseline = record.get("baseline_decision") or {}
+    action = baseline.get("next_action") or {}
+    return _selection_action(action["method_id"], action.get("parameters", {})) if action.get("method_id") else _text(baseline.get("reason", "未指定可执行候选"), 120)
+
+
+def _selection_child(record):
+    child = record.get("child")
+    if record["decision_kind"] == "external_wait":
+        return "本父请求等待，无子行动"
+    if not child:
+        return "尚无保存的子行动"
+    status = _selection_status(child["status"])
+    return "子行动" + status + "：" + child["id"]
+
+
+def _selection_citation(hit):
+    source = hit.get("source")
+    source = source if isinstance(source, dict) else {"label": source}
+    metadata = source.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    locator = source.get("locator") or metadata.get("locator") or hit.get("location")
+    return ("引用 " + hit["citation_id"] + "；来源 " + str(source.get("url") or source.get("label") or source.get("id") or "未知")
+            + "；定位 " + canonical(locator) + "；SHA " + str(source.get("sha256", "未知")))
+
+
+def _markdown_table(headers, rows):
+    def cell(value):
+        return _text(value, 300).replace("|", "\\|").replace("\n", " ")
+    return "\n".join(["| " + " | ".join(map(cell, headers)) + " |", "| " + " | ".join("---" for _ in headers) + " |"]
+                     + ["| " + " | ".join(map(cell, row)) + " |" for row in rows])
+
+
+def _markdown(report):
+    state, summary = report["project"], report["summary"]
+    saved_decision = state.get("next_decision") or state.get("initial_decision") or {}
+    next_action = {key: saved_decision[key] for key in (
+        "project_status", "reason", "next_action", "method_id", "execution_status",
+        "based_on_action_id", "based_on_observation_ids") if key in saved_decision}
+    lines = ["# " + report["title"], "", "## 问题与摘要", "", _text(state["registration"]["goal"], 800), "",
+             "本报告绑定项目快照 `" + report["project_snapshot_ref"] + "`；只读汇总保存事实，不新增研究。",
+             "", "## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
+             "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
+             ""]
+    if summary.get("numeric_headers"):
+        lines.extend(["## 数值字段计数", "", _markdown_table(summary["numeric_headers"], summary["numeric_rows"]),
+                      "", "零包含在有限计数中；空串与声明缺失分别计数，最小/最大仅针对有限值。", "",
+                      "## 键与分组", "", _markdown_table(summary["group_headers"], summary["group_rows"]),
+                      "", "机械标记（原值，解释及资格仍待核对）：" + canonical(summary["quality_flags"]), ""])
+        duplicate_locations = _duplicate_locations(summary)
+        if duplicate_locations:
+            lines.extend([duplicate_locations, ""])
+    for note in _grouped_quality_notes(report):
+        grouped = note["summary"]
+        lines.extend(["## 后续方法：分组质量画像", "", "行动：" + note["action_id"] + "；前序绑定：" + canonical(note["predecessor"]),
+                      "", f"原记录{grouped['rows']}；分组字段完整{grouped['complete_group_rows']}，不完整{grouped['incomplete_group_rows']}；完整组{grouped['group_count']}。",
+                      "", _markdown_table(["字段", *[label + "事件 / 组" for _, label in _GROUP_EVENTS]], _grouped_quality_rows(grouped, 8)),
+                      "", "表中为完整组内事件数 / 受影响组数，摘要最多8个数值列；零是有限值子集。分组不完整记录的事件另列于incomplete_group_totals，不参与完整组集中份额。",
+                      "", "代表定位（最多5例）：" + _grouped_quality_locations(note),
+                      "", "逻辑记录从1起且不含表头；物理行为CSV记录结束行，含表头及带引号换行。组ID为原声明分组字符串的哈希，不能当作生物或材料类别。",
+                      "", "完整groups、各列集中份额/top_groups、全量计数及前序身份见本行动的JSON；未改写主方法原profile或来源记录，不推断组间独立性、目标含义或训练资格。", ""])
+    lines.extend(["## 来源与未决问题", ""])
+    for index, source in enumerate(_source_notes(report), 1):
+        lines.extend([f"{index}. 来源：{source['url']}；定位：`{source['locator']}`；SHA：`{source['sha256']}`。",
+                      "   许可/访问说明：" + source["license_note"],
+                      "   原文抽取节选：" + source["excerpt"], "   提交者主张（未审定）：" + source["claim"], ""])
+    if not report["source_selections"]:
+        lines.append("尚无实际提取的来源选区；已登记原件保存在input.json，未读不计为研究观察或知识命中。")
+    unread = sum(item["read_status"] == "registered_unread" for item in report.get("registered_inputs", []))
+    if unread:
+        lines.append(f"已登记未读收据：{unread}份。仅保存原件、坐标及任务身份；没有执行选区提取或FTS建索引。")
+    records = _selection_records(report)
+    if records:
+        lines.extend(["", "## 已保存的外部选择", "", "以下为最近3条以内的父请求记录。来源身份/模型执行未核验；等待只约束该父请求，项目状态仍为 "
+                      + _selection_status(state["research_status"]) + "，不表示全局暂停、方法耗尽或科学完成。", ""])
+        for record in records[:3]:
+            choice = "本父等待" if record["decision_kind"] == "external_wait" else _selection_action(record["method_id"], record["parameters"])
+            lines.extend(["### " + record["request_id"], "", "提案来源：" + _selection_provider(record),
+                          "", "外部选择：" + choice + "；父状态：" + _selection_status(record["status"]) + "；" + _selection_child(record),
+                          "", "理由：" + _text(record["rationale"], 500), "", "固定建议（同一历史上下文）：" + _selection_baseline(record)])
+            for hit in record["evidence"][:2]:
+                lines.extend(["", _selection_citation(hit), "", "宿主摘录节选：" + _text(hit["quote"], 160)])
+            if not record["evidence"]:
+                lines.append("该提案未引用context片段。")
+            lines.append("")
+        lines.append("完整父请求、context、proposal及其余记录见report.json；上述固定建议没有被外部理由覆盖。")
+    next_label = "固定建议（工具反馈，仍是待办，不代表执行）：" if records else "下一决定（仍是待办，不代表执行）："
+    lines.extend(["", next_label, "", "```json", json.dumps(next_action, ensure_ascii=False, indent=2), "```",
+                  "", "## 预算、恢复与复现边界", "", _markdown_table(["项目", "保存状态"], _budget_rows(report)), ""])
+    incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
+    lines.append(_markdown_table(["行动", "状态", "真实失败/未知"], [[entry["action_id"], entry["status"], canonical(entry["failure"])] for entry in incomplete]) if incomplete else "保存的行动均完成；这不等于研究问题解决或科学批准。")
+    lines.extend(["", "恢复只使用原request_id和完整保存工件；unknown不自动重发，预算不通过新目录重置。数值复算、来源抽取和故障注入均按原范围解释。",
+                  "", "复现入口：在匹配源码版本下，先用 `scripts/run_research_project.py status --workspace <原项目目录>` 读取。完整输入在input.json，保存工具结果在report.json；本包不是自动续算或平台运行入口。",
+                  "", "核心代码身份：`" + state["code_identity"] + "`。导出器身份：`" + report["exporter_code_identity"] + "`。",
+                  "", "报告不证明跨域普适性、独立科学收益、用户价值或生产安全；具体局限及原始失败保留在完整JSON。"])
+    return "\n".join(lines) + "\n"
+
+
+def _pdf(report):
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, PageBreak, Spacer
+    except ImportError:
+        raise ResearchError("PDF_DEPENDENCY_REQUIRED", "Existing ReportLab reports dependencies are required.") from None
+    font = paper_export._font_name()
+    green, grey = colors.HexColor("#244A3B"), colors.HexColor("#5A625E")
+    margin, width = 44, A4[0] - 88
+    body = ParagraphStyle("PRBody", fontName=font, fontSize=9.5, leading=14.2, spaceAfter=6, wordWrap="CJK", splitLongWords=1)
+    small = ParagraphStyle("PRSmall", parent=body, fontSize=8.2, leading=11.8, spaceAfter=4)
+    heading = ParagraphStyle("PRHeading", parent=body, fontSize=12, leading=17, textColor=green, spaceBefore=8, spaceAfter=7, keepWithNext=True)
+    title = ParagraphStyle("PRTitle", parent=body, fontSize=18, leading=25, spaceAfter=12)
+    table_style = ParagraphStyle("PRCell", parent=small, spaceAfter=0)
+    story = []
+
+    def p(value, style=body, limit=700):
+        return Paragraph(escape(_text(value, limit)).replace("\n", "<br/>"), style)
+
+    def h(value):
+        story.append(p(value, heading))
+
+    def table(headers, rows, fractions):
+        data = [[p(value, table_style, 240) for value in headers]]
+        data += [[p(value, table_style, 240) for value in row] for row in rows]
+        value = Table(data, colWidths=[width * part for part in fractions], repeatRows=1, hAlign="LEFT")
+        value.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EDF3EF")),
+                                  ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                                  ("LINEBELOW", (0, 0), (-1, 0), .6, green),
+                                  ("LINEBELOW", (0, 1), (-1, -1), .25, colors.HexColor("#DDE4DF")),
+                                  ("LEFTPADDING", (0, 0), (-1, -1), 6), ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                                  ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
+        story.append(value)
+        story.append(Spacer(1, 6))
+
+    state, summary = report["project"], report["summary"]
+    story.extend([p(report["title"], title), p("只读研究项目报告 | 保存事实、原始失败与未决问题", small)])
+    h("一、问题与摘要")
+    story.append(p(state["registration"]["goal"], limit=430))
+    story.append(p("执行状态：" + str(state["execution_status"]) + "；研究状态：" + str(state["research_status"]) + "。只读导出未调用工具、模型或拟合。", small))
+    h("二、方法与冻结评价")
+    story.append(p(summary["method"], limit=500))
+    h("三、实际结果")
+    if summary["rows"]:
+        fractions = ([.35, .15, .15, .18, .17] if report["kind"] == "p02" else [.10, .20, .23, .23, .24]
+                     if report["kind"] == "steel" else [.62, .38] if report["kind"] == "tabular" else [.30, .15, .15, .40])
+        table(summary["headers"], summary["rows"], fractions)
+    else:
+        story.append(p("没有已完成的主方法结果；失败与未知仍保留，不填造数值。"))
+    story.append(p(summary["result_notice"], small, 600))
+    if summary.get("numeric_headers"):
+        h("数值字段计数")
+        table(summary["numeric_headers"], summary["numeric_rows"], [.22, .10, .08, .08, .12, .08, .10, .11, .11])
+        story.append(p("零包含在有限计数中；空串与声明缺失分别计数；最小/最大仅针对有限值。单位与字段角色仍为声明。", small))
+        h("键与分组")
+        table(summary["group_headers"], summary["group_rows"], [.62, .38])
+        story.append(p("机械标记（原值）：" + canonical(summary["quality_flags"]), small, 300))
+        duplicate_locations = _duplicate_locations(summary)
+        if duplicate_locations:
+            story.append(p(duplicate_locations, small, 700))
+    grouped_notes = _grouped_quality_notes(report)
+    if grouped_notes:
+        story.append(PageBreak())
+        h("后续方法：分组质量画像")
+        for note in grouped_notes:
+            grouped = note["summary"]
+            story.append(p("行动：" + note["action_id"] + "；绑定前序行动：" + note["predecessor"]["based_on_action_id"], small, 180))
+            story.append(p(f"原记录{grouped['rows']}；分组字段完整{grouped['complete_group_rows']}，不完整{grouped['incomplete_group_rows']}；完整组{grouped['group_count']}。", small))
+            table(["字段", *[label + "事件/组" for _, label in _GROUP_EVENTS]], _grouped_quality_rows(grouped, 6), [.25, .15, .15, .15, .15, .15])
+            story.append(p("摘要最多6个数值列。表中为完整组内事件数/受影响组数；零是有限值子集，不完整组事件另存且不参与集中份额。原值保留。", small, 220))
+            story.append(p("代表定位（最多5例）：" + _grouped_quality_locations(note), small, 700))
+            story.append(p("逻辑记录从1起、不含表头；物理行为记录结束行，包含表头及带引号换行。组ID为声明分组的哈希，不赋予独立样本身份。", small, 220))
+        story.append(p("完整groups、集中份额、前序结果SHA与原观察见JSON。此后续方法不覆盖原profile，不批准目标、单位、领域结论或训练资格。", small, 250))
+    story.append(PageBreak())
+    records = _selection_records(report)
+    if records:
+        h("最近外部选择（已保存父请求）")
+        story.append(p("仅展示最近2条；来源身份及模型执行未核验。等待只使本父请求无子行动，项目状态仍为 "
+                       + _selection_status(state["research_status"]) + "；其余记录和完整上下文见JSON。", small, 220))
+        for record in records[:2]:
+            choice = "本父等待" if record["decision_kind"] == "external_wait" else _selection_action(record["method_id"], record["parameters"])
+            story.append(p(record["request_id"] + " | " + _selection_provider(record), small, 180))
+            story.append(p("外部选择：" + choice + "；父状态：" + _selection_status(record["status"]) + "；" + _selection_child(record), small, 180))
+            story.append(p("理由：" + record["rationale"], small, 140))
+            story.append(p("固定建议（历史上下文）：" + _selection_baseline(record), small, 160))
+            for hit in record["evidence"][:1]:
+                story.append(p(_selection_citation(hit), small, 290))
+                story.append(p("宿主摘录节选：" + hit["quote"], small, 90))
+            if not record["evidence"]:
+                story.append(p("该提案未引用context片段。", small))
+    h("四、来源、解释与未决问题")
+    sources = _source_notes(report)
+    if not sources:
+        story.append(p("尚无已提取来源选区。已登记的主输入和完整原字节见input.json，全部SHA在report.json/source_manifest。"))
+    unread = sum(item["read_status"] == "registered_unread" for item in report.get("registered_inputs", []))
+    if unread:
+        story.append(p(f"另有{unread}份收据仅完成原件登记，未执行提取、未形成观察或FTS命中；其原件与任务身份仅在输入附件保留。", small))
+    for index, source in enumerate(sources[:4], 1):
+        story.append(p(f"来源 {index}：{source['id']} | {source['url']}", small, 230))
+        story.append(p("坐标：" + source["locator"] + "；SHA：" + source["sha256"], small, 260))
+        story.append(p("许可/访问：" + source["license_note"], small, 180))
+        story.append(p("原文抽取节选：" + source["excerpt"], small, 150))
+        story.append(p("提交者主张（未审定）：" + source["claim"], small, 160))
+    if len(sources) > 4:
+        story.append(p(f"另有{len(sources) - 4}个选区，完整原文、坐标和主张见JSON；本页不将节选当作完整材料。", small))
+    h("真实失败与未知")
+    incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
+    if incomplete:
+        table(["行动", "状态", "原始失败/未知"], [[entry["action_id"], entry["status"], canonical(entry["failure"])] for entry in incomplete[:5]], [.35, .16, .49])
+        if len(incomplete) > 5:
+            story.append(p("其余未完成行动完整保留在JSON。", small))
+    else:
+        story.append(p("保存行动均已完成；完成是执行状态，不代表研究目标解决、来源映射成立或候选被科学批准。", small))
+    decision = state.get("next_decision") or state.get("initial_decision") or {}
+    h("固定建议（工具反馈）" if records else "下一项决定")
+    story.append(p(decision.get("reason", "未保存决定"), small, 350))
+    story.append(p("待办：" + canonical(decision.get("next_action", decision)), small, 500))
+    story.append(PageBreak())
+    h("五、预算、恢复与复现边界")
+    table(["预算或状态", "保存值"], _budget_rows(report), [.44, .56])
+    story.append(p("unknown不会自动重发；已保存完整结果只按原请求身份恢复，不重跑工具。历史现金/请求未知保持未知，研究等待不等于预算清零。", small))
+    h("代码与输入身份")
+    for label, value in [("项目", report["project_id"]), ("项目快照", report["project_snapshot_ref"]),
+                         ("核心代码", state["code_identity"]), ("导出器代码", report["exporter_code_identity"]),
+                         ("主输入字节SHA", report["input"]["source_file_identity"]["sha256"])]:
+        story.append(p(label + "：" + value, small, 160))
+    h("复现与继续")
+    story.append(p("匹配源码后，用 scripts/run_research_project.py status --workspace <原项目目录> 只读核对；完整输入在input.json，完整工具结果在report.json。输入不能当任意Python执行，报告包也不自动继续研究。", small, 450))
+    final_boundary = ("本报告只说明所选声明列的机械核对；记录/分组不自动成为独立样本，来源和许可仍待核对。具体目标含义、单位、训练资格或领域结论仍未核验，未验证独立科研收益或真实用户价值。平台接入及新增费用授权继续沿原边界。"
+                      if report["kind"] == "tabular" else
+                      "本报告只说明这些保存结果及限定复核。未证明跨域普适、独立科研收益或真实用户价值；软件结果不等于全面安全或生产可靠性。平台接入及新增费用授权继续沿原边界。")
+    story.append(p(final_boundary, small, 350))
+
+    def frame(canvas, document):
+        canvas.setFont(font, 8)
+        canvas.setFillColor(grey)
+        canvas.drawString(margin, 24, "Auto Research | 保存证据报告")
+        canvas.drawRightString(A4[0] - margin, 24, str(document.page))
+
+    buffer = BytesIO()
+    SimpleDocTemplate(buffer, pagesize=A4, leftMargin=margin, rightMargin=margin, topMargin=37, bottomMargin=40,
+                      title=report["title"], author="Auto Research").build(story, onFirstPage=frame, onLaterPages=frame)
+    return buffer.getvalue()
+
+
+def export_report(*, workspace, output) -> dict:
+    project_root = safe_path(Path(workspace).absolute()).resolve()
+    target = safe_path(Path(output).absolute())
+    resolved = target.resolve()
+    _require(not target.exists() and not resolved.is_relative_to(project_root) and not project_root.is_relative_to(resolved),
+             "OUTPUT_OVERLAP", "Use a fresh report directory separate from registered sources and project assets.")
+    report = collect_report(workspace)
+    payloads = {"report.json": canonical(report).encode("utf-8"), "report.md": _markdown(report).encode("utf-8"),
+                "report.pdf": _pdf(report), "input.json": canonical(report["input"]).encode("utf-8")}
+    manifest = {"schema_version": "project-report-export-v1", "project_id": report["project_id"],
+                "project_snapshot_ref": report["project_snapshot_ref"], "files": {name: _digest(raw) for name, raw in payloads.items()},
+                "source_manifest": report["source_manifest"], "scientific_validation": False}
+    target.mkdir(parents=True, exist_ok=False)
+    for name, raw in {**payloads, "manifest.json": canonical(manifest).encode("utf-8")}.items():
+        with (target / name).open("xb") as stream:
+            stream.write(raw)
+    return manifest

@@ -6,15 +6,20 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import BytesIO
 import json
 import os
+import re
 import secrets
 import sqlite3
 from pathlib import Path
 import stat
 import zipfile
 from xml.sax.saxutils import escape
+from urllib.parse import parse_qsl, urlsplit
 
 from .paper_export import _font_name
 from .c01_loop import C01Loop, LoopError
+from .research_delivery import load_research_delivery
+from .knowledge_browser import KnowledgeBrowser, KnowledgeBrowserError
+from .knowledge import KINDS
 
 _REQUIRED = {"summary.json", "source-manifest.json", "audit.csv", "cleaned_samples.csv", "loo_predictions.csv", "rounds.csv", "evidence/input.zip",
              "evidence/attachments/TNZST_Summary table.xlsx", "evidence/attachments/TNZST_Summary table_bio.xlsx",
@@ -204,13 +209,20 @@ def continuation_bundle(state, files, manifest_raw, parent_bundle):
     return out.getvalue()
 
 
-def create_server(workspace, archive, port=8769, *, continuation=None):
+def create_server(workspace, archive, port=8769, *, continuation=None, research_delivery=None, knowledge_index=None):
     if type(port) is not int or not 0 <= port <= 65535:
         raise ValueError("invalid port")
     data, files, source, script, manifest = _load(workspace, archive)
     raw = files["summary.json"]
     report = render_report(data)
     bundle = reproduction(data, files, source, script, manifest)
+    research = None if research_delivery is None else load_research_delivery(research_delivery, data['source']['archive_sha256'])
+    knowledge = None if knowledge_index is None else KnowledgeBrowser(knowledge_index, research['research'] if research is not None else None)
+    research_raw = json.dumps({'enabled': False} if research is None else {
+        'enabled': True, 'research': research['research'], 'memory': research['memory'], 'validation': research['validation']},
+        ensure_ascii=False, allow_nan=False).encode('utf-8')
+    memory_raw = json.dumps(research['memory'] if research is not None and research['memory'] is not None else {'enabled': False},
+                            ensure_ascii=False, allow_nan=False).encode('utf-8')
     loop = None
     token = secrets.token_urlsafe(32)
     if continuation is not None:
@@ -238,6 +250,53 @@ def create_server(workspace, archive, port=8769, *, continuation=None):
         def do_GET(self):
             if not self.host_ok():
                 return self.send_error(403)
+            if self.path.split('?', 1)[0] == '/api/c01/knowledge' or self.path.startswith('/api/c01/knowledge/'):
+                try:
+                    if len(self.path) > 8192 or not self.path.isascii() or re.search(r'%(?![0-9a-fA-F]{2})', self.path):
+                        raise KnowledgeBrowserError('INVALID_REQUEST', 'invalid or oversized knowledge URI', 400)
+                    parsed = urlsplit(self.path)
+                    if parsed.scheme or parsed.netloc or parsed.fragment:
+                        raise KnowledgeBrowserError('INVALID_REQUEST', 'knowledge URI requires a local path', 400)
+                    pairs = parse_qsl(parsed.query, keep_blank_values=True, strict_parsing=True,
+                                      encoding='utf-8', errors='strict', max_num_fields=3)
+                    if len(pairs) != len({key for key, _ in pairs}):
+                        raise KnowledgeBrowserError('INVALID_REQUEST', 'duplicate query parameter', 400)
+                    params = dict(pairs)
+                    if parsed.path == '/api/c01/knowledge':
+                        if params: raise KnowledgeBrowserError('INVALID_REQUEST', 'metadata accepts no query parameters', 400)
+                        return self.json_reply(200, {'enabled': False} if knowledge is None else knowledge.metadata())
+                    if parsed.path == '/api/c01/knowledge/search':
+                        if set(params) - {'q', 'kind', 'limit'} or 'q' not in params:
+                            raise KnowledgeBrowserError('INVALID_REQUEST', 'search accepts q, optional kind and limit', 400)
+                        if not re.fullmatch('[1-8]', params.get('limit', '5')):
+                            raise KnowledgeBrowserError('INVALID_REQUEST', 'limit must be 1..8', 400)
+                        if not 1 <= len(params['q']) <= 512 or not params['q'].strip() or ('kind' in params and params['kind'] not in KINDS):
+                            raise KnowledgeBrowserError('INVALID_REQUEST', 'q requires 1..512 characters and kind must be known', 400)
+                        if knowledge is None: raise KnowledgeBrowserError('KNOWLEDGE_DISABLED', 'no indexed snapshot is mounted', 503)
+                        return self.json_reply(200, knowledge.search(params['q'], kind=params.get('kind'), limit=int(params.get('limit', '5'))))
+                    prefix = '/api/c01/knowledge/citation/'
+                    if parsed.path.startswith(prefix):
+                        citation_id = parsed.path[len(prefix):]
+                        if params or not re.fullmatch('[0-9a-f]{64}', citation_id):
+                            raise KnowledgeBrowserError('INVALID_REQUEST', 'citation lookup accepts one 64-hex ID and no query', 400)
+                        if knowledge is None: raise KnowledgeBrowserError('KNOWLEDGE_DISABLED', 'no indexed snapshot is mounted', 503)
+                        return self.json_reply(200, knowledge.citation(citation_id))
+                    return self.json_reply(404, {'error': {'code': 'NOT_FOUND', 'message': 'knowledge route not found'}})
+                except KnowledgeBrowserError as error:
+                    return self.json_reply(error.status, {'error': {'code': error.code, 'message': str(error)}})
+                except (ValueError, UnicodeError):
+                    return self.json_reply(400, {'error': {'code': 'INVALID_REQUEST', 'message': 'invalid knowledge query encoding'}})
+            if self.path == "/api/c01/research":
+                return self.send_data(200, research_raw)
+            if self.path == "/api/c01/research/memory":
+                return self.send_data(200, memory_raw)
+            research_files = {'/api/c01/research/report.pdf': ('report.pdf', 'application/pdf', 'c01-agent-research-report.pdf'),
+                              '/api/c01/research/reproduction.zip': ('reproduction.zip', 'application/zip', 'c01-agent-reproduction.zip'),
+                              '/api/c01/research/comparison.png': ('comparison.png', 'image/png', None)}
+            if self.path in research_files:
+                if research is None: return self.send_error(404)
+                name, mime, filename = research_files[self.path]
+                return self.send_data(200, research['files'][name], mime, filename)
             if self.path == "/api/c01/continuation":
                 if loop is None: return self.json_reply(200,{"enabled":False})
                 try: return self.json_reply(200,{"enabled":True,"csrf_token":token,**loop.status()})
@@ -276,6 +335,12 @@ def create_server(workspace, archive, port=8769, *, continuation=None):
             if not self.host_ok(): return self.send_error(403)
             origins=self.headers.get_all("Origin",[])
             if len(origins)>1 or (origins and origins[0] not in {f"http://127.0.0.1:{self.server.server_port}",f"http://localhost:{self.server.server_port}"}): return self.send_error(403)
+            if self.path.split('?', 1)[0] == '/api/c01/knowledge' or self.path.startswith('/api/c01/knowledge/'):
+                self.close_connection = True
+                return self.json_reply(405, {'error': 'Indexed knowledge snapshots are read-only.'})
+            if self.path == "/api/c01/research" or self.path.startswith("/api/c01/research/"):
+                self.close_connection = True
+                return self.json_reply(405, {'error': 'Completed research and memory snapshots are read-only.'})
             tokens=self.headers.get_all("X-Research-CSRF",[])
             if len(tokens)!=1 or not tokens[0].isascii() or not hmac.compare_digest(tokens[0],token): return self.send_error(403)
             if self.path != "/api/c01/continuation/step" or loop is None: return self.send_error(404)
@@ -299,8 +364,10 @@ def main():
     parser = argparse.ArgumentParser(description="Read-only C01 local research workspace")
     parser.add_argument("--workspace",required=True); parser.add_argument("--archive",required=True); parser.add_argument("--port",type=int,default=8769)
     parser.add_argument("--continuation",help="Separate local directory for bounded continuation; opt-in")
+    parser.add_argument("--research-delivery",help="Read-only completed public research delivery; never starts a model")
+    parser.add_argument("--knowledge-index",help="Read-only frozen knowledge.sqlite; does not rebuild or execute references")
     args = parser.parse_args()
-    with create_server(args.workspace,args.archive,args.port,continuation=args.continuation) as server:
+    with create_server(args.workspace,args.archive,args.port,continuation=args.continuation,research_delivery=args.research_delivery,knowledge_index=args.knowledge_index) as server:
         print(json.dumps({"url":f"http://127.0.0.1:{server.server_port}/#/overview","cloud_calls":0},ensure_ascii=False),flush=True)
         try: server.serve_forever()
         except KeyboardInterrupt: pass

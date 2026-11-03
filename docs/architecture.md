@@ -1,111 +1,67 @@
 # 产品与架构
 
-后端基线：R5本地提交 `e73bd7c`；R9在五页工作台加入可选的独立本地单步演示，不改变历史实验执行协议。下文区分现有代码与下一阶段设计；目标模块不作为已交付能力。
+产品目标是基于 AgentArts 的持续自适应研究工作台：共用项目、能力接口和反馈循环，按课题条件选择领域方法。稳定目标与阶段见[产品计划](plan.md)，基线见[底层模块与依赖](architecture/foundation.md)和[状态/接口契约](architecture/research-contracts.md)；方法与两层迭代见[自适应设计](research/adaptive-research.md)。A4 已实现[本地项目切片](project-slice.md)：单个 OOF 方法、固定策略与持久恢复，统一接口其余部分仍待建设。
 
-## 1. 产品主线
+当前实现主要围绕 P02 ChemoTopoChip：核验作者来源，封存可复算输入，让真实模型在允许的本机工具中选择行动，把实际结果、未审定判断和条件记忆展示在只读工作台。C01与钢材路径作为已有底座和历史案例保留。P02不是所有课题的默认数据或方法；统一项目控制器仍待接线，产品到AgentArts的接入继续暂缓。以下各节记录现有实现，不将目标架构当作已交付。
 
-帮助科研团队把有依据的跨领域联系变成可检验的问题，持续选择并执行研究行动，根据真实反馈继续、修订或停止，最终形成论文式成果、可复核附件和带适用条件的研究记忆。
+开发定位先用[后端索引](../.agent/indexes/backend.md)、[接口索引](../.agent/indexes/interfaces.md)与[组件索引](../.agent/indexes/components.md)。
 
-医疗、材料和软件工程共用研究契约。优先形成医疗×材料主案例；具体课题服从公开数据、专业方法及可获得反馈的条件。钢材回归是当前工程验证载体，尚未成为跨域科研主案例。
-
-核心用户是正在推进一个研究项目的队员与老师。主要工作是理解“依据是什么、试过什么、为何采取下一行动”，而不是观察一群Agent的动画。
-
-## 2. 当前实际结构
-
-下图表示主要调用和证据传递路径，不是Python的逐条import图；各模块职责与代码入口见表。
+## 当前P02证据链
 
 ```mermaid
 flowchart TB
-  cli[命令行 cli.py] --> loop[持续决策 research_loop.py]
-  loop --> client[模型客户端 model_client.py]
-  loop --> engine[受控实验 Engine]
-  sdk[AgentArts本地SDK入口 runtime.py] --> protocol[白名单工具 protocol.py]
-  protocol --> engine
-  engine --> train[数据与拟合 datasets.py / training.py]
-  engine --> db[(research.sqlite3 与模型JSON)]
-  engine --> report[证据投影 reports.py]
-  db --> snapshot[只读准备 studio_project.py]
-  report --> snapshot
-  snapshot --> frozen[冻结证据目录与校验清单]
-  frozen --> studio[本地查看服务 studio.py]
-  notes[(studio.sqlite3 人工后续问题)] <--> studio
-  studio --> web[五页工作台：总览/推进/实验/知识/成果]
-  frontend[frontend TypeScript与共享令牌] --> web
-  web <--> layout[(本浏览器布局)]
-  frozen --> outputs[图表与附件 studio_outputs.py]
-  outputs --> pdf[paper_export.py 五页PDF]
-  outputs --> zip[独立验证推理复算ZIP]
+  sources[作者原件与清单] --> prepare[来源核验和一次封存输入]
+  prepare --> protocol[允许列表协议与冻结预算]
+  protocol --> native[真实原生模型请求]
+  native --> tools[固定CPU拟合或零拟合诊断工具]
+  tools --> actions[(研究行动与完整结果)]
+  native --> journal[(原请求响应与累计次数)]
+  actions --> native
+  actions --> memory[数值观察与未审定决定分开记忆]
+  memory --> native
+  actions --> projection[绑定快照的只读投影]
+  journal --> projection
+  memory --> projection
+  projection --> workbench[五页工作台与无限画布]
+  projection --> reports[中文PDF与标准库复核包]
+  reports --> handoff[独立只读交接包]
 ```
 
-`ReadOnlyEvidence`复用Engine的状态投影，通过只读SQLite连接读取原记录，不运行建表或迁移。准备阶段还使用保存参数重新计算验证预测并核对MSE。后续人工问题写入独立数据库，既有实验状态不随页面编辑改变。
+图表示实际职责与证据流，不表示每轮必须走完所有工具。模型可以产生无效参数、错误解释或预算耗尽；原响应保留，不补造提案、记忆或停止行动。
 
-| 层 | 当前职责与实际入口 | 当前边界 |
+| 层 | 实际入口 | 边界 |
 |---|---|---|
-| 研究决策 | `ResearchLoop`记录请求、费用预留和动作，`ChatClient`发送有边界的HTTP请求 | 脚本端点流程通过；真实LLM研究效果未验收 |
-| 实验控制 | `Engine`核对观察指纹、预算、幂等、采用门槛和终测锁 | 只允许固定数据与多项式/Ridge配方 |
-| 领域计算 | `datasets.py`与`training.py` | 公开钢材与工程fixture；无医疗工具适配器 |
-| 证据与成果 | `reports.py`、`studio_project.py`、`studio_outputs.py` | 冻结快照；五页模板最多5条钢材试验 |
-| 研究界面 | `frontend/`、`studio.py`与生成的`web/` | 五个独立页面、研究流程画布、知识阅读、本浏览器布局、问题保存及原快照下载；可选本地脚本单步演示与原快照分离 |
-| 平台边界 | `runtime.py`与`agentarts/` | 本地SDK HTTP已验证；R14独立C01低代码工作流已在控制台试运行，高代码Runtime部署、认证、存储、Trace待验收 |
+| 初始本地项目切片 | `research_project.py`、`saved_oof_adapter.py`、`scripts/run_research_project.py` | A4 首先接单 Run、P02 工具和完整反馈；A5 后续接来源，A6 加只读界面，下行说明 A7 跨域扩展 |
+| 三方法共用内核 | `method_registry.py`、`steel_audit_adapter.py`、`source_integrity_adapter.py` | 注册式来源/执行/反馈，经同一 ResearchProject 保存；P02、MPa²/MSE、软件 I/O 契约语义分离，来源选区经既有 FTS，不改冻结账本 |
+| 来源核验 | `chemotopo_data.py`、`chemotopo_project.py` | 固定作者文件、原坐标、HDF5及OME元数据；不执行作者管线，不凭染料名确认ALP |
+| 配置与封存 | `experiment_protocol.py`、`configured_iteration.py`、`prepared_continuation.py` | 仅允许P02交互Ridge，创建时核验并封存输入；后续不反复重建Excel，改协议／代码／预算须新研究 |
+| 原生模型选择 | `compact_iteration.py`与各独立控制器 | 固定候选、当前状态和累计请求约束；宿主附来源与最新行动ID，不表示模型主动引用或已阅读 |
+| 请求与费用 | `c01_local_loop.py`、`c01_cloud_loop.py`、`ollama_cloud.py`；新高推理层`reasoning_profile.py` | 预留、原响应、received恢复、未知发送不自动重发；已有免费额度检查不是供应商硬消费上限 |
+| 零拟合研究诊断 | `residual_diagnostics.py`、`diagnostic_research.py`、`diagnostic_followup.py`、`iterative_diagnosis.py` | 保存OOF的分组残差和固定策略对照；完整结果落账，模型请求只带摘要；不新增拟合或估计spot测量可靠性 |
+| 提案与条件记忆 | `postrun_research.py`、`postrun_revision.py`、`research_memory.py` | 数值观察与agent_decision分开，精确scope、来源版本与active／retired资格；提案不自动执行 |
+| 投影与报告 | `configured_iteration_view.py`、`postrun_revision_view.py`、`diagnostic_view.py`、报告模块 | 实际调用与行动绑定，原始理由未经科学审定；开发助手评估不是研究模型或科学审稿人的批准 |
+| 展示与交接 | `frontend/`、`chemotopo_studio.py`、`chemotopo_bundle.py`、`snapshot_viewer.py` | 五页、分类卡片、独立阅读、真实图表与PDF／ZIP；GET只读，交接包不能继续研究 |
 
-可选 `--local-demo` 使用快照目录下独立的 `.local-demo-v1/` 账本和受控 Engine；接口只接受幂等请求编号，最多两次脚本选择的单步CPU拟合。来源快照SHA用于识别关联，不继承原模型或额度。显式触发前只读；未确认的在途任务阻塞新任务，不自动补跑。该演示不调用真实模型、外网或AgentArts，也不改写原快照、人工问题或PDF/ZIP。
+## 数值结论与研究判断
 
-C01 使用单独的领域分析脚本：`c01.py` 对指定原始包生成独立审计、两轮留一计算与记录；`c01_studio.py` 读取该记录及哈希匹配的原包，提供独立工作台、报告与复现包。可显式启用 `c01_loop.py` 创建独立账本，基于冻结输入执行两步确定性敏感性分析，记录观察指纹、依据、结果与停止理由；原快照、原报告与账本分开。它不伪装成钢材 Engine 的实验，也不继承其模型与预算。历史结果及后续分析都复用同一数据，不是独立验证；真实 LLM、领域复核和本地循环到AgentArts的调用仍待接入。
+当前比较复用870个共同材料键、35个整纹理留出折、已知化学类别和已测同分区平坦对照。已经查看这些数据并反复比较候选，因此不是无偏最终盲测，不支持独立实验室、临床或机制推断。主指标MAE与次项Spearman、零处理与聚合权重、特征输入与正则参数分别标注，不能换比较轴宣布成功。
 
-R14新增独立的 [C01平台工具](../agentarts/c01-sensitivity/README.md)：在AgentArts任务工作流中由开始节点传入公开JSON，Python代码节点执行相关与逐一剔除计算，结束节点返回含输入哈希的JSON。该路径已在真实控制台沙箱完成节点及两次完整试运行，不经过本地SDK/Engine/C01Loop，不自动写入本地研究账本或报告，也没有改变它们的 `platform_connected` 标志。
+详见[来源资格](chemotopo-data.md)、[HDF5／OME读取](chemotopo-project.md)、[固定预测](chemotopo-prediction.md)、[配置化迭代](configured-iteration.md)与[实验后研究](postrun-research.md)。原ALP通道、对象／导出列映射和零对象规则仍未放行。
 
-## 3. 事实归属与依赖方向
+## 状态、恢复与记忆
 
-| 信息 | 权威来源 | 不应由谁覆盖 |
-|---|---|---|
-| 行动请求、累计预算与未知调用 | ResearchLoop持久账本 | 重启、前端或候选提案不能重置 |
-| 实验结果、采用决定、终测 | Engine数据库及参数工件 | 白板拖动、报告润色、Agent预期不能改写 |
-| 数据身份与评价设计 | 冻结的数据描述、协议和哈希 | 候选只能改变允许的实验配方 |
-| 报告主张与来源 | 冻结状态投影和显式证据引用 | 不依据图形连线自行生成科学结论 |
-| 人工后续问题 | 独立notes数据库 | 保存不等于已排程、已执行或已有结果 |
-| 画布坐标与视口 | 按项目和快照隔离的本浏览器布局 | 不成为实验状态的事实来源；未实现跨设备同步 |
+请求账本是“发了几次、收到什么、是否未知发送”的依据；研究账本是“真正提交了哪些行动”的依据。两者可能在中断处暂时不同。预算停止的completed不等于研究stopped，active记忆也不等于科学事实。
 
-现有代码是一个Python包，尚未做物理分包。先按上述职责约束依赖；不要为整理目录而搬动全部模块、改写导入和重新设计持久格式。需要领域适配或新前端时，再按可验证的迁移逐步提取模块。
+只查单个工作区当前账本状态：
 
-## 4. 目标结构：研究系统与空间界面
+该命令仅用标准库和SQLite只读连接，不验证原始来源、不resume、不调用模型、不重置预算；未能从账本确定的拟合字段显示null。它不能替代科学核验或真实运行验收。
 
-```mermaid
-flowchart LR
-  subgraph view[目标界面：表达与操作]
-    canvas[空间画布：证据、假设、实验、结论]
-    inspector[详情阅读与可追溯引用]
-    actions[显式研究动作与成果导出]
-  end
-  subgraph app[目标应用层：项目用例与只读投影]
-    projection[研究对象投影]
-    command[动作校验与研究控制]
-    layout[独立布局存储]
-  end
-  subgraph research[研究核心]
-    loop[持续研究循环]
-    evidence[证据与实验记录]
-    domain[领域方法适配器]
-    memory[经复核的条件记忆]
-  end
-  evidence --> projection --> canvas
-  projection --> inspector
-  canvas <--> layout
-  actions --> command --> loop
-  loop --> domain --> evidence
-  evidence --> memory --> loop
-```
+## 已交付界面与历史底座
 
-这是职责设计，不是当前目录树或服务部署图。应用层逐步复用现有ResearchLoop与Engine；首轮保持单体，避免先拆微服务。
+采用已批准的悬浮玻璃导航、实色正文／图文卡片与X6无限画布，默认总览，研究、实验、知识、成果分别成页。移动节点只改变按案例和快照隔离的本浏览器布局，不改研究状态。界面源码在`frontend/`，构建生成`web/`；UI验收仍须运行、截图并实看。
 
-研究团队按职责合作：协调者决定下一行动；证据角色收集来源与冲突；假设角色提出可检验预期；执行角色使用受控工具；评议角色核对结论和停止条件。可以由少量Agent按阶段承担多个职责，不为每个角色常驻一个进程。所有角色通过结构化记录交接，执行权仍归控制器，专业判断仍需相应证据或领域复核。
+PDF和复核ZIP绑定同一封存快照；标准库verify.py仅重算保存预测的数值一致性。独立只读包不带数据库、模型原响应、thinking、账户或浏览器状态，不能训练或启动新研究。操作见[交接包](portable-workbench.md)。
 
-跨域联系须说明机制依据、适用条件与验证办法。文献联系本身不是研究收益；必须得到统计、仿真、优化或真实实验等适配反馈。负结果进入研究记录；只有经核对的结论才进入条件记忆。策略调整通过固定评价与版本比较决定是否采用，模型训练作为工具按数据与算力条件接入。
+C01旧实现继续提供持久请求、固定计算、条件记忆和冻结交付等复用基础。历史入口为[C01研究工具](c01-research.md)、[云记忆接线](c01-cloud-memory.md)和[独立AgentArts代码工具](../agentarts/c01-sensitivity/README.md)。独立代码节点曾在平台运行，不证明本产品已接入AgentArts、Runtime、Trace或生产鉴权；当前不安排新增平台操作。
 
-## 5. 下一阶段接口边界
-
-- **读取研究对象**：从现有项目快照映射稳定对象ID与证据引用；不将整个数据库暴露给白板引擎。
-- **保存布局**：当前浏览器按项目ID、快照身份、节点位置、视口与版本单独保存；不向研究状态写入坐标。服务端布局、自由分组和跨设备同步仍是目标接口。
-- **采取研究行动**：通过独立命令入口核对目标、数据、权限、预算和幂等键。拖动、连线和保存草稿不触发模型或训练。当前仅有明确标识的独立本地脚本演示，尚无真实模型或平台的执行入口。
-- **形成成果**：从核对后的研究状态生成同一份报告投影，画布、阅读模式、PDF和附件共享对象与引用身份。
-
-后续将显式行动接到已有研究循环，并分别验证执行、数据和预算边界。真实模型及AgentArts后续调用继续遵守此前费用上限与调用前核查；R14已完成的独立代码工作流不代替产品云端集成、跨域研究价值或界面交互的验收。
+队员优先补作者列／通道／对象映射、零对象定义和重复结构，按[队员交付](team-handoff.md)保留原始URL、SHA与坐标。核心协议、控制器、费用和最终交付由主流程管理。新增云调用仍遵守原免费额度与5元现金上限边界，现金结算未知不重置为0；不因复制目录、换模型推理档位或旧平台成功而新增授权。

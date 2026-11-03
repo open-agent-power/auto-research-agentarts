@@ -31,4 +31,3 @@ export interface Layout {
   schema_version: 1; project_id: string; snapshot_sha256: string;
   positions: Record<string, { x: number; y: number }>; viewport: Viewport;
 }
-

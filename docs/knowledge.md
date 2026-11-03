@@ -1,0 +1,51 @@
+# 资料进入研究循环
+
+资料库现在有独立的只读检索工具。它从已有来源清单建立固定索引，返回原文、来源哈希和定位；不执行参考仓库、不联网补答案，也不把档案里的“可复用”标记当成已经接通。
+
+## 使用
+
+使用项目虚拟环境，在产品根目录运行；输出目录必须是新的。`references` 指向工作区已有资料，单独克隆产品仓库不包含这些外部文件。
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location) 'src'
+.venv/Scripts/python.exe scripts/build_knowledge_pack.py --references ../../references/auto-research --output runs/knowledge-your-run
+.venv/Scripts/python.exe scripts/evaluate_knowledge_pack.py --database runs/knowledge-your-run/knowledge.sqlite --tasks examples/knowledge-tasks.json --output runs/knowledge-your-run/evaluation.json
+```
+
+先验证平台文档和项目档案可加 `--no-papers`。该模式明确跳过论文正文；评估里的论文任务记为 skipped，不能计作通过。
+
+```python
+from autoresearch.knowledge import KnowledgeIndex
+
+index = KnowledgeIndex('runs/knowledge-your-run/knowledge.sqlite')
+result = index.search('AgentArts Runtime SDK HTTP 运行时', kinds=['official_doc'], limit=5)
+```
+
+每条结果含 `citation_id`、`source`、`location`、`quote`。Markdown 为行范围，PDF 为真实页码。相同文件最多返回两段；每次最多八段。没有依据时返回空 evidence。研究决策应保存本次完整结果并引用 citation_id，不能只保存模型转述。
+
+### 固定来源内检索与有界阅读
+
+现有索引无需重建。`catalogue(limit=8)`返回有上限的文档目录；`search(..., document_id=..., source_sha256=...)`在排序与全局截断之前限定精确来源。两个选择字段必须同时提供，不把标题、路径或另一份同名论文当成该来源。
+
+`read_source(document_id, source_sha256, start_chunk=0, count=2)`只读当前冻结数据库中的原片段。结果含`evidence`、实际`window`、`next_chunk`和最多40项标题导航；每次最多两段。片段顺序从原构建时的`document_id:ordinal`确定性引用ID恢复，不以行号或哈希字典序排序。导航项的`chunk_offset`可用于下一窗口，目录不是正文阅读证明。原source SHA与索引文本SHA分别保存，不能把正文前缀说成原文件全文。
+
+这一步复用[PaperQA的检索／证据汇集分层](https://github.com/Future-House/paper-qa)和[ParentDocumentRetriever的小片段定位、较大上下文读取模式](https://reference.langchain.com/python/langchain-classic/retrievers/parent_document_retriever/ParentDocumentRetriever)，沿用现有SQLite与引用契约，没有安装另一套检索服务。新增操作会核对冻结库和sidecar，来源记录最多1MiB、单来源最多4096段；范围或SHA错误拒绝，不修复模型选择。它仍只证明读取一致性，不自动批准模型对原文的解释。
+
+## 资料分层
+
+| 类型 | 入口 | 能证明什么 |
+|---|---|---|
+| official_doc | 华为官方快照 manifest 中下载成功的 Markdown | 对应快照的接口、步骤与限制原文 |
+| research_profile | catalog 中的28份项目简要档案 | 固定版本的候选模块、位置、许可与尚未验证项 |
+| research_paper | catalog 记录且哈希一致的论文，按页读取 | 原论文正文及页码；不是自动复现实验 |
+| reuse_note | REUSE-INDEX、autoresearch、C01三份复用说明 | 本项目整理的适配建议；不是原始研究证据 |
+
+原清单中未成功下载、文件缺失、大小或哈希不符、越界路径等不进入索引；原因写入 audit。档案没有历史文件哈希的，只能标注本次计算哈希，不能冒充历史一致性校验。PDF 许可与代码许可分别记录，扫描页不伪造正文。
+
+源文件保留原位置。SQLite 与同名 JSON 清单保存在 ignored runs 中，清单含源清单哈希、语料身份和数据库哈希。每次查询核对冻结数据库，查询以只读方式打开，不修改上游材料。PDF逐文件在独立Python进程解析，每份最多30秒，整次论文采集最多300秒；超时或解析失败明确隔离，不让整个资料入口无限等待。这不是操作系统级沙箱或内存配额。
+
+## 检索与复用选择
+
+直接复用 Python 自带 SQLite FTS5，采用英文标识符与中文双字词分词、BM25、精确标题优先和来源类型过滤。无需向量服务、付费 embedding 或运行外部项目。具体评分方式见 [SQLite FTS5 官方说明](https://sqlite.org/fts5.html)。
+
+资源元数据与正文分离的组织方式参考已有 Biomni 的 `KnowHowLoader` / `ResourceRetriever`；没有复制其框架或默认模型调用，也没有安装其数据湖。现阶段需要的是可复核的少量上下文，不足以证明采用完整 Biomni 能提升研究质量。autoresearch 的固定输入、固定评估与保留失败记录用于后续实验契约；其无限运行指令没有进入本工具。

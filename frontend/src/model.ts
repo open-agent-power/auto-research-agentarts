@@ -40,4 +40,3 @@ export function sectionObjects(objects: ResearchObject[], section: SectionName):
   const kinds: Partial<Record<SectionName, ResearchObject["kind"]>> = { sources: "source", trials: "trial", claims: "claim", paper: "paper", questions: "questions" };
   return section === "overview" ? objects : objects.filter((object) => object.kind === kinds[section]);
 }
-

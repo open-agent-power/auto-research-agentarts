@@ -1,0 +1,11 @@
+{
+  "schema_version": "configured-iteration-protocol-v1",
+  "executor_id": "p02-interaction-ridge-v1",
+  "goal": "基于已封存alpha1/10/100结果，评价两个中间惩罚3/30的探索性数值表现。先选一个可执行候选并读取结果，另一候选可继续或停止；如输入未知或预算不足则停止。按每种处理规则比较主指标MAE，Spearman仅为次项；不是LLM权重训练，不重跑R61旧候选。",
+  "candidates": [
+    {"id": "alpha3", "alpha": 3.0},
+    {"id": "alpha30", "alpha": 30.0}
+  ],
+  "max_fits": 280,
+  "max_requests": 6
+}

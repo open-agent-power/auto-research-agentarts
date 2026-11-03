@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && node build.mjs",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "format": "node source-gate.mjs format",
+    "format:check": "node source-gate.mjs format --check",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@antv/x6": "3.1.8",

@@ -245,4 +245,3 @@ export class ResearchBoard {
   }
   dispose(): void { this.graph.dispose(); }
 }
-

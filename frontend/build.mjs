@@ -69,4 +69,3 @@ for (const name of ["app.js", "app.css"]) {
 await writeFile(path.join(output, "index.html"), (await readFile(path.join(root, "index.html"), "utf8")).replace(/\r\n?/g, "\n"), "utf8");
 await writeFile(path.join(output, "vendor-licenses.txt"), notices.join("\n") + "\n", "utf8");
 console.log(JSON.stringify({ output: "src/autoresearch/web", files: ["index.html", "app.js", "app.css", "vendor-licenses.txt"], browser_dependencies: [...packages.keys()].sort(), engine: "@antv/x6@3.1.8" }));
-

@@ -47,4 +47,3 @@ export async function download(format: "pdf" | "reproduction"): Promise<void> {
   document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
   } finally { clearTimeout(timer); }
 }
-

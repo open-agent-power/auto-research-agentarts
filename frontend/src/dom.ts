@@ -31,4 +31,3 @@ export function field(container: HTMLElement, label: string, value: string, mono
 }
 export function heading(container: HTMLElement, value: string): void { container.append(el("h3", "detail-heading", value)); }
 export function paragraph(container: HTMLElement, value: string, cls = ""): void { container.append(el("p", cls, value)); }
-

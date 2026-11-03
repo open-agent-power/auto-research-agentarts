@@ -1,0 +1,32 @@
+# 知识、数据与记忆索引
+
+适用：本地检索、RAG、外部来源接入、数据读取和经验复用。目标是让知识参与研究选择及证据核对；开发平台文档与科研证据分别使用。
+
+| 任务 | 正式设计/说明 | 实际复用入口与状态 |
+|---|---|---|
+| 原文检索、限定来源和继续阅读 | [资料进入研究](../../docs/knowledge.md) | [KnowledgeIndex](../../src/autoresearch/knowledge.py)：catalogue/search/read_source；已有 SQLite FTS5 |
+| 读取检索结果、来源身份与定位 | [知识工作台](../../docs/knowledge-workbench.md) | [knowledge_browser.py](../../src/autoresearch/knowledge_browser.py)；引用合法仍需核对解释 |
+| 带适用条件的历史经验 | [条件记忆](../../docs/research-memory.md) | [ResearchMemory](../../src/autoresearch/research_memory.py)：recall/set_status；不能把模型判断直接当事实 |
+| 经验进入后续模型请求 | [记忆接线](../../docs/c01-memory-loop.md) | [c01_memory_context.py](../../src/autoresearch/c01_memory_context.py)；已有案例接口不证明跨任务收益 |
+| 外部资料和数据进入研究 | [公开来源接入](../../docs/public-source-connector.md)、[自适应研究设计](../../docs/research/adaptive-research.md) | [EuropePmcSource](../../src/autoresearch/europe_pmc.py)已接固定官方DOI公开GET；通用搜索、任意下载及其他提供方仍待建 |
+| 真实材料—细胞数据的资格 | [数据候选](../../docs/data-candidates.md)、[P02 数据](../../docs/chemotopo-data.md) | 字段、终点、批次与对象对应单独核对，不靠向量相似度合并 |
+
+## 四个服务时刻
+
+A5 已把真实项目选区经 [project_knowledge](../../src/autoresearch/project_knowledge.py)送入现有 FTS，并在 [ResearchProject](../../src/autoresearch/research_project.py)保存四处查询与出处；[两方法目录](../../src/autoresearch/research_methods.py)据已读来源和未决项更新下一决定。当前是宿主检索/固定规则接线，不表示模型已读、ALP 已确认或跨域知识服务已完成。
+
+A7 已将同一路径用于有限的材料/软件任务，按领域保留不同的四处知识需求；仍只读实际提取的来源片段。失败选区记录留在账本，但不会再次成为自动选择的“可读”收据。
+
+问题形成时找已有发现和争议；选方法时找适用设计与工具；执行时读取字段和测量说明；复盘时召回条件匹配的真实行动与结果。具体数据流和外部来源计划以自适应设计为准，不在这里复制协议。
+
+当前优先复用 FTS 和原文定位。向量召回、混合排序与重排只作为可比较候选，依据实际漏检与答案错误决定引入；未运行 embedding 不标为已向量化。
+
+## 更新与最小验证
+
+新增来源或检索方式时核对原文定位、数据/文献分流、无依据及冲突场景，并用实际研究问题检查是否影响下一行动。原始来源保留版本；经验条件变化后允许重新评估，避免永久封禁旧失败路线。
+
+工作区外部材料入口见[参考索引](references.md)。私有项目材料的共享与训练用途沿原授权，不因写入索引扩大。
+
+A16 [表格输入](../../docs/tabular-quality.md)保存spec与CSV的原字节、SHA及宿主派生声明；四处知识请求使用data字段/分组/目标词表。读取提交者spec不核验上游、许可、终点或独立性，原件和0/缺失保留，不能把本地转换当作者新资料。
+
+同轮实际发现data默认解释词无法命中当前原件，`project_knowledge.decision_needs`现保留通用词并追加source_scope的完整target/numeric/group/key字段名，限512字符/64词元，放不下的整字段跳过；不以claim充检索原文。新context可引用已保存片段，旧提取/决定不重写，不据命中推断科学有效性。

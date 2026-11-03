@@ -1,0 +1,453 @@
+/** Explicit local commands above the existing saved-result reader; no automatic research. */
+import { $, el } from "./dom";
+import { createProjectPages } from "./project-pages";
+import { createLocalEvidencePanel } from "./local-evidence";
+import { createLocalBatchPanel } from "./local-batch";
+
+type Obj = Record<string, unknown>;
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean };
+const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
+const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
+const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
+const names = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+const methodNames: Record<string, string> = {
+  "data.tabular-quality-audit": "核对表格质量、重复与声明分组",
+  "data.grouped-quality-profile": "查看零值与缺失集中于哪些组",
+  "research.source-selection": "读取已登记的来源选区",
+  "p02.source-mapping-check": "读取已登记的来源选区",
+};
+const PENDING_KEY = "autoresearch.local-workbench.pending.v1";
+
+function header(textValue: string, delimiter: string): string[] {
+  const columns: string[] = [];
+  let value = "", quoted = false, closed = false;
+  for (let index = 0; index < textValue.length; index++) {
+    const char = textValue[index];
+    if (quoted) {
+      if (char === '"' && textValue[index + 1] === '"') { value += '"'; index++; }
+      else if (char === '"') { quoted = false; closed = true; }
+      else value += char;
+    } else if (char === delimiter) { columns.push(value); value = ""; closed = false; }
+    else if (char === "\r" || char === "\n") { columns.push(value); return checkHeader(columns); }
+    else if (char === '"' && !value && !closed) quoted = true;
+    else if (closed) throw Error("表头引号后出现其他字符，请核对CSV格式或分隔符。");
+    else value += char;
+  }
+  if (quoted) throw Error("CSV表头的引号没有闭合。");
+  columns.push(value); return checkHeader(columns);
+}
+
+function checkHeader(columns: string[]): string[] {
+  if (!columns.length || columns.length > 128 || columns.some(name => !name.trim() || name !== name.trim() || name.length > 256 || name.includes("\0")))
+    throw Error("表头需有1至128个非空字段，不能带首尾空格或NUL。");
+  if (new Set(columns.map(name => name.normalize("NFKC").toLocaleLowerCase())).size !== columns.length)
+    throw Error("表头存在重复或歧义字段名，请先核对来源。");
+  return columns;
+}
+
+function base64(bytes: Uint8Array): string {
+  const chunks: string[] = [];
+  for (let offset = 0; offset < bytes.length; offset += 8192) chunks.push(String.fromCharCode(...bytes.subarray(offset, offset + 8192)));
+  return btoa(chunks.join(""));
+}
+
+async function sha256(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer);
+  return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
+}
+
+function field(labelText: string, control: HTMLElement, hint?: string): HTMLElement {
+  const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", labelText), control);
+  if (hint) wrap.append(el("small", "detail-note", hint));
+  return wrap;
+}
+
+function input(value = "", maximum = 4000): HTMLInputElement {
+  const control = el("input"); control.type = "text"; control.value = value; control.maxLength = maximum; return control;
+}
+
+function panel(title: string, description: string): HTMLElement {
+  const section = el("section", "local-panel content-section");
+  section.append(el("h2", "section-title", title), el("p", "detail-note", description)); return section;
+}
+
+function requestId(command: string): string { return "local-" + command + "-" + crypto.randomUUID(); }
+
+export async function mountLocalWorkbench(): Promise<void> {
+  document.body.classList.add("project-standalone", "local-workbench-mode");
+  $("page-state").hidden = true; $("page-content").hidden = false;
+  for (const id of ["inspector", "inspector-backdrop", "search-results"]) $(id).hidden = true;
+  const searchWrap = document.querySelector<HTMLElement>(".search-wrap"); if (searchWrap) searchWrap.hidden = true;
+  $<HTMLInputElement>("search").disabled = true;
+  const statusLabel = document.querySelector<HTMLElement>(".topbar-status"); if (statusLabel) statusLabel.textContent = "本地项目 · 明确提交";
+  const footer = document.querySelector<HTMLElement>(".nav-footer>span:nth-child(2)"); if (footer) footer.textContent = "本地工作台 · 显式操作";
+  $("project-label").textContent = "当前研究项目"; $("project-title").textContent = "从问题和数据开始";
+  $("nav-project-title").textContent = "尚未选择项目";
+
+  const host = el("div", "local-workbench project-workspace"); $("page-content").replaceChildren(host);
+  const message = el("p", "notice local-message", "正在读取本地工作台…"); message.setAttribute("role", "status"); message.setAttribute("aria-live", "polite");
+  const pendingNotice = el("div", "notice local-pending"); pendingNotice.hidden = true;
+  const retry = el("button", "quiet-button", "用原请求ID核对／重试"); retry.type = "button"; retry.hidden = true;
+  const refreshButton = el("button", "quiet-button", "只读刷新保存状态"); refreshButton.type = "button";
+  const toolbar = el("div", "local-actions"); toolbar.append(refreshButton, retry);
+  const switching = panel("已保存的项目", "重开页面会读取持久保存的当前项目；切换会清除旧候选上下文。");
+  const projectSelect = el("select"); projectSelect.setAttribute("aria-label", "选择已保存项目");
+  const selectButton = el("button", "action-button", "切换当前项目"); selectButton.type = "button";
+  const switchControls = el("div", "local-project-switch"); switchControls.append(projectSelect, selectButton); switching.append(switchControls);
+
+  const createSection = panel("1 · 问题与输入", "创建只登记本次输入，随后才可选择执行检查。CSV原字节和本次字段声明会一起保存。");
+  const form = el("form", "local-create-form"), createFields = el("fieldset", "local-fieldset");
+  const goal = el("textarea"); goal.rows = 3; goal.required = true; goal.maxLength = 4000; goal.placeholder = "例如：这份表格的零值是否集中在少数组，哪些记录需要回到来源核对？";
+  const csvFile = el("input"); csvFile.type = "file"; csvFile.accept = ".csv,.tsv,text/csv,text/tab-separated-values"; csvFile.required = true;
+  const fileStatus = el("p", "detail-note", "选择CSV或TSV后，先读取表头供你声明字段；完整格式仍由宿主校验。"); fileStatus.setAttribute("aria-live", "polite");
+  const delimiter = el("select"); for (const [value, label] of [[",", "逗号 CSV"], ["\t", "Tab TSV"]]) { const option = el("option", "", label); option.value = value; delimiter.append(option); }
+  const dataset = input("", 300), sample = input("本CSV每行的一条记录；独立性尚未核验", 300);
+  const url = input("", 2000), license = input("许可与访问范围尚待核验", 4000);
+  dataset.required = true; sample.required = true; url.required = true; license.required = true;
+  const unit = input("", 300); unit.placeholder = "选择目标后，填写实际单位；未知需明确写未知";
+  const target = el("select"), noTarget = el("option", "", "不声明目标字段"); noTarget.value = ""; target.append(noTarget);
+  const roles = el("div", "local-roles");
+  const toolLimit = el("select"); toolLimit.required = true;
+  const emptyLimit = el("option", "", "明确选择本地调用上限"); emptyLimit.value = ""; toolLimit.append(emptyLimit);
+  for (const value of [1, 2]) { const option = el("option", "", value + "次本地工具调用"); option.value = String(value); toolLimit.append(option); }
+  const budget = input("shared-historical:existing-cap5CNY;cash-settlement-unknown;model0", 500); budget.required = true;
+  const importFile = el("input"); importFile.type = "file"; importFile.accept = ".json,application/json";
+  const importNote = el("p", "detail-note", "可导入已有spec.json填充声明；表单修改会生成本次spec，原导入文件不会被改写。");
+  const clearImport = el("button", "quiet-button", "改用当前CSV直接声明"); clearImport.type = "button";
+  const advanced = el("details", "local-advanced"); advanced.append(el("summary", "", "已有字段声明与预算归属（可选）"), field("导入spec.json", importFile), importNote, clearImport, field("历史预算归属", budget));
+  createFields.append(field("要核对的问题", goal), field("CSV / TSV文件", csvFile), fileStatus,
+    field("分隔符", delimiter), roles);
+  const declarations = el("div", "local-form-grid"); declarations.append(field("数据集标签", dataset), field("每行代表什么", sample),
+    field("来源URL或本地派生标识", url), field("许可与待核对范围", license), field("目标字段（可选）", target), field("目标单位（声明）", unit),
+    field("本地调用上限", toolLimit, "只允许本次明确选定的1或2次；模型、拟合和来源额度不会因此增加。"));
+  createFields.append(declarations, advanced);
+  const createButton = el("button", "action-button primary", "创建项目，不执行方法"); createButton.type = "submit";
+  const createToggle = el("button", "quiet-button", "收起新课题输入"); createToggle.type = "button";
+  form.id = "local-create-form"; createToggle.setAttribute("aria-controls", form.id); createToggle.setAttribute("aria-expanded", "true");
+  form.append(createFields, createButton); createSection.append(createToggle, form);
+
+  const runSection = panel("2 · 选择一次行动", "候选来自当前项目的真实条件和预算。选择一个候选并填写理由，或明确保存等待。");
+  const contextStatus = el("p", "detail-note", "创建或选择项目后读取候选。"); contextStatus.setAttribute("aria-live", "polite");
+  const candidateList = el("div", "local-candidates"), citationList = el("div", "local-citations");
+  const rationale = el("textarea"); rationale.rows = 3; rationale.maxLength = 4000; rationale.placeholder = "说明为何现在执行这个检查，或为何等待。";
+  const executeButton = el("button", "action-button primary", "明确执行所选候选一次"); executeButton.type = "button";
+  const waitButton = el("button", "action-button", "本次选择等待"); waitButton.type = "button";
+  const reportButton = el("button", "action-button", "生成当前快照报告"); reportButton.type = "button";
+  const runActions = el("div", "local-actions"); runActions.append(executeButton, waitButton, reportButton);
+  runSection.append(contextStatus, candidateList, field("这次选择的理由", rationale), citationList, runActions,
+    el("p", "detail-note", "等待仅保存本次选择，不表示项目暂停或方法耗尽。生成报告不继续研究。"));
+
+  let description: Obj = {}, current: Obj = {}, context: Obj | null = null, busy = false, loadingFile = false;
+  let selectedCandidate = "", citations = new Set<string>(), lastRequest: Pending | null = null;
+  let batchUncertain: Pending | null = null;
+  let csv: { name: string; bytes: Uint8Array; encoded: string; sha: string; decoded: string } | null = null;
+  let imported: Obj | null = null, headers: string[] = [], roleInputs = new Map<string, Record<string, HTMLInputElement>>();
+  let fileGeneration = 0, lastCreateSignature = "", lastCreatedProject = "";
+  const evidencePending = new Map<string, Pending>();
+  const selectedRoles = (kind: string): string[] => headers.filter(name => roleInputs.get(name)?.[kind].checked);
+  const activeId = (): string => text(description.active_project_id, "");
+  const serverPending = (projectId = activeId()): boolean => items(description.pending_requests).some(record => record.command !== "evidence" || !record.project_id || record.project_id === projectId);
+  const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
+  const uncertain = (projectId = activeId()): boolean => !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain && (lastRequest.command !== "evidence" || requestProject(lastRequest) === projectId);
+  const navigationBlocked = (): boolean => items(description.pending_requests).some(record => !["batch", "evidence"].includes(text(record.command, "")))
+    || !!lastRequest?.uncertain && !["batch", "evidence"].includes(lastRequest.command);
+  const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
+  const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
+  const batchPanel = createLocalBatchPanel({ submit: (body, recover) => submit(recover
+    ? { command: "batch", requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverBatch: true }
+    : command("batch", body)), canRecover: canRecoverBatch, announce });
+  const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
+    operations: [runSection, evidencePanel.element, batchPanel.element], read, announce });
+  function canRecoverBatch(body: Obj): boolean {
+    const record = items(description.batches).find(item => item.request_id === body.request_id && item.project_id === body.project_id);
+    if (busy || description.enabled !== true || !record || record.record_status === "completed"
+      || !["preparing", "incomplete"].includes(text(record.record_status, "")) || body.project_id !== activeId()
+      || JSON.stringify(record.body) !== JSON.stringify(body)) return false;
+    if (items(description.pending_requests).some(item => item.request_id !== body.request_id
+      && (item.command !== "evidence" || !item.project_id || item.project_id === body.project_id))) return false;
+    if (lastRequest?.uncertain && lastRequest.requestId !== body.request_id
+      && (lastRequest.command !== "evidence" || requestProject(lastRequest) === body.project_id)) return false;
+    if (batchUncertain && batchUncertain.requestId !== body.request_id) return false;
+    return !evidencePending.get(text(body.project_id, ""))?.uncertain;
+  }
+  function announce(value: string, error = false): void { message.textContent = value; message.classList.toggle("error", error); message.setAttribute("role", error ? "alert" : "status"); }
+  function controls(): void {
+    const globalLocked = busy || description.enabled !== true || serverPending("") || uncertain("");
+    const navigationLocked = busy || description.enabled !== true || navigationBlocked();
+    const locked = globalLocked || serverPending() || uncertain() || unknownExecution();
+    createFields.disabled = globalLocked; createButton.disabled = globalLocked || loadingFile || !csv || !headers.length;
+    selectButton.disabled = navigationLocked || !projectSelect.value || projectSelect.value === activeId(); projectSelect.disabled = navigationLocked;
+    executeButton.disabled = locked || !context || !selectedCandidate || !rationale.value.trim() || items(context.blockers).length > 0;
+    waitButton.disabled = locked || !context || !rationale.value.trim();
+    reportButton.disabled = locked || !activeId() || typeof current.state_version !== "number" || (obj(current.report).available === true && obj(current.report).stale !== true);
+    refreshButton.disabled = busy;
+    retry.hidden = !lastRequest; retry.disabled = busy || !lastRequest || lastRequest.uncertain || (lastRequest.command === "evidence" && requestProject(lastRequest) !== activeId()) || description.enabled !== true;
+    evidencePanel.setLocked(locked);
+    batchPanel.setLocked(locked || typeof current.state_version !== "number" || current.id !== activeId());
+    rationale.disabled = locked;
+    candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
+    citationList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked; });
+  }
+  function showPending(): void {
+    const records = items(description.pending_requests);
+    let remembered: Obj = {};
+    try { remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}")); } catch { /* Storage is optional; manager owns durable state. */ }
+    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && ![...evidencePending.values()].some(pending => pending.uncertain);
+    if (records.length) pendingNotice.append(el("strong", "", records.some(record => record.command === "batch")
+      ? "有原批次尚未收口，新提交保持锁定。请在有界连续推进中核对并继续原批次；未知工具行动不会重发。"
+      : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
+    else if (remembered.request_id) pendingNotice.append(el("strong", "", "上次浏览器提交尚需对照保存记录核对；没有自动重发。"));
+    for (const record of records) pendingNotice.append(el("p", "detail-note", text(record.command) + " · " + text(record.request_id) + " · " + text(record.status) + (record.project_id ? " · 项目 " + text(record.project_id) : "")));
+    for (const pending of evidencePending.values()) if (pending.uncertain && !records.some(record => record.request_id === pending.requestId)) pendingNotice.append(el("p", "detail-note", "evidence · 原ID " + pending.requestId + " · 结果待核对 · 项目 " + requestProject(pending)));
+    if (batchUncertain && !records.some(record => record.request_id === batchUncertain?.requestId)) pendingNotice.append(el("p", "detail-note", "batch · 原ID " + batchUncertain.requestId + " · 结果待核对；可切回原项目，新提交保持锁定。"));
+    if (remembered.request_id && !records.some(record => record.request_id === remembered.request_id)) pendingNotice.append(el("p", "detail-note", text(remembered.command) + " · 原ID " + text(remembered.request_id)));
+  }
+  function renderRoles(useImported = false): void {
+    if (!csv) return;
+    headers = header(csv.decoded, delimiter.value); roleInputs = new Map(); roles.replaceChildren();
+    const table = el("table", "data-table local-role-table"), head = el("thead"), row = el("tr");
+    for (const label of ["实际字段", "数值", "分组", "键"]) { const th = el("th", "", label); th.scope = "col"; row.append(th); }
+    head.append(row); table.append(head); const body = el("tbody");
+    for (const name of headers) {
+      const tr = el("tr"), heading = el("th", "", name); heading.scope = "row"; tr.append(heading);
+      const choices: Record<string, HTMLInputElement> = {};
+      for (const kind of ["numeric", "group", "key"] as const) {
+        const td = el("td"), label = el("label", "local-checkbox"), check = el("input"); check.type = "checkbox";
+        check.setAttribute("aria-label", name + "作为" + ({ numeric: "数值列", group: "分组列", key: "键列" }[kind]));
+        check.checked = useImported && names(imported?.[kind + "_columns"]).includes(name);
+        label.append(check); td.append(label); tr.append(td); choices[kind] = check;
+      }
+      roleInputs.set(name, choices); body.append(tr);
+    }
+    table.append(body); roles.append(el("p", "detail-note", "至少勾选1个数值字段；分组和键可不声明。声明角色不证明样本独立性。"), table);
+    const chosen = useImported ? text(imported?.target_column, "") : target.value;
+    const emptyTarget = el("option", "", "不声明目标字段"); emptyTarget.value = ""; target.replaceChildren(emptyTarget);
+    for (const name of headers) { const option = el("option", "", name); option.value = name; target.append(option); }
+    target.value = headers.includes(chosen) ? chosen : ""; controls();
+  }
+  function applyImported(): void {
+    if (!imported) return;
+    if (csv && imported.file !== csv.name) throw Error("spec的file与当前CSV文件名不一致，请选择对应文件或改用直接声明。");
+    delimiter.value = text(imported.delimiter, ","); dataset.value = text(imported.dataset_label, ""); sample.value = text(imported.sample_unit, "");
+    url.value = text(imported.source_url, ""); license.value = text(imported.license_note, ""); unit.value = text(imported.target_unit, "");
+    if (csv) {
+      const actual = header(csv.decoded, delimiter.value);
+      if ([...names(imported.numeric_columns), ...names(imported.group_columns), ...names(imported.key_columns)].some(name => !actual.includes(name))) throw Error("导入spec声明了CSV表头中不存在的字段。");
+      renderRoles(true);
+    }
+    importNote.textContent = "已导入声明。来源、许可、单位和provenance原声明保留；表单修改后提交本次新spec。";
+  }
+  csvFile.addEventListener("change", () => { void (async () => {
+    const generation = ++fileGeneration, file = csvFile.files?.[0]; csv = null; headers = []; roles.replaceChildren(); loadingFile = true; controls();
+    try {
+      if (!file) { fileStatus.textContent = "尚未选择CSV。"; return; }
+      const max = typeof obj(description.constraints).max_csv_bytes === "number" ? Number(obj(description.constraints).max_csv_bytes) : 8 * 1024 * 1024;
+      if (!file.size || file.size > max || file.name.length > 160 || /[<>:"/\\|?*\u0000-\u001f]/.test(file.name) || !/\.(csv|tsv)$/i.test(file.name)) throw Error("请选择安全文件名的CSV/TSV，大小需在8MiB以内且非空。");
+      const bytes = new Uint8Array(await file.arrayBuffer()), decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      if (decoded.includes("\0")) throw Error("CSV含NUL，不能作为本次输入。");
+      const digest = await sha256(bytes); if (generation !== fileGeneration) return;
+      csv = { name: file.name, bytes, encoded: base64(bytes), sha: digest, decoded };
+      if (imported) applyImported();
+      else {
+        const comma = (() => { try { return header(decoded, ",").length; } catch { return 0; } })();
+        const tab = (() => { try { return header(decoded, "\t").length; } catch { return 0; } })();
+        delimiter.value = tab > comma ? "\t" : ","; dataset.value = file.name; url.value = "urn:autoresearch:local-upload:sha256:" + digest;
+        renderRoles();
+      }
+      fileStatus.textContent = `${file.name} · ${file.size.toLocaleString("zh-CN")}字节 · ${headers.length}个表头字段；完整CSV仍待宿主核验。`;
+    } catch (error) { fileStatus.textContent = error instanceof Error ? error.message : "文件读取失败，请核对UTF-8编码。"; headers = []; announce(fileStatus.textContent, true); }
+    finally { if (generation === fileGeneration) { loadingFile = false; controls(); } }
+  })(); });
+  delimiter.addEventListener("change", () => { try { renderRoles(); fileStatus.textContent = "已按所选分隔符重读表头，请重新声明字段。"; } catch (error) { headers = []; roles.replaceChildren(); announce(error instanceof Error ? error.message : "表头无法读取。", true); controls(); } });
+  target.addEventListener("change", () => { if (target.value) { const choices = roleInputs.get(target.value); if (choices) choices.numeric.checked = true; } unit.required = !!target.value; });
+  importFile.addEventListener("change", () => { void (async () => {
+    try {
+      const file = importFile.files?.[0]; if (!file) return;
+      if (!file.size || file.size > 64 * 1024) throw Error("spec.json须为非空且不超过64KiB的UTF-8 JSON。");
+      const parsed: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(await file.arrayBuffer()));
+      const value = obj(parsed), expected = ["schema_version", "file", "dataset_label", "source_url", "license_note", "sample_unit", "group_columns", "key_columns", "numeric_columns", "target_column", "target_unit", "missing_tokens", "delimiter", "provenance"];
+      if (Object.keys(value).length !== expected.length || expected.some(key => !(key in value)) || value.schema_version !== "tabular-quality-spec-v1" || ![",", "\t"].includes(text(value.delimiter))) throw Error("导入文件不是支持的tabular-quality-spec-v1完整声明。");
+      imported = value; applyImported();
+    } catch (error) { imported = null; importNote.textContent = error instanceof Error ? error.message : "声明导入失败。"; announce(importNote.textContent, true); }
+  })(); });
+  clearImport.addEventListener("click", () => { imported = null; importFile.value = ""; unit.value = "";
+    importNote.textContent = "当前使用CSV直接声明；上游待核验。";
+    if (csv) { dataset.value = csv.name; url.value = "urn:autoresearch:local-upload:sha256:" + csv.sha; renderRoles(); }
+  });
+  function spec(): Obj {
+    if (!csv) throw Error("请先选择CSV文件。");
+    const numeric = selectedRoles("numeric"), group = selectedRoles("group"), key = selectedRoles("key");
+    if (!numeric.length || numeric.length > 32 || group.length > 8 || key.length > 8) throw Error("请声明1至32个数值列，分组与键各最多8列。");
+    if (target.value && (!numeric.includes(target.value) || !unit.value.trim())) throw Error("声明目标时，须勾选为数值列并填写实际单位或明确未知。");
+    return { ...(imported ?? {}), schema_version: "tabular-quality-spec-v1", file: csv.name, dataset_label: dataset.value.trim(),
+      source_url: url.value.trim(), license_note: license.value.trim(), sample_unit: sample.value.trim(), group_columns: group, key_columns: key,
+      numeric_columns: numeric, target_column: target.value || null, target_unit: target.value ? unit.value.trim() : null,
+      missing_tokens: imported?.missing_tokens ?? [""], delimiter: delimiter.value,
+      provenance: imported?.provenance ?? { origin_sha256: csv.sha, description: "Direct capture of the selected CSV bytes; upstream origin, transformation, license and target meaning remain unverified." } };
+  }
+
+  async function read(urlValue: string): Promise<Obj> {
+    const response = await fetch(urlValue, { cache: "no-store", signal: AbortSignal.timeout(15000) });
+    const value: unknown = await response.json(); if (!response.ok) throw Error("读取失败：" + text(obj(value).code, String(response.status)));
+    return obj(value);
+  }
+  function candidates(): void {
+    candidateList.replaceChildren(); citationList.replaceChildren();
+    if (!context) { contextStatus.textContent = activeId() ? "当前候选未载入；只读刷新可重新核对。" : "创建或选择项目后读取候选。"; controls(); return; }
+    const choices = items(context.candidates);
+    if (!choices.some(choice => choice.id === selectedCandidate)) selectedCandidate = "";
+    contextStatus.textContent = items(context.blockers).length ? "当前有宿主阻断条件，不能执行新方法；可查看保存结果或明确等待。" : choices.length ? `当前有${choices.length}个真实可执行候选；不会自动选择或执行。` : "当前没有合资格候选；可以填写理由并保存本次等待。";
+    for (const choice of choices) {
+      const label = el("label", "local-candidate evidence-card"), radio = el("input"); radio.type = "radio"; radio.name = "local-candidate"; radio.value = text(choice.id, ""); radio.checked = choice.id === selectedCandidate;
+      radio.addEventListener("change", () => { selectedCandidate = radio.value; controls(); });
+      const content = el("span"); content.append(el("strong", "", methodNames[text(choice.method_id)] ?? text(choice.method_id)), el("small", "detail-note", "只使用宿主绑定的参数和评价范围"));
+      label.append(radio, content); candidateList.append(label);
+    }
+    const evidence = items(context.evidence), available = new Set(evidence.map(hit => text(hit.citation_id, "")));
+    citations = new Set([...citations].filter(id => available.has(id)));
+    if (evidence.length) {
+      citationList.append(el("h3", "", "引用实际来源（可选，最多16处）"));
+      for (const hit of evidence) {
+        const box = el("details", "local-citation"), summary = el("summary");
+        summary.textContent = text(obj(hit.source).title, "已提取来源") + " · " + text(hit.citation_id).slice(0, 12);
+        const label = el("label", "local-checkbox"), check = el("input"); check.type = "checkbox"; check.checked = citations.has(text(hit.citation_id));
+        check.addEventListener("change", () => { const id = text(hit.citation_id); if (check.checked && citations.size >= 16) { check.checked = false; announce("最多引用16处实际来源。", true); return; } if (check.checked) citations.add(id); else citations.delete(id); });
+        label.append(check, el("span", "", "引用这一真实片段"));
+        box.append(summary, label, el("pre", "project-source-text", text(hit.quote)), el("p", "detail-note", "原定位：" + JSON.stringify(hit.location)));
+        citationList.append(box);
+      }
+    }
+    const raw = el("details", "local-advanced"); raw.append(el("summary", "", "条件、阻断与候选参数"), el("pre", "project-source-text", JSON.stringify({ state_version: context.state_version, context_sha256: context.context_sha256, blockers: context.blockers, conditions: context.conditions, candidates: context.candidates }, null, 2))); candidateList.append(raw);
+    controls();
+  }
+  function downloads(): void {
+    const ready = obj(current.report).available === true && obj(current.report).stale !== true;
+    for (const [id, format, label] of [["download-pdf", "pdf", "当前报告 PDF ↓"], ["download-zip", "json", "当前报告 JSON ↓"]]) {
+      const button = $<HTMLButtonElement>(id); button.textContent = label; button.disabled = busy || !ready;
+      button.title = ready ? "当前快照报告" : "先生成与当前项目匹配的报告";
+      button.onclick = () => { if (ready && !busy) location.assign("/api/project/report." + format); };
+    }
+  }
+  async function refresh(): Promise<void> {
+    const previousId = activeId(); context = null; candidates();
+    batchPanel.setLocked(true);
+    await evidencePanel.refresh("", {});
+    description = await read("/api/local-workbench");
+    if (description.schema_version !== "local-research-workbench-v1") throw Error("本地工作台返回身份不完整。");
+    const now = activeId();
+    if (now !== previousId) { selectedCandidate = ""; citations.clear(); rationale.value = ""; if (now) form.hidden = true; }
+    if (evidencePending.has(now)) lastRequest = evidencePending.get(now) ?? null;
+    createToggle.textContent = form.hidden ? "展开新课题与CSV输入" : "收起新课题输入";
+    createToggle.setAttribute("aria-expanded", String(!form.hidden));
+    projectSelect.replaceChildren();
+    const projects = items(description.projects);
+    if (!projects.length) { const option = el("option", "", "暂无已保存项目"); option.value = ""; projectSelect.append(option); }
+    for (const project of projects) { const option = el("option", "", text(project.goal).slice(0, 90)); option.value = text(project.id, ""); projectSelect.append(option); }
+    projectSelect.value = now; current = {};
+    $("nav-project-title").textContent = now ? text(projects.find(project => project.id === now)?.goal, "当前本地项目") : "尚未选择项目";
+    $("project-title").textContent = $("nav-project-title").textContent;
+    const navNote = document.querySelector<HTMLElement>(".nav-note p"); if (navNote) navNote.textContent = "操作需明确提交。查看不会执行，结果保留，未知不自动重发。";
+    showPending();
+    if (now) {
+      try { current = await read("/api/project"); }
+      catch (error) { await workspacePages.update({}); throw error; }
+      try {
+        const next = await read("/api/project/selection-context.json");
+        if (next.project_id !== now || next.schema_version !== "project-selection-context-v1") throw Error("候选不属于当前项目，请刷新后核对。");
+        context = next;
+      } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
+      candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current); await workspacePages.update(current);
+    } else { batchPanel.update(description, {}); await workspacePages.update({}); }
+    if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
+    downloads(); controls();
+  }
+  async function submit(pending: Pending): Promise<Obj | null> {
+    if (busy) return null;
+    const targetProject = requestProject(pending), switching = pending.command === "select";
+    const sameEvidence = pending.command === "evidence" && evidencePending.get(targetProject)?.requestId === pending.requestId;
+    const recoverBatch = pending.command === "batch" && pending.recoverBatch === true && canRecoverBatch(obj(JSON.parse(pending.body)));
+    if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
+    const blocked = switching ? navigationBlocked() : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || (pending.command !== "create" && unknownExecution());
+    if (!recoverBatch && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    lastRequest = pending; busy = true; controls(); downloads(); announce("正在提交一次明确的本地命令…");
+    if (pending.command === "evidence") evidencePending.set(targetProject, pending);
+    try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ request_id: pending.requestId, command: pending.command })); } catch { /* Host journal remains authoritative. */ }
+    let outcomeMessage = "", failed = false, accepted: Obj | null = null;
+    try {
+      const response = await fetch("/api/local-workbench/" + pending.command, { method: "POST", credentials: "same-origin", cache: "no-store",
+        headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(60000) });
+      const result = obj(await response.json());
+      if (!response.ok) {
+        pending.uncertain = response.status >= 500 || /UNKNOWN|NEEDS_REVIEW|INCOMPLETE/.test(text(result.code, ""));
+        const reasons: Record<string, string> = { INVALID_SPEC: "字段声明与CSV需要逐项核对", INVALID_CSV: "CSV编码、表头或行宽不满足范围", INVALID_BUNDLE: "来源文件或选区声明需要核对", INVALID_LOCATOR: "选区坐标不满足当前读取范围", TASK_MISMATCH: "资料与当前取证任务不匹配", STALE_SELECTION_CONTEXT: "项目已变化，请重新读取候选后决定", STALE_STATE: "项目版本或当前选择已变化", IDEMPOTENCY_CONFLICT: "原请求ID已经绑定其他内容", BUDGET_EXHAUSTED: "本地调用额度已用完，已有用量保留", OPERATION_INCOMPLETE: "原操作未完成，需要保留并核对" };
+        const code = text(result.code, String(response.status));
+        failed = true; outcomeMessage = "提交未完成：" + (reasons[code] ?? "请核对当前条件与输入") + "（" + code + "）。输入已保留；" + (pending.uncertain ? "结果仍需核对，不自动重发。" : "可以用原ID和原内容显式重试，或核对后修正输入。");
+      } else if (["unknown", "running", "pending", "prepared"].includes(text(result.status, ""))) {
+        pending.uncertain = true; failed = true; outcomeMessage = "原请求结果尚未确认，请只读核对保存状态。没有自动重发。";
+      } else {
+        pending.uncertain = pending.command === "batch" && result.status === "needs_review"; accepted = result;
+        outcomeMessage = pending.command === "create" ? "项目已创建，尚未执行方法。请从实际候选中选择下一步。" : pending.command === "select" ? "已切换活动项目，旧候选已清除。"
+          : pending.command === "report" ? "当前快照报告已生成，可从顶栏或保存结果区下载。" : pending.command === "evidence" ? "资料已登记，尚未读取。请从真实来源候选中选择并明确执行。" : obj(result.decision).next_action && obj(obj(result.decision).next_action).kind === "external_wait" ? "本次等待已保存，没有创建新行动。" : "本次行动和反馈已保存，请核对结果后再决定下一步。";
+        if (pending.command === "evidence") { evidencePanel.acceptRegistered(result); evidencePending.delete(targetProject); }
+        if (pending.command === "batch") {
+          const batch = obj(result.batch), stop = obj(batch.stop), count = items(batch.steps).length;
+          const labels: Record<string, string> = { waiting: "等待后续条件", limit_reached: "达到本次授权上限", not_authorized: "下一步未获本次授权", blocked: "当前条件或原额度阻断", failed: "行动失败，原记录保留", needs_review: "待核对，未知行动不重发" };
+          outcomeMessage = `批次已保存${count}步记录：${labels[text(result.status)] ?? "请核对原批次状态"}。` + text(stop.reason, "") + " 没有自动扩大授权或生成下一批次。";
+          failed = pending.uncertain || result.status === "failed";
+        }
+        if (pending.command === "create") {
+          lastCreatedProject = text(result.project_id, "");
+          const created = obj(JSON.parse(pending.body)); delete created.request_id; lastCreateSignature = JSON.stringify(created);
+        }
+        selectedCandidate = ""; citations.clear(); if (pending.command === "advance") rationale.value = "";
+        if (!pending.uncertain) lastRequest = null;
+      }
+      if (!pending.uncertain) { if (pending.command === "evidence") evidencePending.delete(targetProject); try { sessionStorage.removeItem(PENDING_KEY); } catch { /* Optional browser note. */ } }
+    } catch {
+      pending.uncertain = true; failed = true; outcomeMessage = "未取得完整命令回执，不能当作未执行。输入与原请求ID已保留；只读核对后再处理，不自动重发。";
+    }
+    if (pending.command === "batch") {
+      if (pending.uncertain) batchUncertain = pending;
+      else if (batchUncertain?.requestId === pending.requestId) batchUncertain = null;
+    }
+    try { await refresh(); } catch (error) { outcomeMessage += " 保存状态刷新未完成，可稍后只读刷新。"; context = null; announce(error instanceof Error ? error.message : "状态读取失败。", true); }
+    busy = false; candidates(); downloads(); controls(); showPending(); announce(outcomeMessage, failed);
+    return accepted;
+  }
+  function command(name: string, body: Obj): Pending {
+    const id = requestId(name); return { command: name, requestId: id, body: JSON.stringify({ request_id: id, ...body }), uncertain: false };
+  }
+  form.addEventListener("submit", event => { event.preventDefault(); void (async () => {
+    if (!form.reportValidity() || !csv) return;
+    try {
+      const declaration = spec(), specBytes = new TextEncoder().encode(JSON.stringify(declaration));
+      if (specBytes.length > 64 * 1024) throw Error("本次字段声明超过64KiB，请核对输入。");
+      const body = { goal: goal.value.trim(), budget_ref: budget.value.trim(), max_tool_calls: Number(toolLimit.value),
+        input: { file_name: csv.name, csv_base64: csv.encoded, spec_base64: base64(specBytes) } };
+      const signature = JSON.stringify(body);
+      if (signature === lastCreateSignature && lastCreatedProject) { announce("这份问题和输入已经创建为保存项目，请从项目列表选择；未再次创建。"); return; }
+      const pending = command("create", body); await submit(pending);
+    } catch (error) { announce(error instanceof Error ? error.message : "输入尚不完整。", true); }
+  })(); });
+  projectSelect.addEventListener("change", controls);
+  createToggle.addEventListener("click", () => { form.hidden = !form.hidden; createToggle.textContent = form.hidden ? "展开新课题与CSV输入" : "收起新课题输入"; createToggle.setAttribute("aria-expanded", String(!form.hidden)); });
+  selectButton.addEventListener("click", () => { context = null; selectedCandidate = ""; citations.clear(); candidates(); void submit(command("select", { project_id: projectSelect.value })); });
+  const advance = (wait: boolean): void => {
+    if (!context || !activeId() || !rationale.value.trim()) { announce("请先读取当前候选并填写选择理由。", true); return; }
+    if (!wait && !items(context.candidates).some(candidate => candidate.id === selectedCandidate)) { announce("请选择当前上下文中的实际候选。", true); return; }
+    const proposal = { schema_version: "project-selection-proposal-v1", context_sha256: context.context_sha256,
+      provider: { kind: "operator_assistant", label: "本地工作台提交（操作者身份未核验）" }, choice: wait ? { kind: "wait" } : { kind: "execute", candidate_id: selectedCandidate },
+      rationale: rationale.value.trim(), evidence_citation_ids: [...citations] };
+    void submit(command("advance", { project_id: activeId(), expected_state_version: context.state_version, proposal }));
+  };
+  executeButton.addEventListener("click", () => advance(false)); waitButton.addEventListener("click", () => advance(true));
+  rationale.addEventListener("input", controls);
+  reportButton.addEventListener("click", () => { if (activeId() && typeof current.state_version === "number") void submit(command("report", { project_id: activeId(), expected_state_version: current.state_version })); });
+  retry.addEventListener("click", () => { if (lastRequest && !lastRequest.uncertain) void submit(lastRequest); });
+  refreshButton.addEventListener("click", () => { void (async () => { busy = true; controls(); try { await refresh(); announce(description.enabled !== true ? "本地动作未启用，当前只读取保存记录。" : serverPending() || lastRequest?.uncertain ? "原请求仍待核对，仅刷新了保存状态。" : "已只读刷新保存状态，没有执行新行动。", description.enabled !== true); } catch (error) { announce(error instanceof Error ? error.message : "读取失败。", true); } finally { busy = false; controls(); downloads(); } })(); });
+  document.querySelector(".skip-link")?.addEventListener("click", event => { event.preventDefault(); $("main-content").focus({ preventScroll: true }); });
+  controls(); downloads();
+  try { await refresh(); announce(description.enabled !== true ? "本地动作未启用，当前只读取保存记录；需宿主显式启动写模式。" : serverPending() ? "原请求尚待核对，只读状态已载入。" : activeId() ? "已恢复活动项目；所有新行动仍需你明确提交。" : "工作台已就绪，先提出问题并选择数据。", description.enabled !== true); }
+  catch (error) { announce(error instanceof Error ? error.message : "工作台读取失败，可只读刷新。", true); }
+  controls(); downloads();
+}

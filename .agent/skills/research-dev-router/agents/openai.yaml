@@ -1,0 +1,6 @@
+interface:
+  display_name: "Auto Research 开发导航"
+  short_description: "按任务选择前端、后端、接口与研究索引，沿用既定设计并提醒同步正式文档"
+  default_prompt: "使用 $research-dev-router 为本次 Auto Research 开发选择索引、确认复用入口并完成必要的文档同步。"
+policy:
+  allow_implicit_invocation: true
