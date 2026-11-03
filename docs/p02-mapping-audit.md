@@ -13,7 +13,13 @@
 | 第4页Fig.1 | 图例显示ALP为蓝、α-tubulin为黄 | 显示颜色不等于原始采集通道或OrigBlue/OrigRed名称 |
 | 第3页§2.13、第4页原印§4.15、第6页§3.1 | 分别保留各slide基底、对应flat及技术重复/批次聚合、flat TMPMP-co-TEGDA的表述 | 不能因此统一实际工作簿处理；原数值列角色冲突、Count=0/NaN和section权重仍未解决 |
 
-§2.12将骨架/ALP与green/red并列，提供候选解释线索；没有据此裁定完整通道映射。可填写的事实已整理到[部分通道证据CSV](team-submissions/developer/2026-11-03/p02-mapping/channel-antibody.csv)，`author_confirmation`均保持未知，`observed`仅指该行明示的论文事实，不代表整行映射已完成。
+§2.12将骨架/ALP与green/red并列，提供候选解释线索；没有据此裁定完整通道映射。当前克隆不含早期本机导出的部分通道CSV，可直接核对本页上表与论文原文。上述观察只指论文明示的事实，作者对完整映射的确认仍未知。
+
+## A31：新增图像元数据与编码差异
+
+2026-11-04已取得作者 `CTC_Image_Metadata.xlsx`，完整取证与复现见[hiMSC来源核对](himsc-source-audit.md)。`iMSC_B8S1` 保存 `Series/Topo/Chem/Row` 四列、972条记录。原B8S1与元数据按同序核对仅756条Topo/Chem相同，216条为原表Chem0、元数据Chem28；59条三列全零记录中17条处于该差异块。Series连续与键值相同仍不足以连接实际对象导出；全部原值保留，不自行做0→28转换。
+
+新的取证优先项是该版本0/28编码、Series/Row含义和原图/对象CSV到工作簿行的唯一连接。已有论文、保存管线、原表和新增metadata各自保留范围，ALP、单位、零值原因及独立性仍待确认。
 
 ## 与保存管线、工作簿对照
 
