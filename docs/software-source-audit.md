@@ -44,6 +44,16 @@ A40继续使用`project-5fec60e579854cdbb6d3f71abd0d6090`。项目从v15推进�
 
 宿主CLI仍为原2/2次、报告估值0.124035USD，超过0.10USD配置阈值；[A34第二次CLI失败](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a34-two-model-decisions-20261104/README.md)的记录保留。A40未增加模型调用，现金结算与历史费用仍为unknown。
 
+## 当前报告与核对入口
+
+A41已从原软件项目v21导出当前资料，项目状态与宿主模型记录保持不变；当前导出的核心快照与宿主快照均与原项目一致。原A34报告的项目核心快照已过期，宿主记录仍与当前一致，见[导出前状态](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/before.json)。
+
+阅读入口为[当前PDF](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/report.pdf)；逐项核对使用[report.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/report.json)、[input.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/input.json)和[文件身份清单](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/manifest.json)。具体字段路径见[队友核对指南](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/review-guide.md)。
+
+PDF共6页，提供有界节选；12个新增选区完整保存在report.json的source_selections中，连同历史选区共18条。input中的27个附件均与原项目原件逐字节对应，包含A40的6份来源及其中的官方LICENSE；原始字节可沿source_manifest核对。manifest所列四个导出文件的身份均已核对。
+
+分享入口为[v21完整资料包](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/software-review-v21.zip)，包含上述导出文件、清单与核对指南。该资料用于核对软件v21已有证据、源码解释和宿主CLI记录，未增加研究行动或模型调用。
+
 ## Limitations
 
 S01是当时环境的一次受控真实文件检查；A40完成固定源码分析和选区消费，没有重新进行文件实测，也不表示模型已经阅读这些内容。历史二进制与官方提交的对应关系、OS构建、文件系统、各种链接及全部竞态仍未证实；源码与历史观测一致，尚不足以确认S01中差异的实际成因。三个函数的一致性不覆盖整个捕获系统；源码解释和来源读取也不能证明独立用户价值或科研资格。现金结算和历史费用继续为unknown。`runs/`证据位于本机忽略目录，普通源码克隆不包含。
