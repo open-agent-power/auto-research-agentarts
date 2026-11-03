@@ -16,6 +16,7 @@ from .project_controller import ProjectController
 from .project_selection import seal_context
 from .project_selection_view import selection_view, read_selection_request
 from .research_project import ResearchProject, safe_path
+from .host_model_report import host_model_report_current
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
 MAX_REPORT_TOTAL_BYTES = 128 * 1024 * 1024
@@ -95,7 +96,9 @@ def _projection(project, state, report=None):
     if report is not None:
         try:
             manifest = _report_manifest(report)
-            capability["stale"] = manifest["project_snapshot_ref"] != state["snapshot_ref"]
+            capability["stale"] = (manifest["project_id"] != state["id"]
+                                   or manifest["project_snapshot_ref"] != state["snapshot_ref"]
+                                   or not host_model_report_current(project.root, manifest))
             if manifest["project_id"] == state["id"] and not capability["stale"]:
                 for filename in manifest["files"]:
                     _report_bytes(report, manifest, filename)
@@ -123,8 +126,9 @@ def check_project_workbench(*, workspace, bundle=None, report=None):
     project, snapshot, state = _binding(workspace, bundle)
     if report is not None:
         manifest = _report_manifest(report)
-        _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"],
-                 "REPORT_STALE", "Report is not bound to the current project snapshot.")
+        _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"]
+                 and host_model_report_current(project.root, manifest),
+                 "REPORT_STALE", "Report is not bound to the current project and host-model snapshots.")
         for filename in manifest["files"]:
             _report_bytes(report, manifest, filename)
     return {"ok": True, "project_id": state["id"], "run_id": state["run_id"],
@@ -456,7 +460,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     _require(report is not None, "ARTIFACT_NOT_FOUND", "No current report is mounted.")
                     state = _bound_state(project, iteration_snapshot)
                     manifest = _report_manifest(report)
-                    _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"],
+                    _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"]
+                             and host_model_report_current(project.root, manifest),
                              "REPORT_STALE", "The mounted report is not current.")
                     filename = parsed.path.rsplit("/", 1)[-1]
                     mime = "application/pdf" if filename.endswith(".pdf") else "text/markdown; charset=utf-8" if filename.endswith(".md") else "application/json; charset=utf-8"

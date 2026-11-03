@@ -37,7 +37,7 @@ $claudeExe = 'C:/path/to/claude.exe'
 3. 点击“创建项目，不执行方法”。此步只封存输入并建立项目，随后显示真实条件与候选；不会自动执行首个候选。
 4. 选择一个实际候选并写理由，可勾选当前context中的真实来源引用。点击“明确执行所选候选一次”，或明确保存本次等待。每个新决定单独提交；等待只对应本父请求，不代表所有方法耗尽或整个项目暂停。
 5. 核对下方保存的结果、来源与未决问题。新的选择和报告在上方明确提交，阅读结果不会自动继续研究。
-6. 点击“生成当前快照报告”，再下载匹配的PDF/JSON。项目有新行动或新父请求后旧报告stale，需为新快照生成报告；生成报告不继续研究或追加工具分析。
+6. 点击“生成当前快照报告”，再下载匹配的PDF/JSON。项目有新行动、新父请求，或宿主模型记录/原件变化后，旧报告stale，需重新生成；生成报告不继续研究或追加工具分析。
 
 直接填写时默认`missing_tokens=[""]`，`provenance.origin_sha256`为所选CSV**实际原字节SHA**，description明确只是直接捕获本CSV、上游未核验；来源自动给本次上传SHA的URN，仍可由使用者填写真实来源。导入已有spec时保留其missing/provenance声明，表单变更会生成本次spec，原导入文件不被改写。不能把导入声明、公开链接或许可文字当成已核验事实。
 
@@ -53,7 +53,17 @@ $claudeExe = 'C:/path/to/claude.exe'
 
 面板分别显示原生本地模型已用/允许/预留，以及宿主CLI启动尝试、已知报告估值和未知用量。原生计数0不代表没有外部LLM调用；`Claude CLI`也不证明实际路由为Anthropic。子代理导入的内部推理次数、模型与费用仍可未知。原5元现金上限及历史unknown费用继续保留，CLI报告估值不是账单。
 
-每条记录可展开查看完整上下文并下载原请求JSON。原生记录与外部日志分别保存；核心PDF尚未自动纳入外部用量，交付时须附上模型请求/宿主status，不能只用PDF的原生计数描述全部模型使用。
+每条记录可展开查看完整上下文并下载原请求JSON。当前报告包包含宿主模型摘要、原请求及已有原件，PDF和Markdown分别列出原生与外部用量；原生计数仍不表示全部模型使用。完整字段与过期规则见[模型报告包](host-model-selection.md#a28报告包包含宿主模型记录)。
+
+## A28：交付含模型证据的报告
+
+“生成当前快照报告”仍生成PDF、Markdown、报告JSON、重现输入这四个文件及其清单。`report.json.host_models`保存状态摘要和原请求，`input.json.host_models`保存模型证据快照、status与asset_names；已有日志/context/prompt/proposal/delegated或CLI原输出和收据进入Base64 assets，并由source_manifest登记身份。不会读取CLI认证或环境文件。
+
+PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、未知费用和未关联历史外部选择分别列出。已提交控制器不等于工具完成，仍须看每条请求的实际结果；报告不把未知用量计成0，也不把估值写成结算。
+
+清单新增 `host_model_snapshot_sha256`，下载同时检查核心与宿主模型快照。核心版本不变而模型请求状态或原文变化时，旧报告同样过期；重新生成会创建当前报告，不覆盖旧文件。已分发且无host记录、核心也无外部模型选择的旧报告仍可读；存在外部历史却缺该标记的旧报告须重导出。导出不会重发模型或重复研究行动。
+
+2026-11-04已沿本地HTTP接口重导出原A27项目，四个下载身份一致，输入内15份模型原件逐字节核对；[新5页PDF](../runs/a28-model-report-20261104/report/report.pdf)逐页渲染实看无重叠/截断。项目仍v8、快照不变，CLI仍2次/0.048195USD，本轮新增调用和行动0。旧A27报告判stale，新导出current；18791无外部的旧报告仍available。浏览器控制API不可用，此次未验证页面点击；完整核对与范围见[结果](../runs/a28-model-report-20261104/validation.json)及[A28说明](../runs/a28-model-report-20261104/README.md)。
 
 ## 在同一项目登记资料，再明确读取
 
@@ -126,7 +136,7 @@ POST使用同源JSON与`X-AutoResearch-CSRF`，严格字段由宿主校验，不
 
 原ID页面“核对原请求”未新增CLI调用或工具行动，见[重放核对](../runs/a27-workbench-model-20261103/ui-replay-verification.json)。本验证项目为 `project-2880cb8f752844da9d387c91665dd55f`，v8，snapshot为 `764ee199dbf52ad8e1296aa53d74a347d25b4022fa5d1bfb050c8b1df1c54c90`；当前条件见[final-context.json](../runs/a27-workbench-model-20261103/final-context.json)。18792为独立集成验证，主工作台18791沿用原manager及原项目。证据保存在 `runs/a27-workbench-model-20261103/`，不随普通源码克隆分发；数值与报告身份、视觉验收分别由该轮最终证据记录，不由两次模型完成推断科学资格或使用收益。
 
-最终[独立计数、报告与下载核对](../runs/a27-workbench-model-20261103/validation.json)及[桌面/手机视觉检查](../runs/a27-workbench-model-20261103/ui-checks.json)均已完成。完整入口见[A27结果](../runs/a27-workbench-model-20261103/README.md)。原钢材仍使用旧版执行内核，界面显示CODE_CHANGED的明确处理要求，没有自动升级或增加额度。
+最终[独立计数、报告与下载核对](../runs/a27-workbench-model-20261103/validation.json)及[桌面/手机视觉检查](../runs/a27-workbench-model-20261103/ui-checks.json)均已完成。完整入口见[A27结果](../runs/a27-workbench-model-20261103/README.md)。A27按当时格式交付的核心报告未合并外部用量，需配套host日志；原件和当时口径保留，当前新导出采用上面的A28格式。原钢材仍使用旧版执行内核，界面显示CODE_CHANGED的明确处理要求，没有自动升级或增加额度。
 
 ## A19 同一项目的原件与来源接续
 

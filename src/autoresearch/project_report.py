@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from . import paper_export, project_workbench, project_selection_view, snapshot_viewer
+from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
 
@@ -184,19 +184,29 @@ def collect_report(workspace) -> dict:
                 source_manifest.append({"name": name, "role": "captured_original", **_digest(original), "read_status": read_status,
                                         "url": source["url"], "license_note": source["license_note"]})
     selection_history = project_selection_view.selection_view(before)
+    host_models = host_model_report.capture_host_models(project.root)
+    for asset in host_models["assets"]:
+        assets[asset["name"]] = {key: value for key, value in asset.items() if key != "role"}
+        source_manifest.append({key: value for key, value in asset.items() if key != "bytes_base64"})
     after = project.status()
     _require(after["snapshot_ref"] == before["snapshot_ref"], "PROJECT_CHANGED", "Project changed while collecting this report.")
+    _require(host_model_report.host_model_snapshot_sha256(project.root) == host_models["snapshot_sha256"],
+             "PROJECT_CHANGED", "Host model evidence changed while collecting this report.")
     kind = KINDS[method_id]
     report = {"schema_version": "research-project-report-v1", "kind": kind, "title": TITLES[kind],
               "project_id": before["id"], "project_snapshot_ref": before["snapshot_ref"], "project": before,
               "action_results": results, "summary": _summary(kind, before, results),
               "source_selections": source_selections, "source_manifest": source_manifest, "registered_inputs": receipt_states,
               "selection_history": selection_history,
+              "host_models": {key: value for key, value in host_models.items() if key != "assets"},
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
-                        "receipt_states": receipt_states, "assets": list(assets.values())},
+                        "receipt_states": receipt_states, "assets": list(assets.values()),
+                        "host_models": {"snapshot_sha256": host_models["snapshot_sha256"], "status": host_models["status"],
+                                        "asset_names": [asset["name"] for asset in host_models["assets"]]}},
               "exporter_code_identity": hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
-                                                       + Path(project_selection_view.__file__).read_bytes()).hexdigest(),
+                                                       + Path(project_selection_view.__file__).read_bytes()
+                                                       + Path(host_model_report.__file__).read_bytes()).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
     report["snapshot_sha256"] = fingerprint(report)
@@ -224,8 +234,9 @@ def _source_notes(report):
 
 def _budget_rows(report):
     budget = report["project"].get("budget", {})
-    labels = [("lineage_ref", "原预算谱系"), ("new_model_requests", "新增模型请求"),
-              ("model_requests_reserved", "模型请求预留"), ("new_fits", "新增拟合"),
+    labels = [("lineage_ref", "原预算谱系"), ("new_model_requests", "原生本地模型请求已用"),
+              ("model_requests_allowed", "原生本地模型请求上限"),
+              ("model_requests_reserved", "原生本地模型请求预留"), ("new_fits", "新增拟合"),
               ("local_tool_call_limit", "本地工具上限"),
               ("local_tool_calls_used", "本地工具已用"), ("local_tool_calls_reserved", "本地工具预留"),
               ("evidence_reads_used", "来源读取已用"), ("evidence_reads_reserved", "来源读取预留"),
@@ -234,6 +245,37 @@ def _budget_rows(report):
               ("historical_spend_cny", "历史现金支出"), ("cash_settlement", "现金结算"),
               ("historical_unknowns_resolved", "历史未知是否解决"), ("existing_cash_cap_cny", "既有现金上限/元")]
     return [[label, "未知" if budget.get(key) is None else str(budget[key])] for key, label in labels]
+
+
+def _host_model_rows(report):
+    status = report["host_models"]["status"]
+    usage, grant = status["usage"], status.get("grant") or {}
+    return [["宿主决策名额已用 / 原上限", f"{usage['decision_slots_used']} / {grant.get('decision_limit', '未设置')}"],
+            ["Claude CLI启动尝试", str(usage["cli_launch_attempts"])],
+            ["CLI已知报告估值 / USD", str(usage["known_cli_reported_cost_usd"])],
+            ["CLI累计报告估值上限 / USD", str(grant.get("cli_budget_usd", "未设置"))],
+            ["另有CLI费用未知", "是" if usage["cli_cost_unknown"] else "否"],
+            ["子代理回答导入", str(usage["delegated_outputs_received"])],
+            ["子代理内部推理次数 / 费用", "未知"],
+            ["未关联宿主日志的其他外部选择", str(usage["unlinked_external_selection_count"])],
+            ["其他外部历史用量", "未知，不计为零" if usage["prior_external_usage"] == "unknown_not_zero" else "未建立完整历史用量"],
+            ["现金结算", "未知" if usage["cash_settlement"] == "unknown" else str(usage["cash_settlement"])]]
+
+
+def _host_request_rows(report):
+    rows = []
+    for record in report["host_models"]["records"]:
+        route = ", ".join(record.get("reported_models", [])) or "未报告"
+        outcome = (record.get("outcome") or {}).get("status", "尚未提交")
+        cost = record.get("reported_cost_usd")
+        rows.append([record["request_id"] + " / " + route, record["status"] + " / " + outcome,
+                     "未知" if cost is None else str(cost)])
+    return rows
+
+
+HOST_MODEL_NOTE = ("原生本地模型计数不包含宿主CLI或子代理。CLI次数为宿主启动尝试，路由和USD估值来自CLI自报，不是账单或总推理次数；"
+                   "未知不计为零。请求applied只表示已提交控制器，实际行动结果另列；科学资格未获批准。"
+                   "input.json的host_models与assets保留原日志、回答及已有传输收据，缺失或未知不补造成功，也不自动重发。")
 
 
 def _selection_records(report):
@@ -377,7 +419,7 @@ def _markdown(report):
         lines.append(f"已登记未读收据：{unread}份。仅保存原件、坐标及任务身份；没有执行选区提取或FTS建索引。")
     records = _selection_records(report)
     if records:
-        lines.extend(["", "## 已保存的外部选择", "", "以下为最近3条以内的父请求记录。来源身份/模型执行未核验；等待只约束该父请求，项目状态仍为 "
+        lines.extend(["", "## 已保存的外部选择", "", "以下为最近3条以内的父请求记录。提案提供方为声明，宿主派发证据见下方模型记录；等待只约束该父请求，项目状态仍为 "
                       + _selection_status(state["research_status"]) + "，不表示全局暂停、方法耗尽或科学完成。", ""])
         for record in records[:3]:
             choice = "本父等待" if record["decision_kind"] == "external_wait" else _selection_action(record["method_id"], record["parameters"])
@@ -393,6 +435,10 @@ def _markdown(report):
     next_label = "固定建议（工具反馈，仍是待办，不代表执行）：" if records else "下一决定（仍是待办，不代表执行）："
     lines.extend(["", next_label, "", "```json", json.dumps(next_action, ensure_ascii=False, indent=2), "```",
                   "", "## 预算、恢复与复现边界", "", _markdown_table(["项目", "保存状态"], _budget_rows(report)), ""])
+    lines.extend(["## 宿主模型用量与原请求", "", _markdown_table(["记录项", "保存值"], _host_model_rows(report)), "",
+                  _markdown_table(["请求 / CLI自报路由", "请求状态 / 实际控制器结果", "报告估值USD"], _host_request_rows(report))
+                  if report["host_models"]["records"] else "尚无宿主模型请求；其他外部选择的未知用量按上表单列。", "", HOST_MODEL_NOTE,
+                  "", "宿主模型证据快照：`" + report["host_models"]["snapshot_sha256"] + "`。", ""])
     incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
     lines.append(_markdown_table(["行动", "状态", "真实失败/未知"], [[entry["action_id"], entry["status"], canonical(entry["failure"])] for entry in incomplete]) if incomplete else "保存的行动均完成；这不等于研究问题解决或科学批准。")
     lines.extend(["", "恢复只使用原request_id和完整保存工件；unknown不自动重发，预算不通过新目录重置。数值复算、来源抽取和故障注入均按原范围解释。",
@@ -481,7 +527,7 @@ def _pdf(report):
     records = _selection_records(report)
     if records:
         h("最近外部选择（已保存父请求）")
-        story.append(p("仅展示最近2条；来源身份及模型执行未核验。等待只使本父请求无子行动，项目状态仍为 "
+        story.append(p("仅展示最近2条；提案提供方为声明，宿主派发证据另见模型记录。等待只使本父请求无子行动，项目状态仍为 "
                        + _selection_status(state["research_status"]) + "；其余记录和完整上下文见JSON。", small, 220))
         for record in records[:2]:
             choice = "本父等待" if record["decision_kind"] == "external_wait" else _selection_action(record["method_id"], record["parameters"])
@@ -525,9 +571,18 @@ def _pdf(report):
     h("五、预算、恢复与复现边界")
     table(["预算或状态", "保存值"], _budget_rows(report), [.44, .56])
     story.append(p("unknown不会自动重发；已保存完整结果只按原请求身份恢复，不重跑工具。历史现金/请求未知保持未知，研究等待不等于预算清零。", small))
+    h("宿主模型用量与原请求")
+    table(["记录项", "保存值"], _host_model_rows(report), [.44, .56])
+    host_rows = _host_request_rows(report)
+    if host_rows:
+        table(["请求 / CLI自报路由", "请求 / 控制器结果", "报告估值USD"], host_rows, [.51, .29, .20])
+    else:
+        story.append(p("尚无宿主模型请求；其他外部选择的未知用量按上表单列。", small))
+    story.append(p(HOST_MODEL_NOTE, small))
     h("代码与输入身份")
     for label, value in [("项目", report["project_id"]), ("项目快照", report["project_snapshot_ref"]),
                          ("核心代码", state["code_identity"]), ("导出器代码", report["exporter_code_identity"]),
+                         ("宿主模型证据快照", report["host_models"]["snapshot_sha256"]),
                          ("主输入字节SHA", report["input"]["source_file_identity"]["sha256"])]:
         story.append(p(label + "：" + value, small, 160))
     h("复现与继续")
@@ -558,7 +613,11 @@ def export_report(*, workspace, output) -> dict:
     report = collect_report(workspace)
     payloads = {"report.json": canonical(report).encode("utf-8"), "report.md": _markdown(report).encode("utf-8"),
                 "report.pdf": _pdf(report), "input.json": canonical(report["input"]).encode("utf-8")}
+    _require(ResearchProject(project_root).status()["snapshot_ref"] == report["project_snapshot_ref"]
+             and host_model_report.host_model_snapshot_sha256(project_root) == report["host_models"]["snapshot_sha256"],
+             "PROJECT_CHANGED", "Project or host model evidence changed before report publication.")
     manifest = {"schema_version": "project-report-export-v1", "project_id": report["project_id"],
+                "host_model_snapshot_sha256": report["host_models"]["snapshot_sha256"],
                 "project_snapshot_ref": report["project_snapshot_ref"], "files": {name: _digest(raw) for name, raw in payloads.items()},
                 "source_manifest": report["source_manifest"], "scientific_validation": False}
     target.mkdir(parents=True, exist_ok=False)

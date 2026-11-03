@@ -13,6 +13,7 @@ from . import source_evidence_adapter as reader, tabular_quality_adapter as tabu
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .project_controller import ProjectController
 from .host_model_selection import HostModelSelection
+from .host_model_report import host_model_report_current
 from .research_project import ResearchProject, safe_path, write_bytes_once
 
 MAX_PROJECTS = 32
@@ -686,6 +687,9 @@ class LocalWorkbench:
                 _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"],
                          "STALE_STATE", "Project changed while exporting; the output was retained.")
                 self._verify_report(digest, manifest)
+                _require(project.status()["snapshot_ref"] == state["snapshot_ref"]
+                         and host_model_report_current(project.root, manifest),
+                         "STALE_STATE", "Project or host-model requests changed before report publication; output was retained.")
                 response = self._response("export", body["request_id"], state["id"], status="exported", manifest=manifest)
                 record.update(status="completed", result=response)
                 with self._connect() as con:

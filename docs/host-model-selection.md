@@ -131,7 +131,25 @@ CLI 分支使用 transport 文件，导入分支使用 delegated.bin；proposal.
 - `unlinked_external_selection_count` 与 `prior_external_usage`：原控制器中尚未由本 journal 覆盖的外部选择；存在时旧用量为 `unknown_not_zero`。
 - `native_local_model_budget`：原生模型账本的允许、已用和预留次数，以及原现金上限；它不包含外部 CLI 或子代理用量。
 
-导出核心报告时，应同时保存本入口 status JSON。现有核心 PDF 的模型数字只来自其原生账本，尚未自动合并 host journal。
+当前报告导出会一并冻结host日志和已有原件；PDF及Markdown分别列出原生计数、CLI启动尝试、已知报告估值与未知用量。单独读取status仍可用于核对运行中的状态，交付不再依赖另外拼接该JSON。
+
+## A28：报告包包含宿主模型记录
+
+原四文件报告包保留不变，模型记录进入其中：
+
+| 文件 | 宿主模型内容 |
+|---|---|
+| `report.json` | `host_models`中的状态摘要、原请求记录与证据快照 |
+| `input.json` | `host_models.snapshot_sha256/status/asset_names`；`assets`以Base64保留实际已存在的日志、context、prompt、proposal、delegated原文及CLI launch/stdout/stderr/exit |
+| `report.pdf` / `report.md` | 原生模型与外部CLI用量分别展示；已知USD估值、未知费用及未关联的历史外部选择单列，保留每条请求和控制器结果的区别 |
+
+`source_manifest`列出这些原件的身份；不读取CLI认证或环境文件。`manifest.json`仍只登记上述四个交付文件，新增 `host_model_snapshot_sha256` 绑定宿主模型证据。导出只读取和保存，不调用模型或继续研究。
+
+报告同时核对核心项目快照和宿主模型快照。即使核心版本未变化，准备了新模型请求、更新了原请求状态或已有原文改变，旧报告也会过期并拒绝下载；需重新导出当前报告，不覆盖旧原件。已分发的旧包若既无host记录、核心也无 `external_model` 选择，仍可读取；已有外部历史却缺少host快照标记的旧包须重新导出，不能继续把其原生模型数字当全部用量。
+
+`applied`只说明已提交控制器，工具是否完成仍看 `outcome.status`。CLI费用是报告估值，子代理内部推理及未关联历史仍可未知，报告包不会把它们补成0或已结算。
+
+2026-11-04已对原A27项目重导出：核心仍为v8、`764ee199…`快照，CLI仍2次/报告估值0.048195USD，本轮新增模型调用及行动均为0。重现输入内15份模型原件逐字节核对，四个HTTP下载与当前挂载文件一致；新PDF五页逐页渲染实看，无重叠或截断，保留原分节分页。旧A27报告先判stale，新导出为current；18791无外部历史的旧报告仍available。2项证据与2项HTTP必要检查通过。此次实际导出和下载通过同组本地HTTP接口完成，浏览器控制API不可用，未验证浏览器点击。见[核对结果](../runs/a28-model-report-20261104/validation.json)、[本轮说明](../runs/a28-model-report-20261104/README.md)及[新PDF](../runs/a28-model-report-20261104/report/report.pdf)；此证据覆盖报告与原件交付，不代表科研价值已验证。
 
 ## 正式入口实跑
 
@@ -155,14 +173,16 @@ CLI 分支使用 transport 文件，导入分支使用 delegated.bin；proposal.
 
 本次首个正式命令在模型派发前因 journal 目录尚未创建返回 `PROJECT_NOT_FOUND`；原失败输出保存在 `pre-dispatch-failure-*`。修复目录创建后沿原参数完成首次实际调用，没有重发已启动的模型请求。
 
+A26按当时格式分别交付核心报告与host-status，原生计数未包含外部CLI；上述旧报告和原件保留。当前导出采用A28的模型证据快照，不回写该历史工件。
+
 ## 工作台入口
 
 同一请求日志已接入本地工作台的“研究推进 → 开展下一步 → 模型选择与执行”。服务须同时显式传入 `--enable-local-actions` 和 `--claude-executable`，模型默认关闭；路径由宿主启动指定，浏览器不能改命令、可执行文件或提供方。启动示例、原请求核对及两次真实反馈接续见[工作台用法](local-workbench.md#用模型选择并执行一步)。
 
-页面每次明确点击最多完成一次CLI选择与一个合法行动，首次提交固定累计grant；无候选或条件阻断时不发送。刷新和重开只读原日志，“核对原请求”沿原ID恢复，unknown不重发。模型可能沿CLI现有路由联网；原生Qwen计数与宿主外部用量分别显示。核心PDF仍需配套宿主status或模型记录读取外部用量。
+页面每次明确点击最多完成一次CLI选择与一个合法行动，首次提交固定累计grant；无候选或条件阻断时不发送。刷新和重开只读原日志，“核对原请求”沿原ID恢复，unknown不重发。模型可能沿CLI现有路由联网；原生Qwen计数与宿主外部用量分别显示，当前报告包也保留这一区分及原请求证据。
 
-2026-11-03的独立18792验证工作台已用浏览器上传归档hiMSC输入，明确运行两次模型选择并完成主质量/分组画像，CLI路由均报告deepseek-flash，累计估值0.048195USD；原ID页面核对新增CLI和行动均为0。该轮证据在 `runs/a27-workbench-model-20261103/`，数值、报告身份与视觉验收以该轮最终记录为准。
+2026-11-03的独立18792验证工作台已用浏览器上传归档hiMSC输入，明确运行两次模型选择并完成主质量/分组画像，CLI路由均报告deepseek-flash，累计估值0.048195USD；原ID页面核对新增CLI和行动均为0。该轮证据在 `runs/a27-workbench-model-20261103/`，数值、报告身份与视觉验收以该轮最终记录为准；A27当时的核心报告仍需配套host日志读取外部用量，原工件不改写。
 
 ## Limitations
 
-CLI及工作台入口支持显式有界选择与既有行动链路；模型解释、来源声明、工具完成仍需按领域证据核对，`scientific_validation` 保持 false。CLI 报告的 token、模型标签和 USD 估值不是服务商账单或现金结算，旧历史费用仍可为 unknown；核心PDF尚未自动合并host日志。`runs/` 证据在本机忽略目录，普通源码克隆不包含；共享前应按资料许可提供获准分发的证据，不包含认证或会话文件。
+CLI及工作台入口支持显式有界选择与既有行动链路；模型解释、来源声明、工具完成仍需按领域证据核对，`scientific_validation` 保持 false。CLI 报告的 token、模型标签和 USD 估值不是服务商账单或现金结算，旧历史费用仍可为 unknown。`runs/` 证据在本机忽略目录，普通源码克隆不包含；共享前应按资料许可提供获准分发的证据，不包含认证或会话文件。
