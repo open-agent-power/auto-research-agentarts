@@ -25,6 +25,7 @@
 
 ## 原生模型与命令行
 
+- [run_project_model.py](../../scripts/run_project_model.py) 的 `check-protocol --process-evidence <saved-process-directory>`只读核对原wire请求、response metadata/receipt/raw与native-show，检查SHA绑定并诊断工具/思考能力及原响应；不启动进程、调用chat、读取权重或改预算。实际request在show后、worker启动前预检tools及`thinking.values`；要求`think:false`却只支持`[true]`时拒绝`MODEL_PROTOCOL_INCOMPATIBLE`，可核实未派发时保留原prepared预留、不自动重发。旧A22响应仍invalid、累计1/1已用，诊断不恢复额度；`oneOf/const`丢失尚未证实，本轮不改builder。命令、证据与现金/AgentArts边界见[本地模型桥](../../docs/project-model.md)。
 - [run_research_project.py](../../scripts/run_research_project.py) 提供 `create/status/step/resume`，JSON输出，失败退出码2；`--source`只由宿主创建时登记，`--method`从三类允许主方法中选择。`step`返回行动、观察和工件引用，完整结果在`envelope.tool_result.result`；`resume`只核对或提交已保存结果。见[本地项目说明](../../docs/project-slice.md)，不调用原生模型。
 - 同一 CLI 的 `upgrade/evidence-task/attach-evidence/methods/knowledge` 接续旧项目；升级显式绑定旧代码身份，来源读取绑定任务及原字节，knowledge 只查已抽取内容的冻结 FTS。没有新增模型、付费或科学批准接口。
 - `next --workspace ... [--need next_check]`只读返回真实条件/决定、`executable/blockers`；`advance --workspace ... --request-id ... [--expected-state-version ...]`通过[ProjectController](../../src/autoresearch/project_controller.py)冻结父请求后至多执行一个主方法或已登记未读来源。父ID及参数重放返回原选择/原子请求，即使原结果为waiting也不自动推进下一行动；改变参数冲突，后续推进使用新父ID。

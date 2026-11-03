@@ -1,4 +1,4 @@
-"""One native-output boundary check; no model, transport or research execution."""
+"""Native declaration and output boundaries; no model, transport or research execution."""
 import copy
 import hashlib
 import unittest
@@ -10,6 +10,41 @@ from autoresearch.local_ollama import PUBLISHER_MANIFEST_SHA256
 
 
 class ProjectModelProtocolTests(unittest.TestCase):
+    def test_thinking_only_native_profile_rejects_false_without_claiming_output(self):
+        shown = {"capabilities": ["completion", "tools", "thinking"], "thinking": {"values": [True]},
+                 "template": "{{ .Tools }} {{ .ToolCalls }} <tool_call> <think>"}
+        original = copy.deepcopy(shown)
+        self.assertEqual(protocol.native_protocol_support(shown), {
+            "status": "incompatible", "reason_codes": ["THINK_SETTING_UNSUPPORTED"],
+            "requested_think": False, "declared_thinking_values": [True],
+            "native_tools_declared": True, "thinking_setting_supported": False,
+            "tool_template_observed": True, "rendered_prompt_verified": False,
+            "native_tool_output_verified": False})
+        self.assertEqual(shown, original)
+
+    def test_false_support_requires_native_declarations_and_preserves_not_applicable(self):
+        shown = {"capabilities": ["completion", "tools", "thinking"], "thinking": {"values": [True, False]}}
+        result = protocol.native_protocol_support(shown)
+        self.assertEqual((result["status"], result["reason_codes"], result["thinking_setting_supported"]),
+                         ("compatible", [], True))
+        self.assertFalse(result["tool_template_observed"])
+        self.assertFalse(result["rendered_prompt_verified"])
+        self.assertFalse(result["native_tool_output_verified"])
+        result["declared_thinking_values"].clear()
+        self.assertEqual(shown["thinking"]["values"], [True, False])
+        cases = [({}, "NATIVE_CAPABILITIES_UNVERIFIED"),
+                 ({"capabilities": ["thinking"], "thinking": {"values": [False]}}, "NATIVE_TOOLS_NOT_DECLARED"),
+                 ({"capabilities": ["tools", "thinking"]}, "THINKING_VALUES_UNVERIFIED"),
+                 ({"capabilities": ["tools", "thinking"], "thinking": {"values": [0]}}, "THINKING_VALUES_UNVERIFIED")]
+        for value, reason in cases:
+            with self.subTest(value=value):
+                result = protocol.native_protocol_support(value)
+                self.assertEqual(result["status"], "incompatible")
+                self.assertIn(reason, result["reason_codes"])
+        result = protocol.native_protocol_support({"capabilities": ["completion", "tools"]})
+        self.assertEqual((result["status"], result["thinking_setting_supported"], result["reason_codes"]),
+                         ("compatible", None, ["THINK_SETTING_NOT_APPLICABLE"]))
+
     def test_host_binding_and_native_only_output_reject_authority_injection(self):
         context = fixtures.ProjectSelectionTests.context(self)
         identity = {"schema_version": "project-local-model-identity-v1", "transport": "owned-local-ollama",
