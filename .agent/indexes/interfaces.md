@@ -43,4 +43,6 @@
 
 [run_research_project.py](../../scripts/run_research_project.py)新增`selection-context --workspace [--need]`只读真实候选/条件/预算/原文，并封印snapshot/core/controller身份；`advance-selection --workspace --request-id --proposal <file> [--need] [--expected-state-version]`安全读取64KiB严格JSON提案。提案只能选择context.candidates[].id或wait，不接参数/命令/批准字段；完整context/proposal保存在原controller父请求，相同ID与原expected版本恢复同一child。provider是未核验声明，不会据此发送模型或证明模型已读。等待只约束此父请求，未读候选仍保留。完整协议/实跑边界见[选择提案](../../docs/project-selection.md)。
 
+- [compile_research_recipe.py](../../scripts/compile_research_recipe.py) 的 `--recipe/--context/--output` 仅将严格 `research-recipe-v1` 和原封印 context 编译为新目录中的 `decision.json/proposal.json`；原 `validate_proposal` 校验输入与输出，不执行工具。方法/评价精确匹配，宿主内候选顺序保留，参数由宿主绑定；blockers、范围/need 不符或无匹配时 wait。已有输出目录拒绝。规则、字符串评价引用边界及实际实验见[配方说明](../../docs/recipe-research/README.md)和[实验记录](../../docs/recipe-research/experiment.md)。
+
 - A16 `prepare-source --method data.tabular-quality-audit --input <directory>`捕获spec+CSV原字节，再走原create/selection/advance/report；[字段与限制](../../docs/tabular-quality.md)。数据独立页18790沿同一只读GET，无新增写入HTTP。

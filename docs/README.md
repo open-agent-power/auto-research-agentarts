@@ -5,6 +5,7 @@
 - [系统架构](architecture.md)与[开发地图](development.md)
 - [项目使用说明](project-slice.md)与[本地工作台](local-workbench.md)
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
+- [科研配方与证据缺口](recipe-research/README.md)及[隔离实验与真实案例记录](recipe-research/experiment.md)
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
 - [开发者导航](../.agent/README.md)
 
