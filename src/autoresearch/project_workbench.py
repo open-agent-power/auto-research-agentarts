@@ -254,10 +254,15 @@ def _evidence_task_view(project, before):
 
 
 def create_project_server(*, workspace=None, bundle=None, report=None, port=18785,
-                          local_workspace=None, allow_local_actions=False):
+                          local_workspace=None, allow_local_actions=False, claude_executable=None):
     _require(type(port) is int and 0 <= port <= 65535, "INVALID_PORT", "Use a local port from 0 to 65535.")
     _require(type(allow_local_actions) is bool and (not allow_local_actions or local_workspace is not None),
              "INVALID_REQUEST", "Local actions require an explicit local workspace.")
+    _require(claude_executable is None or (allow_local_actions and local_workspace is not None
+             and isinstance(claude_executable, (str, Path)) and Path(claude_executable).is_file()),
+             "INVALID_REQUEST", "A host-selected existing Claude executable requires enabled local actions.")
+    if claude_executable is not None:
+        claude_executable = str(Path(claude_executable).absolute())
     if local_workspace is None:
         project, iteration_snapshot, state = _binding(workspace, bundle)
         if report is not None:
@@ -308,7 +313,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 commands = {"/api/local-workbench/create": "create", "/api/local-workbench/select": "select",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
-                            "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch"}
+                            "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
+                            "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume"}
                 _require(not parsed.scheme and not parsed.netloc and not parsed.query and not parsed.fragment
                          and parsed.path in commands, "INVALID_REQUEST", "Select a supported local command route.")
                 _require(self.headers.get_all("Transfer-Encoding", []) == []
@@ -326,14 +332,21 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 raw = self.rfile.read(length)
                 _require(len(raw) == length, "INVALID_REQUEST", "The complete request body was not received.")
                 body = _local_body(raw)
-                result = getattr(local_workspace, commands[parsed.path])(body)
+                command = commands[parsed.path]
+                if command in ("model_advance", "model_resume"):
+                    _require(claude_executable is not None, "MODEL_DISABLED", "Host model selection was not enabled.")
+                    result = getattr(local_workspace, command)(body, executable=claude_executable)
+                else:
+                    result = getattr(local_workspace, command)(body)
                 return self.send_json(200, result)
             except ResearchError as error:
                 self.close_connection = True
-                status = (403 if error.code == "LOCAL_ORIGIN_REQUIRED" else 413 if error.code in {"INPUT_TOO_LARGE", "SOURCE_TOO_LARGE"}
+                status = (405 if error.code == "MODEL_DISABLED" else 403 if error.code == "LOCAL_ORIGIN_REQUIRED" else 413 if error.code in {"INPUT_TOO_LARGE", "SOURCE_TOO_LARGE"}
                           else 409 if error.code in {"STALE_STATE", "STALE_SELECTION_CONTEXT", "STALE_ACTIVE_PROJECT", "PROJECT_BUSY",
                               "EXECUTION_UNKNOWN", "BUDGET_EXHAUSTED", "CODE_CHANGED", "CONFIG_CHANGED", "IDEMPOTENCY_CONFLICT",
-                              "CONDITION_NOT_SATISFIED", "INTAKE_INCOMPLETE", "REPORT_INCOMPLETE", "OPERATION_INCOMPLETE", "PROJECT_LIMIT"} else 400)
+                              "CONDITION_NOT_SATISFIED", "INTAKE_INCOMPLETE", "REPORT_INCOMPLETE", "OPERATION_INCOMPLETE", "PROJECT_LIMIT",
+                              "HOST_GRANT_CHANGED", "HOST_DECISION_LIMIT", "HOST_SELECTION_PENDING", "HOST_USAGE_UNKNOWN",
+                              "HOST_CLI_BUDGET_EXHAUSTED", "NO_HOST_CANDIDATES"} else 400)
                 return self.project_error(status, error.code, "Local command rejected; saved inputs and execution history were preserved.")
             except (TimeoutError, ConnectionError):
                 self.close_connection = True
@@ -363,6 +376,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 if parsed.path == "/api/local-workbench" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Workspace metadata does not accept a query.")
                     return self.send_json(200, {**local_workspace.describe(), "enabled": allow_local_actions, "csrf_token": csrf_token})
+                if parsed.path == "/api/local-workbench/model" and local_workspace is not None:
+                    _require(not parsed.query, "INVALID_QUERY", "Model journal does not accept a query.")
+                    return self.send_json(200, local_workspace.model_view(enabled=claude_executable is not None))
                 if parsed.path.startswith("/api/local-workbench/batch/") and local_workspace is not None:
                     _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved batch JSON identifier.")
                     encoded = parsed.path.removeprefix("/api/local-workbench/batch/")[:-5]

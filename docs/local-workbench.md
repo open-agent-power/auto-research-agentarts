@@ -14,12 +14,21 @@ Set-Location 'D:/XiangMuLuoDi/Development/ICT/track2/auto-research'
 | 页面 | 入口与操作 |
 |---|---|
 | 项目总览 | 查看课题、下一任务及资源；展开“切换项目或创建课题”录入CSV或切换已保存项目 |
-| 研究推进 | 默认查看真实问题、来源、行动、反馈与待办画布；展开“开展下一步”使用单步、资料登记和有界批次 |
+| 研究推进 | 默认查看真实问题、来源、行动、反馈与待办画布；展开“开展下一步”使用单步、模型选择、资料登记和有界批次 |
 | 实验中心 | 阅读当前项目实际方法结果、失败和反馈，下载对应完整行动记录 |
 | 知识空间 | 查看已登记原件、实际提取的原文与坐标，检索已读取来源 |
 | 成果与复现 | 阅读当前快照报告摘要，取得匹配的PDF/JSON及原记录/输入 |
 
 切页保留本页内存中的输入、操作草稿与原请求状态；不执行方法，不重新请求模型，也不增加额度。画布实线仅对应原记录引用或前序绑定，虚线只表示项目包含记录；移动节点和保存浏览器布局不改研究账本。
+
+模型调用默认关闭。需要使用已获授权的本机Claude CLI时，在启动命令中同时加上原生可执行文件路径：
+
+```powershell
+$claudeExe = 'C:/path/to/claude.exe'
+.venv/Scripts/python.exe scripts/serve_local_workbench.py --root runs/my-local-workbench --enable-local-actions --claude-executable $claudeExe --port 18791
+```
+
+路径换成自己已经安装的原生 `claude.exe`，不要传Volta的 `.cmd` 启动包装；浏览器不能指定可执行文件、命令或提供方。CLI使用本机已有认证和路由配置，可能联网，并依其配置产生费用。省略 `--claude-executable` 时仍可创建项目、明确选择本地方法及阅读已有模型记录，但不能从页面调用模型。已有工作台继续使用原root，保留项目与累计记录；换目录不重置旧模型或历史现金边界。
 
 ## 从问题推进一次
 
@@ -31,6 +40,20 @@ Set-Location 'D:/XiangMuLuoDi/Development/ICT/track2/auto-research'
 6. 点击“生成当前快照报告”，再下载匹配的PDF/JSON。项目有新行动或新父请求后旧报告stale，需为新快照生成报告；生成报告不继续研究或追加工具分析。
 
 直接填写时默认`missing_tokens=[""]`，`provenance.origin_sha256`为所选CSV**实际原字节SHA**，description明确只是直接捕获本CSV、上游未核验；来源自动给本次上传SHA的URN，仍可由使用者填写真实来源。导入已有spec时保留其missing/provenance声明，表单变更会生成本次spec，原导入文件不被改写。不能把导入声明、公开链接或许可文字当成已核验事实。
+
+## 用模型选择并执行一步
+
+在“研究推进”展开“开展下一步”，找到“模型选择与执行”。这条入口复用[正式宿主模型请求](host-model-selection.md)，模型只能选当前合法候选或等待，不能写工具参数、扩大额度或批准科学结论。
+
+1. 先查看当前候选及条件。没有候选、已有阻塞或原请求未收口时不能新发模型调用；没有合资格行动就先补证据，不花一次模型调用重复等候。
+2. 首次填写累计决策限额、累计CLI报告估值上限及允许推进的范围。限额为1至8次，估值上限为正数且至多0.10USD；每次准备请求即占一次名额，首次保存后限额与理由固定，后续沿用，不能换ID扩额。
+3. 点击“用模型选择并执行一步”。宿主先冻结真实context，再调用一次既有CLI并保存原始回答；回答合法才交给原控制器，最多执行一个行动。每次下一决定仍要明确点击，不后台循环。
+4. 核对保存记录中的模型解释、实际路由、控制器结果及错误。`applied`表示已提交控制器，是否完成以`outcome.status`为准；解释不是实验结果。
+5. 需要恢复或核对时，点击该记录的“核对原请求”。此操作使用原ID和原上下文，已完成行动直接返回原记录；unknown不重新发送模型。刷新、换页或重开只读取已保存状态，不创建新请求。
+
+面板分别显示原生本地模型已用/允许/预留，以及宿主CLI启动尝试、已知报告估值和未知用量。原生计数0不代表没有外部LLM调用；`Claude CLI`也不证明实际路由为Anthropic。子代理导入的内部推理次数、模型与费用仍可未知。原5元现金上限及历史unknown费用继续保留，CLI报告估值不是账单。
+
+每条记录可展开查看完整上下文并下载原请求JSON。原生记录与外部日志分别保存；核心PDF尚未自动纳入外部用量，交付时须附上模型请求/宿主status，不能只用PDF的原生计数描述全部模型使用。
 
 ## 在同一项目登记资料，再明确读取
 
@@ -85,6 +108,9 @@ Set-Location 'D:/XiangMuLuoDi/Development/ICT/track2/auto-research'
 | POST `/api/local-workbench/advance` | 当前project/version及绑定真实context的受限proposal；只选候选id或等待 |
 | POST `/api/local-workbench/evidence` | 当前project/version/task_ref、未核验contributor、原文件Base64、明确选区及remaining_questions；只登记 |
 | POST `/api/local-workbench/batch` | 明确冻结方法、确切来源收据、行动数与理由；受原条件、预算和恢复门禁约束 |
+| GET `/api/local-workbench/model` | 只读当前项目模型启用状态、宿主用量及原请求记录；不派发或恢复 |
+| POST `/api/local-workbench/model-advance` | 当前project/version、累计决策/CLI估值限额及理由；沿启动时固定的CLI选择并至多执行一步 |
+| POST `/api/local-workbench/model-resume` | 仅原request_id/project_id，核对保存的原请求；不创建替代请求、不重发unknown |
 | POST `/api/local-workbench/report` | 为当前project/version显式生成报告 |
 | GET `/api/local-workbench/batch/<request_id>.json` | 原批次保存记录，含授权、逐步父/子身份和停止信息；只读下载 |
 | GET `/api/project/evidence-task.json` | 当前实际取证任务；无任务时返回`TASK_NOT_AVAILABLE` |
@@ -92,7 +118,15 @@ Set-Location 'D:/XiangMuLuoDi/Development/ICT/track2/auto-research'
 | GET `/api/project/evidence-source/<sha>/<sourceid>` | 下载该回执中的已捕获原件；不接收宿主路径 |
 | GET `/api/project`及既有artifact/report/context routes | 读取活动项目的保存事实，不执行研究 |
 
-POST使用同源JSON与`X-AutoResearch-CSRF`，严格字段由宿主校验，不把任意JSON扩成工具调用；资料登记请求上限90MiB，其余命令保持12MiB。候选的method/parameters/evaluation完全由宿主提供，UI不能更改评价或原结果，也没有模型、付费插件、平台或任意网络工具。当前开放受管表格输入、资料登记及已登记白名单分析/选区读取，尚未建立科学批准、跨域策略收益或真实用户价值证据。
+POST使用同源JSON与`X-AutoResearch-CSRF`，严格字段由宿主校验，不把任意JSON扩成工具调用；资料登记请求上限90MiB，其余命令保持12MiB。候选的method/parameters/evaluation完全由宿主提供，UI不能更改评价或原结果。模型接口须另外显式启用，只运行启动时固定的CLI，CLI工具关闭；没有任意宿主命令、付费插件或平台入口。当前开放受管表格输入、资料登记及已登记白名单分析/选区读取，尚未建立科学批准、跨域策略收益或真实用户价值证据。
+
+## A27 页面模型选择与反馈接续
+
+2026-11-03，独立[18792验证工作台](http://127.0.0.1:18792/#/research)通过浏览器上传真实归档hiMSC CSV及spec，创建时没有执行方法。使用累计2次决策、0.10USD报告估值上限，两次明确模型提交分别完成主质量检查与分组画像；两次CLI都报告路由 `deepseek-flash`，估值分别为0.024095及0.0241USD，合计0.048195USD。本地行动累计2/2。
+
+原ID页面“核对原请求”未新增CLI调用或工具行动，见[重放核对](../runs/a27-workbench-model-20261103/ui-replay-verification.json)。本验证项目为 `project-2880cb8f752844da9d387c91665dd55f`，v8，snapshot为 `764ee199dbf52ad8e1296aa53d74a347d25b4022fa5d1bfb050c8b1df1c54c90`；当前条件见[final-context.json](../runs/a27-workbench-model-20261103/final-context.json)。18792为独立集成验证，主工作台18791沿用原manager及原项目。证据保存在 `runs/a27-workbench-model-20261103/`，不随普通源码克隆分发；数值与报告身份、视觉验收分别由该轮最终证据记录，不由两次模型完成推断科学资格或使用收益。
+
+最终[独立计数、报告与下载核对](../runs/a27-workbench-model-20261103/validation.json)及[桌面/手机视觉检查](../runs/a27-workbench-model-20261103/ui-checks.json)均已完成。完整入口见[A27结果](../runs/a27-workbench-model-20261103/README.md)。原钢材仍使用旧版执行内核，界面显示CODE_CHANGED的明确处理要求，没有自动升级或增加额度。
 
 ## A19 同一项目的原件与来源接续
 

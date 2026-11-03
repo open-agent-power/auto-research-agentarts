@@ -7,6 +7,7 @@
 | 当前 P02 五页及报告入口 | [p02-app.ts](../../frontend/src/p02-app.ts) | 当前展示主路径；不要只改旧通用页面后认为 P02 已更新 |
 | 活跃项目、来源与检索 | [project-view.ts](../../frontend/src/project-view.ts) | `renderProject` 按观察kind显示P02 MAE、钢材MSE/MPa²、软件I/O检查；完整选区/方法条件/四处FTS共用，页面不执行研究 |
 | 可操作本地项目五页 | [local-workbench.ts](../../frontend/src/local-workbench.ts)、[project-pages.ts](../../frontend/src/project-pages.ts) | 操作DOM只创建一次，五个hash页共用实际项目；`renderProjectPage`显式分派原section，不把CSV映射为历史P02 trials |
+| 本地工作台的明确模型选择 | [local-model.ts](../../frontend/src/local-model.ts) | 位于研究页展开操作区，复用宿主原请求日志；显示累计grant、模型解释/控制器结果、CLI路由与原生/外部用量，沿原ID核对 |
 | 本地项目真实研究画布 | [project-flow.ts](../../frontend/src/project-flow.ts)、[c01-app.ts](../../frontend/src/c01-app.ts) | 复用C01Board/X6，显示实际课题/资料/行动/反馈/待办；原记录引用与项目包含关系分开，布局仅存浏览器 |
 | 材料/软件独立项目入口 | [app.ts](../../frontend/src/app.ts)、[project-view.ts](../../frontend/src/project-view.ts) | `data-case=project`→`mountStandaloneProject`，沿用玻璃外壳，只保留可用项目入口，隐藏封存五页/全局搜索；P02仍由原shell挂载`#/project` |
 | 当前快照报告与下载 | [project-view.ts](../../frontend/src/project-view.ts)、[project_workbench.py](../../src/autoresearch/project_workbench.py) | API的`report.available/stale`控制当前PDF/JSON，过期禁用；P02顶部封存PDF/ZIP保持独立，不能替代项目报告 |
@@ -37,3 +38,5 @@ A18 [local-workbench.ts](../../frontend/src/local-workbench.ts)由app.ts的`data
 A19 [local-evidence.ts](../../frontend/src/local-evidence.ts)作为同一工作台资料面板，共用父提交器的冻结请求、CSRF及忙碌状态；原件卡片、明确选区、取证任务和登记包下载沿原实色正文。登记与读取分成两次明确操作，后者仍走上方宿主真实候选；来源摘录与知识复用原reader，不增加第二条执行通道。
 
 A20 [local-batch.ts](../../frontend/src/local-batch.ts)复用同一提交器，方法和确切未读收据默认不勾；显示授权上限/理由、逐步原父/子及停止原因。未完成批次可用宿主保存body/原ID明确恢复，允许切回原项目，其他新行动仍锁定；无浏览器定时执行器。桌面/手机与受控中断实际链见[用法](../../docs/local-workbench.md)。
+
+A27 [local-model.ts](../../frontend/src/local-model.ts)复用同一页面提交器和宿主 `HostModelSelection`，默认只读已有记录。宿主启动时固定已有CLI后才可明确选择并执行一步；首次grant冻结，未知请求不重发，页面刷新不调用模型。原生Qwen与外部CLI启动/估值分别显示，完整原请求JSON可下载；核心PDF用量仍需外附host日志。五页导航和X6保留，实际hiMSC两次选择/反馈接续及启动说明见[工作台用法](../../docs/local-workbench.md#用模型选择并执行一步)。

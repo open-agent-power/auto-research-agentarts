@@ -15,12 +15,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", required=True, help="Host-owned managed intake/project/report directory; do not use an existing research project.")
     parser.add_argument("--port", type=int, default=18791)
-    parser.add_argument("--enable-local-actions", action="store_true", help="Allow explicit local intake, selection and report commands; no model, fit or external network.")
+    parser.add_argument("--enable-local-actions", action="store_true", help="Allow explicit local intake, selection and report commands; models remain disabled without --claude-executable.")
+    parser.add_argument("--claude-executable", help="Opt in to explicit model selection using this existing native Claude executable; requires --enable-local-actions.")
     args = parser.parse_args()
     try:
         workspace = LocalWorkbench(args.root)
-        server = create_project_server(local_workspace=workspace, allow_local_actions=args.enable_local_actions, port=args.port)
-        print(f"Local research workbench: http://127.0.0.1:{server.server_port}/ (actions {'enabled' if args.enable_local_actions else 'disabled'})", flush=True)
+        server = create_project_server(local_workspace=workspace, allow_local_actions=args.enable_local_actions,
+                                       claude_executable=args.claude_executable, port=args.port)
+        print(f"Local research workbench: http://127.0.0.1:{server.server_port}/ (actions {'enabled' if args.enable_local_actions else 'disabled'}, models {'enabled' if args.claude_executable else 'disabled'})", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
