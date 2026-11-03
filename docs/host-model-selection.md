@@ -42,6 +42,31 @@ $hostArgs = @(
 
 重复上面的**原命令和原参数**返回同一请求，不再调用 CLI 或创建新研究行动。保留首次的 `expected-state-version`；不要为了重放换成当前版本，也不要换 ID 绕过失败。
 
+## 一次授权，按模型反馈最多推进两步
+
+`advance-batch`连续复用上述原请求链。每一步都从最新真实项目状态构建context，再让CLI选择；本地固定规则批次仍是单独入口。以下示例仅适用于本journal尚未固定grant，或已有grant与示例完全一致的情况；`--reason`须填写实际已授权范围。
+
+```powershell
+.venv/Scripts/python.exe scripts/run_host_selection.py advance-batch `
+  --workspace $projectDir --request-id model-batch-1 `
+  --expected-state-version $context.state_version --max-decisions 2 `
+  --decision-limit 2 --cli-budget-usd 0.10 `
+  --reason '已授权使用现有Claude CLI验证本批最多两次选择，沿原项目额度执行' `
+  --claude-executable $claudeExe
+.venv/Scripts/python.exe scripts/run_host_selection.py batch-status `
+  --workspace $projectDir --request-id model-batch-1
+```
+
+`max-decisions`只能为1或2，是本批上限；`decision-limit`和`cli-budget-usd`仍是原host journal的累计grant，不能借新批次修改或重置。核心本地/来源/模型/现金额度照旧。没有合资格候选时不调用模型凑等待；模型选择等待、失败、invalid、stale、未知、达到本批或累计上限都会停下。
+
+批次ID只接受1至60个ASCII字母、数字、下划线或连字符。原参数、初始项目/运行/来源身份、允许方法和确切已登记收据冻结在`host-model-selections/batches/batch-<ID>.json`。每步确定性子ID为`hostbatch-<ID>-s1/s2`，子请求仍保存原prompt、回答、费用和控制器结果。后来上传的资料不加入该批授权；项目在本批之外发生变化时停止，不能换当前版本偷偷续入原批次。
+
+`batch-status`只读。中断后用首次原命令、原版本和全部原参数核对；只恢复原子请求，不能覆盖回答或重新派发sending/unknown。`record_status=incomplete`表示仍需核对原请求；`record_status=completed`表示本批已收口，原命令重放只返回保存记录，不增加模型或行动。子请求的`status=applied`仍须看其`outcome.status`，不代表工具成功或科学批准。
+
+当前报告捕获完整批次收据为`host_model_batch`原件，报告JSON的`host_models.batches`保留授权、步骤和停止原因，输入包的`host-model-evidence/batches/`附件保留原字节。批次进展也会改变host快照，使旧报告过期；导出不会自动续批。此入口目前为CLI，尚未增加网页连续模型按钮。
+
+2026-11-04，原A16钢材项目在同一ID/Run上从v5显式升级并登记版本匹配资料，随后真实CLI批次从v7执行一次来源读取至v11。CLI报告路由为`deepseek-flash`，估值0.040875USD、实际结算unknown；来源1/8，本地数值仍1/1，原生模型和拟合新增0。下一步无合法候选，批次保存`waiting/completed`，没有调用第二次模型。三个原登记/升级/批次ID重放均无新增，六页报告含批次及14份原件，见[A33结果](../runs/a33-bounded-model-20261104/README.md)。真实任务本次只有一次模型选择；双模型反馈及中断/未知恢复由两项工程夹具验证，不写成已在真实任务观察到两次连续模型决定。
+
 ## 分步执行与检查
 
 希望先查看实际送出的 context 时，用 `prepare` 代替直接 advance。以下命令与上一节是同一请求的两种操作方式。

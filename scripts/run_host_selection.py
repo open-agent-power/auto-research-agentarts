@@ -1,4 +1,4 @@
-"""Prepare, dispatch/import and consume one durable host-model selection."""
+"""Prepare, dispatch/import and consume bounded durable host-model selections."""
 import argparse
 import json
 from pathlib import Path
@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from autoresearch.contracts import ResearchError
 from autoresearch.host_model_selection import HostModelSelection
+from autoresearch.host_model_batch import HostModelBatch
 
 
 def _request_args(parser):
@@ -33,6 +34,11 @@ def main():
     _prepare_args(prepare, provider=True)
     advance = commands.add_parser("advance", help="Explicitly request one CLI choice and consume at most one eligible action; original IDs never resend.")
     _prepare_args(advance)
+    batch = commands.add_parser("advance-batch", help="Advance at most two CLI decisions using saved feedback and one frozen batch; original IDs resume without resending.")
+    _prepare_args(batch)
+    batch.add_argument("--max-decisions", type=int, choices=(1, 2), required=True)
+    batch_status = commands.add_parser("batch-status", help="Read one saved model batch without dispatch, consumption or recovery.")
+    _request_args(batch_status)
     for name in ("request", "consume"):
         entry = commands.add_parser(name, help="Dispatch the original CLI request once." if name == "request" else "Consume one saved response through the original controller.")
         _request_args(entry)
@@ -45,7 +51,14 @@ def main():
     args = parser.parse_args()
     try:
         journal = HostModelSelection(args.workspace)
-        if args.command in ("prepare", "advance"):
+        if args.command == "advance-batch":
+            result = HostModelBatch(args.workspace).advance(request_id=args.request_id,
+                expected_state_version=args.expected_state_version, max_decisions=args.max_decisions,
+                decision_limit=args.decision_limit, cli_budget_usd=args.cli_budget_usd,
+                reason=args.reason, executable=args.claude_executable)
+        elif args.command == "batch-status":
+            result = HostModelBatch(args.workspace).status(request_id=args.request_id)
+        elif args.command in ("prepare", "advance"):
             provider = args.provider if args.command == "prepare" else "claude_cli"
             executable = args.claude_executable if provider == "claude_cli" else None
             result = journal.prepare(request_id=args.request_id, provider=provider,
@@ -64,7 +77,7 @@ def main():
         else:
             result = journal.status(request_id=args.request_id)
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
-        return 2 if result.get("status") in ("invalid", "stale", "failed", "unknown", "sending") else 0
+        return 2 if result.get("status") in ("invalid", "stale", "failed", "unknown", "sending", "blocked", "needs_review") else 0
     except ResearchError as error:
         print(json.dumps({"ok": False, "code": error.code, "message": str(error), "automatic_retry": False}, ensure_ascii=False))
         return 2

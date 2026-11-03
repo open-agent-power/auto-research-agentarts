@@ -89,6 +89,28 @@ def _verify(record, files):
         _require(launch_raw is not None and receipt_raw is not None, "Completed CLI record lost its launch or exit receipt.")
 
 
+def _batch_originals(journal, project_id, files, roles, inventory):
+    directory = safe_path(journal.directory / "batches")
+    if not directory.exists():
+        return []
+    batches = []
+    for path in sorted(directory.glob("batch-*.json")):
+        if re.fullmatch(r"batch-[A-Za-z0-9_-]{1,60}\.json", path.name) is None:
+            continue
+        raw = _read(safe_path(path))
+        batch = _json(raw)
+        _require(type(batch) is dict and batch.get("schema_version") == "host-model-batch-v1"
+                 and batch.get("project_id") == project_id
+                 and path.name == "batch-" + str(batch.get("request_id")) + ".json"
+                 and batch.get("record_status") in ("incomplete", "completed"),
+                 "Saved model batch does not bind its original project and request.")
+        name = "batches/" + path.name
+        files[name], roles[name] = raw, "host_model_batch"
+        inventory.append({"name": name, "exists": True})
+        batches.append(batch)
+    return batches
+
+
 def _capture(workspace, *, include_assets):
     journal = HostModelSelection(workspace)
     lock = ResearchProject(journal.directory)._writer() if journal.directory.is_dir() else nullcontext()
@@ -115,6 +137,9 @@ def _capture(workspace, *, include_assets):
                     _require(total <= MAX_TOTAL_BYTES, "Host-model originals exceed the report capture size limit.")
                     files[name], roles[name] = raw, role
             _verify(record, files)
+        batches = _batch_originals(journal, state["project_id"], files, roles, inventory)
+        _require(sum(len(raw) for raw in files.values()) <= MAX_TOTAL_BYTES,
+                 "Host-model originals and batch receipts exceed the report capture size limit.")
         _require((journal.state_file.exists() and _read(journal.state_file) == state_raw)
                  if state_raw is not None else not journal.state_file.exists(), "Host journal changed while capturing originals.")
         identities = [{"name": name, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
@@ -124,7 +149,8 @@ def _capture(workspace, *, include_assets):
         assets = [{**identity, "name": "host-model-evidence/" + identity["name"],
                    "role": roles[identity["name"]], "bytes_base64": base64.b64encode(files[identity["name"]]).decode("ascii")}
                   for identity in identities] if include_assets else []
-        return {"snapshot_sha256": snapshot, "status": status, "records": copy.deepcopy(records), "assets": assets}
+        return {"snapshot_sha256": snapshot, "status": status, "records": copy.deepcopy(records), "assets": assets,
+                **({"batches": batches} if batches else {})}
 
 
 def capture_host_models(workspace) -> dict:
@@ -143,6 +169,6 @@ def host_model_report_current(workspace, manifest) -> bool:
         captured = _capture(workspace, include_assets=False)
         if "host_model_snapshot_sha256" in manifest:
             return manifest["host_model_snapshot_sha256"] == captured["snapshot_sha256"]
-        return not captured["records"] and captured["status"]["usage"]["unlinked_external_selection_count"] == 0
+        return not captured["records"] and not captured.get("batches") and captured["status"]["usage"]["unlinked_external_selection_count"] == 0
     except (ResearchError, OSError, ValueError, KeyError, TypeError):
         return False
