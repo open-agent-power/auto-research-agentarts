@@ -21,7 +21,7 @@ def _prepare_args(parser, *, provider=False):
         parser.add_argument("--provider", choices=("claude_cli", "delegated"), required=True)
     parser.add_argument("--expected-state-version", type=int, required=True)
     parser.add_argument("--decision-limit", type=int, required=True, help="Immutable prospective limit for this host journal, at most 8.")
-    parser.add_argument("--cli-budget-usd", type=float, required=True, help="Cumulative reported CLI estimate cap, at most 0.10 USD; not billing settlement.")
+    parser.add_argument("--cli-budget-usd", type=float, required=True, help="Configured cumulative CLI estimate threshold, at most 0.10 USD; one call can overshoot, not billing settlement.")
     parser.add_argument("--reason", required=True, help="Record actual operator-authorized scope; this text is not authorization.")
     parser.add_argument("--claude-executable", help="Required for claude_cli: explicit existing native executable, not a shell launcher.")
 
@@ -39,8 +39,11 @@ def main():
     batch.add_argument("--max-decisions", type=int, choices=(1, 2), required=True)
     batch_status = commands.add_parser("batch-status", help="Read one saved model batch without dispatch, consumption or recovery.")
     _request_args(batch_status)
-    for name in ("request", "consume"):
-        entry = commands.add_parser(name, help="Dispatch the original CLI request once." if name == "request" else "Consume one saved response through the original controller.")
+    for name in ("request", "consume", "reconcile-usage"):
+        help_text = ("Dispatch the original CLI request once." if name == "request" else
+                     "Consume one saved response through the original controller." if name == "consume" else
+                     "Read complete original CLI receipts to reconcile failed/invalid reported usage; never dispatch or consume.")
+        entry = commands.add_parser(name, help=help_text)
         _request_args(entry)
     imported = commands.add_parser("import-response", help="Capture operator-supplied delegated JSON; does not execute research.")
     _request_args(imported)
@@ -72,6 +75,8 @@ def main():
             result = journal.request(request_id=args.request_id)
         elif args.command == "consume":
             result = journal.consume(request_id=args.request_id)
+        elif args.command == "reconcile-usage":
+            result = journal.reconcile_usage(request_id=args.request_id)
         elif args.command == "import-response":
             result = journal.import_response(request_id=args.request_id, response_file=args.response)
         else:

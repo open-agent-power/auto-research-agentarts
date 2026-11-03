@@ -49,6 +49,8 @@ A26 [HostModelSelection](../../src/autoresearch/host_model_selection.py)在项�
 
 A33 [HostModelBatch](../../src/autoresearch/host_model_batch.py)沿原host请求链执行最多两次CLI选择，每步读取实际新反馈；原累计grant不改，初始方法和已登记来源集合冻结。批次保存确定子ID与原结果引用，原ID只恢复原请求；无候选不发模型、未知不重发、批次外变化停止。批次收据由原host报告捕获纳入双快照与复现附件；[CLI用法](../../docs/host-model-selection.md#一次授权按模型反馈最多推进两步)，没有新增网页入口或研究控制器。
 
+A34 实跑发现CLI错误输出中的已报告费用被丢为unknown，以及单次CLI可超出其剩余预算参数。`parse_cli_usage`独立核对完整result envelope元数据，失败/invalid不解析成可执行选择；`HostModelSelection.reconcile_usage`沿原launch/stdout/exit离线补记，保留原失败及核心状态。原报告校验费用出处并标出超配置阈值；阈值不提供单次硬支出保证。实际第二次选择未成功，见[费用核对与原ID恢复](../../docs/host-model-selection.md#状态重放与恢复)。
+
 A27 `LocalWorkbench.model_view/model_advance/model_resume`将同一 host journal 接回现有工作台，不增加 manager 数据库或另一份模型事实源。模型默认关闭；[服务启动](../../scripts/serve_local_workbench.py)须同时提供 `--enable-local-actions --claude-executable <现有原生可执行文件>`，浏览器不传路径、provider或命令。写入复用 manager 锁、活动项目、未完成批次/资料与原 Host/Origin/CSRF 门禁；原 ID resume 只定位既有请求、核对原 executable，再沿原 request/consume 恢复。`applied`表示已提交控制器，工具结果仍读取 `model_record.outcome.status`。2项必要HTTP检查覆盖默认禁用、门禁、提交后中断重开及零新增重放；本机浏览器已实际完成主质量检查→反馈分组两次CLI选择，报告估值合计0.048195USD，原ID恢复新增0，原生模型计数0须与外部CLI2次分开。A27当时的核心PDF未纳入host用量，当前导出见下方A28；领域/用户收益仍待验证。入口见[本地工作台](../../docs/local-workbench.md)。
 
 A28 [host_model_report](../../src/autoresearch/host_model_report.py)提供 `capture_host_models → snapshot_sha256/status/records/assets`，供原报告导出和下载核对共用。报告JSON保留状态/请求，重现输入保留快照/status/asset_names及实际已有日志、提示、回答和CLI传输原件；source_manifest登记身份，不读认证或环境文件。四文件报告清单新增 `host_model_snapshot_sha256`，核心版本不变而宿主请求或原文变化也使旧报告stale；未含外部历史的已分发旧包仍可读，有外部历史但缺标记的须重导出，不改旧原件。PDF/Markdown分列native、CLI尝试、已知报告USD及未知/未关联历史；见[模型报告包](../../docs/host-model-selection.md#a28报告包包含宿主模型记录)。

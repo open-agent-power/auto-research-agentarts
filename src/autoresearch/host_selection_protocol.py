@@ -70,24 +70,33 @@ def build_prompt(context):
             "prompt": "Select from this complete sealed host context:\n" + canonical(context)}
 
 
+def _cli_usage(value):
+    _require(type(value) is dict and value.get("type") == "result" and _text(value.get("subtype"), 200)
+             and type(value.get("is_error")) is bool, "Use one complete CLI result envelope, including terminal errors.")
+    model_usage, usage, cost = value.get("modelUsage", {}), value.get("usage"), value.get("total_cost_usd")
+    _require(type(model_usage) is dict and all(_text(name, 200) for name in model_usage)
+             and (usage is None or type(usage) is dict)
+             and (cost is None or (type(cost) is int and cost >= 0)
+                  or (type(cost) is float and math.isfinite(cost) and cost >= 0)),
+             "CLI usage, model labels and cost are reported metadata with strict JSON types.")
+    return {"reported_models": list(model_usage), "reported_usage": copy.deepcopy(usage), "reported_cost_usd": cost}
+
+
+def parse_cli_usage(raw: bytes):
+    """Read reported metadata from a strict complete envelope; never parse a choice."""
+    return _cli_usage(_json(raw))
+
+
 def parse_host_response(raw: bytes, provider: str):
     _require(type(provider) is str and provider in ("claude_cli", "delegated"), "Unsupported external response provider.")
     value = _json(raw)
-    models, usage, cost = [], None, None
+    metadata = {"reported_models": [], "reported_usage": None, "reported_cost_usd": None}
     if provider == "claude_cli":
-        _require(type(value) is dict and value.get("type") == "result" and value.get("subtype") == "success"
-                 and value.get("is_error") is False and type(value.get("result")) is str,
+        metadata = _cli_usage(value)
+        _require(value.get("subtype") == "success" and value.get("is_error") is False and type(value.get("result")) is str,
                  "CLI must return one complete successful result envelope.")
-        model_usage, usage, cost = value.get("modelUsage", {}), value.get("usage"), value.get("total_cost_usd")
-        _require(type(model_usage) is dict and all(_text(name, 200) for name in model_usage)
-                 and (usage is None or type(usage) is dict)
-                 and (cost is None or (type(cost) is int and cost >= 0)
-                      or (type(cost) is float and math.isfinite(cost) and cost >= 0)),
-                 "CLI usage, model labels and cost are reported metadata with strict JSON types.")
-        models = list(model_usage)
         value = _json(value["result"].encode("utf-8"))
-    return {"arguments": _arguments(value), "reported_models": models,
-            "reported_usage": copy.deepcopy(usage), "reported_cost_usd": cost}
+    return {"arguments": _arguments(value), **metadata}
 
 
 def build_proposal(context, arguments, provider_label):

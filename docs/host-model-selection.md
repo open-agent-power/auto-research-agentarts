@@ -16,7 +16,7 @@ $context | ConvertTo-Json -Depth 30
 只有 `blockers` 为空且 `candidates` 非空才可准备请求；否则先处理已有阻塞或补所缺资料。首次 `prepare` 固定本项目 host journal 的累计 grant：
 
 - `--decision-limit` 为 1 至 8。每个成功保存的 prepare 占一个名额，包括后来等待、失败或 invalid 的请求。
-- `--cli-budget-usd` 为大于 0、至多 0.10 USD 的 CLI 累计报告估值上限。后续调用只获得剩余估值；未知用量不按 0 计算。
+- `--cli-budget-usd` 为大于0、至多0.10USD的累计报告估值配置阈值。宿主把剩余阈值传给CLI，并在已知合计达到阈值或费用未知时阻止后续发送。A34实跑已观察到单次CLI超出其剩余参数并返回预算错误，因此它不能保证单次调用或现金支出的硬上限。未知用量不按0计算。
 - `--reason` 记录已经获得的授权范围，填写这段文字本身不授予权限。
 
 后续请求必须沿用完全相同的 grant，包括 reason；换 ID 不能扩额。当前没有 grant 修改或重置命令。这个额度从本 journal 开始累计，旧的外部调用、原生 Qwen 记录和历史 unknown 费用仍保留。原有 5 元现金上限及 AgentArts 暂缓边界不由此改变。
@@ -57,7 +57,7 @@ $hostArgs = @(
   --workspace $projectDir --request-id model-batch-1
 ```
 
-`max-decisions`只能为1或2，是本批上限；`decision-limit`和`cli-budget-usd`仍是原host journal的累计grant，不能借新批次修改或重置。核心本地/来源/模型/现金额度照旧。没有合资格候选时不调用模型凑等待；模型选择等待、失败、invalid、stale、未知、达到本批或累计上限都会停下。
+`max-decisions`只能为1或2，是本批上限；`decision-limit`和`cli-budget-usd`仍是原host journal的累计grant，不能借新批次修改或重置。后者是配置阈值，单次CLI可能超出，不能作为硬支出保证。核心本地/来源/模型/现金额度照旧。没有合资格候选时不调用模型凑等待；模型选择等待、失败、invalid、stale、未知、达到本批或累计限制都会停下。
 
 批次ID只接受1至60个ASCII字母、数字、下划线或连字符。原参数、初始项目/运行/来源身份、允许方法和确切已登记收据冻结在`host-model-selections/batches/batch-<ID>.json`。每步确定性子ID为`hostbatch-<ID>-s1/s2`，子请求仍保存原prompt、回答、费用和控制器结果。后来上传的资料不加入该批授权；项目在本批之外发生变化时停止，不能换当前版本偷偷续入原批次。
 
@@ -66,6 +66,8 @@ $hostArgs = @(
 当前报告捕获完整批次收据为`host_model_batch`原件，报告JSON的`host_models.batches`保留授权、步骤和停止原因，输入包的`host-model-evidence/batches/`附件保留原字节。批次进展也会改变host快照，使旧报告过期；导出不会自动续批。此入口目前为CLI，尚未增加网页连续模型按钮。
 
 2026-11-04，原A16钢材项目在同一ID/Run上从v5显式升级并登记版本匹配资料，随后真实CLI批次从v7执行一次来源读取至v11。CLI报告路由为`deepseek-flash`，估值0.040875USD、实际结算unknown；来源1/8，本地数值仍1/1，原生模型和拟合新增0。下一步无合法候选，批次保存`waiting/completed`，没有调用第二次模型。三个原登记/升级/批次ID重放均无新增，六页报告含批次及14份原件，见[A33结果](../runs/a33-bounded-model-20261104/README.md)。真实任务本次只有一次模型选择；双模型反馈及中断/未知恢复由两项工程夹具验证，不写成已在真实任务观察到两次连续模型决定。
+
+同日A34沿原软件项目执行两次真实CLI尝试。第一请求完成官方Python文档选区读取，第二请求的冻结prompt确实包含第一次产生的2条新引用，但返回`error_max_budget_usd`、退出1，没有可执行选择或第二来源行动。两次CLI自报估值分别0.06301、0.061025USD，合计0.124035USD，超过原0.10USD配置阈值。原失败保留；离线费用补记后，当前报告明确显示超阈值与现金结算unknown，没有追加调用或扩大grant。原项目v11、数值仍1/1、来源2/8；第二份已登记资料仍未读。五个原ID核对零新增，5页报告与21份附件已核；两次连续成功尚未证明，详见[A34实跑与修复](../runs/a34-two-model-decisions-20261104/README.md)。
 
 ## 分步执行与检查
 
@@ -112,6 +114,15 @@ $delegatedArgs = @(
 导入只保存并解析原文，不执行研究。重复导入必须是同一字节内容，不能覆盖成另一个回答。`execution_declaration` 固定标记 `execution_verified=false`，模型、内部推理次数和费用均为 unknown；真实派发证据应另外保留，不能填成 0 或免费。
 
 ## 状态、重放与恢复
+
+完整CLI错误输出若包含合法已报告费用，也计入累计数；请求仍为`failed/invalid`，不能消费成行动。输出截断、缺少费用或元数据非法时保持unknown。已保存的旧失败费用可按原请求离线核对，不发送模型、不执行工具：
+
+```powershell
+.venv/Scripts/python.exe scripts/run_host_selection.py reconcile-usage `
+  --workspace $projectDir --request-id '<原failed或invalid请求ID>'
+```
+
+此命令核对原launch/stdout/exit和响应身份，只补已报告的费用、路由及usage字段。原失败、错误、控制器结果与原件保留；重复核对没有新增请求。输出仍含原`failed/invalid`状态，按统一CLI约定退出码仍可能为2，应核对费用字段和原失败，不能因此重新发送。报告标明已知合计是否超出配置阈值，CLI自报估值仍不等于现金账单。
 
 | 状态 | 含义与下一步 |
 | --- | --- |

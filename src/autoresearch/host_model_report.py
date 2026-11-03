@@ -61,6 +61,11 @@ def _verify(record, files):
                 parsed = protocol.parse_host_response(raw, record["provider"])
                 _require(all(record.get(key) == value for key, value in parsed.items()),
                          "Host-model parsed response or reported usage differs from its original bytes.")
+            elif record["provider"] == "claude_cli" and any(record.get(key) is not None for key in
+                    ("reported_cost_usd", "reported_usage", "reported_models")):
+                metadata = protocol.parse_cli_usage(raw)
+                _require(all(record.get(key) == value for key, value in metadata.items()),
+                         "Failed or invalid CLI reported usage differs from its original envelope.")
     launch_raw, receipt_raw = files.get(folder + "transport/launch.json"), files.get(folder + "transport/exit.json")
     if launch_raw is not None:
         launch = _json(launch_raw, incomplete=partial)

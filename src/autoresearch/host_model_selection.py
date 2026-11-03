@@ -22,6 +22,13 @@ def _require(condition, code, message):
         raise ResearchError(code, message)
 
 
+def _cli_metadata(raw):
+    try:
+        return protocol.parse_cli_usage(raw)
+    except ResearchError:
+        return {"reported_models": None, "reported_usage": None, "reported_cost_usd": None}
+
+
 class HostModelSelection:
     def __init__(self, workspace):
         self.project = ResearchProject(workspace)
@@ -75,7 +82,7 @@ class HostModelSelection:
         _require(provider in ("claude_cli", "delegated") and type(decision_limit) is int and 1 <= decision_limit <= 8,
                  "INVALID_REQUEST", "Choose claude_cli/delegated and a prospective decision limit from 1 to 8.")
         _require(type(cli_budget_usd) in (int, float) and math.isfinite(cli_budget_usd) and 0 < cli_budget_usd <= 0.10,
-                 "INVALID_REQUEST", "Set a bounded cumulative CLI estimate cap, at most 0.10 USD.")
+                 "INVALID_REQUEST", "Set a configured cumulative CLI estimate threshold, at most 0.10 USD; reported usage may exceed it.")
         _require(type(reason) is str and bool(reason.strip()) and len(reason) <= 1000 and "\0" not in reason,
                  "INVALID_REQUEST", "Record the actual operator-authorized scope; this declaration grants no permission.")
         _require(type(expected_state_version) is int and expected_state_version >= 0,
@@ -119,16 +126,16 @@ class HostModelSelection:
 
     def _receive(self, state, record, raw, response_file):
         record.update(response_file=response_file, response_sha256=hashlib.sha256(raw).hexdigest())
+        record.update(_cli_metadata(raw) if record["provider"] == "claude_cli" else {"reported_cost_usd": None})
         try:
             parsed = protocol.parse_host_response(raw, record["provider"])
             record.update(parsed, status="received")
         except ResearchError as error:
-            record.update(status="invalid", error={"code": error.code, "message": str(error)},
-                          reported_cost_usd=None)
+            record.update(status="invalid", error={"code": error.code, "message": str(error)})
         self._save(state)
         return copy.deepcopy(record)
 
-    def _recover_transport(self, state, record):
+    def _read_transport(self, record):
         folder = safe_path(self.directory / record["directory"] / "transport")
         receipt = json.loads(_read_file(folder / "exit.json", 65536).decode("utf-8"))
         _require(receipt.get("status") in ("received", "failed", "unknown"), "EVIDENCE_CHANGED", "Invalid saved transport outcome.")
@@ -144,13 +151,42 @@ class HostModelSelection:
         _require(receipt.get("stdout_file") == "stdout.bin" and receipt.get("stdout_bytes") == len(raw)
                  and receipt.get("stdout_sha256") == hashlib.sha256(raw).hexdigest(),
                  "EVIDENCE_CHANGED", "Original transport output and receipt differ.")
-        record["transport"] = receipt
         if receipt["status"] == "received":
             _require(receipt.get("exit_code") == 0, "EVIDENCE_CHANGED", "Received CLI result must have exit code zero.")
-            return self._receive(state, record, raw, record["directory"] + "/transport/stdout.bin")
+        return receipt, raw, record["directory"] + "/transport/stdout.bin"
+
+    def _recover_transport(self, state, record):
+        receipt, raw, response_file = self._read_transport(record)
+        record["transport"] = receipt
+        if receipt["status"] == "received":
+            return self._receive(state, record, raw, response_file)
         record.update(status=receipt["status"], reported_cost_usd=None)
+        if receipt["status"] == "failed":
+            record.update(_cli_metadata(raw), response_file=response_file, response_sha256=hashlib.sha256(raw).hexdigest())
         self._save(state)
         return copy.deepcopy(record)
+
+    def reconcile_usage(self, *, request_id):
+        """Verify original CLI evidence and reconcile metadata only; never dispatch or consume."""
+        with self._writer():
+            state = self._load(); record = self._record(state, request_id)
+            _require(record["provider"] == "claude_cli" and record["cli_launch_attempted"],
+                     "INVALID_REQUEST", "Only an original launched CLI request has transport usage to reconcile.")
+            receipt, raw, response_file = self._read_transport(record)
+            _require("transport" not in record or record["transport"] == receipt,
+                     "EVIDENCE_CHANGED", "Saved original CLI receipt differs from the host record.")
+            response_sha256 = hashlib.sha256(raw).hexdigest()
+            _require("response_file" not in record or (record["response_file"] == response_file
+                     and record["response_sha256"] == response_sha256),
+                     "EVIDENCE_CHANGED", "Saved original CLI response identity changed.")
+            update = (_cli_metadata(raw) if receipt["status"] in ("received", "failed") else
+                      {"reported_models": None, "reported_usage": None, "reported_cost_usd": None})
+            if receipt["status"] in ("received", "failed"):
+                update.update(response_file=response_file, response_sha256=response_sha256)
+            if any(record.get(key) != value for key, value in update.items()):
+                record.update(update)
+                self._save(state)
+            return copy.deepcopy(record)
 
     def request(self, *, request_id):
         with self._writer():
@@ -172,7 +208,7 @@ class HostModelSelection:
             _require(all(r.get("reported_cost_usd") is not None for r in previous), "HOST_USAGE_UNKNOWN",
                      "Previous CLI usage is unknown; do not count it as zero or send again.")
             remaining = state["grant"]["cli_budget_usd"] - sum(r["reported_cost_usd"] for r in previous)
-            _require(remaining > 0, "HOST_CLI_BUDGET_EXHAUSTED", "The reported CLI estimate cap is exhausted.")
+            _require(remaining > 0, "HOST_CLI_BUDGET_EXHAUSTED", "The configured cumulative CLI estimate threshold was reached; do not send another request.")
             folder = safe_path(self.directory / record["directory"] / "transport"); folder.mkdir(exist_ok=True)
             _require(not any(folder.iterdir()), "EVIDENCE_CHANGED", "Prepared transport evidence must be empty; do not overwrite or resend it.")
             record.update(status="sending", cli_launch_attempted=True, cli_budget_at_launch_usd=remaining)

@@ -279,10 +279,14 @@ def _budget_rows(report):
 def _host_model_rows(report):
     status = report["host_models"]["status"]
     usage, grant = status["usage"], status.get("grant") or {}
+    threshold = grant.get("cli_budget_usd")
+    known_cost = usage["known_cli_reported_cost_usd"]
+    exceeded = "未设置" if threshold is None else ("是" if known_cost > threshold else "否")
     return [["宿主决策名额已用 / 原上限", f"{usage['decision_slots_used']} / {grant.get('decision_limit', '未设置')}"],
             ["Claude CLI启动尝试", str(usage["cli_launch_attempts"])],
-            ["CLI已知报告估值 / USD", str(usage["known_cli_reported_cost_usd"])],
-            ["CLI累计报告估值上限 / USD", str(grant.get("cli_budget_usd", "未设置"))],
+            ["CLI已知报告估值 / USD", format(known_cost, ".8g")],
+            ["CLI配置预算阈值 / USD", "未设置" if threshold is None else format(threshold, ".8g")],
+            ["已知CLI报告估值超出配置阈值", exceeded],
             ["另有CLI费用未知", "是" if usage["cli_cost_unknown"] else "否"],
             ["子代理回答导入", str(usage["delegated_outputs_received"])],
             ["子代理内部推理次数 / 费用", "未知"],
@@ -294,16 +298,17 @@ def _host_model_rows(report):
 def _host_request_rows(report):
     rows = []
     for record in report["host_models"]["records"]:
-        route = ", ".join(record.get("reported_models", [])) or "未报告"
+        route = ", ".join(record.get("reported_models") or []) or "未报告"
         outcome = (record.get("outcome") or {}).get("status", "尚未提交")
         cost = record.get("reported_cost_usd")
         rows.append([record["request_id"] + " / " + route, record["status"] + " / " + outcome,
-                     "未知" if cost is None else str(cost)])
+                     "未知" if cost is None else format(cost, ".8g")])
     return rows
 
 
 HOST_MODEL_NOTE = ("原生本地模型计数不包含宿主CLI或子代理。CLI次数为宿主启动尝试，路由和USD估值来自CLI自报，不是账单或总推理次数；"
-                   "未知不计为零。请求applied只表示已提交控制器，实际行动结果另列；科学资格未获批准。"
+                   "未知不计为零。本机已观察到单次CLI超出配置预算参数，阈值用于后续发送阻断，不能保证单次发送硬上限。"
+                   "请求applied只表示已提交控制器，实际行动结果另列；科学资格未获批准。"
                    "input.json的host_models与assets保留原日志、回答及已有传输收据，缺失或未知不补造成功，也不自动重发。")
 
 
