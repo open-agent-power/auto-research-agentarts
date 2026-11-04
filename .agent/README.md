@@ -4,11 +4,13 @@
 
 ## 先确认当前方向
 
-- [产品计划](../docs/plan.md)：稳定目标、实施阶段和价值验证。
-- [底层架构](../docs/architecture/foundation.md)与[状态/能力契约](../docs/architecture/research-contracts.md)：A0–A3 基线已定；[A4 本地项目](../docs/project-slice.md)已实现单个 OOF 工具、固定反馈策略和恢复，目标端口尚未全部接线。
-- [自适应研究设计](../docs/research/adaptive-research.md)：本轮讨论的六项决策、运行方式与待验证假设。
-- [当前实现与证据](../docs/current-progress.md)：实际完成什么、缺什么；当前工作台不是通用研究执行入口。
+- [底层架构](../docs/architecture/foundation.md)与[状态/能力契约](../docs/architecture/research-contracts.md)：核对底层基线、已有能力和待建接口，不把目标端口当作已接线。
+- [项目使用说明](../docs/project-slice.md)与[本地工作台](../docs/local-workbench.md)：核对实际入口、操作范围、保存与恢复边界；当前工作台不是通用研究执行入口。
+- [科研配方接入](../docs/recipe-research/integration.md)与[宿主模型请求](../docs/host-model-selection.md)：区分配方选择、模型请求和原控制器执行，保留预算与证据边界。
+- [开发地图](../docs/development.md)：定位现有实现和开发检查。
 - [正式文档入口](../docs/README.md)：阅读和维护设计。
+
+主开发的`docs/plan.md`、`docs/current-progress.md`、`docs/research/adaptive-research.md`和`docs/team-handoff.md`仅在完整ICT工作区维护，不随Git克隆；共享开发入口以上述已跟踪文档为准。
 
 ## 按任务找入口
 
@@ -37,11 +39,11 @@
 .agent/README.md          开发导航
 .agent/indexes/           任务到正式设计、代码和资料的索引
 .agent/skills/            项目可共享的开发及平台操作 Skill
-docs/                    产品计划、正式架构、设计和实现说明
+docs/                    共享架构、设计、用法和实现说明
 src/ + frontend/         真实实现
 ../../references/        工作区外部资料，不随产品克隆分发
 runs/                    本机执行证据，不提交
 .agent/focus.json 等      本机检查点与选择状态，不提交
 ```
 
-索引只保留定位与提醒；正式规则在 docs 或 DESIGN，运行事实在原账本。新增模块或改变接口时同步相关索引；历史证据文档保留原范围，不批量改写为新能力。旧计划归档与轮次导航已清理，讨论决策以产品计划的六项落点为准。
+索引只保留定位与提醒；正式规则在 docs 或 DESIGN，运行事实在原账本。新增模块或改变接口时同步相关索引；历史证据文档保留原范围，不批量改写为新能力。旧计划归档与轮次导航已清理，阶段计划由主开发在完整ICT工作区维护；克隆的开发边界按共享架构与已实现用法核对。
