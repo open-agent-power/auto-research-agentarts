@@ -64,6 +64,12 @@ function note(value: string, fallback: string): string {
     "Confirm group independence and technical-repeat semantics before any statistical learning; repeated group rows are not independent samples.": "在统计学习前核对分组独立性和技术重复含义；同组多行不等于独立样本",
     "No rows were removed or zeros imputed; table mechanics alone do not resolve prior processed-workbook column-role conflicts.": "原记录与零值均保留；机械核对仍不能解决既有处理工作簿的列角色冲突",
     "Three complete duplicate CSV records are retained; source/acquisition evidence must determine whether these are repeated measurements or accidental duplication, not automatic deduplication.": "3条完整重复记录仍保留；需用来源及采集记录区分重复测量或意外复制，不能自动删重",
+    "Actual acquisition/run logs and original exported tables, plus the author conversion records or script linking them to the workbook and CSV rows.": "取得本次采集或运行日志、原始导出表，以及连接导出、工作簿和CSV行的作者转换记录或脚本",
+    "Confirm endpoint identity and unit, zero/missing rules, provenance and license against original records.": "对照原始记录核对目标字段的含义与单位、零值与缺失规则、数据来源及许可",
+    "Confirm grouping, sample units and independence; matching workbook caches do not establish these meanings.": "核对分组、采样单位和独立性；工作簿保存值相同不能证明这些含义",
+    "Resolve the multiple exact candidate worksheets using original run and conversion records.": "用原始运行和转换记录，区分多个完全一致的候选工作表",
+    "Identify the original worksheet and column transformation; no complete header candidate was found.": "查清原工作表和列转换；目前未找到完整列头匹配的候选",
+    "completed quality feedback and a captured XLSX matching the submitted origin SHA": "先完成表格质量检查，并补充与声明来源一致的已捕获原工作簿",
   };
   if (tabularNeeds[value]) return tabularNeeds[value];
   const groupedPrefix = "Explain the observed group distributions without changing or deleting original values:";
