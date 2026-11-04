@@ -63,7 +63,7 @@ A29从队友原型固定提交 [`13054f5cf5b948c2251b197bdb3805864dd71b61`](http
 
 后续已按授权将PR #1合并为`1a295132b6e3c39b043cf609372a58b5d1b15a50`，再将PR #2从原依赖分支改为面向main后合并；两PR均为merged/closed，原head未改变。远端main为[`61a79ed2ddf56f3654b633e30cd30a30b1e6b778`](https://github.com/1263-ux/auto-research-agentarts/commit/61a79ed2ddf56f3654b633e30cd30a30b1e6b778)，tree与原PR #2 head一致；原九项测试和format/lint/typecheck通过，见[合并核对](../../runs/pr-merge-20261104/merge-validation.json)。此记录不重写原夹具或A29/A30实验。
 
-队友后续从已取得并确认的远端main `61a79ed2ddf56f3654b633e30cd30a30b1e6b778`独立开文档分支。本机A29–A48新增的工作台接入及后续开发尚未发布到远端，ignored `runs/`也不随普通克隆分发；需要的当前说明和取证包由主开发另交。
+随后[PR #3](https://github.com/1263-ux/auto-research-agentarts/pull/3)已将完整工作台源码合入main，代码基线为`04c2cfee836da6e61f099d65187a12d31da3dfb0`。队友取得最新`origin/main`并确认包含该基线后，独立开文档分支；五页工作台、模型反馈与当前说明已随源码分发。ignored `runs/`、作者原件和取证包仍由主开发另交，源码同步不代替研究结果或领域核对。
 
 ## 本轮真实接入验证
 
