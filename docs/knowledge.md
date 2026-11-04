@@ -31,6 +31,14 @@ result = index.search('AgentArts Runtime SDK HTTP 运行时', kinds=['official_d
 
 这一步复用[PaperQA的检索／证据汇集分层](https://github.com/Future-House/paper-qa)和[ParentDocumentRetriever的小片段定位、较大上下文读取模式](https://reference.langchain.com/python/langchain-classic/retrievers/parent_document_retriever/ParentDocumentRetriever)，沿用现有SQLite与引用契约，没有安装另一套检索服务。新增操作会核对冻结库和sidecar，来源记录最多1MiB、单来源最多4096段；范围或SHA错误拒绝，不修复模型选择。它仍只证明读取一致性，不自动批准模型对原文的解释。
 
+### 默认表格解释查询
+
+`data.tabular-quality-audit`在`interpretation`的默认查询以已保存的未决问题为先：使用`next_decision.remaining_questions`中首个合资格问题，问题至多512字符、64个检索token。保留原问题，并为字母与数字连写的标识符追加拆分别名，例如`Factor47`同时检索`Factor 47`；不把标识符解释成字段映射或改变原值。没有合资格问题时，沿用已有的声明字段查询。
+
+新来源完成时，用本次保存的未决问题构建解释预览，再进行四处既有证据查询。范围仅为表格解释的默认查询，其他领域和另外三个决策点沿用原行为；不拼接宽泛的基础问题，不合并多次查询排名，也不重建冻结索引、修改引用格式或新增接口。返回结果仍保留原`citation_id/source/location/quote`。
+
+A37的hiMSC v30核对暴露了查询差异：默认5条引用遗漏已保存的编号冲突，但同一冻结索引查询`Chem 28`能返回原`iMSC_B8S1!A434:D436`。原项目显式登记兼容代码至v31后，默认上下文已同时保留作者标签与原冲突引用，用量仍为本地2/2、来源4/8；原ID重放没有变化，未新增模型或读取。修复的是默认查询选词，未发现原引用被阅读窗口剪掉；实际对比及领域边界见[hiMSC核对](himsc-source-audit.md)。检索命中只证明宿主取回了原文，不表示模型已阅读或编号对应已确认。
+
 ## 资料分层
 
 | 类型 | 入口 | 能证明什么 |

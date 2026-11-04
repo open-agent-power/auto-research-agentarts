@@ -1,18 +1,39 @@
 # AgentArts Auto Research
 
-目标是让研究者提供课题、材料与约束，由系统按条件选择方法、执行真实工具，并根据反馈调整和继续研究，交付论文式 PDF 与复现附件。医疗、材料和软件工程共用能力接口，方法保留各自的数据与评价含义。
+研究者提供课题、材料与约束，系统按条件选择已有方法、执行工具，读取反馈后继续或等待，保存可追溯的结果和报告。当前本地工作台支持CSV项目、质量与分组检查、来源登记与读取、两份确定性配方，以及显式启用后的Claude CLI选择；医疗、材料和软件案例共用项目记录，保留各自的数据与评价含义。
 
-把研究问题、来源证据、模型选择和真实实验连在一起：有依据地提出下一步，执行后按结果继续、修订或停止，并留下可追溯的观察、报告和复现材料。医疗、材料和软件工程共用这套工作链路；当前以公开的材料—细胞案例 P02 ChemoTopoChip 推进。
+**[本地工作台用法](docs/local-workbench.md)** · [队友当前任务](docs/teammate-recipe-task.md) · [配方接入](docs/recipe-research/integration.md) · [Agent 开发导航](.agent/README.md) · [正式文档](docs/README.md) · [统一 UI](DESIGN.md)
 
-**[产品计划](docs/plan.md)** · [自适应研究设计](docs/research/adaptive-research.md) · [当前进度](docs/current-progress.md) · [Agent 开发导航](.agent/README.md) · [正式文档](docs/README.md) · [统一 UI](DESIGN.md)
-
-已走通作者资料核验、870个共同材料组合的分组预测、模型选择数值候选、误差诊断、取证任务、资料回传和带原文引用的评议。最新数值候选未改善化学基线MAE；管线读取与工作簿评议均已真实执行，但实际导出映射和ALP身份仍未确认。旧失败与未知请求保留，产品接入AgentArts继续暂缓。
+工程链路已有实际运行记录；作者实际导出映射、ALP身份、独立领域与使用价值仍待核对。旧失败、未知请求和累计费用保留，产品接入AgentArts继续暂缓。主开发本机的`docs/plan.md`、`docs/current-progress.md`等计划与进度文档不随Git分发。
 
 ## 打开当前工作台
 
-已有本机交付目录时，先明确选择要看的版本，再使用固定入口：
+在产品根目录、已安装项目依赖的环境中执行：
 
-默认访问 <http://127.0.0.1:18784/>，保持终端运行，结束按 Ctrl+C。以后直接 `serve` 读取保存的选择，不按文件日期猜测“最新”；切换包后重启这个服务并整页刷新。端口占用会提示退出，不杀其他服务。选择保存在 ignored `.agent/current-workbench.json`，绑定实际包清单；查看、选择和启动均不调用模型或拟合。
+```powershell
+.venv/Scripts/python.exe scripts/serve_local_workbench.py --root runs/my-local-workbench --enable-local-actions --port 18791
+```
+
+打开[项目总览](http://127.0.0.1:18791/#/overview)。五页为总览、研究推进、实验、知识和成果；研究页保留X6画布。新root从空工作台开始，先创建课题并提交CSV，再按当前候选明确推进。已有工作台沿用原root；root不能指向一个既有研究项目。端口占用时选择空闲端口，不停止别人的服务。停止本次服务按Ctrl+C。
+
+此命令只启用显式本地操作，模型保持关闭；查看页面不会自动执行研究。Claude CLI的单独启用方式、累计费用与原ID恢复见[模型入口](docs/host-model-selection.md)。普通克隆不包含主开发的项目账本、作者原件或运行报告，需要另行交接，不能通过换root重置既有预算。
+
+首次安装使用项目已有依赖定义：
+
+```powershell
+python -m venv .venv
+.venv/Scripts/python.exe -m pip install -e .
+# 需要PDF导出或PDF来源解析时，安装项目已有的reports可选依赖。
+.venv/Scripts/python.exe -m pip install -e ".[reports]"
+```
+
+源码已包含构建后的网页资源，运行工作台无需先安装前端工具。修改UI时再在`frontend/`使用现有`package-lock.json`安装和构建，遵循[开发约定](docs/development.md)。
+
+## 阅读已有只读交付包
+
+已有本机封存交付目录时，先明确选择版本，再使用原包入口：
+
+该只读包默认访问 <http://127.0.0.1:18784/>，保持终端运行，结束按 Ctrl+C。以后直接 `serve` 读取保存的选择，不按文件日期猜测“最新”；切换包后重启这个服务并整页刷新。端口占用会提示退出，不杀其他服务。选择保存在 ignored `.agent/current-workbench.json`，绑定实际包清单；查看、选择和启动均不调用模型或拟合。
 
 只克隆 Git 不会得到本机 `runs/` 和参考资料。队员可接收[独立只读包](docs/portable-workbench.md)，解压后按包内说明运行 `python -I -S serve.py --check`、`python -I -S serve.py --port 18784`。它可阅读、下载和复算已有结果，不能继续运行研究。
 

@@ -14,6 +14,7 @@ from autoresearch.contracts import canonical
 from autoresearch.research_project import safe_path
 from autoresearch.project_controller import ProjectController
 from autoresearch.source_evidence_adapter import _read_file
+from autoresearch.research_recipe import MAX_RECIPE_BYTES, parse_json
 
 
 def main():
@@ -90,6 +91,12 @@ def main():
     selection.add_argument("--proposal", required=True)
     selection.add_argument("--need", default="next_check")
     selection.add_argument("--expected-state-version", type=int)
+    recipe = commands.add_parser("advance-recipe", help="Freeze a recipe decision and execute at most one original host candidate; exact-ID replay retains the original context.")
+    recipe.add_argument("--workspace", required=True)
+    recipe.add_argument("--request-id", required=True)
+    recipe.add_argument("--recipe", required=True)
+    recipe.add_argument("--need", default="next_check")
+    recipe.add_argument("--expected-state-version", type=int, required=True)
     query = commands.add_parser("knowledge", help="Read the frozen indexes of actually extracted project selections.")
     query.add_argument("--workspace", required=True)
     query.add_argument("--need", required=True)
@@ -167,6 +174,11 @@ def main():
             proposal = parse_proposal(_read_file(Path(args.proposal).absolute(), 64 * 1024))
             value = ProjectController(args.workspace).advance_selection(request_id=args.request_id, proposal=proposal,
                                                                         need=args.need, expected_state_version=args.expected_state_version)
+        elif args.command == "advance-recipe":
+            recipe = parse_json(_read_file(safe_path(Path(args.recipe).absolute()), MAX_RECIPE_BYTES),
+                                maximum=MAX_RECIPE_BYTES, code="INVALID_RESEARCH_RECIPE")
+            value = ProjectController(args.workspace).advance_recipe(request_id=args.request_id, recipe=recipe,
+                need=args.need, expected_state_version=args.expected_state_version)
         else:
             value = project.knowledge(need=args.need, point=args.point, limit=args.limit)
         print(json.dumps(value, ensure_ascii=False))

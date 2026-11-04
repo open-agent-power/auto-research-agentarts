@@ -3,13 +3,14 @@ import copy
 import hashlib
 from pathlib import Path
 
-from . import method_registry as registry, project_knowledge, research_methods, project_selection
+from . import method_registry as registry, project_knowledge, research_methods, project_selection, research_recipe
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .research_project import ResearchProject, code_identity as project_code_identity, require
 
 
 def code_identity():
-    return hashlib.sha256(Path(__file__).read_bytes() + Path(project_selection.__file__).read_bytes()).hexdigest()
+    return hashlib.sha256(Path(__file__).read_bytes() + Path(project_selection.__file__).read_bytes()
+                          + Path(research_recipe.__file__).read_bytes()).hexdigest()
 
 
 def _need(value):
@@ -35,6 +36,13 @@ def _compact_decision(value):
                      "origin": "host_local_retrieval_not_model_read"})
     result.update(knowledge_refs=refs, scientific_validation=False)
     return result
+
+
+def _check_recipe_decision(context, proposal, decision):
+    require(type(decision) is dict and "recipe" in decision, "EVIDENCE_CHANGED", "Frozen recipe decision is missing.")
+    compiled = research_recipe.compile_recipe(decision["recipe"], context)
+    require(compiled == decision and compiled["proposal"] == proposal,
+            "EVIDENCE_CHANGED", "Frozen recipe, host context and proposal differ.")
 
 
 class ProjectController:
@@ -204,6 +212,8 @@ class ProjectController:
         if "selection_context" in parent:
             response["selection_context_sha256"] = parent["selection_context"]["context_sha256"]
             response["selection_proposal"] = copy.deepcopy(parent["request"]["proposal"])
+        if "recipe_decision" in parent["request"]:
+            response["recipe_decision"] = copy.deepcopy(parent["request"]["recipe_decision"])
         return response
 
     @staticmethod
@@ -309,7 +319,19 @@ class ProjectController:
             raise ResearchError("INVALID_SELECTION_PROPOSAL", "A bounded JSON proposal is required.") from None
         return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version, proposal=proposal)
 
-    def _advance(self, *, request_id, need, expected_state_version, proposal=None):
+    def advance_recipe(self, *, request_id, recipe, need="next_check", expected_state_version=None):
+        identifier(request_id)
+        need = _need(need)
+        old = self._parent(self.project.status(), request_id)
+        if old is not None:
+            require(old["request"]["command"] == "controller.advance_recipe", "IDEMPOTENCY_CONFLICT",
+                    "Controller request ID is already bound to a different command.")
+        context = old["selection_context"] if old is not None else self.selection_context(need=need)
+        decision = research_recipe.compile_recipe(recipe, context)
+        return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version,
+                             proposal=decision["proposal"], recipe_decision=decision)
+
+    def _advance(self, *, request_id, need, expected_state_version, proposal=None, recipe_decision=None):
         identifier(request_id)
         need = _need(need)
         require(expected_state_version is None or (type(expected_state_version) is int and expected_state_version >= 0),
@@ -322,10 +344,17 @@ class ProjectController:
                            "expected_state_version": expected_state_version}
                 if proposal is not None:
                     request.update(command="controller.advance_selection", proposal=copy.deepcopy(proposal))
+                if recipe_decision is not None:
+                    require(proposal is not None, "EVIDENCE_CHANGED", "A recipe decision requires its exact proposal.")
+                    request.update(command="controller.advance_recipe", recipe_decision=copy.deepcopy(recipe_decision))
                 digest = fingerprint(request)
                 old = self._parent(project, request_id)
                 if old is not None:
                     require(old["request_sha256"] == digest, "IDEMPOTENCY_CONFLICT", "Controller request content changed.")
+                    if recipe_decision is not None:
+                        require(fingerprint(old["request"]) == old["request_sha256"],
+                                "EVIDENCE_CHANGED", "Frozen recipe request identity changed.")
+                        _check_recipe_decision(old["selection_context"], old["request"]["proposal"], old["request"]["recipe_decision"])
                     parent, replayed = copy.deepcopy(old), True
                 else:
                     require(self.project._action(con, request_id) is None
@@ -339,6 +368,11 @@ class ProjectController:
                     require(project["code_identity"] == project_code_identity(), "CODE_CHANGED", "Explicitly upgrade this project first.")
                     current = self.project.status()
                     plan = self._plan(current, need) if proposal is None else self._selected_plan(current, need, proposal)
+                    if recipe_decision is not None:
+                        _check_recipe_decision(plan["selection_context"], proposal, recipe_decision)
+                        plan["decision"]["policy_ref"] = {"id": recipe_decision["recipe_id"],
+                            "version": recipe_decision["recipe_version"], "kind": "deterministic_recipe"}
+                        plan["decision"]["selection_ref"]["external_usage"] = "no_model_invocation_by_recipe_compiler"
                     child_id = "controller-child-" + fingerprint({"project_id": project["id"], "request_id": request_id})[:32]
                     require(self.project._action(con, child_id) is None
                             and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests")

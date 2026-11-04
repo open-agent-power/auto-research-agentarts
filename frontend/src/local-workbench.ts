@@ -3,9 +3,11 @@ import { $, el } from "./dom";
 import { createProjectPages } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel } from "./local-batch";
+import { createLocalModelPanel } from "./local-model";
+import { createLocalRecipePanel } from "./local-recipe";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
@@ -110,7 +112,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   const toolLimit = el("select"); toolLimit.required = true;
   const emptyLimit = el("option", "", "明确选择本地调用上限"); emptyLimit.value = ""; toolLimit.append(emptyLimit);
   for (const value of [1, 2]) { const option = el("option", "", value + "次本地工具调用"); option.value = String(value); toolLimit.append(option); }
-  const budget = input("shared-historical:existing-cap5CNY;cash-settlement-unknown;model0", 500); budget.required = true;
+  const budget = input("shared-historical:existing-cap5CNY;cash-settlement-unknown;native-model0;host-usage-separate", 500); budget.required = true;
   const importFile = el("input"); importFile.type = "file"; importFile.accept = ".json,application/json";
   const importNote = el("p", "detail-note", "可导入已有spec.json填充声明；表单修改会生成本次spec，原导入文件不会被改写。");
   const clearImport = el("button", "quiet-button", "改用当前CSV直接声明"); clearImport.type = "button";
@@ -156,8 +158,20 @@ export async function mountLocalWorkbench(): Promise<void> {
   const batchPanel = createLocalBatchPanel({ submit: (body, recover) => submit(recover
     ? { command: "batch", requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverBatch: true }
     : command("batch", body)), canRecover: canRecoverBatch, announce });
+  const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(name === "model-resume"
+    ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
+    : command(name, body)), announce });
+  const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    operations: [runSection, evidencePanel.element, batchPanel.element], read, announce });
+    operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
+  function otherModelBlockers(): boolean {
+    return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain
+      || !!lastRequest?.uncertain && !["model-advance", "model-resume"].includes(lastRequest.command);
+  }
+  function canRecoverModel(body: Obj): boolean {
+    return !busy && description.enabled === true && !otherModelBlockers()
+      && body.project_id === activeId() && modelPanel.canResume(body);
+  }
   function canRecoverBatch(body: Obj): boolean {
     const record = items(description.batches).find(item => item.request_id === body.request_id && item.project_id === body.project_id);
     if (busy || description.enabled !== true || !record || record.record_status === "completed"
@@ -174,7 +188,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   function controls(): void {
     const globalLocked = busy || description.enabled !== true || serverPending("") || uncertain("");
     const navigationLocked = busy || description.enabled !== true || navigationBlocked();
-    const locked = globalLocked || serverPending() || uncertain() || unknownExecution();
+    const locked = globalLocked || serverPending() || uncertain() || unknownExecution() || modelPanel.pending();
     createFields.disabled = globalLocked; createButton.disabled = globalLocked || loadingFile || !csv || !headers.length;
     selectButton.disabled = navigationLocked || !projectSelect.value || projectSelect.value === activeId(); projectSelect.disabled = navigationLocked;
     executeButton.disabled = locked || !context || !selectedCandidate || !rationale.value.trim() || items(context.blockers).length > 0;
@@ -184,6 +198,8 @@ export async function mountLocalWorkbench(): Promise<void> {
     retry.hidden = !lastRequest; retry.disabled = busy || !lastRequest || lastRequest.uncertain || (lastRequest.command === "evidence" && requestProject(lastRequest) !== activeId()) || description.enabled !== true;
     evidencePanel.setLocked(locked);
     batchPanel.setLocked(locked || typeof current.state_version !== "number" || current.id !== activeId());
+    modelPanel.setLocked(busy || description.enabled !== true || otherModelBlockers());
+    recipePanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
     candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
     citationList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked; });
@@ -330,6 +346,8 @@ export async function mountLocalWorkbench(): Promise<void> {
   }
   async function refresh(): Promise<void> {
     const previousId = activeId(); context = null; candidates();
+    modelPanel.setLocked(true);
+    recipePanel.invalidate(); recipePanel.setLocked(true);
     batchPanel.setLocked(true);
     await evidencePanel.refresh("", {});
     description = await read("/api/local-workbench");
@@ -356,8 +374,9 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (next.project_id !== now || next.schema_version !== "project-selection-context-v1") throw Error("候选不属于当前项目，请刷新后核对。");
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
-      candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current); await workspacePages.update(current);
-    } else { batchPanel.update(description, {}); await workspacePages.update({}); }
+      candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
+      await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current);
+    } else { batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
   }
@@ -366,23 +385,27 @@ export async function mountLocalWorkbench(): Promise<void> {
     const targetProject = requestProject(pending), switching = pending.command === "select";
     const sameEvidence = pending.command === "evidence" && evidencePending.get(targetProject)?.requestId === pending.requestId;
     const recoverBatch = pending.command === "batch" && pending.recoverBatch === true && canRecoverBatch(obj(JSON.parse(pending.body)));
+    const recoverModel = pending.recoverModel === true && canRecoverModel(obj(JSON.parse(pending.body)));
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
-    const blocked = switching ? navigationBlocked() : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
-    lastRequest = pending; busy = true; controls(); downloads(); announce("正在提交一次明确的本地命令…");
+    if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
+    const blocked = switching ? navigationBlocked() : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
+    if (!recoverBatch && !recoverModel && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    const modelCommand = ["model-advance", "model-resume"].includes(pending.command);
+    lastRequest = pending; busy = true; controls(); downloads(); announce(modelCommand ? "正在处理原模型请求；将保留回答和实际行动结果…" : "正在提交一次明确的本地命令…");
     if (pending.command === "evidence") evidencePending.set(targetProject, pending);
     try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ request_id: pending.requestId, command: pending.command })); } catch { /* Host journal remains authoritative. */ }
     let outcomeMessage = "", failed = false, accepted: Obj | null = null;
     try {
       const response = await fetch("/api/local-workbench/" + pending.command, { method: "POST", credentials: "same-origin", cache: "no-store",
-        headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(60000) });
+        headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(modelCommand ? 210000 : 60000) });
       const result = obj(await response.json());
       if (!response.ok) {
         pending.uncertain = response.status >= 500 || /UNKNOWN|NEEDS_REVIEW|INCOMPLETE/.test(text(result.code, ""));
         const reasons: Record<string, string> = { INVALID_SPEC: "字段声明与CSV需要逐项核对", INVALID_CSV: "CSV编码、表头或行宽不满足范围", INVALID_BUNDLE: "来源文件或选区声明需要核对", INVALID_LOCATOR: "选区坐标不满足当前读取范围", TASK_MISMATCH: "资料与当前取证任务不匹配", STALE_SELECTION_CONTEXT: "项目已变化，请重新读取候选后决定", STALE_STATE: "项目版本或当前选择已变化", IDEMPOTENCY_CONFLICT: "原请求ID已经绑定其他内容", BUDGET_EXHAUSTED: "本地调用额度已用完，已有用量保留", OPERATION_INCOMPLETE: "原操作未完成，需要保留并核对" };
+        Object.assign(reasons, { MODEL_DISABLED: "服务尚未启用Claude CLI，请按使用说明启动", HOST_DECISION_LIMIT: "本项目模型决策名额已用尽", HOST_GRANT_CHANGED: "原累计额度和理由已冻结，不能替换", HOST_SELECTION_PENDING: "请核对原模型请求", HOST_USAGE_UNKNOWN: "原模型费用未知，不能按零计后继续发送" });
         const code = text(result.code, String(response.status));
         failed = true; outcomeMessage = "提交未完成：" + (reasons[code] ?? "请核对当前条件与输入") + "（" + code + "）。输入已保留；" + (pending.uncertain ? "结果仍需核对，不自动重发。" : "可以用原ID和原内容显式重试，或核对后修正输入。");
-      } else if (["unknown", "running", "pending", "prepared"].includes(text(result.status, ""))) {
+      } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))) {
         pending.uncertain = true; failed = true; outcomeMessage = "原请求结果尚未确认，请只读核对保存状态。没有自动重发。";
       } else {
         pending.uncertain = pending.command === "batch" && result.status === "needs_review"; accepted = result;
@@ -394,6 +417,20 @@ export async function mountLocalWorkbench(): Promise<void> {
           const labels: Record<string, string> = { waiting: "等待后续条件", limit_reached: "达到本次授权上限", not_authorized: "下一步未获本次授权", blocked: "当前条件或原额度阻断", failed: "行动失败，原记录保留", needs_review: "待核对，未知行动不重发" };
           outcomeMessage = `批次已保存${count}步记录：${labels[text(result.status)] ?? "请核对原批次状态"}。` + text(stop.reason, "") + " 没有自动扩大授权或生成下一批次。";
           failed = pending.uncertain || result.status === "failed";
+        }
+        if (pending.command === "advance-recipe") {
+          pending.uncertain = result.status === "needs_review"; failed = pending.uncertain || result.status === "failed";
+          outcomeMessage = result.status === "waiting" ? "本次配方等待已保存，没有新行动；选择规则未调用模型。"
+            : result.status === "completed" ? "配方已推进一步并保存实际反馈；选择规则未调用模型。"
+              : "配方请求已保存，请核对实际行动和原请求状态；没有自动继续。";
+        }
+        if (modelCommand) {
+          const record = obj(result.model_record), outcome = obj(record.outcome), state = text(record.status, ""), actual = text(outcome.status, "尚未提交行动");
+          const labels: Record<string, string> = { completed: "已完成", waiting: "已保存等待", failed: "失败，原记录保留", unknown: "未知，保留原请求核对" };
+          pending.uncertain = ["sending", "unknown", "received", "prepared"].includes(state) || actual === "unknown";
+          failed = pending.uncertain || ["invalid", "stale", "failed"].includes(state) || actual === "failed";
+          outcomeMessage = state === "applied" ? `模型选择已保存，原控制器结果：${labels[actual] ?? actual}。请查看本次理由、实际行动与用量。`
+            : `模型请求${state === "stale" ? "已过期" : state === "invalid" ? "回答未通过校验" : "未完成"}，原始记录已保留。请核对原请求；没有自动重发。`;
         }
         if (pending.command === "create") {
           lastCreatedProject = text(result.project_id, "");

@@ -5,6 +5,7 @@ import hashlib
 import socket
 import re
 import secrets
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
@@ -16,11 +17,30 @@ from .project_controller import ProjectController
 from .project_selection import seal_context
 from .project_selection_view import selection_view, read_selection_request
 from .research_project import ResearchProject, safe_path
+from .host_model_report import host_model_report_current
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
 MAX_REPORT_TOTAL_BYTES = 128 * 1024 * 1024
 MAX_LOCAL_REQUEST_BYTES = 12 * 1024 * 1024
 MAX_LOCAL_EVIDENCE_REQUEST_BYTES = 90 * 1024 * 1024
+_RESTART_REQUIRED_MESSAGE = "Workbench code changed after startup; restart this service before previews or local commands."
+
+
+def _runtime_sources():
+    """Snapshot only project Python modules already imported when the server starts."""
+    package = Path(__file__).resolve().parent
+    paths = {Path(module.__file__).resolve() for name, module in tuple(sys.modules.items())
+             if (name == "autoresearch" or name.startswith("autoresearch."))
+             and isinstance(getattr(module, "__file__", None), str)}
+    return {path: path.read_bytes() for path in paths if path.suffix == ".py" and path.is_relative_to(package)}
+
+
+def _require_runtime_current(sources):
+    try:
+        unchanged = all(path.read_bytes() == original for path, original in sources.items())
+    except OSError:
+        unchanged = False
+    _require(unchanged, "WORKBENCH_RESTART_REQUIRED", _RESTART_REQUIRED_MESSAGE)
 
 
 def _local_body(raw):
@@ -95,7 +115,9 @@ def _projection(project, state, report=None):
     if report is not None:
         try:
             manifest = _report_manifest(report)
-            capability["stale"] = manifest["project_snapshot_ref"] != state["snapshot_ref"]
+            capability["stale"] = (manifest["project_id"] != state["id"]
+                                   or manifest["project_snapshot_ref"] != state["snapshot_ref"]
+                                   or not host_model_report_current(project.root, manifest))
             if manifest["project_id"] == state["id"] and not capability["stale"]:
                 for filename in manifest["files"]:
                     _report_bytes(report, manifest, filename)
@@ -123,8 +145,9 @@ def check_project_workbench(*, workspace, bundle=None, report=None):
     project, snapshot, state = _binding(workspace, bundle)
     if report is not None:
         manifest = _report_manifest(report)
-        _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"],
-                 "REPORT_STALE", "Report is not bound to the current project snapshot.")
+        _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"]
+                 and host_model_report_current(project.root, manifest),
+                 "REPORT_STALE", "Report is not bound to the current project and host-model snapshots.")
         for filename in manifest["files"]:
             _report_bytes(report, manifest, filename)
     return {"ok": True, "project_id": state["id"], "run_id": state["run_id"],
@@ -254,10 +277,15 @@ def _evidence_task_view(project, before):
 
 
 def create_project_server(*, workspace=None, bundle=None, report=None, port=18785,
-                          local_workspace=None, allow_local_actions=False):
+                          local_workspace=None, allow_local_actions=False, claude_executable=None):
     _require(type(port) is int and 0 <= port <= 65535, "INVALID_PORT", "Use a local port from 0 to 65535.")
     _require(type(allow_local_actions) is bool and (not allow_local_actions or local_workspace is not None),
              "INVALID_REQUEST", "Local actions require an explicit local workspace.")
+    _require(claude_executable is None or (allow_local_actions and local_workspace is not None
+             and isinstance(claude_executable, (str, Path)) and Path(claude_executable).is_file()),
+             "INVALID_REQUEST", "A host-selected existing Claude executable requires enabled local actions.")
+    if claude_executable is not None:
+        claude_executable = str(Path(claude_executable).absolute())
     if local_workspace is None:
         project, iteration_snapshot, state = _binding(workspace, bundle)
         if report is not None:
@@ -266,6 +294,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
         _require(workspace is None and bundle is None and report is None, "INVALID_REQUEST",
                  "Local intake uses its own managed projects; sealed or external projects stay read-only.")
         project, iteration_snapshot = None, None
+    runtime_sources = _runtime_sources()
     csrf_token = secrets.token_urlsafe(32) if allow_local_actions else None
 
     def binding():
@@ -308,9 +337,12 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 commands = {"/api/local-workbench/create": "create", "/api/local-workbench/select": "select",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
-                            "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch"}
+                            "/api/local-workbench/advance-recipe": "advance_recipe",
+                            "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
+                            "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume"}
                 _require(not parsed.scheme and not parsed.netloc and not parsed.query and not parsed.fragment
                          and parsed.path in commands, "INVALID_REQUEST", "Select a supported local command route.")
+                _require_runtime_current(runtime_sources)
                 _require(self.headers.get_all("Transfer-Encoding", []) == []
                          and self.headers.get_all("Content-Encoding", []) == []
                          and len(self.headers.get_all("Content-Type", [])) == 1
@@ -326,15 +358,23 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 raw = self.rfile.read(length)
                 _require(len(raw) == length, "INVALID_REQUEST", "The complete request body was not received.")
                 body = _local_body(raw)
-                result = getattr(local_workspace, commands[parsed.path])(body)
+                command = commands[parsed.path]
+                if command in ("model_advance", "model_resume"):
+                    _require(claude_executable is not None, "MODEL_DISABLED", "Host model selection was not enabled.")
+                    result = getattr(local_workspace, command)(body, executable=claude_executable)
+                else:
+                    result = getattr(local_workspace, command)(body)
                 return self.send_json(200, result)
             except ResearchError as error:
                 self.close_connection = True
-                status = (403 if error.code == "LOCAL_ORIGIN_REQUIRED" else 413 if error.code in {"INPUT_TOO_LARGE", "SOURCE_TOO_LARGE"}
+                status = (405 if error.code == "MODEL_DISABLED" else 403 if error.code == "LOCAL_ORIGIN_REQUIRED" else 413 if error.code in {"INPUT_TOO_LARGE", "SOURCE_TOO_LARGE"}
                           else 409 if error.code in {"STALE_STATE", "STALE_SELECTION_CONTEXT", "STALE_ACTIVE_PROJECT", "PROJECT_BUSY",
                               "EXECUTION_UNKNOWN", "BUDGET_EXHAUSTED", "CODE_CHANGED", "CONFIG_CHANGED", "IDEMPOTENCY_CONFLICT",
-                              "CONDITION_NOT_SATISFIED", "INTAKE_INCOMPLETE", "REPORT_INCOMPLETE", "OPERATION_INCOMPLETE", "PROJECT_LIMIT"} else 400)
-                return self.project_error(status, error.code, "Local command rejected; saved inputs and execution history were preserved.")
+                              "CONDITION_NOT_SATISFIED", "INTAKE_INCOMPLETE", "REPORT_INCOMPLETE", "OPERATION_INCOMPLETE", "PROJECT_LIMIT",
+                              "HOST_GRANT_CHANGED", "HOST_DECISION_LIMIT", "HOST_SELECTION_PENDING", "HOST_USAGE_UNKNOWN",
+                              "HOST_CLI_BUDGET_EXHAUSTED", "NO_HOST_CANDIDATES", "WORKBENCH_RESTART_REQUIRED"} else 400)
+                return self.project_error(status, error.code, _RESTART_REQUIRED_MESSAGE if error.code == "WORKBENCH_RESTART_REQUIRED"
+                                          else "Local command rejected; saved inputs and execution history were preserved.")
             except (TimeoutError, ConnectionError):
                 self.close_connection = True
                 return self.project_error(408, "INCOMPLETE_REQUEST", "The bounded local request was not completed.")
@@ -349,6 +389,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
+                if parsed.path in {"/api/project/selection-context.json", "/api/local-workbench/recipes", "/api/project/knowledge"}:
+                    _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
                 if parsed.path in web_routes:
@@ -363,6 +405,12 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 if parsed.path == "/api/local-workbench" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Workspace metadata does not accept a query.")
                     return self.send_json(200, {**local_workspace.describe(), "enabled": allow_local_actions, "csrf_token": csrf_token})
+                if parsed.path == "/api/local-workbench/model" and local_workspace is not None:
+                    _require(not parsed.query, "INVALID_QUERY", "Model journal does not accept a query.")
+                    return self.send_json(200, local_workspace.model_view(enabled=claude_executable is not None))
+                if parsed.path == "/api/local-workbench/recipes" and local_workspace is not None:
+                    _require(not parsed.query, "INVALID_QUERY", "Recipe previews do not accept a query.")
+                    return self.send_json(200, local_workspace.recipes())
                 if parsed.path.startswith("/api/local-workbench/batch/") and local_workspace is not None:
                     _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved batch JSON identifier.")
                     encoded = parsed.path.removeprefix("/api/local-workbench/batch/")[:-5]
@@ -440,7 +488,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     _require(report is not None, "ARTIFACT_NOT_FOUND", "No current report is mounted.")
                     state = _bound_state(project, iteration_snapshot)
                     manifest = _report_manifest(report)
-                    _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"],
+                    _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"]
+                             and host_model_report_current(project.root, manifest),
                              "REPORT_STALE", "The mounted report is not current.")
                     filename = parsed.path.rsplit("/", 1)[-1]
                     mime = "application/pdf" if filename.endswith(".pdf") else "text/markdown; charset=utf-8" if filename.endswith(".md") else "application/json; charset=utf-8"
@@ -459,10 +508,11 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     return self.project_error(404, "PROJECT_ROUTE_NOT_FOUND", "Unknown read-only project route.")
                 return super().do_GET()
             except ResearchError as error:
-                status = (409 if error.code in {"REPORT_STALE", "STALE_STATE", "TASK_NOT_AVAILABLE"} else 400 if error.code in {"INVALID_QUERY", "INVALID_REQUEST"}
+                status = (409 if error.code in {"REPORT_STALE", "STALE_STATE", "TASK_NOT_AVAILABLE", "WORKBENCH_RESTART_REQUIRED"} else 400 if error.code in {"INVALID_QUERY", "INVALID_REQUEST"}
                           else 404 if error.code in {"ARTIFACT_NOT_FOUND", "ARTIFACT_NOT_AVAILABLE", "PROJECT_NOT_FOUND"} else 500)
                 # Error messages are fixed here; an OS/SQL exception never exposes local paths.
                 return self.project_error(status, error.code,
+                                          _RESTART_REQUIRED_MESSAGE if error.code == "WORKBENCH_RESTART_REQUIRED" else
                                           "Project query rejected." if status < 500 else "Bound project data could not be read or verified.")
             except Exception:
                 return self.project_error(500, "PROJECT_READ_FAILED", "Project data or current web assets could not be read or verified.")

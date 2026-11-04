@@ -43,3 +43,12 @@ frontend/node_modules/
 !.agent/skills/agentarts-china-builder/references/
 .agent/skills/agentarts-china-builder/references/*
 !.agent/skills/agentarts-china-builder/references/browser-notes.md
+
+# Local planning, progress and team coordination documents.
+/docs/plan.md
+/docs/current-progress.md
+/docs/research/adaptive-research.md
+/docs/research/product-story.md
+/docs/team-handoff.md
+/docs/teammate-pipeline-brief.md
+/docs/data-candidates.md

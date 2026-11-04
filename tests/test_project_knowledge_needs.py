@@ -1,4 +1,4 @@
-"""One real FTS/controller check over fixture source text; no research dispatch."""
+"""Bounded lookup checks over fixture source text; no models or external calls."""
 
 import base64
 import copy
@@ -69,6 +69,70 @@ class ProjectKnowledgeNeedsTests(unittest.TestCase):
             self.assertEqual(project_knowledge.decision_needs({"registration": {"method_id": "software.source-integrity-check"}})["interpretation"],
                              "mutation file identity filesystem")
             self.assertEqual(project_knowledge.decision_needs({})["interpretation"], "CropRed NaN batch export mapping")
+
+    def test_latest_source_question_reaches_saved_and_controller_context_without_reindexing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            manager = LocalWorkbench(Path(temporary) / "workbench")
+            manager.create(fixtures.LocalWorkbenchTests.create_body(self))
+            project, _ = manager.binding()
+            project.step(request_id="quality")
+            with project._writer(), project._connect() as con:
+                saved = project._project(con)
+                saved["next_decision"]["remaining_questions"] = ["Previous98?"]
+                project._save(con, saved)
+            question = "Does Factor47 occur?"
+            original = canonical({"padding": "padding " * 350, "ref": "C19", "field": "Factor", "value": 47})
+            raw, locator = original.encode("utf-8"), {"kind": "text_lines", "value": "1"}
+            self.assertGreater(original.index('"ref":"C19"'), 1400)
+            digest = hashlib.sha256(raw).hexdigest()
+            bundle = Path(temporary) / "bundle"
+            (bundle / "sources").mkdir(parents=True)
+            (bundle / "sources/current.txt").write_bytes(raw)
+            manifest = {"schema_version": "project-evidence-bundle-v1", "task_ref": project.evidence_task()["task_ref"],
+                "contributor": {"role": "operator_assistant", "label": "Current-question fixture"},
+                "sources": [{"id": "original", "path": "sources/current.txt", "sha256": digest,
+                    "url": "urn:test:separate-field-value", "media_type": "text/plain", "license_note": "Fixture only"}],
+                "selections": [{"id": "current-question", "source_id": "original", "locator": locator,
+                    "claim": "Unreviewed saved field/value pair"}], "remaining_questions": [question]}
+            (bundle / "manifest.json").write_text(canonical(manifest), encoding="utf-8")
+            registered = project.register_evidence(request_id="register-current", bundle=bundle)
+            action = project.read_evidence(request_id="read-current", receipt_snapshot_sha256=registered["receipt_snapshot_sha256"])
+            self.assertEqual(action["status"], "completed")
+            state = project.status()
+            need = project_knowledge.decision_needs(state)["interpretation"]
+            self.assertEqual(need, question + " Factor 47")
+            self.assertEqual(project_knowledge.query(project.root, state, need=question)["evidence"], [])
+            completion = next(item for item in state["next_decision"]["knowledge_contexts"]
+                              if item["decision_point"] == "interpretation")
+            self.assertEqual(completion["need"], need)
+            hit = next(item for item in completion["evidence"] if '"ref":"C19"' in item["quote"])
+            self.assertIn(hit["quote"], original)
+            self.assertIn('"ref":"C19"', hit["quote"])
+            self.assertIn('"value":47', hit["quote"])
+            self.assertEqual(hit["source"]["sha256"], digest)
+            self.assertEqual(hit["source"]["metadata"]["locator"], locator)
+            self.assertEqual(hit["location"], {"line_start": 1, "line_end": 1})
+            frozen_files = {str(path): path.read_bytes() for path in (project.root / "knowledge").rglob("*") if path.is_file()}
+            context = ProjectController(project.root).selection_context()
+            selected = next(item for item in context["evidence"] if item["citation_id"] == hit["citation_id"])
+            self.assertEqual(selected["quote"], hit["quote"])
+            self.assertEqual(project.status(), state)
+            self.assertEqual({str(path): path.read_bytes() for path in (project.root / "knowledge").rglob("*") if path.is_file()}, frozen_files)
+
+            # Skip an unusable question whole; preserve a bounded literal when aliases cannot fit.
+            fallback_state = copy.deepcopy(state); fallback_state["next_decision"]["remaining_questions"] = []
+            fallback = project_knowledge.decision_needs(fallback_state)
+            for questions, expected in ((["", "?", "x" * 513, " ".join("item" + str(i) for i in range(65)), question], need),
+                                        (["x" * 504 + "Factor47"], "x" * 504 + "Factor47"),
+                                        (["x" * 513], fallback["interpretation"]),
+                                        (["Factor47 Factor47"], "Factor47 Factor47 Factor 47")):
+                variant = copy.deepcopy(state); variant["next_decision"]["remaining_questions"] = questions
+                needs = project_knowledge.decision_needs(variant)
+                self.assertEqual(needs["interpretation"], expected)
+                self.assertLessEqual(len(expected), 512)
+                self.assertLessEqual(len(set(knowledge.tokens(expected))), 64)
+                for point in ("clarification", "design", "preparation"):
+                    self.assertEqual(needs[point], fallback[point])
 
 
 if __name__ == "__main__":

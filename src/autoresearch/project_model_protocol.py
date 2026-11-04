@@ -23,6 +23,52 @@ def _require(condition, code, message):
         raise ResearchError(code, message)
 
 
+def native_protocol_support(shown, *, think=False):
+    """Check native declarations, not rendered prompts or generated tool output."""
+    _require(type(think) is bool, "INVALID_REQUEST", "The fixed thinking setting must be a JSON boolean.")
+    shown = shown if type(shown) is dict else {}
+    capabilities = shown.get("capabilities")
+    declared = (type(capabilities) is list
+                and all(type(item) is str and bool(item.strip()) for item in capabilities))
+    tools = declared and "tools" in capabilities
+    reasons, values, supported = [], [], None
+    if not declared:
+        reasons.append("NATIVE_CAPABILITIES_UNVERIFIED")
+    elif not tools:
+        reasons.append("NATIVE_TOOLS_NOT_DECLARED")
+
+    if declared and "thinking" in capabilities:
+        thinking = shown.get("thinking")
+        raw_values = thinking.get("values") if type(thinking) is dict else None
+        verified_values = (type(raw_values) is list and 0 < len(raw_values) <= 16
+                           and all(type(item) is bool or
+                                   (type(item) is str and 0 < len(item) <= 64 and bool(item.strip())
+                                    and "\x00" not in item) for item in raw_values))
+        if not verified_values:
+            reasons.append("THINKING_VALUES_UNVERIFIED")
+        else:
+            values = copy.deepcopy(raw_values)
+            supported = any(type(item) is bool and item is think for item in values)
+            if not supported:
+                reasons.append("THINK_SETTING_UNSUPPORTED")
+    elif declared:
+        if think is False:
+            reasons.append("THINK_SETTING_NOT_APPLICABLE")
+        else:
+            supported = False
+            reasons.append("THINK_SETTING_UNSUPPORTED")
+
+    template = shown.get("template")
+    observed = (type(template) is str and ".Tools" in template
+                and (".ToolCalls" in template or "<tool_call>" in template))
+    compatible = bool(tools and (supported is True or "THINK_SETTING_NOT_APPLICABLE" in reasons))
+    return {"status": "compatible" if compatible else "incompatible", "reason_codes": reasons,
+            "requested_think": think, "declared_thinking_values": values,
+            "native_tools_declared": bool(tools), "thinking_setting_supported": supported,
+            "tool_template_observed": observed, "rendered_prompt_verified": False,
+            "native_tool_output_verified": False}
+
+
 def validate_transport_identity(identity):
     fields = {"schema_version", "transport", "model", "publisher_manifest_sha256", "executable_sha256", "cloud_disabled"}
     _require(type(identity) is dict and set(identity) == fields

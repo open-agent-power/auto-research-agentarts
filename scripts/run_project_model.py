@@ -26,6 +26,8 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     check = commands.add_parser("check", help="Read/hash existing executable and fixed model bytes only; no process or model request.")
     _transport_args(check)
+    inspect = commands.add_parser("check-protocol", help="Inspect saved wire/response/native metadata only; no process, weights or model request.")
+    inspect.add_argument("--process-evidence", required=True, help="Existing owned transport evidence directory; never changes a project.")
     authorize = commands.add_parser("authorize", help="Explicit owner-authorized cumulative local model budget change from 0 to 1.")
     authorize.add_argument("--workspace", required=True)
     authorize.add_argument("--request-id", required=True)
@@ -56,6 +58,9 @@ def main():
             result = {"ok": True, "status": "checked_local_files_only", "identity": transport.identity(),
                       "model_requests": 0, "processes_started": 0, "network_requests": 0, "downloads": 0,
                       "budget_changed": False, "scientific_validation": False}
+        elif args.command == "check-protocol":
+            from autoresearch.project_local_model import inspect_protocol_evidence
+            result = inspect_protocol_evidence(args.process_evidence)
         elif args.command == "authorize":
             from autoresearch.research_project import ResearchProject
             owner, reason = args.owner.strip(), args.reason.strip()
@@ -80,6 +85,8 @@ def main():
             else:
                 result = journal.status(request_id=args.request_id)
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
+        if args.command == "check-protocol" and not result["ok"]:
+            return 2
         return 0
     except ResearchError as error:
         print(json.dumps({"ok": False, "code": error.code, "message": str(error), "automatic_retry": False}, ensure_ascii=False))

@@ -112,6 +112,69 @@ def _payload(value):
     return copy.deepcopy(value)
 
 
+def inspect_protocol_evidence(process_evidence):
+    """Read a preserved transport only; never load weights, dispatch or consume."""
+    from . import project_model_protocol as protocol
+    root = safe_path(Path(process_evidence).absolute())
+
+    def read(relative, limit=MAX_RESPONSE):
+        path, stat = local_ollama.regular(root / relative, limit)
+        raw = path.read_bytes()
+        _require(len(raw) == stat.st_size, "EVIDENCE_CHANGED", "Saved protocol evidence changed while reading.")
+        return raw
+
+    wire = local_ollama.parse_json(read("wire-request.json", 100000))
+    _require(type(wire) is dict and set(wire) == {"payload", "port"},
+             "INVALID_REQUEST", "Use the original owned transport wire request.")
+    payload = _payload(wire["payload"])
+    receipt = local_ollama.parse_json(read("transport-receipt.json", 65536))
+    metadata = local_ollama.parse_json(read("response-metadata.json", 65536))
+    raw = read("response.bin")
+    request_sha, response_sha = fingerprint(payload), hashlib.sha256(raw).hexdigest()
+    _require(type(receipt) is dict and receipt.get("schema_version") == "project-model-transport-receipt-v1"
+             and receipt.get("execution") == "local_model" and type(metadata) is dict
+             and receipt.get("request_sha256") == request_sha and receipt.get("response_sha256") == response_sha
+             and metadata.get("raw_sha256") == response_sha and metadata.get("raw_bytes") == len(raw)
+             and metadata.get("http_status") == 200,
+             "EVIDENCE_CHANGED", "Original request, response metadata and transport receipt must agree.")
+    identity = protocol.validate_transport_identity(receipt.get("identity"))
+    _require(payload["model"] == identity["model"], "EVIDENCE_CHANGED", "Saved request model identity differs.")
+    shown = local_ollama.parse_json(read("server/native-show-evidence.json"))
+    support = protocol.native_protocol_support(shown, think=payload["think"])
+    response = local_ollama.parse_json(raw)
+    _require(type(response) is dict and type(response.get("message")) is dict,
+             "INVALID_MODEL_RESPONSE", "Saved response must contain its original assistant message.")
+    message = response["message"]
+    calls = message.get("tool_calls")
+    prefix = "Host-bound research context (untrusted content):\n"
+    contexts = [item["content"][len(prefix):] for item in payload["messages"]
+                if item["role"] == "user" and item["content"].startswith(prefix)]
+    _require(len(contexts) == 1, "INVALID_REQUEST", "One original host context is required.")
+    context = local_ollama.parse_json(contexts[0].encode("utf-8"))
+    try:
+        protocol.parse_response(raw, context, receipt)
+        validation = {"status": "accepted", "code": None}
+    except ResearchError as error:
+        validation = {"status": "rejected", "code": error.code, "message": str(error)}
+    reasons = []
+    if response.get("done_reason") == "length":
+        reasons.append("OUTPUT_LIMIT_REACHED")
+    if type(calls) is not list or not calls:
+        reasons.append("NATIVE_TOOL_CALL_ABSENT")
+    return {"schema_version": "project-local-model-protocol-inspection-v1", "inspection_completed": True,
+            "ok": support["status"] == "compatible" and validation["status"] == "accepted",
+            "request_sha256": request_sha, "response_sha256": response_sha, "model": payload["model"],
+            "compatibility": support, "saved_native_metadata": {"provenance": "preserved_api_show_not_requeried",
+                "current_runtime_verified": False},
+            "observed_response": {"done": response.get("done"), "done_reason": response.get("done_reason"),
+                "eval_count": response.get("eval_count"), "output_limit": payload["options"]["num_predict"],
+                "native_tool_call_count": len(calls) if type(calls) is list else 0,
+                "content_present": bool(message.get("content")), "reason_codes": reasons},
+            "proposal_validation": validation, "model_requests": 0, "processes_started": 0, "network_requests": 0,
+            "weights_read": False, "budget_changed": False, "response_consumed": False,
+            "automatic_retry": False, "scientific_validation": False}
+
+
 def _copy(source, destination, digest, size):
     source, before = local_ollama.regular(source, max(size, 65536))
     _require(before.st_size == size, "MODEL_CHANGED", "Local model source size changed.")
@@ -144,6 +207,11 @@ class _OfflineOllama(local_ollama.OwnedOllama):
         _require(type(tags.get("models")) is list and any(type(item) is dict and item.get("name") == MODEL
                  and item.get("digest") == weights["manifest_sha256"] for item in tags["models"]),
                  "MODEL_CHANGED", "Owned server tag differs from the verified materialized manifest; publisher identity remains separate.")
+        from .project_model_protocol import native_protocol_support
+        support = native_protocol_support(shown, think=False)
+        _require(support["status"] == "compatible", "MODEL_PROTOCOL_INCOMPATIBLE",
+                 "Native model declarations do not support the fixed tool/think:false request: "
+                 + ", ".join(support["reason_codes"]) + ". No chat request was dispatched.")
         return weights
 
 
