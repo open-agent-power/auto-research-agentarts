@@ -75,9 +75,17 @@ S01原件的`/case_directory`明确指向D盘任务自有目录`runs/s01-source-
 
 新的默认context共5条，包含两次历史运行的区分及历史缺字段记录，候选与阻塞均为空；不是全部当前OS段都已进入默认top5。A47没有重跑S01探针、真实追加或旧实验，没有调用模型、启动服务或建立新测试环境。
 
+## A48：v31当前报告与完整核对包
+
+已从原软件项目v31只读导出一份当前报告，核心与宿主快照匹配，项目及模型记录未变。6页PDF已逐页实看；27处完整选区和38个捕获资产均保留在JSON，附件逐字节对应原项目。A47首次UNSUPPORTED_LOCATOR失败与修正后9选区、A34原CLI失败及0.124035USD报告估值均保留。
+
+当前阅读使用[v31 PDF](../runs/a48-current-software-report-20261104/report/report.pdf)，原字节与完整字段使用[v31完整核对包](../runs/a48-current-software-report-20261104/software-review-v31.zip)，包内同层包含PDF、Markdown、report/input JSON、manifest和[核对指南](../runs/a48-current-software-report-20261104/report/review-guide.md)。本机分发副本位于工作区`outputs/auto-research/软件案例/2026-11-04/`。核对记录见[A48验证](../runs/a48-current-software-report-20261104/report-validation.json)。
+
+本轮没有新增研究、来源、模型、拟合或服务操作，未自动挂载为网页当前报告。PDF仍采用既有节选与分节分页，第4页有较大留白；没有裁切或重叠，完整文字以JSON为准。首次只读核对器的单行选区解析错误及修正记录保留，未因此重导报告。A41包继续作为v21历史证据。
+
 ## A41历史报告与核对入口
 
-A41当时从原软件项目v21导出资料，导出时核心快照与宿主快照均与原项目一致，状态和模型日志未改变；原A34报告当时的核心快照已过期，见[导出前状态](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/before.json)。A47后核心已到v31，A41的v21包不含本次来源、核心快照已过期，宿主模型记录保持原样。本轮未重导PDF，也未另交v31补件ZIP；下一步从v31导出完整报告，A41包继续作为历史证据。
+A41当时从原软件项目v21导出资料，导出时核心快照与宿主快照均与原项目一致，状态和模型日志未改变；原A34报告当时的核心快照已过期，见[导出前状态](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/before.json)。A47后核心已到v31，A41的v21包不含本次来源、核心快照已过期，宿主模型记录保持原样。A47未重导PDF或另交v31补件ZIP；A48现已导出v31完整报告，见上节。A41包继续作为历史证据。
 
 历史阅读入口为[v21 PDF](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/report.pdf)；逐项核对使用[report.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/report.json)、[input.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/input.json)和[文件身份清单](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/report/manifest.json)。具体字段路径见[队友核对指南](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a41-current-software-report-20261104/review-guide.md)。
 
