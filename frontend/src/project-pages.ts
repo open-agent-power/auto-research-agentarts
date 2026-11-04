@@ -39,7 +39,7 @@ export function createProjectPages(host: HTMLElement, options: {
     link.append(el("span", "nav-icon", icons[page]), el("span", "", labels[page])); nav.append(link);
   }
   const brand = document.querySelector<HTMLAnchorElement>(".brand"); if (brand) brand.href = "#/overview";
-  let current: Obj = {}, reportToken = 0, activePage: ActiveProjectPage | null = null;
+  let current: Obj = {}, reportToken = 0, requestedReportToken = -1, activePage: ActiveProjectPage | null = null;
   const bookmarks = new Map<ActiveProjectPage, number>();
   function route(): void {
     const key = location.hash.split("?")[0].slice(2), page: ActiveProjectPage = Object.hasOwn(labels, key) ? key as ActiveProjectPage : "overview";
@@ -52,12 +52,14 @@ export function createProjectPages(host: HTMLElement, options: {
     }
     activePage = page; document.title = labels[page] + " · 空间研究";
     if (page === "research") flow.activate();
+    if (page === "outputs") void report(current, reportToken);
     requestAnimationFrame(() => window.scrollTo({ top: bookmarks.get(page) ?? 0, behavior: "instant" }));
   }
   window.addEventListener("hashchange", route); route();
   async function report(project: Obj, token: number): Promise<void> {
     const target = content.get("outputs")!, capability = object(project.report);
-    if (capability.available !== true || capability.stale === true) return;
+    if (capability.available !== true || capability.stale === true || requestedReportToken === token) return;
+    requestedReportToken = token;
     const reader = el("article", "project-report-reader content-section"); reader.append(el("p", "notice", "正在读取当前报告正文…")); target.prepend(reader);
     try {
       const value = await options.read("/api/project/report.json");
@@ -81,7 +83,7 @@ export function createProjectPages(host: HTMLElement, options: {
     }
     manage.open = !project.id;
     flow.update(project); if (activePage === "research") flow.activate();
-    await report(project, token);
+    if (activePage === "outputs") await report(project, token);
   }
   return { update };
 }
