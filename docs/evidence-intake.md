@@ -1,8 +1,10 @@
-# 单入口接收回传证据
+# 接收已封存任务的回传证据
 
 `scripts/intake_evidence.py` 将填写好的取证目录接入同一个本地工作区：先绑定已封存交接任务和诊断，创建不可变证据收据，再把支持的定位准备为可供后续评议的片段。它不调用模型、不拟合、不新增模型预算，也不会执行来源文件中的内容。
 
 此入口面向已有的填写包；如何领取、填写来源与发现，见[取证返回填写包](evidence-return.md)。空白包不能直接作为真实证据提交。
+
+当前本地CSV研究项目的`research.source-selection`任务沿[工作台补充资料](local-workbench.md#在同一项目登记资料再明确读取)登记和读取，任务来自`GET /api/project/evidence-task.json`。不要把它改装为本入口的封存交接绑定，也不要复用其他项目的`task-binding.json`；两条既有路径的选择见[返回说明](evidence-return.md)。
 
 ## 开始与恢复
 
