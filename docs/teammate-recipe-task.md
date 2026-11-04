@@ -8,7 +8,9 @@
 
 配方模块、两份配置、编译脚本和原九项专项测试已有交付；A29 已接入主控制器，A30 已在五页工作台实际完成分组→读取作者来源→等待及原 ID 重放。具体范围见[接入记录](recipe-research/integration.md)。不需要再开发同一模块、重交 PR 1/2，或重跑人工 8 行夹具；这些工程记录还不能证明真实研究收益。
 
-2026-11-04 本轮只读核对：[PR #1](https://github.com/1263-ux/auto-research-agentarts/pull/1)仍 open，head 为 `03b08048`；依赖它的[PR #2](https://github.com/1263-ux/auto-research-agentarts/pull/2)仍 open，head 为 `13054f5`，与 A29 固定迁入版本一致。PR 1 无讨论，PR 2 只有 11 月 3 日旧夹具附件，没有新的领域反馈，也没有 PR 3。本地主线迁入与远端 PR 合并是两件事，保留现有依赖关系。
+2026-11-04 已按授权合并[PR #1](https://github.com/1263-ux/auto-research-agentarts/pull/1)和[PR #2](https://github.com/1263-ux/auto-research-agentarts/pull/2)，两者现均为 merged/closed；PR 2 从原依赖分支改为面向 main 后合并，原 head `03b08048/13054f5` 未变。远端 main 为 `61a79ed2ddf56f3654b633e30cd30a30b1e6b778`，内容与已检查的 PR 2 head 一致，原九项测试和 format/lint/typecheck 均通过。合并没有补出新的领域反馈。
+
+本机 A29–A48 开发仍未发布到远端；普通远端克隆不包含这些轮次新增的工作台能力或本机 `runs/`。本页当前说明、保存证据和取证包由主开发另行交接，不把远端配方原型当作本机完整产品。
 
 ## 先用已有材料，不重复索要
 
@@ -65,7 +67,7 @@
 
 ### 后续文档 PR
 
-资料先交接。共同主线同步、双方确认已经取得同一基线后，再从该主线独立开 `docs/` 分支，只改新的随访说明与来源索引；摘要写明出处、实际发现、下一决定与限制。不能直接把 `13054f5` 当当前主线，也不在 PR 2 上叠第三层 PR；原 PR 依赖保留，不自动 push/merge。
+资料先交接。后续取得并确认远端 main 的 `61a79ed2ddf56f3654b633e30cd30a30b1e6b778` 后，从该提交独立开 `docs/himsc-run-followup` 分支，只改新的随访说明与来源索引；摘要写明出处、实际发现、下一决定与限制。不要从旧 head `13054f5` 或已合并 PR 2 的分支继续叠 PR，不自动 push/merge；本机尚未发布的功能由主开发另行同步。
 
 本轮必要检查是文件/坐标能定位、样例与原记录一致，以及文档的 `git diff --check`；不用再跑旧测试或夹具。开发者仍遵守仓库强制 format/lint/typecheck，本轮由主开发统一执行，不要求资料队友搭开发环境。
 

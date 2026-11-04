@@ -53,11 +53,17 @@ $decisionVersion = $state.state_version
 
 ## 固定版本迁入与原实验记录
 
-本次从队友原型固定提交 [`13054f5cf5b948c2251b197bdb3805864dd71b61`](https://github.com/1263-ux/auto-research-agentarts/commit/13054f5cf5b948c2251b197bdb3805864dd71b61) 迁入配方模块、编译与验证脚本、专项测试、两份 JSON 及四份研究资料，共 10 个此前不存在的文件。共享文档入口及索引按主线现状增补，保留已有 A26–A28 的 CLI、工作台和模型报告能力。
+A29从队友原型固定提交 [`13054f5cf5b948c2251b197bdb3805864dd71b61`](https://github.com/1263-ux/auto-research-agentarts/commit/13054f5cf5b948c2251b197bdb3805864dd71b61) 迁入配方模块、编译与验证脚本、专项测试、两份 JSON 及四份研究资料，共 10 个此前不存在的文件。共享文档入口及索引按当时主线增补，保留已有 A26–A28 的 CLI、工作台和模型报告能力。
 
-上游说明见 [PR #1](https://github.com/1263-ux/auto-research-agentarts/pull/1)（固定 head `03b08048cd2ca0d9177cb2aeae72234d9cab70c8`）和依赖它的[原型 PR #2](https://github.com/1263-ux/auto-research-agentarts/pull/2)（固定 head `13054f5cf5b948c2251b197bdb3805864dd71b61`）。本地主线迁入不表示这两个远端 PR 已合并；本次未执行远端合并或推送。
+上游说明见 [PR #1](https://github.com/1263-ux/auto-research-agentarts/pull/1)（固定 head `03b08048cd2ca0d9177cb2aeae72234d9cab70c8`）和依赖它的[原型 PR #2](https://github.com/1263-ux/auto-research-agentarts/pull/2)（固定 head `13054f5cf5b948c2251b197bdb3805864dd71b61`）。A29当时仅在本地迁入，未执行远端合并或推送；这一历史事实不由后续合并改写。
 
 [experiment.md](experiment.md) 保存队友当时的记录：人工 8 行试点初次因来源路径 `UNSAFE_PATH` 失败，在同项目修正来源布局后续跑；原九项测试及前端环境门禁也有各自的原执行时间与边界。补件后的只读更新未另跑这些实验。该文件中“没有真实配方选择”的叙述属于队友原记录，本轮主线的新增实跑须单独记账，不覆盖或追认原失败为成功。
+
+## 2026-11-04：远端配方PR已合并
+
+后续已按授权将PR #1合并为`1a295132b6e3c39b043cf609372a58b5d1b15a50`，再将PR #2从原依赖分支改为面向main后合并；两PR均为merged/closed，原head未改变。远端main为[`61a79ed2ddf56f3654b633e30cd30a30b1e6b778`](https://github.com/1263-ux/auto-research-agentarts/commit/61a79ed2ddf56f3654b633e30cd30a30b1e6b778)，tree与原PR #2 head一致；原九项测试和format/lint/typecheck通过，见[合并核对](../../runs/pr-merge-20261104/merge-validation.json)。此记录不重写原夹具或A29/A30实验。
+
+队友后续从已取得并确认的远端main `61a79ed2ddf56f3654b633e30cd30a30b1e6b778`独立开文档分支。本机A29–A48新增的工作台接入及后续开发尚未发布到远端，ignored `runs/`也不随普通克隆分发；需要的当前说明和取证包由主开发另交。
 
 ## 本轮真实接入验证
 
