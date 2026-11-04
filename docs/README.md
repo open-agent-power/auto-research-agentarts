@@ -7,7 +7,7 @@
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
 - [开发者导航](../.agent/README.md)
-- [队友任务书：科研配方、资料补缺、PR 与实验](teammate-recipe-task.md)
+- [队友当前任务：B8S1 导出、零值与字段含义取证](teammate-recipe-task.md)；原科研配方任务保留在同页
 - [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)
 - [hiMSC 原件核对：59 条全零记录与 216 条化学编号差异](himsc-source-audit.md)
 - [Claude CLI 与子代理的真实选择/执行验证](external-model-validation.md)
