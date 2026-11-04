@@ -59,11 +59,11 @@ $claudeExe = 'C:/path/to/claude.exe'
 
 ### A43：原18793已重载
 
-2026-11-04，按用户“允许仅重启18793”的[授权](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/owner-approval.json)，原PID53184已停止，当前18793监听PID为41960，启动器PID为42864；沿用原root、端口与启动开关，模型保持关闭，模型接口返回`enabled=false`。18791仍为PID40736，未受本次重载影响。
+2026-11-04，按用户“允许仅重启18793”的[授权](../runs/a43-approved-workbench-reload-20261104/owner-approval.json)，原PID53184已停止，当前18793监听PID为41960，启动器PID为42864；沿用原root、端口与启动开关，模型保持关闭，模型接口返回`enabled=false`。18791仍为PID40736，未受本次重载影响。
 
-启动入口使用项目`.venv/Scripts/python.exe`，其底层解释器仍为原缓存Python。A39的原审批失败记录保留；本轮首次prepared启动也失败，替代PID23924因`ModuleNotFoundError: sklearn`退出，退出码为1。随后使用已有项目venv依赖恢复启动，未安装依赖。两次启动的区别见[首次退出记录](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/restart.exit.json)及[实际恢复结果](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/recovery-result.json)。
+启动入口使用项目`.venv/Scripts/python.exe`，其底层解释器仍为原缓存Python。A39的原审批失败记录保留；本轮首次prepared启动也失败，替代PID23924因`ModuleNotFoundError: sklearn`退出，退出码为1。随后使用已有项目venv依赖恢复启动，未安装依赖。两次启动的区别见[首次退出记录](../runs/a43-approved-workbench-reload-20261104/restart.exit.json)及[实际恢复结果](../runs/a43-approved-workbench-reload-20261104/recovery-result.json)。
 
-重载后HTTP选择上下文及证据与新进程直接读取结果一致。hiMSC仍为v36、本地2/2、来源5/8、宿主子代理输出1份；软件项目仍为v21，原宿主记录、18791管理器及用户已有修改保持不变。原A38报告ID返回`replayed=true`，四项HTTP下载与已发布原件字节一致，没有新增报告、模型、研究、拟合或来源行动。核对范围见[本轮验证记录](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/validation.json)；旧失败、费用unknown及科学边界继续保留。
+重载后HTTP选择上下文及证据与新进程直接读取结果一致。hiMSC仍为v36、本地2/2、来源5/8、宿主子代理输出1份；软件项目仍为v21，原宿主记录、18791管理器及用户已有修改保持不变。原A38报告ID返回`replayed=true`，四项HTTP下载与已发布原件字节一致，没有新增报告、模型、研究、拟合或来源行动。核对范围见[本轮验证记录](../runs/a43-approved-workbench-reload-20261104/validation.json)；旧失败、费用unknown及科学边界继续保留。
 
 ## 用模型选择并执行一步
 

@@ -92,17 +92,17 @@ A32 在同一项目成功读取上述新增作者标签证据一次，读取完�
 
 hiMSC v30的默认解释上下文没有返回`metadata-conflict`，但原索引中保留着该片段。同一冻结索引只读查询`Chem 28`能找回`iMSC_B8S1!A434:D436`，其中C434的保存值为28；原引用ID仍为`cea5e743b421551e51dce464c994dcf3189741182590b982045bbfbaff5ee342`。这次未发现引用窗口剪掉目标值：知识片段窗口为1400字符，解释引用上限为4000字符。
 
-保存的首个未决问题含`Chem0`和`Chem28`。原问题原样检索没有返回冲突片段；保留原问题并追加`Chem 0 / Chem 28`别名后，同一5条结果能包含原冲突引用；拼接宽泛的基础问题不能解决该缺口。查询对比见[query-comparison.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a37-source-quote-window-20261104/query-comparison.json)。默认查询的通用契约见[资料进入研究循环](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/docs/knowledge.md)，不为hiMSC硬编码字段或换码规则。
+保存的首个未决问题含`Chem0`和`Chem28`。原问题原样检索没有返回冲突片段；保留原问题并追加`Chem 0 / Chem 28`别名后，同一5条结果能包含原冲突引用；拼接宽泛的基础问题不能解决该缺口。查询对比见[query-comparison.json](../runs/a37-source-quote-window-20261104/query-comparison.json)。默认查询的通用契约见[资料进入研究循环](knowledge.md)，不为hiMSC硬编码字段或换码规则。
 
-原项目显式登记兼容代码后为v31，默认5条上下文已含上述原冲突引用与作者命名线索；quote、位置和原件SHA与冻结索引一致，三个索引未重建。升级原ID重放不改变状态，本地2/2、来源4/8和host日志保持原样，未追加模型、拟合或来源行动。3项定点检查与必要前端门禁通过，见[A37核对](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a37-source-quote-window-20261104/validation.json)。原A32报告随代码身份升级已过期，本轮没有重导PDF；旧服务尚未重启载入修复。
+原项目显式登记兼容代码后为v31，默认5条上下文已含上述原冲突引用与作者命名线索；quote、位置和原件SHA与冻结索引一致，三个索引未重建。升级原ID重放不改变状态，本地2/2、来源4/8和host日志保持原样，未追加模型、拟合或来源行动。3项定点检查与必要前端门禁通过，见[A37核对](../runs/a37-source-quote-window-20261104/validation.json)。原A32报告随代码身份升级已过期，本轮没有重导PDF；旧服务尚未重启载入修复。
 
 找回原文方便队员同时核对作者命名线索与原始冲突；它不消除Chem 0与28的版本和逐行对应疑问，不修改任何零值、编号或原表，也不构成科学批准。
 
 ## A38：已保存的导出配置，尚缺实际运行连接
 
-作者归档的[`hMSC_Analysis.cpproj`原件](https://data.mendeley.com/public-files/datasets/57nrc49stj/files/9ba7a96b-c903-4e9c-b8d7-30681b57f192/file_downloaded)含已保存的`ExportToSpreadsheet`配置。该父文件为1,718,802字节，在字节偏移475730与507314各有一段相同的31,568字节ASCII文本；本次取第一段，仅将字面`\n`转换为换行，其他转义保持原样。完整父文件身份、区段和配置记录见[projection.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/projection.json)。没有反序列化HDF，也未启动CellProfiler或执行作者源码。
+作者归档的[`hMSC_Analysis.cpproj`原件](https://data.mendeley.com/public-files/datasets/57nrc49stj/files/9ba7a96b-c903-4e9c-b8d7-30681b57f192/file_downloaded)含已保存的`ExportToSpreadsheet`配置。该父文件为1,718,802字节，在字节偏移475730与507314各有一段相同的31,568字节ASCII文本；本次取第一段，仅将字面`\n`转换为换行，其他转义保持原样。完整父文件身份、区段和配置记录见[projection.json](../runs/a38-delegated-source-20261104/projection.json)。没有反序列化HDF，也未启动CellProfiler或执行作者源码。
 
-投影文本[372–395行](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/bundle/sources/pipeline-static.txt:372)保存的设置为：
+投影文本[372–395行](../runs/a38-delegated-source-20261104/bundle/sources/pipeline-static.txt#L372)保存的设置为：
 
 | 设置 | 保存值 |
 |---|---|
@@ -112,13 +112,13 @@ hiMSC v30的默认解释上下文没有返回`metadata-conflict`，但原索引�
 | `Representation of Nan/Inf` | `NaN` |
 | 文件名前缀 | `B10Pos` |
 
-这些配置此前已经归档，A38将其作为明确标注的派生文本资料，新登记到同一hiMSC项目v32，形成合法来源候选；登记内容与选区见[资料包清单](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/bundle/manifest.json)，转换方法与父文件出处另存于[provenance.txt第1–10行](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/bundle/sources/provenance.txt:1)。这份资料约束了零值解释需要核对的环节：保存设置写的是`NaN`和`B10Pos`，若要解释B8S1的Count及双强度为0，仍需对应的真实运行、导出和工作簿转换记录。
+这些配置此前已经归档，A38将其作为明确标注的派生文本资料，新登记到同一hiMSC项目v32，形成合法来源候选；登记内容与选区见[资料包清单](../runs/a38-delegated-source-20261104/bundle/manifest.json)，转换方法与父文件出处另存于[provenance.txt第1–10行](../runs/a38-delegated-source-20261104/bundle/sources/provenance.txt#L1)。这份资料约束了零值解释需要核对的环节：保存设置写的是`NaN`和`B10Pos`，若要解释B8S1的Count及双强度为0，仍需对应的真实运行、导出和工作簿转换记录。
 
 尚未建立这份保存配置与B8S1实际运行的对应，不能据此写成“导出把NaN变成0”，也不能批准ALP通道身份或Chem 0→28换码。CellsGreen／CellsRed／Image导出与B8S1、图像对象、Series／Row及单位的唯一连接仍需原始记录。
 
 A38随后实际派发一个子代理，只向其提供冻结context/prompt。原回答引用作者汇总标签、Fig.2操作者视觉记录和来源核对摘要三项，选择唯一合资格来源；未直接引用C434单元格本体，不能据此推断内部注意力或完整证据使用。原回答未经改写导入，再由原控制器完成两份选区读取，项目至v36、来源5/8、本地2/2。新导出设置已进入下一context，目前无新候选；四个原ID核对没有新增调用、行动或状态。
 
-当前[8页报告](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/downloads/report.pdf)已逐页看图，30份捕获附件逐字节核对，四个18793下载均与发布文件相同。报告纳入原回答、冻结引用、控制器结果与用量；子代理内部模型/次数/费用仍unknown，核心导入声明仍为`execution_verified=false`。协作工具实际派发记录另见[dispatch.json](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/dispatch.json)与[本轮核对](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a38-delegated-source-20261104/validation.json)。本轮没有调用CLI、拟合、重跑旧数值实验或重启服务。
+当前[8页报告](../runs/a38-delegated-source-20261104/downloads/report.pdf)已逐页看图，30份捕获附件逐字节核对，四个18793下载均与发布文件相同。报告纳入原回答、冻结引用、控制器结果与用量；子代理内部模型/次数/费用仍unknown，核心导入声明仍为`execution_verified=false`。协作工具实际派发记录另见[dispatch.json](../runs/a38-delegated-source-20261104/dispatch.json)与[本轮核对](../runs/a38-delegated-source-20261104/validation.json)。本轮没有调用CLI、拟合、重跑旧数值实验或重启服务。
 
 ## Limitations
 
