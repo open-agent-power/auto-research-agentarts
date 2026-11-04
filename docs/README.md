@@ -8,6 +8,7 @@
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
 - [开发者导航](../.agent/README.md)
 - [hiMSC 原件核对：59 条全零记录与 216 条化学编号差异](himsc-source-audit.md)
+- [CSV与已捕获工作簿的候选投影核对](workbook-projection.md)
 - [Claude CLI 与子代理的真实选择/执行验证](external-model-validation.md)
 - [Claude CLI 与子代理的正式请求入口](host-model-selection.md)
 

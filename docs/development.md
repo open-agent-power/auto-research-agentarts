@@ -19,6 +19,7 @@
 | 证据快照与人工问题 | `reports.py`、`studio_project.py` | `test_studio.py` |
 | 图表、PDF与附件 | `studio_outputs.py`、`paper_export.py`、`reproduction_verifier.py` | `test_paper_export.py`、`test_studio.py`及逐页渲染 |
 | 本地界面与构建 | `frontend/src/`、`studio.py`、生成的`web/` | TypeScript检查、构建、实际浏览器路径、截图与持久化验证 |
+| CSV与捕获原工作簿核对 | `workbook_projection_adapter.py`、`research_project.py`、`research_methods.py` | `test_workbook_projection_adapter.py`、`test_project_workbook_projection.py`；[使用与边界](workbook-projection.md) |
 | AgentArts本地入口 | `runtime.py`、`agentarts/` | `test_runtime.py`、本地HTTP探针 |
 
 表中Python模块位于 `src/autoresearch/`，测试位于 `tests/`。运行、前端构建和报告依赖的命令见[README](../README.md)。测试里的fixture不算新增科学实验；图形与交互验收必须使用实际界面。

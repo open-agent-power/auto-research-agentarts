@@ -24,6 +24,7 @@ const methodNames: Record<string, string> = {
   "software.source-integrity-check": "软件文件读取与完整性检查",
   "data.tabular-quality-audit": "表格质量与分组核对",
   "data.grouped-quality-profile": "分组质量画像",
+  "data.workbook-projection-check": "CSV与工作簿保存值核对",
   "research.source-selection": "补充来源与条件证据",
 };
 const policyNames: Record<string, string> = {
@@ -216,6 +217,32 @@ function comparison(action: Obj): HTMLElement {
     else wrap.append(el("p", "detail-note", "没有所选事件的代表坐标；不据此批准数据或训练资格。"));
     wrap.append(details("完整集中统计、代表坐标与前序绑定", { summary, examples: groupedQuality.examples,
       predecessor: groupedQuality.predecessor, scope: groupedQuality.scope }));
+    return wrap;
+  }
+  const workbookProjection = observations.find(item => item.kind === "workbook_projection_check");
+  if (workbookProjection) {
+    const summary = object(workbookProjection.summary), candidates = objects(workbookProjection.candidates);
+    const wrap = el("div", "project-tabular-quality"), counts = el("dl", "detail-dl");
+    for (const [label, value] of [["CSV数据记录", summary.csv_rows], ["CSV列数", summary.csv_columns],
+      ["列头匹配的候选表", summary.candidate_sheet_count], ["完全一致候选", summary.exact_candidate_sheet_count]] as [string, unknown][]) field(counts, label, numeric(value));
+    wrap.append(el("p", "detail-note", "比较已捕获原件的保存单元格。匹配结果是候选投影，实际运行、导出转换及样本含义仍需原记录核对。"), counts);
+    if (candidates.length) {
+      const comparison = resultTable("候选工作表",
+      ["工作表", "逐字一致 / 比较格", "数值同、文本异", "值或类型不符", "缺行 / 多行", "公式缓存格"], candidates.slice(0, 6).map(candidate =>
+        [string(candidate.sheet), numeric(candidate.exact_matches) + " / " + numeric(candidate.compared_cells),
+          numeric(candidate.numeric_equal_text_diff), numeric(candidate.mismatch_cells),
+          numeric(Array.isArray(candidate.missing_workbook_rows) ? candidate.missing_workbook_rows.length : null) + " / " +
+            numeric(Array.isArray(candidate.extra_workbook_rows) ? candidate.extra_workbook_rows.length : null), numeric(candidate.formula_cells)]));
+      comparison.querySelector("table")?.setAttribute("aria-label", "候选工作表");
+      comparison.querySelector("caption")?.remove();
+      wrap.append(el("h4", "", "候选工作表"), comparison);
+      if (candidates.length > 6) wrap.append(el("p", "detail-note", `此处显示前6张，其余 ${candidates.length - 6} 张见下方完整候选定位。`));
+    } else wrap.append(el("p", "detail-note", "没有完整列头匹配的候选。需核对实际工作表或列转换，不能视为核对通过。"));
+    const exact = words(summary.exact_candidate_sheets);
+    if (exact.length) wrap.append(el("p", "detail-note", "保存值完全一致候选：" + exact.slice(0, 6).join("、") +
+      (exact.length > 1 ? "。多个候选仍有歧义，不能自动选择第一张。" : "。单一候选也不确认作者实际转换、ALP、单位或独立性。")));
+    wrap.append(details("原件、前序与完整候选定位", { origin: workbookProjection.origin, predecessor: workbookProjection.predecessor,
+      candidates: workbookProjection.candidates, scope: workbookProjection.scope }));
     return wrap;
   }
   const checks = observations.filter(item => item.kind === "software_file_io_check");

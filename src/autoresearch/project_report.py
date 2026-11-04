@@ -346,6 +346,47 @@ def _grouped_quality_locations(note):
                      for item in note["examples"][:5]) or "无所选事件代表；不据此批准字段或目标资格。"
 
 
+_WORKBOOK_HEADERS = ["候选工作表", "精确/比较格", "非精确（文本异/不符）", "公式格", "工作簿缺/多行", "完全一致候选"]
+_WORKBOOK_NOTICE = ("摘要最多6张工作表。精确匹配、数值相等但文本不同、不符三类互斥；非精确为后两类之和。"
+                    "公式只读取保存缓存，不求值。多个完全一致候选保留歧义；唯一候选也不证明作者实际转换、运行或ALP身份。"
+                    "完整候选、前序身份与例子保留在行动JSON，未改写原值或批准科学资格。")
+
+
+def _workbook_projection_notes(report):
+    notes = []
+    for entry in report["action_results"]:
+        result = (entry.get("tool_result") or {}).get("result") or {}
+        if result.get("schema_version") == "workbook-projection-check-v1":
+            notes.append({"action_id": entry["action_id"], "result": result})
+    return notes[-3:]
+
+
+def _workbook_projection_summary(result):
+    summary = result["summary"]
+    names = "、".join(_text(name, 60) for name in summary["exact_candidate_sheets"][:6]) or "无"
+    return (f"CSV {summary['csv_rows']}行、{summary['csv_columns']}列；候选工作表{summary['candidate_sheet_count']}张，"
+            f"完全一致候选{summary['exact_candidate_sheet_count']}张。候选名称（最多6张）：" + names + "。")
+
+
+def _workbook_projection_rows(result):
+    return [[candidate["sheet"], f"{candidate['exact_matches']} / {candidate['compared_cells']}",
+             f"{candidate['non_exact_cells']}（{candidate['numeric_equal_text_diff']} / {candidate['mismatch_cells']}）",
+             candidate["formula_cells"], f"{len(candidate['missing_workbook_rows'])} / {len(candidate['extra_workbook_rows'])}",
+             "是" if candidate["projection_candidate_exact"] else "否"] for candidate in result["candidates"][:6]]
+
+
+def _workbook_projection_locations(result):
+    locations = []
+    for candidate in result["candidates"][:6]:
+        for item in candidate["examples"]:
+            comparison = "数值同、文本异" if item["comparison"] == "numeric_equal_text_diff" else "不符"
+            locations.append(_text(candidate["sheet"], 60) + "!" + item["cell"] + "，逻辑记录 "
+                             + str(item["logical_record"]) + " / 结束物理行 " + str(item["physical_line_end"]) + "，" + comparison)
+            if len(locations) == 5:
+                return "；".join(locations)
+    return "；".join(locations) or "无非精确格代表；不据此确认作者实际转换或运行。"
+
+
 def _duplicate_locations(summary):
     examples = summary.get("duplicate_examples", [])
     if not examples:
@@ -390,6 +431,7 @@ def _selection_action(method, parameters):
              "software.source-integrity-check": "原件捕获检查", "research.source-selection": "来源读取",
              "p02.source-mapping-check": "来源读取", "data.tabular-quality-audit": "表格质量审计"}
     names["data.grouped-quality-profile"] = "分组质量画像"
+    names["data.workbook-projection-check"] = "工作簿候选投影核对"
     label = names.get(method, method or "未指定方法")
     if parameters.get("receipt_snapshot_sha256"):
         label += "，收据 " + parameters["receipt_snapshot_sha256"][:12]
@@ -465,6 +507,12 @@ def _markdown(report):
                       "", "代表定位（最多5例）：" + _grouped_quality_locations(note),
                       "", "逻辑记录从1起且不含表头；物理行为CSV记录结束行，含表头及带引号换行。组ID为原声明分组字符串的哈希，不能当作生物或材料类别。",
                       "", "完整groups、各列集中份额/top_groups、全量计数及前序身份见本行动的JSON；未改写主方法原profile或来源记录，不推断组间独立性、目标含义或训练资格。", ""])
+    for note in _workbook_projection_notes(report):
+        result = note["result"]
+        lines.extend(["## 后续方法：工作簿候选投影核对", "", "行动：" + note["action_id"] + "；前序绑定：" + canonical(result["predecessor"]),
+                      "", "原件ID：" + result["origin"]["id"] + "；已捕获字节SHA：" + result["origin"]["sha256"],
+                      "", _workbook_projection_summary(result), "", _markdown_table(_WORKBOOK_HEADERS, _workbook_projection_rows(result)),
+                      "", "代表定位（总计最多5例）：" + _workbook_projection_locations(result), "", _WORKBOOK_NOTICE, ""])
     lines.extend(["## 来源与未决问题", ""])
     for index, source in enumerate(_source_notes(report), 1):
         lines.extend([f"{index}. 来源：{source['url']}；定位：`{source['locator']}`；SHA：`{source['sha256']}`。",
@@ -590,6 +638,18 @@ def _pdf(report):
             story.append(p("代表定位（最多5例）：" + _grouped_quality_locations(note), small, 700))
             story.append(p("逻辑记录从1起、不含表头；物理行为记录结束行，包含表头及带引号换行。组ID为声明分组的哈希，不赋予独立样本身份。", small, 220))
         story.append(p("完整groups、集中份额、前序结果SHA与原观察见JSON。此后续方法不覆盖原profile，不批准目标、单位、领域结论或训练资格。", small, 250))
+    projection_notes = _workbook_projection_notes(report)
+    if projection_notes:
+        story.append(PageBreak())
+        h("后续方法：工作簿候选投影核对")
+        for note in projection_notes:
+            result = note["result"]
+            story.append(p("行动：" + note["action_id"] + "；绑定前序行动：" + result["predecessor"]["based_on_action_id"], small, 220))
+            story.append(p("原件ID：" + result["origin"]["id"] + "；已捕获字节SHA：" + result["origin"]["sha256"], small, 300))
+            story.append(p(_workbook_projection_summary(result), small, 550))
+            table(_WORKBOOK_HEADERS, _workbook_projection_rows(result), [.22, .15, .23, .12, .13, .15])
+            story.append(p("代表定位（总计最多5例）：" + _workbook_projection_locations(result), small, 750))
+            story.append(p(_WORKBOOK_NOTICE, small, 450))
     story.append(PageBreak())
     records = _selection_records(report)
     if records:
