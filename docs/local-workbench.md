@@ -55,6 +55,14 @@ $claudeExe = 'C:/path/to/claude.exe'
 
 需要重载时先核对原服务归属和未完成操作，再使用原root、端口及启动开关启动新进程；模型原先关闭就继续关闭。原项目、累计用量、失败和报告保留，不用新目录或新端口替代原账本。此检查仅覆盖服务创建时已导入的项目Python模块，不包含之后懒加载的模块、原生依赖或字节码鉴证；已有旧进程须重启后才能获得这层检查。
 
+### A43：原18793已重载
+
+2026-11-04，按用户“允许仅重启18793”的[授权](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/owner-approval.json)，原PID53184已停止，当前18793监听PID为41960，启动器PID为42864；沿用原root、端口与启动开关，模型保持关闭，模型接口返回`enabled=false`。18791仍为PID40736，未受本次重载影响。
+
+启动入口使用项目`.venv/Scripts/python.exe`，其底层解释器仍为原缓存Python。A39的原审批失败记录保留；本轮首次prepared启动也失败，替代PID23924因`ModuleNotFoundError: sklearn`退出，退出码为1。随后使用已有项目venv依赖恢复启动，未安装依赖。两次启动的区别见[首次退出记录](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/restart.exit.json)及[实际恢复结果](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/recovery-result.json)。
+
+重载后HTTP选择上下文及证据与新进程直接读取结果一致。hiMSC仍为v36、本地2/2、来源5/8、宿主子代理输出1份；软件项目仍为v21，原宿主记录、18791管理器及用户已有修改保持不变。原A38报告ID返回`replayed=true`，四项HTTP下载与已发布原件字节一致，没有新增报告、模型、研究、拟合或来源行动。核对范围见[本轮验证记录](D:/XiangMuLuoDi/Development/ICT/track2/auto-research/runs/a43-approved-workbench-reload-20261104/validation.json)；旧失败、费用unknown及科学边界继续保留。
+
 ## 用模型选择并执行一步
 
 在“研究推进”展开“开展下一步”，找到“模型选择与执行”。这条入口复用[正式宿主模型请求](host-model-selection.md)，模型只能选当前合法候选或等待，不能写工具参数、扩大额度或批准科学结论。
@@ -73,7 +81,7 @@ $claudeExe = 'C:/path/to/claude.exe'
 
 A34真实CLI两次报告估值合计0.124035USD，超过原0.10USD配置阈值；第二次返回预算错误，未产生第二个行动。A35据此调整面板措辞与独立费用提示，保留原grant、请求和发送门禁，未追加模型调用；五页导航与X6画布沿用原入口。
 
-已有18791服务可直接读取重建后的静态资源，但Python进程仍缓存旧后端，A35未重启服务，不能把页面更新视为A34后端修复已加载。超阈值与费用未核对的界面使用A34保存的真实记录及补记前快照做只读投影，标明验收来源并阻止所有POST；它用于核对显示，不证明线上工作台已执行或恢复这些请求。
+A35当时，已有18791服务可直接读取重建后的静态资源，但Python进程仍缓存旧后端，A35未重启服务，不能把页面更新视为A34后端修复已加载。超阈值与费用未核对的界面使用A34保存的真实记录及补记前快照做只读投影，标明验收来源并阻止所有POST；它用于核对显示，不证明线上工作台已执行或恢复这些请求。
 
 ## A28：交付含模型证据的报告
 
