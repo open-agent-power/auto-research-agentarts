@@ -43,3 +43,5 @@ A18 [LocalWorkbench](../../src/autoresearch/local_workbench.py)仅管理宿主�
 A19 `LocalWorkbench.register_evidence`将界面原件捕获到固定宿主目录，再调用原项目登记；冻结请求、原件SHA和核心回执，原ID可核对已提交核心结果，核心未登记的partial不自动补做。同项目未决登记拒绝替换ID；提取仍用原条件选择/来源预算。非P02在来源读取后恢复最近已完成分析的完整取证要求，包含后续方法新增问题；旧结果不回写。
 
 A20 `LocalWorkbench.batch/batch_record`在原manager账本冻结有界grant及逐步意图/结果，复用`ProjectController.advance`；本地编排/核心/controller身份和原parent/child可核对。已完成批次原ID冻结回放，未完成只沿原ID显式核对，unknown不派发；不同步扩预算或授权未来资料。manager保存批次不替代核心执行真相，当前报告包与批次JSON分别取得。实际受控进程退出/重开及失败链见[本地用法](../../docs/local-workbench.md)。
+
+[research_recipe.compile_recipe](../../src/autoresearch/research_recipe.py) 是独立纯选择函数：校验配方和宿主 context，按配置优先顺序选原候选 ID 或等待，另存解释。执行、恢复和预算继续由原 ProjectController/ResearchProject 负责；不是 workbench_recipe 发布配置或科研批准。参见[配方及证据缺口](../../docs/recipe-research/README.md)。
