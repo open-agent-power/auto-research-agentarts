@@ -129,6 +129,10 @@ body[data-case="p02"] #main-content:focus { outline: none; box-shadow: none; }
 /* Explicit local workbench; established glass shell and saved-result surfaces remain shared. */
 .local-workbench{display:grid;gap:24px;color:var(--ar-content-text)}
 .local-panel.research-plan{margin-bottom:24px}
+.local-panel.local-plan-proposals{margin-bottom:24px}
+.local-plan-proposals p{white-space:pre-line;overflow-wrap:anywhere;max-width:75ch}
+.local-plan-record{border-top:1px solid var(--ar-content-border);padding:16px 0}
+.local-plan-record>summary{cursor:pointer;min-height:44px;line-height:1.8}
 .research-plan-copy{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px}
 .research-plan-copy h3{font-size:20px;line-height:1.65;margin:0 0 12px}
 .research-plan h4{font-size:15px;margin:20px 0 8px}

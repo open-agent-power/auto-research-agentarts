@@ -18,6 +18,7 @@ from .project_selection import seal_context
 from .project_selection_view import selection_view, read_selection_request
 from .research_project import ResearchProject, safe_path
 from .host_model_report import host_model_report_current
+from .research_plan_proposal import build_context as build_plan_context
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
 MAX_REPORT_TOTAL_BYTES = 128 * 1024 * 1024
@@ -342,7 +343,10 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
                             "/api/local-workbench/advance-recipe": "advance_recipe",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
-                            "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume"}
+                            "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume",
+                            "/api/local-workbench/model-plan-advance": "model_plan_advance",
+                            "/api/local-workbench/model-plan-adopt": "model_plan_adopt",
+                            "/api/local-workbench/model-plan-reject": "model_plan_reject"}
                 _require(not parsed.scheme and not parsed.netloc and not parsed.query and not parsed.fragment
                          and parsed.path in commands, "INVALID_REQUEST", "Select a supported local command route.")
                 _require_runtime_current(runtime_sources)
@@ -362,7 +366,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 _require(len(raw) == length, "INVALID_REQUEST", "The complete request body was not received.")
                 body = _local_body(raw)
                 command = commands[parsed.path]
-                if command in ("model_advance", "model_resume"):
+                if command in ("model_advance", "model_resume", "model_plan_advance"):
                     _require(claude_executable is not None, "MODEL_DISABLED", "Host model selection was not enabled.")
                     result = getattr(local_workspace, command)(body, executable=claude_executable)
                 else:
@@ -392,7 +396,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
-                if parsed.path in {"/api/project/selection-context.json", "/api/local-workbench/recipes", "/api/project/knowledge"}:
+                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/project/knowledge"}:
                     _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
@@ -454,6 +458,10 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                                  "text/plain": ".txt", "text/markdown": ".md", "application/json": ".json",
                                  "text/csv": ".csv", "text/tab-separated-values": ".tsv"}.get(source["media_type"], ".bin")
                     return self.send_data(200, assets[source_id], "application/octet-stream", source_id + extension)
+                if parsed.path == "/api/project/plan-context.json":
+                    _require(not parsed.query, "INVALID_QUERY", "Read the current saved plan and feedback context.")
+                    _bound_state(project, iteration_snapshot)
+                    return self.send_json(200, build_plan_context(project), "plan-context.json")
                 if parsed.path == "/api/project/selection-context.json":
                     try:
                         values = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True, max_num_fields=1)

@@ -54,3 +54,19 @@
 队友提供模块调用方式、输入输出示例、已验证范围与待接入能力。主开发提供真实轨迹、模型调用方式和允许检查的执行入口，双方用一个实例完成整合。
 
 每份PR交回本轮问题、改动、实际结果、剩余接入点和下一项。合并后从最新主线继续队列中的下一项，新增接口按实际调用收敛并同步对应说明。
+
+### 主团队提供的真实轨迹与Host接线
+
+主团队已提供`research_plan_proposal.py`的`build_context(project)`，返回`research-plan-context-v1`。其中`selection_context`是原控制器的完整实际context，`feedback`来自原项目已保存的分析和来源行动，保留`action_id/request_id/method_id/status/observations/next_decision/failure/artifact_ref`。队友可以据此关联当前问题、原观察和工件，形成外环输入。
+
+该模块还提供`build_prompt`、`parse_host_response`、`build_proposal`和`validate_proposal`。Host的`prepare/advance --purpose plan`可以取得计划候选，子代理分支使用原请求的`context.json/prompt.json`，经`import-response/consume`保存为`proposed`。CLI分支沿现有传输取得原回答。计划与选择请求共用同一累计grant。
+
+计划候选包含`plan`四项正文、`reason`、`feedback_action_ids`和`expected_improvement`。主团队通过`adopt-plan`将已保存建议采用为研究计划修订，或通过`reject-plan --reason`保留拒绝决定。项目过期时保留原建议与`stale`状态。入口说明见[Host计划建议](../host-model-selection.md#根据真实反馈建议研究计划)。
+
+这条链提供当前研究计划的模型候选、真实反馈引用和采用记录。队友负责的`recipe_improvement`仍需连接配方或策略版本、对应验证、保留或回退以及后轮接续，把实际候选和结果映射到外环对象。计划修订记录可作为一份真实轨迹输入。
+
+主团队已取得公开diabetes实例的一条真实轨迹。三次子代理决策依次提出初始计划、读取真实质量反馈后提出修订、按已采用的v2计划选择来源，原控制器完成来源读取。网页采用了计划v1和v2，6页报告已逐页查看，原ID重放后核心状态及用量一致。队友可将这条轨迹作为外环输入，继续实现配方或策略候选的验证、采用或回退与后轮管理。具体范围见[A63记录](../host-model-selection.md#a63-真实子代理计划修订与后轮接续)。
+
+桌面1440×900与手机390×844的8张全页及分段截图已实际查看，覆盖计划、已采用提案和X6画布。两端无页面横向溢出，五页导航访问正确，pageErrors0、httpErrors0。四个正常报告下载HTTP200，与manager导出逐字节一致，运行app.js及CSS与构建文件一致。本轮尚未提交和发布。
+
+实例任务范围是数据质量与计划调整，目标量表、变量编码和样本独立性按来源声明及实际证据解释。Host导入声明保留未核验的执行、模型和用量字段，协作实际派发另有会话工具记录。新增plan用途的CLI传输仍待单独实跑，配方RSI外环仍由队友接线。

@@ -1,6 +1,50 @@
-# Claude CLI 与子代理选择入口
+# Claude CLI 与子代理的选择及计划建议入口
 
-`scripts/run_host_selection.py` 把真实项目 context 交给已安装的 Claude CLI，保存原始回答，再通过原 `ProjectController.advance_selection` 最多执行一个候选行动。也可以导入子代理回答。模型只选候选或等待，不能提供工具参数、增加额度或批准科学结论。完整选择协议见[选择提案](project-selection.md)，已有实跑见[外部模型验证](external-model-validation.md)。
+`scripts/run_host_selection.py` 把真实项目 context 交给已安装的 Claude CLI，保存原始回答，再通过原 `ProjectController.advance_selection` 最多执行一个候选行动。也可以导入子代理回答。选择用途下，模型只选候选或等待，不能提供工具参数、增加额度或批准科学结论。完整选择协议见[选择提案](project-selection.md)，已有实跑见[外部模型验证](external-model-validation.md)。
+
+## 根据真实反馈建议研究计划
+
+`prepare`和`advance`支持`--purpose plan`，默认用途为`selection`。计划请求与选择请求使用同一份累计grant，`decision_limit`、`cli_budget_usd`和原授权`reason`沿用原值。准备一次计划请求也占一个决策名额。CLI的`advance`会取得一次回答并消费为计划建议，`advance-batch`仍用于候选行动选择。
+
+计划context由[research_plan_proposal.py](../src/autoresearch/research_plan_proposal.py)的`build_context(project)`生成，schema为`research-plan-context-v1`。它包含完整原`selection_context`与实际保存的`feedback`，后者逐项保留行动ID、请求ID、方法、状态、原观察、下一决定、失败及工件引用。`build_prompt`将这些事实交给模型，`parse_host_response`解析原回答，`build_proposal/validate_proposal`绑定提案。
+
+模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
+
+### 导出给子代理并导入原回答
+
+以下沿用已有且有剩余名额的授权。`$projectDir`指向原项目，先从该项目读取当前版本与原grant。
+
+```powershell
+$planState = .venv/Scripts/python.exe scripts/run_research_project.py status --workspace $projectDir | ConvertFrom-Json
+$hostState = .venv/Scripts/python.exe scripts/run_host_selection.py status --workspace $projectDir | ConvertFrom-Json
+.venv/Scripts/python.exe scripts/run_host_selection.py prepare --workspace $projectDir --request-id delegated-plan-1 --provider delegated --purpose plan --expected-state-version $planState.state_version --decision-limit $hostState.grant.decision_limit --cli-budget-usd $hostState.grant.cli_budget_usd --reason $hostState.grant.reason
+```
+
+把该请求保存的`context.json`和`prompt.json`交给子代理，按原prompt生成完整JSON并保存原回答。导入与消费沿用原请求ID。
+
+```powershell
+.venv/Scripts/python.exe scripts/run_host_selection.py import-response --workspace $projectDir --request-id delegated-plan-1 --response 'runs/<原始计划回答>.json'
+.venv/Scripts/python.exe scripts/run_host_selection.py consume --workspace $projectDir --request-id delegated-plan-1
+.venv/Scripts/python.exe scripts/run_host_selection.py status --workspace $projectDir --request-id delegated-plan-1
+```
+
+消费成功后，宿主请求进入`proposed`。使用者查看计划正文、修订理由、预期改善与反馈引用，再采用或拒绝。采用命令为以下一条。
+
+```powershell
+.venv/Scripts/python.exe scripts/run_host_selection.py adopt-plan --workspace $projectDir --request-id delegated-plan-1
+```
+
+拒绝建议时改用`reject-plan`，填写实际原因。
+
+```powershell
+.venv/Scripts/python.exe scripts/run_host_selection.py reject-plan --workspace $projectDir --request-id delegated-plan-1 --reason '填写实际拒绝原因'
+```
+
+采用后原请求为`applied`，`outcome.kind`为`plan_revision`并引用保存的研究计划版本。拒绝后为`rejected`，保留原建议和拒绝原因。原ID采用重放沿用原修订，中断后核对同一ID恢复；同ID拒绝重放使用原原因。项目或代码过期时保存`stale`及原回答，再按当前事实决定后续。
+
+CLI分支采用实际新请求ID，在`advance`中增加`--purpose plan`，同时传入既有原生`--claude-executable`及相同grant。采用或拒绝已保存建议沿本地写入权限处理，服务关闭CLI进程能力时仍可处置这些建议。
+
+本节说明协议与Host入口。实际子代理计划修订、后轮接续及桌面和手机页面验收见[A63记录](#a63-真实子代理计划修订与后轮接续)。
 
 ## 已验证到哪里
 
@@ -21,7 +65,7 @@ $context = .venv/Scripts/python.exe scripts/run_research_project.py selection-co
 $context | ConvertTo-Json -Depth 30
 ```
 
-只有 `blockers` 为空且 `candidates` 非空才可准备请求；否则先处理已有阻塞或补所缺资料。首次 `prepare` 固定本项目 host journal 的累计 grant：
+`selection`用途要求`blockers`为空且`candidates`非空。`plan`用途在无全局阻断且无未决原生模型请求时，可以基于实际反馈准备计划建议，候选为空时也可使用。首次`prepare`固定本项目host journal的累计grant。
 
 - `--decision-limit` 为 1 至 8。每个成功保存的 prepare 占一个名额，包括后来等待、失败或 invalid 的请求。
 - `--cli-budget-usd` 为大于0、至多0.10USD的累计报告估值配置阈值。宿主把剩余阈值传给CLI，并在已知合计达到阈值或费用未知时阻止后续发送。A34实跑已观察到单次CLI超出其剩余参数并返回预算错误，因此它不能保证单次调用或现金支出的硬上限。未知用量不按0计算。
@@ -136,8 +180,10 @@ $delegatedArgs = @(
 | --- | --- |
 | `prepared` | 请求已冻结，尚未派发。可查看后用原 ID request；若项目 context 已变化，request 保存 stale 并拒绝派发。 |
 | `sending` / `unknown` | 可能已经派发。保留全部原文件；只可用原 ID request 核对已有收据。完整 `exit.json` 存在时核对原 launch/stdout 后恢复，缺失或不完整时不重发。 |
-| `received` | 原文已通过格式解析，尚未提交行动。用原 ID consume；候选、引用及当前状态仍由原 validator 检查。 |
-| `applied` | 已提交原控制器，并保存其 outcome。读取 `outcome.status` 判断 completed、failed、waiting 或 unknown；applied 不等于工具成功。 |
+| `received` | 原文已通过格式解析，待原ID的consume处理，按purpose进入行动选择或计划建议。引用与当前状态仍由对应validator检查。 |
+| `proposed` | 计划建议已保存，待使用者采用或拒绝，保留原回答、计划正文、理由、预期改善与反馈引用。 |
+| `applied` | selection用途保存原控制器outcome，plan用途保存`kind=plan_revision`及采用的计划版本。实际结果读取对应outcome。 |
+| `rejected` | 使用者已拒绝计划建议，原建议及固定的拒绝原因继续保留。 |
 | `invalid` / `stale` / `failed` | 保留原文及错误；同 ID 不替换回答、不重发。若要新请求，仍须满足原累计额度、项目条件及授权。 |
 
 若原控制器已经提交行动，但进程在写 journal 的 applied 状态前中断，重新执行原 ID consume 会通过原控制器请求账本取得同一 child，再完成本 journal 保存。恢复不创建第二次行动。
@@ -237,8 +283,28 @@ A35面板将金额标为“CLI配置阈值”，说明单次调用可能超出�
 
 当前8页报告嵌入该请求的原context/prompt/response/proposal及控制器结果，30附件逐字节核对，四HTTP下载与发布文件一致。协作工具真实派发与回答交付证据单独保存；核心导入声明仍`execution_verified=false`，内部模型/次数/费用unknown，不能靠导入文件自证执行或用CLI估值0表示全部模型免费。完整结果见[A38证据](../runs/a38-delegated-source-20261104/README.md)，领域发现见[hiMSC核对](himsc-source-audit.md)。旧服务未重启，报告由当前有限本地命令生成并通过原18793提供下载。
 
+## A63 真实子代理计划修订与后轮接续
+
+2026-11-05，公开diabetes数据的442行、11列按原`sex`编码声明分组，作为数据质量与计划修订实例。三条实际`collaboration.followup_task`决策的原JSON由Host正常捕获，依次完成以下接续。
+
+| 原请求ID | 实际反馈与结果 |
+|---|---|
+| `a63-initial-plan` | 子代理提出初始计划，保存建议后由网页明确采用为计划v1 |
+| `a63-feedback-plan` | 一次真实质量检查后，子代理读取原observations，针对机械检查未见标记、当前无候选的反馈，建议转向核对来源并引用真实行动，网页采用为计划v2 |
+| `a63-follow-revised-plan` | 本机`sklearn.datasets._base`的`load_diabetes`原文1042—1161行登记后，子代理按计划v2选择来源候选，原控制器完成实际读取 |
+
+最终项目state v11，计划版本为1与2，本地方法1/2、来源1/8、Host请求3/3、原生模型调用0。原ID的prepare、consume和adopt重放核对后，核心状态与用量保持一致。后续context带计划v2和一条实际来源证据。
+
+本轮报告正常导出四份文件，6页PDF均已逐页查看，展示当前计划、修订及模型请求用途，并保留13份Host原件。四个正常报告下载均HTTP200，与manager导出逐字节一致。原模板第3页留白较多，完整内容可读报告JSON。本机验证记录按忽略规则保存。
+
+桌面1440×900与手机390×844共8张真实截图已逐张查看，覆盖全页、计划、展开的已采用提案和X6画布分段。两端均无页面横向溢出，五页导航逐页访问正确，当前访问pageErrors0、httpErrors0。运行app.js及CSS与构建文件一致，前端format、Lint和类型检查重跑通过，format检查34份文件、改动0份。本轮代码尚未提交和发布。
+
+协作会话记录可以核对这三次实际派发。Host导入仍保留`execution/model/usage unverified`声明，内部推理次数、模型身份和费用为unknown，现金结算unknown及原5元上限保留。此次计划用途实际采用子代理，新增plan用途的CLI传输尚待单独实跑。
+
+本轮给出了研究计划建议、采用与按修订计划继续的真实轨迹。配方或策略版本的验证、采用或回退及RSI后轮管理由队友的`recipe_improvement`模块继续接线。目标量表、变量编码与样本独立性按数据来源的实际证据解释。
+
 ## Limitations
 
-CLI及工作台入口支持显式有界选择与既有行动链路；模型解释、来源声明、工具完成仍需按领域证据核对，`scientific_validation` 保持 false。CLI 报告的 token、模型标签和 USD 估值不是服务商账单或现金结算，旧历史费用仍可为 unknown。`runs/` 证据在本机忽略目录，普通源码克隆不包含；共享前应按资料许可提供获准分发的证据，不包含认证或会话文件。
+Host及工作台入口支持候选选择、研究计划建议和明确采用。模型解释、来源声明与工具结果按领域证据核对，`scientific_validation`保持false。CLI报告的token、模型标签和USD估值按原报告口径保留，现金结算及旧历史费用继续记录实际已知或unknown。`runs/`证据在本机忽略目录，共享时按资料许可提供获准分发的原件与说明。
 
 A35未重启18791服务：该进程能读取新静态页面，Python后端仍缓存旧实现，不能据页面变化认定A34费用修复已经加载。A34真实记录及费用补记前快照的只读界面投影只覆盖超阈值、未知费用的显示，投影阻止所有POST，不代表线上请求执行或恢复验证。

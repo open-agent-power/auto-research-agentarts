@@ -15,10 +15,12 @@ def _request_args(parser):
     parser.add_argument("--request-id", required=True)
 
 
-def _prepare_args(parser, *, provider=False):
+def _prepare_args(parser, *, provider=False, purpose=True):
     _request_args(parser)
     if provider:
         parser.add_argument("--provider", choices=("claude_cli", "delegated"), required=True)
+    if purpose:
+        parser.add_argument("--purpose", choices=("selection", "plan"), default="selection")
     parser.add_argument("--expected-state-version", type=int, required=True)
     parser.add_argument("--decision-limit", type=int, required=True, help="Immutable prospective limit for this host journal, at most 8.")
     parser.add_argument("--cli-budget-usd", type=float, required=True, help="Configured cumulative CLI estimate threshold, at most 0.10 USD; one call can overshoot, not billing settlement.")
@@ -32,19 +34,25 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     prepare = commands.add_parser("prepare", help="Freeze context, prompt and prospective limits; no model or tool execution.")
     _prepare_args(prepare, provider=True)
-    advance = commands.add_parser("advance", help="Explicitly request one CLI choice and consume at most one eligible action; original IDs never resend.")
+    advance = commands.add_parser("advance", help="Request one CLI response and consume its action or save its plan proposal; original IDs never resend.")
     _prepare_args(advance)
     batch = commands.add_parser("advance-batch", help="Advance at most two CLI decisions using saved feedback and one frozen batch; original IDs resume without resending.")
-    _prepare_args(batch)
+    _prepare_args(batch, purpose=False)
     batch.add_argument("--max-decisions", type=int, choices=(1, 2), required=True)
     batch_status = commands.add_parser("batch-status", help="Read one saved model batch without dispatch, consumption or recovery.")
     _request_args(batch_status)
-    for name in ("request", "consume", "reconcile-usage"):
-        help_text = ("Dispatch the original CLI request once." if name == "request" else
-                     "Consume one saved response through the original controller." if name == "consume" else
-                     "Read complete original CLI receipts to reconcile failed/invalid reported usage; never dispatch or consume.")
+    command_help = {
+        "request": "Dispatch the original CLI request once.",
+        "consume": "Consume one saved response as an action or a proposed plan.",
+        "reconcile-usage": "Read original CLI receipts to reconcile reported usage without dispatch or consumption.",
+        "adopt-plan": "Explicitly adopt the original plan proposal into a saved research plan revision.",
+        "reject-plan": "Preserve the original plan proposal and record why it was rejected.",
+    }
+    for name, help_text in command_help.items():
         entry = commands.add_parser(name, help=help_text)
         _request_args(entry)
+        if name == "reject-plan":
+            entry.add_argument("--reason", required=True)
     imported = commands.add_parser("import-response", help="Capture operator-supplied delegated JSON; does not execute research.")
     _request_args(imported)
     imported.add_argument("--response", required=True)
@@ -66,7 +74,7 @@ def main():
             executable = args.claude_executable if provider == "claude_cli" else None
             result = journal.prepare(request_id=args.request_id, provider=provider,
                 expected_state_version=args.expected_state_version, decision_limit=args.decision_limit,
-                cli_budget_usd=args.cli_budget_usd, reason=args.reason, executable=executable)
+                cli_budget_usd=args.cli_budget_usd, reason=args.reason, executable=executable, purpose=args.purpose)
             if args.command == "advance":
                 result = journal.request(request_id=args.request_id)
                 if result["status"] == "received":
@@ -77,6 +85,10 @@ def main():
             result = journal.consume(request_id=args.request_id)
         elif args.command == "reconcile-usage":
             result = journal.reconcile_usage(request_id=args.request_id)
+        elif args.command == "adopt-plan":
+            result = journal.adopt_plan(request_id=args.request_id)
+        elif args.command == "reject-plan":
+            result = journal.reject_plan(request_id=args.request_id, reason=args.reason)
         elif args.command == "import-response":
             result = journal.import_response(request_id=args.request_id, response_file=args.response)
         else:

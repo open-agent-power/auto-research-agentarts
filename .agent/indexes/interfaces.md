@@ -1,8 +1,24 @@
 # 接口索引
 
-这是现有入口导航，不是新 API 规范。统一项目命令和研究 Observation 在 [自适应研究设计](../../docs/research/adaptive-research.md)中讨论，**尚未实现通用 create/start/resume REST 接口**。
+这是现有入口导航，不是新 API 规范。统一项目命令和研究Observation见[研究契约](../../docs/architecture/research-contracts.md)，**尚未实现通用 create/start/resume REST 接口**。
 
-新项目/运行/行动对象及命令边界见[研究契约](../../docs/architecture/research-contracts.md)，依赖关系见[底层架构](../../docs/architecture/foundation.md)。同一项目已有已登记白名单方法的本地Python/CLI实现和只读HTTP投影，HTTP不接受研究执行命令。
+新项目/运行/行动对象及命令边界见[研究契约](../../docs/architecture/research-contracts.md)，依赖关系见[底层架构](../../docs/architecture/foundation.md)。同一项目已有已登记白名单方法的本地Python/CLI实现和只读HTTP投影。显式启用的本地写入、模型和计划操作见[本地工作台](../../docs/local-workbench.md#接口与只读边界)。
+
+## 模型建议研究计划
+
+`GET /api/project/plan-context.json`只读返回`research-plan-context-v1`，含完整原`selection_context`与实际保存的行动反馈。`research_plan_proposal.py`提供`build_context/build_prompt/parse_host_response/build_proposal/validate_proposal`，`run_host_selection.py prepare/advance --purpose plan`使用同一Host累计grant。
+
+工作台接口沿原本地写入、会话和活动项目检查处理，命令采用既有信封。
+
+| 入口 | 精确请求字段与用途 |
+|---|---|
+| `POST /api/local-workbench/model-plan-advance` | `request_id/project_id/expected_state_version/decision_limit/cli_budget_usd/reason`，沿固定CLI取得并保存计划建议 |
+| `POST /api/local-workbench/model-plan-adopt` | `request_id/project_id`，明确采用原请求保存的计划建议 |
+| `POST /api/local-workbench/model-plan-reject` | `request_id/project_id/reason`，保留原建议及拒绝原因 |
+
+计划consume进入`proposed`，采用后`applied`且`outcome.kind=plan_revision`，拒绝后`rejected`。采用或拒绝已保存建议使用本地操作权限，服务未启用CLI进程时仍可处理。新计划请求与selection共享原`decision_limit/cli_budget_usd/reason`，原ID重放、过期状态与原始回答继续沿Host记录管理。用法见[Host计划建议](../../docs/host-model-selection.md#根据真实反馈建议研究计划)和[工作台计划建议](../../docs/local-workbench.md#模型建议与采用)。
+
+准备selection请求要求存在合法候选，plan请求在无全局阻断时可基于真实反馈处理空候选情形。A63子代理实例已按实际质量反馈修订计划并在网页采用v2，下一次选择带该版本完成来源读取。桌面及手机8张截图、五页导航与四报告下载身份已核对，运行静态资源与构建一致，本轮尚未提交。原ID重放、CLI未实跑及RSI待接线范围见[A63记录](../../docs/host-model-selection.md#a63-真实子代理计划修订与后轮接续)。
 
 ## 当前项目的三域只读入口
 

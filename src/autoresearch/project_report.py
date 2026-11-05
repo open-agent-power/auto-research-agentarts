@@ -300,15 +300,30 @@ def _host_request_rows(report):
     for record in report["host_models"]["records"]:
         route = ", ".join(record.get("reported_models") or []) or "未报告"
         outcome = (record.get("outcome") or {}).get("status", "尚未提交")
+        purpose = "计划建议" if record.get("purpose") == "plan" else "行动选择"
+        if record.get("purpose") == "plan" and record["status"] == "applied":
+            revision = record["outcome"]["research_plan"]
+            outcome = "采用为计划第" + str(revision["version"]) + "版"
         cost = record.get("reported_cost_usd")
-        rows.append([record["request_id"] + " / " + route, record["status"] + " / " + outcome,
+        rows.append([record["request_id"] + " / " + purpose + " / " + route, record["status"] + " / " + outcome,
                      "未知" if cost is None else format(cost, ".8g")])
     return rows
 
 
+def _research_plan_rows(state):
+    revisions = state.get("plan_revisions", [])
+    if not revisions:
+        return []
+    current = revisions[-1]
+    return [("当前版本", "第" + str(current["version"]) + "版"), ("本轮问题", current["question"]),
+            ("依据与材料", current["basis"] or "尚未填写"), ("推进步骤", current["steps"]),
+            ("预期反馈与调整", current["expected_feedback"]), ("本次修订理由", current["reason"]),
+            ("修订记录", "\n".join("第" + str(item["version"]) + "版 · " + item["reason"] for item in revisions))]
+
+
 HOST_MODEL_NOTE = ("原生本地模型计数不包含宿主CLI或子代理。CLI次数为宿主启动尝试，路由和USD估值来自CLI自报，不是账单或总推理次数；"
                    "未知不计为零。本机已观察到单次CLI超出配置预算参数，阈值用于后续发送阻断，不能保证单次发送硬上限。"
-                   "请求applied只表示已提交控制器，实际行动结果另列；科学资格未获批准。"
+                   "行动选择请求applied表示已提交控制器，实际行动结果另列。计划建议请求applied表示采用了计划版本。"
                    "input.json的host_models与assets保留原日志、回答及已有传输收据，缺失或未知不补造成功，也不自动重发。")
 
 
@@ -487,6 +502,11 @@ def _markdown(report):
         lines.extend(["## 最新来源核对与未决问题", ""])
         for line in latest_source:
             lines.extend([line, ""])
+    plan_rows = _research_plan_rows(state)
+    if plan_rows:
+        lines.extend(["## 当前研究计划与修订", ""])
+        for label, content in plan_rows:
+            lines.extend(["### " + label, "", _text(content, 1800), ""])
     lines.extend(["## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
              "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
              ""])
@@ -605,6 +625,12 @@ def _pdf(report):
         h("最新来源核对与未决问题")
         for line in latest_source:
             story.append(p(line, small, 650))
+    plan_rows = _research_plan_rows(state)
+    if plan_rows:
+        h("当前研究计划与修订")
+        for label, content in plan_rows:
+            story.append(p(label, small))
+            story.append(p(content, limit=1800))
     h("二、方法与冻结评价")
     story.append(p(summary["method"], limit=500))
     h("三、实际结果")

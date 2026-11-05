@@ -19,6 +19,7 @@ const methodNames: Record<string, string> = {
   "p02.source-mapping-check": "读取已登记的来源选区",
 };
 const PENDING_KEY = "autoresearch.local-workbench.pending.v1";
+const MODEL_COMMANDS = new Set(["model-advance", "model-resume", "model-plan-advance", "model-plan-adopt", "model-plan-reject"]);
 
 function header(textValue: string, delimiter: string): string[] {
   const columns: string[] = [];
@@ -227,17 +228,17 @@ export async function mountLocalWorkbench(): Promise<void> {
   const batchPanel = createLocalBatchPanel({ submit: (body, recover) => submit(recover
     ? { command: "batch", requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverBatch: true }
     : command("batch", body)), canRecover: canRecoverBatch, announce });
-  const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(name === "model-resume"
+  const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(["model-resume", "model-plan-adopt", "model-plan-reject"].includes(name)
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
     : command(name, body)), announce });
   const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, submit: body => submit(command("plan", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    planning: [planPanel.element],
+    planning: [planPanel.element, modelPanel.planElement],
     operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
   function otherModelBlockers(): boolean {
     return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain
-      || !!lastRequest?.uncertain && !["model-advance", "model-resume"].includes(lastRequest.command);
+      || !!lastRequest?.uncertain && !MODEL_COMMANDS.has(lastRequest.command);
   }
   function canRecoverModel(body: Obj): boolean {
     return !busy && description.enabled === true && !otherModelBlockers()
@@ -456,6 +457,12 @@ export async function mountLocalWorkbench(): Promise<void> {
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
       planPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
       await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current);
+      if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
+      try {
+        const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
+        if (modelPanel.decisionResolved(text(remembered.command, ""), text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
+      } catch { /* Saved model records remain authoritative. */ }
+      showPending();
     } else { planPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
@@ -470,7 +477,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
     const blocked = switching ? navigationBlocked() : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
     if (!recoverBatch && !recoverModel && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
-    const modelCommand = ["model-advance", "model-resume"].includes(pending.command);
+    const modelCommand = MODEL_COMMANDS.has(pending.command);
     lastRequest = pending; busy = true; controls(); downloads(); announce(modelCommand ? "正在处理原模型请求；将保留回答和实际行动结果…" : "正在提交一次明确的本地命令…");
     if (pending.command === "evidence") evidencePending.set(targetProject, pending);
     try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ request_id: pending.requestId, command: pending.command })); } catch { /* Host journal remains authoritative. */ }
@@ -511,7 +518,14 @@ export async function mountLocalWorkbench(): Promise<void> {
           const labels: Record<string, string> = { completed: "已完成", waiting: "已保存等待", failed: "失败，原记录保留", unknown: "未知，保留原请求核对" };
           pending.uncertain = ["sending", "unknown", "received", "prepared"].includes(state) || actual === "unknown";
           failed = pending.uncertain || ["invalid", "stale", "failed"].includes(state) || actual === "failed";
-          outcomeMessage = state === "applied" ? `模型选择已保存，原控制器结果：${labels[actual] ?? actual}。请查看本次理由、实际行动与用量。`
+          if (record.purpose === "plan") {
+            const messages: Record<string, string> = {
+              proposed: "模型计划建议已保存，可查看反馈依据和预计改善，再决定采用或拒绝。",
+              applied: "模型建议已采用为研究计划第" + obj(outcome.research_plan).version + "版。",
+              rejected: "计划建议及拒绝理由已保存。",
+            };
+            outcomeMessage = messages[state] ?? "计划建议需要核对，当前状态为" + state + "，请查看原请求记录。";
+          } else outcomeMessage = state === "applied" ? `模型选择已保存，原控制器结果：${labels[actual] ?? actual}。请查看本次理由、实际行动与用量。`
             : `模型请求${state === "stale" ? "已过期" : state === "invalid" ? "回答未通过校验" : "未完成"}，原始记录已保留。请核对原请求；没有自动重发。`;
         }
         if (pending.command === "create") {
@@ -533,6 +547,10 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.command === "plan" && items(obj(current.research_plan).revisions).some(revision => revision.request_id === pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
       outcomeMessage = "研究计划已从保存记录中确认。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
+    }
+    if (modelPanel.decisionResolved(pending.command, pending.requestId)) {
+      pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
+      outcomeMessage = pending.command === "model-plan-adopt" ? "已从原模型请求确认计划采用，当前版本可继续使用。" : "已从原模型请求确认拒绝结果与理由。";
     }
     busy = false; candidates(); downloads(); controls(); showPending(); announce(outcomeMessage, failed);
     return accepted;
