@@ -525,6 +525,9 @@ export async function mountLocalWorkbench(): Promise<void> {
               rejected: "计划建议及拒绝理由已保存。",
             };
             outcomeMessage = messages[state] ?? "计划建议需要核对，当前状态为" + state + "，请查看原请求记录。";
+          } else if (record.purpose === "recipe") {
+            outcomeMessage = state === "proposed" ? "配方候选已保存，可交给改进外环验证并记录采用决定。"
+              : "配方模型请求状态为" + state + "，请查看原请求与改进外环记录。";
           } else outcomeMessage = state === "applied" ? `模型选择已保存，原控制器结果：${labels[actual] ?? actual}。请查看本次理由、实际行动与用量。`
             : `模型请求${state === "stale" ? "已过期" : state === "invalid" ? "回答未通过校验" : "未完成"}，原始记录已保留。请核对原请求；没有自动重发。`;
         }

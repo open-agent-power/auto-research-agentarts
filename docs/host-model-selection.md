@@ -46,6 +46,18 @@ CLI分支采用实际新请求ID，在`advance`中增加`--purpose plan`，同�
 
 本节说明协议与Host入口。实际子代理计划修订、后轮接续及桌面和手机页面验收见[A63记录](#a63-真实子代理计划修订与后轮接续)。
 
+## 配方改进提案与验证接线
+
+主开发已落盘recipe change的模型提案协议与允许工具验证适配。A64已通过一次真实子代理提案和允许来源读取，桌面及手机截图、五页导航与报告下载均已实际核对，代码尚未提交和发布。队友继续拥有`recipe_improvement`外环，负责版本、采用或回退以及连续轮次。实际范围见[A64记录](#a64-配方修改提案与允许工具验证)。
+
+[recipe_change_proposal.py](../src/autoresearch/recipe_change_proposal.py)冻结实际`research_context`、`current_recipe`与`improvement_goal`，schema为`recipe-change-context-v1`。当前配方必须匹配项目范围和need，轨迹须含已完成或失败的真实反馈。模型原回答恰含`candidate/reason/feedback_action_ids/expected_improvement/validation_plan`。其中`candidate`是`research-recipe-v1`，保留原配方`id`、`scope_match`和`need`，版本加1，`on_no_match`为`wait`。方法与评价引用须成对来自冻结的`selection_context.conditions`，反馈引用须来自实际完成或失败的行动。
+
+Host已支持`purpose=recipe`，复用原累计grant，consume保存为`proposed`。CLI的`prepare/advance`支持`--purpose recipe --recipe <JSON文件> --improvement-goal <文字>`，原请求和回答继续由Host记录。子代理分支先prepare，再经原请求ID导入原回答并consume。CLI分支沿既有传输。声明中的模型、内部推理次数和费用仍按已知或unknown保存。
+
+[recipe_improvement_adapter.py](../src/autoresearch/recipe_improvement_adapter.py)提供`propose_recipe_change`与`validate_recipe_change`。提案适配返回`recipe-change-proposal-result-v1`，其`candidate`为完整的`recipe-change-proposal-v1`，该对象内部的`candidate`才是原生配方。子代理首次返回`prepared`及原context、prompt位置，导入实际回答后同ID返回`proposed`。验证时传入完整提案，采用后保存新配方时取提案内部的`candidate`。
+
+验证适配使用同一Host `request_id`，只读编译同一冻结context下的baseline与候选，比较决策，再经原控制器最多执行候选一步。调用方显式提供`allowed_methods`与`allowed_receipts`，来源收据按精确身份限制。原Host请求目录保存`validation-input.json`与终态`validation-result.json`，中断沿原ID恢复，unknown保留待核对状态。本地方法和来源用量沿原项目账本累计，采用或回退由外环决定。参数与返回字段见[队友接口](recipe-research/team-module-interface.md#主开发的配方改进适配接线)。
+
 ## 已验证到哪里
 
 - **A27：同项目两次显式CLI提交已走通。** 同一hiMSC集成项目先完成主质量检查，再完成绑定该action/result的分组画像；第二次冻结context与第一次执行后的context具有相同项目、版本、快照和context身份。两次请求均applied，控制器结果与子行动均completed，CLI报告合计0.048195USD。见[原反馈context](../runs/a27-workbench-model-20261103/after-first-context.json)、[原用量](../runs/a27-workbench-model-20261103/host-status.json)及[原验证记录](../runs/a27-workbench-model-20261103/validation.json)。这是两次明确提交，不能据此认定`advance-batch`已在真实任务中自动连续成功两次。
@@ -65,7 +77,7 @@ $context = .venv/Scripts/python.exe scripts/run_research_project.py selection-co
 $context | ConvertTo-Json -Depth 30
 ```
 
-`selection`用途要求`blockers`为空且`candidates`非空。`plan`用途在无全局阻断且无未决原生模型请求时，可以基于实际反馈准备计划建议，候选为空时也可使用。首次`prepare`固定本项目host journal的累计grant。
+`selection`用途要求`blockers`为空且`candidates`非空。`plan`与`recipe`用途要求无全局阻断且无未决原生模型请求，候选为空时也可准备提案。`recipe`另要求有已完成或失败的真实反馈，以及匹配项目范围和need的当前配方。首次`prepare`固定本项目host journal的累计grant。
 
 - `--decision-limit` 为 1 至 8。每个成功保存的 prepare 占一个名额，包括后来等待、失败或 invalid 的请求。
 - `--cli-budget-usd` 为大于0、至多0.10USD的累计报告估值配置阈值。宿主把剩余阈值传给CLI，并在已知合计达到阈值或费用未知时阻止后续发送。A34实跑已观察到单次CLI超出其剩余参数并返回预算错误，因此它不能保证单次调用或现金支出的硬上限。未知用量不按0计算。
@@ -297,11 +309,23 @@ A35面板将金额标为“CLI配置阈值”，说明单次调用可能超出�
 
 本轮报告正常导出四份文件，6页PDF均已逐页查看，展示当前计划、修订及模型请求用途，并保留13份Host原件。四个正常报告下载均HTTP200，与manager导出逐字节一致。原模板第3页留白较多，完整内容可读报告JSON。本机验证记录按忽略规则保存。
 
-桌面1440×900与手机390×844共8张真实截图已逐张查看，覆盖全页、计划、展开的已采用提案和X6画布分段。两端均无页面横向溢出，五页导航逐页访问正确，当前访问pageErrors0、httpErrors0。运行app.js及CSS与构建文件一致，前端format、Lint和类型检查重跑通过，format检查34份文件、改动0份。本轮代码尚未提交和发布。
+桌面1440×900与手机390×844共8张真实截图已逐张查看，覆盖全页、计划、展开的已采用提案和X6画布分段。两端均无页面横向溢出，五页导航逐页访问正确，当前访问pageErrors0、httpErrors0。运行app.js及CSS与构建文件一致，前端format、Lint和类型检查重跑通过，format检查34份文件、改动0份。A63已通过[PR #8](https://github.com/1263-ux/auto-research-agentarts/pull/8)合并，共享主线为`23b6d91`。
 
 协作会话记录可以核对这三次实际派发。Host导入仍保留`execution/model/usage unverified`声明，内部推理次数、模型身份和费用为unknown，现金结算unknown及原5元上限保留。此次计划用途实际采用子代理，新增plan用途的CLI传输尚待单独实跑。
 
 本轮给出了研究计划建议、采用与按修订计划继续的真实轨迹。配方或策略版本的验证、采用或回退及RSI后轮管理由队友的`recipe_improvement`模块继续接线。目标量表、变量编码与样本独立性按数据来源的实际证据解释。
+
+## A64 配方修改提案与允许工具验证
+
+2026-11-05，复用A62已有构造四行工程项目，显式兼容升级后保留原预算及旧行动，登记团队自写工程运行说明。一次实际协作子代理请求`a64-recipe-change`提出完整候选v2，提案适配保存原回答，验证适配按显式允许的方法和来源收据，经原控制器实际读取该来源1次。冻结baseline为wait，候选为execute，验证completed，`selection_changed=true`。
+
+最终state v13，本地方法1/2、来源1/8、Host 1/1、原生模型调用0。原ID的propose与validate重放后，核心及Host状态均未改变，A63原v11全状态逐值一致。报告正常导出4文件，5页PDF已全部实际查看，部分页沿原模板留白较多。7份Host原件包含真实`validation-input.json`与`validation-result.json`，本机验证记录按忽略规则保存。
+
+页面验收使用CLI关闭的独立18795预览。桌面1440×900与手机390×844共8张全页、计划、配方记录与画布分段截图已实际查看，两端无页面横向溢出，键盘展开和收起原记录通过。当前A64项目五页导航已逐页访问，选中态及URL正确，pageErrors0、httpErrors0。四报告HTTP200，与manager导出逐字节一致，运行JS及CSS与本次构建一致。代码尚未提交和发布，共享主线为`23b6d91`。
+
+实际模型来自协作派发，Host供应商声明仍未核验，内部模型及费用unknown，plan和recipe用途的CLI均未实际调用。原回答的`validation_plan`建议采用后再执行，实际验证独立按显式allowed方法与receipt运行在采用决定前。该文字保留为模型建议，执行权限由调用方提供，原回答未改写，可作为后轮反馈。
+
+这次结果供队友直接接入`run_improvement_round`，复用已保存的完整候选和验证结果。外环仍需保存采用或回退决定、有效版本与后轮状态。后续接线沿本次原ID取回结果，再按新的实际问题继续。
 
 ## Limitations
 

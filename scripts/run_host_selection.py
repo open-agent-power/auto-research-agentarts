@@ -8,6 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from autoresearch.contracts import ResearchError
 from autoresearch.host_model_selection import HostModelSelection
 from autoresearch.host_model_batch import HostModelBatch
+from autoresearch.research_recipe import MAX_RECIPE_BYTES, parse_json, validate_recipe
+from autoresearch.research_project import safe_path
+from autoresearch.source_evidence_adapter import _read_file
 
 
 def _request_args(parser):
@@ -20,7 +23,9 @@ def _prepare_args(parser, *, provider=False, purpose=True):
     if provider:
         parser.add_argument("--provider", choices=("claude_cli", "delegated"), required=True)
     if purpose:
-        parser.add_argument("--purpose", choices=("selection", "plan"), default="selection")
+        parser.add_argument("--purpose", choices=("selection", "plan", "recipe"), default="selection")
+        parser.add_argument("--recipe", help="Recipe request only: a strict research-recipe-v1 JSON file.")
+        parser.add_argument("--improvement-goal", help="Recipe request only: the bounded issue to improve.")
     parser.add_argument("--expected-state-version", type=int, required=True)
     parser.add_argument("--decision-limit", type=int, required=True, help="Immutable prospective limit for this host journal, at most 8.")
     parser.add_argument("--cli-budget-usd", type=float, required=True, help="Configured cumulative CLI estimate threshold, at most 0.10 USD; one call can overshoot, not billing settlement.")
@@ -72,9 +77,18 @@ def main():
         elif args.command in ("prepare", "advance"):
             provider = args.provider if args.command == "prepare" else "claude_cli"
             executable = args.claude_executable if provider == "claude_cli" else None
+            current_recipe = None
+            if args.purpose == "recipe":
+                if not args.recipe or not args.improvement_goal:
+                    raise ResearchError("INVALID_REQUEST", "Recipe requests require --recipe and --improvement-goal.")
+                current_recipe = validate_recipe(parse_json(_read_file(safe_path(Path(args.recipe).absolute()), MAX_RECIPE_BYTES),
+                    maximum=MAX_RECIPE_BYTES, code="INVALID_RESEARCH_RECIPE"))
+            elif args.recipe is not None or args.improvement_goal is not None:
+                raise ResearchError("INVALID_REQUEST", "Use --recipe and --improvement-goal with --purpose recipe.")
             result = journal.prepare(request_id=args.request_id, provider=provider,
                 expected_state_version=args.expected_state_version, decision_limit=args.decision_limit,
-                cli_budget_usd=args.cli_budget_usd, reason=args.reason, executable=executable, purpose=args.purpose)
+                cli_budget_usd=args.cli_budget_usd, reason=args.reason, executable=executable, purpose=args.purpose,
+                current_recipe=current_recipe, improvement_goal=args.improvement_goal)
             if args.command == "advance":
                 result = journal.request(request_id=args.request_id)
                 if result["status"] == "received":

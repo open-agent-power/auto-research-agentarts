@@ -45,9 +45,9 @@ def _context(context):
     return context
 
 
-def build_context(project):
+def build_context(project, need="next_check"):
     before = project.status()
-    selection = ProjectController(project.root).selection_context()
+    selection = ProjectController(project.root).selection_context(need=need)
     feedback = [{"action_id": action["id"], "request_id": action["request_id"],
                  "method_id": action["command"], "status": action["status"],
                  "observations": copy.deepcopy(action.get("observations", [])),

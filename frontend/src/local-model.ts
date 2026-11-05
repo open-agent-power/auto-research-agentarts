@@ -146,14 +146,22 @@ export function createLocalModelPanel(host: Host): {
     planHistory.replaceChildren(el("h2", "section-title", "模型计划建议")); planHistory.hidden = !records.some(record => record.purpose === "plan");
     if (!records.length) { history.append(el("p", "detail-note", "尚无请求。打开页面不会创建请求。")); return; }
     for (const [index, record] of [...records].reverse().entries()) {
-      const isPlan = record.purpose === "plan", id = text(record.request_id, ""), card = el("details", isPlan ? "local-plan-record" : "local-model-record local-batch-record");
+      const isPlan = record.purpose === "plan", isRecipe = record.purpose === "recipe";
+      const id = text(record.request_id, ""), card = el("details", isPlan ? "local-plan-record" : "local-model-record local-batch-record");
       card.open = isPlan ? record.status === "proposed" : index === 0;
-      const label = isPlan && record.status === "applied" ? "计划建议已采用" : states[text(record.status)] ?? text(record.status);
+      let label = states[text(record.status)] ?? text(record.status);
+      if (isPlan && record.status === "applied") label = "计划建议已采用";
+      if (isRecipe && record.status === "proposed") label = "配方建议已保存 · 验证与采用由外环处理";
       card.append(el("summary", "", label + " · " + id));
       const arguments_ = object(record.arguments), outcome = object(record.outcome), error = object(record.error);
       const route = strings(record.reported_models).join("、");
       card.append(el("p", "detail-note", "提供方记录 · " + (record.provider === "claude_cli" ? "Claude CLI；自报路由 " + (route || "未知") : "子代理原回答导入")));
-      if (!isPlan) card.append(el("p", "detail-note", "模型解释 · " + text(arguments_.rationale, "尚无通过解析的模型解释。")));
+      if (!isPlan) card.append(el("p", "detail-note", "模型解释 · " + text(isRecipe ? arguments_.reason : arguments_.rationale, "尚无通过解析的模型解释。")));
+      if (isRecipe && record.status === "proposed") {
+        card.append(el("p", "detail-note", "候选配方 · " + text(object(arguments_.candidate).id) + " · 第" + number(object(arguments_.candidate).version) + "版"),
+          el("p", "detail-note", "预期改善 · " + text(arguments_.expected_improvement)),
+          el("p", "detail-note", "验证安排 · " + text(arguments_.validation_plan)));
+      }
       if (record.provider === "claude_cli") {
         const cost = record.reported_cost_usd, reported = typeof cost === "number" && Number.isFinite(cost);
         const costNote = record.cli_launch_attempted === false ? "尚未启动CLI，无费用报告。"

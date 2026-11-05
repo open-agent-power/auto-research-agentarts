@@ -300,10 +300,12 @@ def _host_request_rows(report):
     for record in report["host_models"]["records"]:
         route = ", ".join(record.get("reported_models") or []) or "未报告"
         outcome = (record.get("outcome") or {}).get("status", "尚未提交")
-        purpose = "计划建议" if record.get("purpose") == "plan" else "行动选择"
+        purpose = {"plan": "计划建议", "recipe": "配方改进"}.get(record.get("purpose"), "行动选择")
         if record.get("purpose") == "plan" and record["status"] == "applied":
             revision = record["outcome"]["research_plan"]
             outcome = "采用为计划第" + str(revision["version"]) + "版"
+        if record.get("purpose") == "recipe" and record["status"] == "proposed":
+            outcome = "候选已保存，验证与采用见外环记录"
         cost = record.get("reported_cost_usd")
         rows.append([record["request_id"] + " / " + purpose + " / " + route, record["status"] + " / " + outcome,
                      "未知" if cost is None else format(cost, ".8g")])
@@ -324,6 +326,7 @@ def _research_plan_rows(state):
 HOST_MODEL_NOTE = ("原生本地模型计数不包含宿主CLI或子代理。CLI次数为宿主启动尝试，路由和USD估值来自CLI自报，不是账单或总推理次数；"
                    "未知不计为零。本机已观察到单次CLI超出配置预算参数，阈值用于后续发送阻断，不能保证单次发送硬上限。"
                    "行动选择请求applied表示已提交控制器，实际行动结果另列。计划建议请求applied表示采用了计划版本。"
+                   "配方请求proposed表示候选已保存，已有验证输入与结果随原件附上，采用决定由外环记录。"
                    "input.json的host_models与assets保留原日志、回答及已有传输收据，缺失或未知不补造成功，也不自动重发。")
 
 
