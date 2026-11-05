@@ -1,0 +1,28 @@
+{
+  "schema_version": "recipe-improvement-round-draft-v1",
+  "round_id": "synthetic-round-1",
+  "data_kind": "synthetic_engineering_fixture",
+  "current_recipe": {
+    "id": "inspect-feedback-and-continue",
+    "version": 1
+  },
+  "issue": "构造问题，原策略在已有反馈后仍重复要求相同信息。",
+  "trace_refs": [
+    "cases/feedback.context.json"
+  ],
+  "candidate": {
+    "base_version": 1,
+    "proposed_version": 2,
+    "change": "改写反馈分支，使其利用已有反馈决定下一步。",
+    "expected_improvement": "在同一输入下减少重复步骤，保留范围说明。"
+  },
+  "validation": {
+    "status": "pending",
+    "actual_results": []
+  },
+  "decision": {
+    "status": "pending",
+    "reason": ""
+  },
+  "next_action": "由队友实现接口后执行相关模块验证。"
+}

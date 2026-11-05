@@ -1,13 +1,17 @@
 # 产品文档入口
 
+- [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
+- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：交付程度、主演示、倒排安排、完成标准及材料准备
 - [本地研究工作台](local-workbench.md)与[项目使用说明](project-slice.md)
-- [队友当前任务：B8S1 导出、零值与字段含义取证](teammate-recipe-task.md)；原科研配方任务保留在同页
+- [队友任务：通用配方与RSI持续改进](teammate-recipe-task.md)；[开发任务书](recipe-research/team-module-handoff.md)与[接口约定](recipe-research/team-module-interface.md)
+- [随源码提供的配方与RSI示例](../examples/recipe-improvement/README.md)，包含接口草案和构造context
 - [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)
 - [架构基线](architecture/foundation.md)与[开发地图](development.md)
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
 - [开发者导航](../.agent/README.md)
 - [hiMSC 原件核对：59 条全零记录与 216 条化学编号差异](himsc-source-audit.md)
+- [CSV与已捕获工作簿的候选投影核对](workbook-projection.md)
 - [Claude CLI 与子代理的真实选择/执行验证](external-model-validation.md)
 - [Claude CLI 与子代理的正式请求入口](host-model-selection.md)
 

@@ -162,6 +162,15 @@ def grouped_feedback_eligible(profile, scope):
         for column in profile.get("numeric_columns", [])))
 
 
+def _workbook_origin(project):
+    declared = project.get("source_provenance", {}).get("origin_sha256")
+    for receipt in project.get("evidence_sources", []):
+        for source in receipt.get("source_metadata", []):
+            if source["sha256"] == declared and source["media_type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                return {"origin_receipt_sha256": receipt["receipt_snapshot_sha256"], "origin_source_id": source["id"]}
+    return None
+
+
 def _domain_methods(project, need):
     primary = registry.primary_id(project)
     registry.get(primary)
@@ -197,14 +206,23 @@ def _domain_methods(project, need):
         eligible = grouped_feedback_eligible(profile, project.get("source_scope", {}))
         parameters = ({"based_on_action_id": predecessor["id"], "based_on_result_sha256": predecessor["result_sha256"]}
                       if predecessor else {})
+        reason = "Inspect zero/missing/invalid concentration only after saved quality feedback and declared group fields; keep all original values and unresolved source needs."
+        missing = ["completed quality feedback with zero/missing/invalid values and declared group columns"]
+        if method_id == registry.WORKBOOK:
+            origin = _workbook_origin(project)
+            eligible = bool(predecessor and origin)
+            if origin:
+                parameters.update(origin)
+            reason = "Compare the unchanged CSV against saved workbook cells from its declared, captured origin; retain all unmatched or ambiguous projection candidates."
+            missing = ["completed quality feedback and a captured XLSX matching the submitted origin SHA"]
         done = [item for item in project.get("actions", []) if item["command"] == method_id
                 and item["status"] == "completed" and item["method_instance"]["parameters"] == parameters]
         options.append({"method_id": method_id,
                         "condition": "uncertain" if unresolved or not predecessor else "satisfied" if eligible and condition != "not_applicable" else "not_applicable",
                         "parameters": parameters, "completed": bool(done),
                         "reusable_action_ids": [item["id"] for item in done], "unresolved_execution_ids": unresolved,
-                        "reasons": ["Inspect zero/missing/invalid concentration only after saved quality feedback and declared group fields; keep all original values and unresolved source needs."],
-                        "missing_information": [] if eligible else ["completed quality feedback with zero/missing/invalid values and declared group columns"],
+                        "reasons": [reason],
+                        "missing_information": [] if eligible else missing,
                         "evidence_refs": _evidence(project)})
     return options
 
@@ -233,7 +251,9 @@ def _domain_choice(project, options, knowledge):
         if option["condition"] == "satisfied" and not option["completed"]:
             return {**base, "project_status": "active", "next_action": {"method_id": method_id,
                     "parameters": copy.deepcopy(option["parameters"]), "kind": "conditional_proposal", "execution_status": "not_executed"},
-                    "reason": "Saved quality feedback qualifies a grouped zero/missing inspection; prior source and scientific questions remain unresolved."}
+                    "reason": ("Saved quality feedback and the captured declared origin qualify a workbook candidate projection check; conversion and scientific questions remain unresolved."
+                               if method_id == registry.WORKBOOK else
+                               "Saved quality feedback qualifies a grouped zero/missing inspection; prior source and scientific questions remain unresolved.")}
     saved = copy.deepcopy((project.get("next_decision") or {}).get("next_action", {}))
     if saved.get("method_id") != registry.SOURCE or saved.get("kind") != "evidence_task":
         # A completed read is no longer a next task. Recover the latest analysis need,

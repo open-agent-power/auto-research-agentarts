@@ -19,6 +19,10 @@ def require(condition, code, message):
         raise ResearchError(code, message)
 
 
+def _source_metadata(receipt):
+    return [{key: source[key] for key in ("id", "sha256", "media_type")} for source in receipt["sources"]]
+
+
 def code_identity():
     from . import project_model_protocol
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -170,6 +174,8 @@ class ResearchProject:
                               "cash_settlement": "unknown", "existing_cash_cap_cny": 5,
                               "model_requests_allowed": 0, "new_model_requests": 0, "model_requests_reserved": 0, "new_fits": 0,
                               "local_tool_call_limit": max_tool_calls, "evidence_read_limit": 8}}
+        if method_id == "data.tabular-quality-audit":
+            project["source_provenance"] = dict(payload["spec"]["provenance"])
         project["supported_methods"].extend({"id": method, "version": registry.get_analysis(method).ADAPTER_VERSION,
                                              "condition": "uncertain", "scope": payload["scope"]}
                                             for method in registry.followup_ids(method_id))
@@ -330,13 +336,21 @@ class ResearchProject:
                 require(method_id == primary_id or followup, "METHOD_NOT_SUPPORTED", "This method is not supported by the registered input.")
                 primary = registry.get_analysis(method_id)
                 if followup:
+                    parameter_keys = {"based_on_action_id", "based_on_result_sha256"}
+                    if method_id == registry.WORKBOOK:
+                        parameter_keys |= {"origin_receipt_sha256", "origin_source_id"}
                     require(dimension is None and type(parameters) is dict
-                            and set(parameters) == {"based_on_action_id", "based_on_result_sha256"},
+                            and set(parameters) == parameter_keys,
                             "INVALID_REQUEST", "A follow-up binds one saved predecessor action and result.")
                     identifier(parameters["based_on_action_id"])
                     require(type(parameters["based_on_result_sha256"]) is str
                             and re.fullmatch(r"[0-9a-f]{64}", parameters["based_on_result_sha256"]),
                             "INVALID_REQUEST", "A saved predecessor result SHA is required.")
+                    if method_id == registry.WORKBOOK:
+                        identifier(parameters["origin_source_id"], "origin_source_id")
+                        require(type(parameters["origin_receipt_sha256"]) is str
+                                and re.fullmatch(r"[0-9a-f]{64}", parameters["origin_receipt_sha256"]),
+                                "INVALID_REQUEST", "A captured origin receipt SHA is required.")
                 else:
                     require(parameters is None or parameters == {}, "INVALID_REQUEST", "Use the original primary-method parameters.")
                 if method_id == adapter.TOOL_ID:
@@ -380,12 +394,15 @@ class ResearchProject:
                         "EVIDENCE_CHANGED", "The follow-up predecessor identity differs.")
                 self._recover(predecessor)
                 original = json.loads(self._artifact(predecessor).read_bytes())["tool_result"]
-                require(methods.grouped_feedback_eligible(original["result"]["profile"], original["result"]["scope"]),
-                        "CONDITION_NOT_SATISFIED", "The verified original result does not qualify this follow-up.")
+                if method_id != registry.WORKBOOK:
+                    require(methods.grouped_feedback_eligible(original["result"]["profile"], original["result"]["scope"]),
+                            "CONDITION_NOT_SATISFIED", "The verified original result does not qualify this follow-up.")
             else:
                 require(project["research_status"] == "active", "PROJECT_WAITING", "Resolve the recorded evidence task before another execution.")
             require(len(current["actions"]) < project["budget"]["local_tool_call_limit"],
                     "BUDGET_EXHAUSTED", "Cumulative local verification allowance is exhausted.")
+            if method_id == registry.WORKBOOK:
+                payload = self._workbook_projection_input(project, payload, parameters)
             action = {**request, "id": "action-" + fingerprint({"request_id": request_id, **request})[:32],
                       "request_id": request_id, "request_sha256": digest, "status": "running",
                       "run_id": project["run_id"], "code_identity": project["code_identity"], "failure": None,
@@ -451,9 +468,14 @@ class ResearchProject:
                     and not any(item["status"] in ("sending", "unknown") for item in project.get("source_requests", []))
                     and not any(item["status"] == "reserved" for item in project.get("local_model_requests", [])),
                     "EXECUTION_UNKNOWN", "Resolve existing execution with its original code before upgrading.")
-            self._source(project)
+            payload = self._source(project)
             for action in current["actions"] + current["evidence_actions"]:
                 self._recover(action)
+            source_metadata = {}
+            for entry in project.get("evidence_sources", []):
+                receipt, _, _ = self._load_evidence_input(project, entry["receipt_snapshot_sha256"],
+                                                        input_receipt=entry["input_receipt"], task_ref=entry.get("task_ref"))
+                source_metadata[entry["receipt_snapshot_sha256"]] = _source_metadata(receipt)
             require(project["budget"].get("evidence_read_limit", evidence_read_limit) == evidence_read_limit,
                     "CONFIG_CHANGED", "An existing evidence allowance cannot be reset or enlarged by upgrade.")
             revision = {"request_id": request_id, "from": expected_code_identity, "to": code_identity(),
@@ -469,6 +491,10 @@ class ResearchProject:
                 project["schema_version"] = "local-research-project-v3"
                 project["code_identity"] = code_identity()
                 project.setdefault("evidence_sources", [])
+                for entry in project["evidence_sources"]:
+                    entry["source_metadata"] = source_metadata[entry["receipt_snapshot_sha256"]]
+                if registry.primary_id(project) == "data.tabular-quality-audit":
+                    project["source_provenance"] = dict(payload["spec"]["provenance"])
                 project.setdefault("evidence_registrations", [])
                 project.setdefault("knowledge_refs", [])
                 project.setdefault("code_revisions", []).append(revision)
@@ -699,6 +725,19 @@ class ResearchProject:
             write_once(receipt_path, receipt)
         return receipt_path.relative_to(self.root).as_posix()
 
+    def _workbook_projection_input(self, project, payload, parameters):
+        entry = next((item for item in project["evidence_sources"]
+                      if item["receipt_snapshot_sha256"] == parameters["origin_receipt_sha256"]), None)
+        require(entry is not None, "CONDITION_NOT_SATISFIED", "The workbook must already be captured in this project.")
+        receipt, assets, _ = self._load_evidence_input(project, entry["receipt_snapshot_sha256"],
+                                                     input_receipt=entry["input_receipt"], task_ref=entry["task_ref"])
+        origin = next((item for item in receipt["sources"] if item["id"] == parameters["origin_source_id"]), None)
+        require(origin is not None and origin["sha256"] == payload["spec"]["provenance"]["origin_sha256"]
+                and origin["media_type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "EVIDENCE_CHANGED", "Captured workbook identity differs from the submitted origin declaration.")
+        return {"tabular_source": payload, "origin_bytes": assets[origin["id"]],
+                "origin_source": {key: origin[key] for key in ("id", "sha256", "media_type")}}
+
     def _register_evidence_locked(self, *, request_id, bundle, expected_state_version=None):
         current = self.status()
         with self._connect() as con:
@@ -735,7 +774,8 @@ class ResearchProject:
         if existing is None:
             sources.append({"receipt_snapshot_sha256": receipt["snapshot_sha256"], "input_receipt": relative,
                             "task_ref": receipt["task_ref"], "source_count": len(receipt["sources"]),
-                            "selection_count": len(receipt["selections"]), "registration_id": record["id"]})
+                            "selection_count": len(receipt["selections"]), "registration_id": record["id"],
+                            "source_metadata": _source_metadata(receipt)})
             preview = dict(current, evidence_sources=sources)
             decision = methods.choose_next(preview, methods.match_methods(preview))
             decision["based_on_registration_id"] = record["id"]
@@ -743,7 +783,7 @@ class ResearchProject:
         else:
             require(existing.get("task_ref", receipt["task_ref"]) == receipt["task_ref"],
                     "TASK_MISMATCH", "The existing receipt task differs.")
-            existing.update(input_receipt=relative, task_ref=receipt["task_ref"])
+            existing.update(input_receipt=relative, task_ref=receipt["task_ref"], source_metadata=_source_metadata(receipt))
         project.setdefault("evidence_registrations", []).append(record)
         project["state_version"] += 1
         with self._connect() as con:
