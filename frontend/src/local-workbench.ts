@@ -442,7 +442,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     showPending();
     if (now) {
       try { current = await read("/api/project"); }
-      catch (error) { planPanel.update({}); await workspacePages.update({}); throw error; }
+      catch (error) { planPanel.update({}); await workspacePages.update({}, null); throw error; }
       const savedPlanIds = new Set(items(obj(current.research_plan).revisions).map(revision => revision.request_id));
       if (lastRequest?.command === "plan" && savedPlanIds.has(lastRequest.requestId)) lastRequest = null;
       try {
@@ -456,14 +456,14 @@ export async function mountLocalWorkbench(): Promise<void> {
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
       planPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
-      await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current);
+      await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
       try {
         const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
         if (modelPanel.decisionResolved(text(remembered.command, ""), text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
       } catch { /* Saved model records remain authoritative. */ }
       showPending();
-    } else { planPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}); }
+    } else { planPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}, null); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
   }

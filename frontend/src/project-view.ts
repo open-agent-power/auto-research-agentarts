@@ -51,6 +51,7 @@ const domainTitle: Record<Domain, string> = {
 
 function note(value: string, fallback: string): string {
   const tabularNeeds: Record<string, string> = {
+    "Real task value and scientific source qualification remain unvalidated.": "真实任务价值与科学来源资格仍待验证。",
     "Original data provenance, access and license evidence; submitter declarations remain unverified.": "核对原始数据的来源、访问和许可证据，提交者声明仍未核验",
     "Confirm target meaning and unit before any scientific or training use.": "核对目标字段的含义和单位，再判断科研或训练用途",
     "Clarify the intended target or confirm this is an untargeted data-quality task.": "明确目标字段，或确认只做无目标字段的数据质量检查",
@@ -602,18 +603,136 @@ function standaloneHeader(project: Obj): void {
 
 export type ActiveProjectPage = "overview" | "research" | "experiments" | "knowledge" | "outputs";
 
+function progressFeedback(action: Obj, source: boolean): string {
+  if (action.status !== "completed") {
+    if (["unknown", "needs_review"].includes(string(action.status, ""))) return "原请求的结果尚待核对。";
+    return action.status === "failed" ? "失败记录已保存，详细结果见原行动。" : "此行动尚无已完成的结果。";
+  }
+  const observations = objects(action.observations);
+  if (source) return `已保存 ${observations.length} 条来源观察，原文与定位可在知识页查看。`;
+  const audit = observations.find(item => item.kind === "tabular_quality_audit");
+  if (audit) {
+    const profile = object(audit.profile);
+    const events = objects(profile.numeric_columns).flatMap(column => {
+      const counts = object(column.counts);
+      return ["zero", "empty", "declared_missing", "invalid_numeric", "nonfinite"].flatMap(kind => {
+        const labels: Record<string, string> = { zero: "零值", empty: "空值", declared_missing: "声明缺失", invalid_numeric: "非法数值", nonfinite: "非有限值" };
+        const count = counts[kind];
+        return typeof count === "number" && count > 0 ? [`${string(column.name)} ${labels[kind]} ${numeric(count)}`] : [];
+      });
+    });
+    return `已核对 ${numeric(profile.rows)} 条记录、${numeric(profile.columns)} 个字段，完整重复的额外记录 ${numeric(profile.exact_duplicate_rows)} 条。`
+      + (events.length ? events.slice(0, 2).join("，") + (events.length > 2 ? "等标记可在实验页核对。" : "。") : "");
+  }
+  const grouped = observations.find(item => item.kind === "grouped_quality_profile");
+  if (grouped) {
+    const summary = object(grouped.summary);
+    return `已查看 ${numeric(summary.rows)} 条记录的分组分布，完整组 ${numeric(summary.group_count)} 个，分组字段不完整的记录 ${numeric(summary.incomplete_group_rows)} 条。`;
+  }
+  const workbook = observations.find(item => item.kind === "workbook_projection_check");
+  if (workbook) {
+    const summary = object(workbook.summary);
+    return `已比较 ${numeric(summary.csv_rows)} 条CSV记录与捕获的工作簿，完全一致候选表 ${numeric(summary.exact_candidate_sheet_count)} 张。`;
+  }
+  return `已保存 ${observations.length} 条实际观察，具体指标与原决定见实验页。`;
+}
+
+function savedProgress(project: Obj): HTMLElement {
+  const methods = objects(project.actions), sources = objects(project.evidence_actions);
+  const panel = section("已保存的工作", `方法行动 ${methods.length} 项，来源读取 ${sources.length} 项。`);
+  panel.classList.add("project-progress");
+  const list = el("ul", "project-progress-list");
+  const visible = [...methods.slice(-3).map(action => ({ action, source: false })), ...sources.slice(-2).map(action => ({ action, source: true }))];
+  for (const { action, source } of visible) {
+    const item = el("li", "project-progress-item"), heading = el("div", "project-progress-heading");
+    heading.append(el("h3", "", source ? "来源读取" : method(action.command)), badge(action.status, ""));
+    item.append(heading, el("p", "project-progress-copy", progressFeedback(action, source))); list.append(item);
+  }
+  if (visible.length) panel.append(list);
+  else panel.append(el("p", "empty-state", "当前还没有保存的执行结果。可以先查看研究计划和当前候选。"));
+  const hidden = methods.length + sources.length - visible.length;
+  if (hidden > 0) panel.append(el("p", "detail-note", `另有 ${hidden} 条保存记录，可在实验与知识页完整查看。`));
+  const links = el("div", "project-progress-actions");
+  for (const [label, href] of [["查看方法结果", "#/experiments"], ["阅读来源与定位", "#/knowledge"], ["查看报告与成果", "#/outputs"]]) {
+    const link = el("a", "text-button", label); link.href = href; links.append(link);
+  }
+  panel.append(links); return panel;
+}
+
+function currentProgressNext(project: Obj, context: Obj | null): HTMLElement {
+  const panel = section("当前下一步"); panel.classList.add("project-progress");
+  const current = context?.schema_version === "project-selection-context-v1" && context.project_id === project.id
+    && typeof project.state_version === "number" && context.state_version === project.state_version ? context : null;
+  const actions = [...objects(project.actions), ...objects(project.evidence_actions)];
+  const unresolved = ["unknown", "needs_review", "running", "pending"];
+  let label = "查看当前候选";
+  if (unresolved.includes(string(project.execution_status, "")) || actions.some(action => unresolved.includes(string(action.status, "")))) {
+    panel.append(el("p", "project-progress-copy", "先核对原请求。已有执行的结果尚未确认，请在研究推进中查看原请求与保存状态。"));
+    label = "核对原请求";
+  } else if (!current) {
+    panel.append(el("p", "project-progress-copy", "当前候选待刷新。重新读取当前项目状态后，再查看可选方法与条件。"));
+    label = "查看研究推进";
+  } else {
+    const blockers = objects(current.blockers), candidates = objects(current.candidates);
+    if (blockers.length) {
+      const reasons: Record<string, string> = {
+        EXECUTION_UNKNOWN: "原执行尚未确认，先核对原请求。", PROJECT_BUSY: "已有请求尚未结束，先核对其保存状态。",
+        CODE_CHANGED: "项目记录与当前代码版本不同，先核对项目版本。", BUDGET_EXHAUSTED: "原调用额度已用完，先核对已保存结果与资源记录。",
+        MISSING_SOURCE: "当前所需来源尚未登记，先补充对应资料。", METHOD_NOT_SUPPORTED: "当前输入尚无对应的执行方法。",
+        PROJECT_WAITING: "当前研究在等待资料或条件，请先核对具体缺口。",
+      };
+      for (const blocker of blockers.slice(0, 3)) panel.append(el("p", "project-progress-copy",
+        reasons[string(blocker.code, "")] ?? note(string(blocker.reason, ""), "当前条件阻止推进，请在研究页核对。")));
+      label = "核对条件与原请求";
+    } else if (candidates.length) {
+      panel.append(el("p", "project-progress-copy", candidates.length > 1
+        ? "当前有多个候选，可查看各项方法和条件后决定下一步。" : "当前候选可在研究推进中查看，并结合计划决定下一步。"));
+      const choices = el("ul", "project-progress-candidates");
+      for (const candidate of candidates.slice(0, 4)) choices.append(el("li", "", choiceTitle(project, candidate)));
+      panel.append(choices);
+      if (candidates.length > 4) panel.append(el("p", "detail-note", `其余 ${candidates.length - 4} 个候选见研究推进。`));
+    } else {
+      const exhausted = objects(current.conditions).some(condition => words(condition.execution_blockers).includes("BUDGET_EXHAUSTED"));
+      panel.append(el("p", "project-progress-copy", exhausted
+        ? "当前没有方法候选，部分方法已达到原调用额度。可核对保存结果、资料缺口和资源记录。"
+        : "当前没有方法候选。可查看已保存的未决问题，决定补充资料或调整研究计划。"));
+      label = "查看资料与条件";
+    }
+  }
+  const feedback = string(object(object(project.research_plan).current).expected_feedback, "");
+  const next = object(project.next_decision), task = object(next.next_action);
+  const questions = [...new Set([...words(next.remaining_questions), ...words(task.required_evidence), ...words(next.retained_unresolved_requirements)])];
+  if (feedback || questions.length) panel.append(el("h3", "project-progress-follow-up", "继续条件与未决问题"));
+  if (feedback) panel.append(el("p", "project-progress-copy", feedback.length > 280 ? feedback.slice(0, 280) + "…" : feedback));
+  if (questions.length) {
+    const list = el("ul", "project-questions");
+    for (const question of questions.slice(0, 3)) list.append(el("li", "", note(question, question)));
+    panel.append(list);
+    if (questions.length > 3) panel.append(details(`查看全部 ${questions.length} 项未决问题`, questions));
+  }
+  const links = el("div", "project-progress-actions"), link = el("a", "text-button", label);
+  link.href = "#/research?focus=operations"; links.append(link); panel.append(links); return panel;
+}
+
 /** Explicit active-project sections; never adapt CSV records into historical trials. */
-export function renderProjectPage(container: HTMLElement, value: Obj, page: ActiveProjectPage): void {
+export function renderProjectPage(container: HTMLElement, value: Obj, page: ActiveProjectPage, context: Obj | null): void {
   if (page === "overview") {
-    const intro = section("当前课题"), next = object(value.next_decision), task = object(next.next_action);
-    intro.append(el("h2", "project-goal", string(value.goal)), badge(value.research_status, "项目："), badge(value.execution_status, "执行："));
-    const current = el("div", "project-next");
-    current.append(el("h3", "", "接下来需要什么"), el("p", "", nextTitle(next)),
-      el("p", "detail-note", "这是已保存的反馈与下一任务；查看页面不会执行研究。"));
-    const required = words(task.required_evidence);
-    if (required.length) current.append(el("p", "", "待取得：" + required.map(item => note(item, item)).join("；")));
-    current.append(details("下一决定与来源身份", next)); intro.append(current);
-    container.replaceChildren(intro, boundaries(value));
+    const plan = object(object(value.research_plan).current), intro = section("当前研究问题");
+    const hasPlan = typeof plan.version === "number" && typeof plan.question === "string";
+    intro.classList.add("project-progress");
+    intro.append(el("p", "project-progress-question", hasPlan ? string(plan.question) : string(value.goal)));
+    const status = el("div", "project-progress-status");
+    status.append(badge(value.research_status, ""), badge(value.execution_status, "")); intro.append(status);
+    if (hasPlan) {
+      const steps = string(plan.steps, "当前计划尚未记录步骤。"), reason = string(plan.reason, "未记录修订理由。");
+      intro.append(el("h3", "", `已采用研究计划 v${numeric(plan.version)}`),
+        el("p", "project-progress-copy", steps.length > 280 ? steps.slice(0, 280) + "…" : steps),
+        el("p", "detail-note", "本次修订依据 " + (reason.length > 160 ? reason.slice(0, 160) + "…" : reason)));
+    } else intro.append(el("p", "project-progress-copy", "还未保存研究计划，可以先写清步骤和预期反馈。"));
+    const links = el("div", "project-progress-actions"), planLink = el("a", "text-button", hasPlan ? "查看或修改计划" : "制定研究计划");
+    planLink.href = "#/research?focus=plan"; links.append(planLink); intro.append(links);
+    const scope = el("details", "project-progress-scope"); scope.append(el("summary", "", "范围与资源记录"), boundaries(value));
+    container.replaceChildren(intro, savedProgress(value), currentProgressNext(value, context), scope);
   } else if (page === "research") container.replaceChildren(selections(value), methods(value));
   else if (page === "experiments") container.replaceChildren(executionRecords(value));
   else if (page === "knowledge") {

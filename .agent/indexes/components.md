@@ -6,6 +6,7 @@
 |---|---|---|
 | 当前 P02 五页及报告入口 | [p02-app.ts](../../frontend/src/p02-app.ts) | 当前展示主路径；不要只改旧通用页面后认为 P02 已更新 |
 | 活跃项目、来源与检索 | [project-view.ts](../../frontend/src/project-view.ts) | `renderProject` 按观察kind显示P02 MAE、钢材MSE/MPa²、软件I/O检查；完整选区/方法条件/四处FTS共用，页面不执行研究 |
+| 普通项目总览的可读进度 | [project-view.ts](../../frontend/src/project-view.ts)、[local-workbench.ts](../../frontend/src/local-workbench.ts)、[project-pages.ts](../../frontend/src/project-pages.ts) | 三块扁平展示研究问题、保存工作与当前下一步。local-workbench传入现有context，schema/项目/版本匹配后显示候选，project-pages按focus定位原计划或展开操作区，读取仅作展示 |
 | 可操作本地项目五页 | [local-workbench.ts](../../frontend/src/local-workbench.ts)、[project-pages.ts](../../frontend/src/project-pages.ts) | 操作DOM只创建一次，五个hash页共用实际项目；`renderProjectPage`显式分派原section，不把CSV映射为历史P02 trials |
 | 本地工作台的明确模型选择 | [local-model.ts](../../frontend/src/local-model.ts) | 位于研究页展开操作区，复用宿主原请求日志；显示累计grant、模型解释/控制器结果、CLI路由与原生/外部用量，沿原ID核对 |
 | 本地工作台的确定性配方 | [local-recipe.ts](../../frontend/src/local-recipe.ts)、[local-workbench.ts](../../frontend/src/local-workbench.ts) | 原研究操作区预览两正式配方，按项目/版本/context核对；明确一步或等待，沿原请求恢复；选择记录由project-view区分配方身份 |
@@ -29,6 +30,8 @@
 业务状态、错误和空内容先核对真实接口；展示状态不要替代后台执行状态。实际改 UI 后按[审美索引](aesthetics.md)运行并看截图，验证本次改变的交互即可。
 
 本索引记录现有组件入口，未创建新的组件库或替换前端框架。
+
+普通项目总览由project-view显示已采用计划版本、步骤及理由预览，按原数组取方法末3条和来源末2条保存记录，并依据匹配的context显示候选与阻塞。未收口执行优先提示核对原请求，计划预期反馈及保存未决问题继续展示，范围及资源完整内容折叠保留。project-pages处理`focus=plan/operations`，复用原DOM和草稿，操作区定位后展开并聚焦summary。前端四门禁、桌面及手机8张最终截图、键盘链接与深链接刷新、草稿保留、三个结果入口及五类客户端状态展示已核对。两端无页面横向溢出，A64/A63 core及Host完整值一致，读取过程POST为0。方法卡与配方RSI外环继续归队友，使用说明见[总览进度与下一步](../../docs/local-workbench.md#总览页的当前进度与下一步)。
 
 A16 `project-view.ts`增加`data`域与`tabular_quality_audit`观察：逐列缺失/有限/零/范围、键/分组及代表重复坐标，沿原卡片与手机横向表格。目标/单位为声明，未声明键显示未计算，不套用P02终点；18790实际页面/3页匹配报告见[表格用法](../../docs/tabular-quality.md)。
 
