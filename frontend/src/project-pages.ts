@@ -15,7 +15,7 @@ const subtitles: Record<ActiveProjectPage, string> = {
 export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[]; planning: HTMLElement[];
   read(path: string): Promise<Obj>; announce(message: string, error?: boolean): void;
-}): { update(project: Obj): Promise<void> } {
+}): { update(project: Obj, context: Obj | null): Promise<void> } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
   const panes = new Map<ActiveProjectPage, HTMLElement>(), content = new Map<ActiveProjectPage, HTMLElement>();
   for (const page of Object.keys(labels) as ActiveProjectPage[]) {
@@ -32,6 +32,8 @@ export function createProjectPages(host: HTMLElement, options: {
   operation.append(el("summary", "", "开展下一步 · 方法选择、资料登记与连续批次"), el("p", "detail-note", "展开只显示已有操作草稿，不会执行方法。所有操作仍需明确提交；切页保留原请求、输入与未确认状态。"), ...options.operations);
   const research = panes.get("research")!; research.insertBefore(flow.element, content.get("research")!); research.insertBefore(operation, content.get("research")!);
   flow.element.before(...options.planning);
+  const focusTargets = { operations: operation, plan: options.planning[0] };
+  for (const target of Object.values(focusTargets)) { target.classList.add("project-route-target"); target.tabIndex = -1; }
   host.replaceChildren(common, ...panes.values());
   const nav = $("sections"); nav.replaceChildren();
   const icons = { overview: "◈", research: "⌁", experiments: "⚗", knowledge: "▤", outputs: "▧" };
@@ -54,7 +56,17 @@ export function createProjectPages(host: HTMLElement, options: {
     activePage = page; document.title = labels[page] + " · 空间研究";
     if (page === "research") flow.activate();
     if (page === "outputs") void report(current, reportToken);
-    requestAnimationFrame(() => window.scrollTo({ top: bookmarks.get(page) ?? 0, behavior: "instant" }));
+    requestAnimationFrame(() => {
+      if (!focusRoute()) window.scrollTo({ top: bookmarks.get(page) ?? 0, behavior: "instant" });
+    });
+  }
+  function focusRoute(): boolean {
+    const key = new URLSearchParams(location.hash.split("?")[1] ?? "").get("focus");
+    if (activePage !== "research" || key !== "operations" && key !== "plan") return false;
+    const target = focusTargets[key];
+    if (key === "operations") operation.open = true;
+    (key === "operations" ? operation.querySelector("summary")! : target).focus({ preventScroll: true });
+    target.scrollIntoView({ block: "start", behavior: "instant" }); return true;
   }
   window.addEventListener("hashchange", route); route();
   async function report(project: Obj, token: number): Promise<void> {
@@ -76,15 +88,16 @@ export function createProjectPages(host: HTMLElement, options: {
       reader.append(el("p", "detail-note", text(summary.result_notice)), el("p", "detail-note", "完整指标、原文选区和输入身份保留在当前报告JSON/Markdown及完整输入中。此处只读摘要，不重新执行或生成图表。"));
     } catch (error) { if (token === reportToken) reader.replaceChildren(el("p", "notice", error instanceof Error ? error.message : "报告正文暂不可读取，原下载入口仍按当前状态核验。")); }
   }
-  async function update(project: Obj): Promise<void> {
+  async function update(project: Obj, context: Obj | null): Promise<void> {
     current = project; const token = ++reportToken;
     for (const [page, target] of content) {
-      if (project.id) renderProjectPage(target, project, page);
+      if (project.id) renderProjectPage(target, project, page, context);
       else target.replaceChildren(el("p", "empty-state", page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
     }
     manage.open = !project.id;
     flow.update(project); if (activePage === "research") flow.activate();
     if (activePage === "outputs") await report(project, token);
+    requestAnimationFrame(focusRoute);
   }
   return { update };
 }
