@@ -230,11 +230,11 @@ export async function mountLocalWorkbench(): Promise<void> {
     : command("batch", body)), canRecover: canRecoverBatch, announce });
   const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(["model-resume", "model-plan-adopt", "model-plan-reject"].includes(name)
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
-    : command(name, body)), announce });
+    : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
   const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, submit: body => submit(command("plan", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    planning: [planPanel.element, modelPanel.planElement],
+    planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement],
     operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
   function otherModelBlockers(): boolean {
     return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain

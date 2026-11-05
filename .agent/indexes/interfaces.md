@@ -28,6 +28,14 @@ Host支持`purpose=recipe`及`prepare/advance --purpose recipe --recipe <JSON文
 
 A64已在已有构造项目通过一次实际子代理候选v2和一次允许来源读取，baseline wait、候选execute，原ID提案与验证重放无新增。队友复用已保存结果接`run_improvement_round`，继续负责`recipe_improvement`外环的版本、采用或回退和连续轮次。桌面与手机截图、五页导航及四报告下载身份均已实际核对，运行静态资源与本次构建一致，功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并。函数签名与返回字段见[适配约定](../../docs/recipe-research/team-module-interface.md#主开发的配方改进适配接线)，实际运行范围见[A64记录](../../docs/host-model-selection.md#a64-配方修改提案与允许工具验证)。
 
+## 配方验证只读投影
+
+`GET /api/local-workbench/model`在`local-host-model-view-v1`中提供独立`recipe_validations`数组。`records`承载Host原请求，验证投影逐项使用`recipe-change-validation-view-v1`，共7个字段，为`schema_version/project_id/request_id/status/input/result/error`。reader入口为[read_recipe_validation(workspace, request_id)](../../src/autoresearch/recipe_improvement_adapter.py)，读取仅投影已保存证据。
+
+状态范围为`not_started/pending/recovery_required/unknown/completed/waiting/failed/invalid`。完成投影需要原Host提案、两个validation sidecar与原控制器结果相互对应。缺失回执或证据不一致时，状态反映当前未收口事实。研究页已展示验证时原版及候选选择、实际工具状态和JSON下载，invalid投影隐藏完成标签与比较。采用决定由待实现的队友外环提供。
+
+一项reader定点回归、前端format、Lint、类型检查及构建通过。桌面及手机8张最终截图、JSON实际下载与API一致性、invalid客户端夹具及A63/A64切换均已核对。使用说明见[工作台](../../docs/local-workbench.md#主工作台只读展示)和[Host读取边界](../../docs/host-model-selection.md#工作台读取验证记录)。
+
 ## 当前项目的三域只读入口
 
 - [project_workbench](../../src/autoresearch/project_workbench.py) / [serve_project_workbench.py](../../scripts/serve_project_workbench.py) 以`--workspace`挂载同一保存项目；材料/软件省略`--bundle`进入独立项目页，P02必须给匹配封存迭代并保留原五页。默认18785，不改变18784选择；`--check`只核验，不启动服务。

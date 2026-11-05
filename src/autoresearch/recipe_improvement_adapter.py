@@ -8,7 +8,7 @@ from .contracts import ResearchError, canonical, identifier
 from .host_model_selection import HostModelSelection
 from .project_controller import ProjectController
 from .project_selection import _hash, _text
-from .research_project import safe_path, write_bytes_once
+from .research_project import ResearchProject, safe_path, write_bytes_once
 from .research_recipe import compile_recipe, parse_json
 from .source_evidence_adapter import _read_file
 
@@ -147,3 +147,96 @@ def validate_recipe_change(candidate, original, goal, *, workspace, request_id,
         if outcome["status"] in ("completed", "waiting", "failed", "rejected"):
             write_bytes_once(result_path, canonical(result).encode("utf-8"))
         return result
+
+
+def _read_validation_sidecars(record, state, folder, view):
+    for key, name in (("input", "validation-input.json"), ("result", "validation-result.json")):
+        path = safe_path(folder / name)
+        if path.exists():
+            view[key] = parse_json(_read_file(path, MAX_VALIDATION_BYTES),
+                                   maximum=MAX_VALIDATION_BYTES, code="EVIDENCE_CHANGED")
+    parent = ProjectController._parent(state, record["controller_request_id"])
+    if view["input"] is None and view["result"] is None and parent is None:
+        return view
+    context, proposal = record["context"], record.get("proposal")
+    protocol.validate_proposal(context, proposal)
+    selection = context["research_context"]["selection_context"]
+    _require(selection["project_id"] == state["id"] and record["controller_request_id"] == record["request_id"],
+             "EVIDENCE_CHANGED", "Validation context and controller identity differ from the original Host project.")
+    baseline = compile_recipe(context["current_recipe"], selection)
+    candidate = compile_recipe(proposal["candidate"], selection)
+    selected = next((item for item in selection["candidates"] if item["id"] == candidate["selected_candidate_id"]), None)
+    validation_input, result = view["input"], view["result"]
+    if validation_input is not None:
+        _require(set(validation_input) == {"schema_version", "request_id", "context_sha256", "allowed_methods",
+                                         "allowed_receipts", "baseline_decision", "candidate_decision"}
+                 and validation_input["schema_version"] == "recipe-change-validation-input-v1"
+                 and validation_input["request_id"] == record["request_id"]
+                 and validation_input["context_sha256"] == selection["context_sha256"]
+                 and validation_input["baseline_decision"] == baseline and validation_input["candidate_decision"] == candidate,
+                 "EVIDENCE_CHANGED", "Validation inputs differ from the original Host context and recipe decisions.")
+        methods = _allowed(validation_input["allowed_methods"])
+        receipts = _allowed(validation_input["allowed_receipts"], receipts=True)
+        _require(methods == validation_input["allowed_methods"] and receipts == validation_input["allowed_receipts"]
+                 and (selected is None or (selected["method_id"] in methods
+                      and (selected["parameters"].get("receipt_snapshot_sha256") is None
+                           or selected["parameters"]["receipt_snapshot_sha256"] in receipts))),
+                 "EVIDENCE_CHANGED", "Validation permissions do not cover the frozen candidate.")
+    if parent is not None:
+        _require(parent["project_id"] == state["id"] and parent["request"]["command"] == "controller.advance_recipe"
+                 and parent["request"]["expected_state_version"] == selection["state_version"]
+                 and parent["selection_context"] == selection and parent["request"]["recipe_decision"] == candidate,
+                 "EVIDENCE_CHANGED", "The saved controller request differs from this recipe validation.")
+    if result is not None:
+        _require(set(result) == {"schema_version", "request_id", "status", "baseline_decision", "candidate_decision",
+                               "selection_changed", "controller_outcome", "artifact_refs", "scientific_validation"}
+                 and result["schema_version"] == "recipe-change-validation-v1"
+                 and result["request_id"] == record["request_id"] and result["baseline_decision"] == baseline
+                 and result["candidate_decision"] == candidate and result["scientific_validation"] is False
+                 and type(result["selection_changed"]) is bool
+                 and result["selection_changed"] == (baseline["proposal"]["choice"] != candidate["proposal"]["choice"])
+                 and parent is not None and type(result["controller_outcome"]) is dict,
+                 "EVIDENCE_CHANGED", "Validation result identity or decisions differ from the original records.")
+        outcome = ProjectController._response(parent)
+        original_outcome = {key: value for key, value in result["controller_outcome"].items() if key != "replayed"}
+        expected_outcome = {key: value for key, value in outcome.items() if key != "replayed"}
+        artifacts = [item["artifact"] for item in state["actions"] + state["evidence_actions"]
+                     if item["request_id"] == outcome.get("child_request_id") and item.get("artifact")]
+        _require(original_outcome == expected_outcome and result["status"] == outcome["status"]
+                 and result["artifact_refs"] == artifacts and result["status"] in ("completed", "waiting", "failed", "rejected"),
+                 "EVIDENCE_CHANGED", "Validation result does not match the original controller outcome and artifacts.")
+        if validation_input is not None:
+            view["status"] = "failed" if result["status"] == "rejected" else result["status"]
+            return view
+    if parent is not None and parent["status"] in ("completed", "waiting", "failed", "rejected"):
+        view.update(status="recovery_required", error={"code": "VALIDATION_RECEIPT_MISSING",
+                    "message": "The controller finished but a validation receipt is missing; explicitly reconcile the original request."})
+    elif parent is not None and parent["status"] in ("unknown", "needs_review"):
+        view.update(status="unknown", error={"code": "EXECUTION_UNKNOWN", "message": "The original validation execution needs inspection."})
+    else:
+        view["status"] = "pending"
+    return view
+
+
+def read_recipe_validation(workspace, request_id):
+    """Verify saved validation receipts without dispatch, recovery or state writes."""
+    view = {"schema_version": "recipe-change-validation-view-v1", "project_id": None, "request_id": request_id,
+            "status": "not_started", "input": None, "result": None, "error": None}
+    try:
+        identifier(request_id)
+        journal = HostModelSelection(workspace)
+        view["project_id"] = journal.project.status()["id"]
+        lock_path = safe_path(journal.directory / "writer.lock")
+        _require(journal.directory.is_dir() and lock_path.is_file() and lock_path.stat().st_size > 0,
+                 "EVIDENCE_CHANGED", "The original Host request lock is missing.")
+        with ResearchProject(journal.directory)._writer():
+            record = journal.status(request_id=request_id)
+            _require(record.get("purpose") == "recipe" and record["request_id"] == request_id,
+                     "INVALID_REQUEST", "Select an original recipe request.")
+            return _read_validation_sidecars(record, journal.project.status(), safe_path(journal.directory / record["directory"]), view)
+    except ResearchError as error:
+        view.update(status="pending" if error.code == "PROJECT_BUSY" else "invalid",
+                    error={"code": error.code, "message": str(error)})
+    except (OSError, ValueError, TypeError, KeyError):
+        view.update(status="invalid", error={"code": "EVIDENCE_CHANGED", "message": "Saved validation data is missing or malformed."})
+    return view

@@ -4,6 +4,7 @@ import { el } from "./dom";
 type Obj = Record<string, unknown>;
 type Host = {
   read(url: string): Promise<Obj>;
+  methodTitle(methodId: string): string;
   submit(command: "model-advance" | "model-resume" | "model-plan-advance" | "model-plan-adopt" | "model-plan-reject", body: Obj): Promise<Obj | null>;
   announce(message: string, error?: boolean): void;
 };
@@ -26,7 +27,8 @@ function field(label: string, control: HTMLElement): HTMLElement {
 }
 
 export function createLocalModelPanel(host: Host): {
-  element: HTMLElement; planElement: HTMLElement; refresh(projectId: string, project: Obj, context: Obj | null): Promise<void>;
+  element: HTMLElement; planElement: HTMLElement; improvementElement: HTMLElement;
+  refresh(projectId: string, project: Obj, context: Obj | null): Promise<void>;
   setLocked(value: boolean): void; pending(): boolean; canResume(body: Obj): boolean;
   decisionResolved(command: string, requestId: string): boolean;
 } {
@@ -52,6 +54,7 @@ export function createLocalModelPanel(host: Host): {
   form.append(field("这次请模型做什么", purpose), fields, start, el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
   const history = el("div", "local-model-history local-batch-history"); section.append(status, usage, form, history);
   const planHistory = el("section", "local-panel local-plan-proposals content-section"); planHistory.hidden = true;
+  const improvement = el("section", "local-panel local-improvement content-section"); improvement.hidden = true;
   let projectId = "", project: Obj = {}, context: Obj | null = null, view: Obj = {}, records: Obj[] = [];
   let locked = true, loading = true, loaded = false, refreshId = 0;
   const resumeButtons: { button: HTMLButtonElement; body: Obj }[] = [];
@@ -136,14 +139,56 @@ export function createLocalModelPanel(host: Host): {
     if (typeof counts.delegated_outputs_received === "number" && counts.delegated_outputs_received > 0)
       usage.append(el("p", "detail-note", `另有${counts.delegated_outputs_received}份子代理回答导入；内部推理次数、模型和费用未知。`));
   }
-  function download(record: Obj): void {
+  function download(record: Obj, suffix = ""): void {
     const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], { type: "application/json;charset=utf-8" }));
-    const link = el("a"); link.href = url; link.download = text(record.request_id, "model-request").replace(/[^A-Za-z0-9_.-]/g, "_") + ".json";
+    const link = el("a"); link.href = url; link.download = text(record.request_id, "model-request").replace(/[^A-Za-z0-9_.-]/g, "_") + suffix + ".json";
     link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function improvementSummary(record: Obj, originalCard: HTMLDetailsElement): void {
+    const validation = objects(view.recipe_validations).find(item => item.request_id === record.request_id && item.project_id === projectId) ?? {};
+    const input = object(validation.input), proposal = object(record.proposal);
+    const original = object(object(record.context).current_recipe), candidate = object(proposal.candidate);
+    const labels: Record<string, string> = {
+      not_started: "等待工具验证", pending: "验证记录待核对", recovery_required: "原验证回执待恢复",
+      unknown: "原执行结果待核对", completed: "工具验证已完成", waiting: "本次验证选择等待",
+      failed: "工具验证失败", invalid: "验证记录需核对", unavailable: "验证记录暂不可用",
+    };
+    const validationStatus = text(validation.status, "unavailable");
+    improvement.hidden = false;
+    improvement.append(el("h2", "section-title", "配方改进"),
+      el("h3", "", "原版第" + number(original.version) + "版 · 候选第" + number(candidate.version) + "版"),
+      el("p", ["failed", "invalid"].includes(validationStatus) ? "notice error" : "notice", labels[validationStatus] ?? validationStatus));
+    if (Object.keys(input).length && validationStatus !== "invalid") {
+      const comparison = el("div", "local-form-grid");
+      const selection = object(object(object(record.context).research_context).selection_context);
+      for (const [label, decision] of [["原版当时的选择", object(input.baseline_decision)], ["候选当时的选择", object(input.candidate_decision)]] as const) {
+        const choice = object(object(decision.proposal).choice);
+        const selected = objects(selection.candidates).find(item => item.id === choice.candidate_id);
+        const choiceText = choice.kind === "wait" ? "等待" : selected ? host.methodTitle(text(selected.method_id)) : "选择身份待核对";
+        const column = el("div", "local-improvement-choice"); column.append(el("span", "local-label", label), el("strong", "", choiceText)); comparison.append(column);
+      }
+      improvement.append(comparison);
+    }
+    const error = object(validation.error);
+    if (error.code) improvement.append(el("p", "detail-note", "核对记录 · " + text(error.code) + " · " + text(error.message)));
+    const details = el("details", "local-advanced"); details.append(el("summary", "", "查看模型修改理由"), el("p", "detail-note", text(proposal.reason)));
+    improvement.append(details, el("p", "detail-note", "采用决定与后续轮次由配方模块记录。"));
+    const actions = el("div", "local-actions"), source = el("button", "quiet-button", "查看原模型记录"); source.type = "button";
+    source.addEventListener("click", () => {
+      const operations = section.closest("details"); if (operations) operations.open = true;
+      originalCard.open = true; originalCard.querySelector("summary")?.focus({ preventScroll: true }); originalCard.scrollIntoView({ block: "center" });
+    });
+    actions.append(source);
+    if (Object.keys(input).length || Object.keys(object(validation.result)).length) {
+      const save = el("button", "quiet-button", "下载验证记录 JSON"); save.type = "button";
+      save.addEventListener("click", () => download(validation, "-validation")); actions.append(save);
+    }
+    improvement.append(actions);
   }
   function savedRequests(): void {
     resumeButtons.length = 0; decisionButtons.length = 0; history.replaceChildren(el("h3", "", "已保存的模型请求"));
     planHistory.replaceChildren(el("h2", "section-title", "模型计划建议")); planHistory.hidden = !records.some(record => record.purpose === "plan");
+    improvement.replaceChildren(); improvement.hidden = true;
     if (!records.length) { history.append(el("p", "detail-note", "尚无请求。打开页面不会创建请求。")); return; }
     for (const [index, record] of [...records].reverse().entries()) {
       const isPlan = record.purpose === "plan", isRecipe = record.purpose === "recipe";
@@ -186,6 +231,7 @@ export function createLocalModelPanel(host: Host): {
       card.append(actions);
       const raw = el("details", "local-advanced"); raw.append(el("summary", "", "上下文、回答与完整记录"),
         el("pre", "project-source-text", JSON.stringify(record, null, 2))); card.append(raw); (isPlan ? planHistory : history).append(card);
+      if (isRecipe && improvement.hidden && Object.keys(object(record.proposal)).length) improvementSummary(record, card);
     }
   }
   function statusText(): void {
@@ -211,6 +257,7 @@ export function createLocalModelPanel(host: Host): {
       records = []; view = {}; reason.value = ""; limit.value = "1"; cap.value = "0.10"; usage.replaceChildren(); savedRequests();
     }
     projectId = nextId; project = nextProject; context = nextContext; loading = true; loaded = false;
+    improvement.hidden = true;
     status.textContent = "正在读取模型请求记录…"; controls();
     try {
       const result = await host.read("/api/local-workbench/model");
@@ -242,5 +289,5 @@ export function createLocalModelPanel(host: Host): {
   controls();
   const decisionResolved = (command: string, id: string): boolean => records.some(record => record.request_id === id && record.purpose === "plan"
     && (command === "model-plan-adopt" && record.status === "applied" || command === "model-plan-reject" && record.status === "rejected"));
-  return { element: section, planElement: planHistory, refresh, pending, canResume, decisionResolved, setLocked(value: boolean): void { locked = value; controls(); } };
+  return { element: section, planElement: planHistory, improvementElement: improvement, refresh, pending, canResume, decisionResolved, setLocked(value: boolean): void { locked = value; controls(); } };
 }
