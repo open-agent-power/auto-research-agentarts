@@ -169,6 +169,7 @@ class ResearchProject:
                                         "reason": "Execute the registered method only within its validated domain input and evaluation scope."},
                    "next_decision": None, "evidence_purpose": "isolated_adapter_regression_not_new_research",
                    "evidence_sources": [], "evidence_registrations": [], "knowledge_refs": [], "code_revisions": [],
+                   "researcher_feedback": [],
                    "budget": {"lineage_ref": budget_ref, "historical_spend_cny": None,
                               "historical_request_counts": None, "historical_unknowns_resolved": False,
                               "cash_settlement": "unknown", "existing_cash_cap_cny": 5,
@@ -226,7 +227,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
@@ -282,6 +283,48 @@ class ResearchProject:
                 project["state_version"] += 1
                 self._save(con, project)
                 return revision
+
+    def record_feedback(self, *, request_id, expected_state_version, author, comment, next_step, action_id):
+        """Append an unverified researcher statement without creating a tool observation."""
+        identifier(request_id)
+        require(type(expected_state_version) is int and expected_state_version >= 0,
+                "INVALID_REQUEST", "Bind the current project version before recording feedback.")
+        content = {"author": author, "comment": comment, "next_step": next_step, "action_id": action_id}
+        for key, limit in (("author", 120), ("comment", 6000), ("next_step", 4000)):
+            value = content[key]
+            require(type(value) is str and len(value) <= limit and "\x00" not in value
+                    and (key == "next_step" or bool(value.strip())),
+                    "INVALID_REQUEST", "Researcher feedback text is missing or exceeds its field limit.")
+        if action_id is not None:
+            identifier(action_id, "action_id")
+        with self._writer(), self._connect() as con:
+            project = self._project(con)
+            previous = next((item for item in project.get("researcher_feedback", []) if item["request_id"] == request_id), None)
+            if previous is not None:
+                require(previous["based_on_state_version"] == expected_state_version
+                        and all(previous[key] == value for key, value in content.items()),
+                        "IDEMPOTENCY_CONFLICT", "The original feedback request is bound to different content.")
+                return previous
+            require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
+            self._require_unclaimed(project, request_id, except_collection="researcher_feedback")
+            current = self.status()
+            self._require_fresh(project, current, expected_state_version)
+            require(not any(item["status"] in ("prepared", "running", "unknown") for item in project.get("controller_requests", []))
+                    and not any(item["status"] == "reserved" for item in project.get("local_model_requests", [])),
+                    "PROJECT_BUSY", "Complete the accepted request before recording researcher feedback.")
+            from .host_model_selection import HostModelSelection, PENDING
+            require(not any(item["status"] in PENDING for item in HostModelSelection(self.root).status()["requests"]),
+                    "HOST_SELECTION_PENDING", "Reconcile the original host-model request before recording feedback.")
+            require(action_id is None or any(item["id"] == action_id for item in current["actions"] + current["evidence_actions"]),
+                    "INVALID_REQUEST", "Feedback can reference only an action saved in this project.")
+            plans = project.get("plan_revisions", [])
+            record = {"id": "feedback-" + request_id, "request_id": request_id, "based_on_state_version": expected_state_version,
+                      "plan_version": plans[-1]["version"] if plans else None, **content,
+                      "content_trust": "unverified_researcher_statement"}
+            project.setdefault("researcher_feedback", []).append(record)
+            project["state_version"] += 1
+            self._save(con, project)
+            return record
 
     def _commit_result(self, action, envelope):
         require(envelope.get("sha256") == fingerprint({k: v for k, v in envelope.items() if k != "sha256"})

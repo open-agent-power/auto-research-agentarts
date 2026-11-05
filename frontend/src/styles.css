@@ -138,6 +138,11 @@ body[data-case="p02"] #main-content:focus { outline: none; box-shadow: none; }
 .project-progress-item{padding:18px 0;border-bottom:1px solid var(--ar-content-border)}.project-progress-item:last-child{border-bottom:0}
 .project-progress-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}.project-progress-actions a{display:inline-flex;align-items:center;min-height:44px;font-size:14px}
 .project-progress .project-status{font-size:12px}.project-progress ul{padding-left:22px;margin:12px 0}
+.local-panel.researcher-feedback{margin-bottom:24px}.researcher-feedback summary,.researcher-feedback-full>summary{cursor:pointer;min-height:44px;line-height:1.85}
+.researcher-feedback-record{padding:18px 0;border-bottom:1px solid var(--ar-content-border)}.researcher-feedback-record:last-child{border-bottom:0}
+.researcher-feedback-record h3{font-size:17px;margin:0 0 12px}.researcher-feedback-record h4{font-size:15px;margin:18px 0 8px}
+.researcher-feedback-copy{white-space:pre-line;overflow-wrap:anywhere;max-width:75ch;font-size:15px;line-height:1.85}.researcher-feedback-editor form{margin-top:16px}
+.researcher-feedback .action-button{font-size:15px}
 .local-plan-proposals p{white-space:pre-line;overflow-wrap:anywhere;max-width:75ch}
 .local-plan-record{border-top:1px solid var(--ar-content-border);padding:16px 0}
 .local-plan-record>summary{cursor:pointer;min-height:44px;line-height:1.8}
@@ -151,7 +156,7 @@ body[data-case="p02"] #main-content:focus { outline: none; box-shadow: none; }
 .research-plan-history details{padding:10px 0;border-bottom:1px solid var(--ar-content-border)}
 @media(max-width:720px){.research-plan-copy{grid-template-columns:minmax(0,1fr);gap:8px}.research-plan .local-actions button{width:100%}}
 .local-workbench>*{min-width:0}.local-workbench h1{font-size:clamp(25px,3vw,35px);line-height:1.45;margin:0 0 14px}
-.local-model .detail-note,.local-improvement .detail-note,.local-recipe .detail-note,.project-progress .detail-note,.project-recipe-note{font-size:14px;line-height:1.85;color:var(--ar-content-text);background:transparent;padding:0;max-width:75ch}.local-model-usage{padding:12px 0;margin-bottom:18px;border-bottom:1px solid var(--ar-content-border)}.local-model-record>.notice{font-weight:550}
+.local-model .detail-note,.local-improvement .detail-note,.local-recipe .detail-note,.researcher-feedback .detail-note,.project-progress .detail-note,.project-recipe-note{font-size:14px;line-height:1.85;color:var(--ar-content-text);background:transparent;padding:0;max-width:75ch}.local-model-usage{padding:12px 0;margin-bottom:18px;border-bottom:1px solid var(--ar-content-border)}.local-model-record>.notice{font-weight:550}
 .local-model-usage .notice.error,.local-improvement>.notice.error{padding:12px 16px;border:1px solid #e9d3c8;border-radius:var(--ar-radius-control);background:#fff6f1;color:#8b5145;font-size:14px;font-weight:600}
 .local-workbench p,.local-workbench label,.local-workbench summary{overflow-wrap:anywhere;line-height:1.85}
 .local-intro,.local-panel{border:1px solid var(--ar-content-border);background:var(--ar-content-surface);border-radius:var(--ar-radius-card);padding:28px;margin:0}

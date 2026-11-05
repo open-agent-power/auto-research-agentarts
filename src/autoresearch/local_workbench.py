@@ -278,6 +278,26 @@ class LocalWorkbench:
                                                     "intent": {"project_id": body["project_id"]}})
             return response
 
+    def record_feedback(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "author", "comment", "next_step", "action_id"))
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                old = self._old(con, body, digest)
+                if old is not None and old["status"] == "completed":
+                    return self._completed(old)
+                if old is None:
+                    self._accept(con, body, digest, "record_feedback", {"project_id": body["project_id"]})
+            feedback = project.record_feedback(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                author=body["author"], comment=body["comment"], next_step=body["next_step"], action_id=body["action_id"])
+            response = self._response("record_feedback", body["request_id"], body["project_id"], status="completed",
+                                      feedback=feedback, replayed=old is not None)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status": "completed", "result": response,
+                                                    "intent": {"project_id": body["project_id"]}})
+            return response
+
     def recipes(self):
         view = {"schema_version": "local-research-recipes-v1", "project_id": None,
                 "state_version": None, "context_sha256": None, "recipes": []}

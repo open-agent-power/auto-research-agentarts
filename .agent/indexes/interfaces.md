@@ -4,6 +4,14 @@
 
 新项目/运行/行动对象及命令边界见[研究契约](../../docs/architecture/research-contracts.md)，依赖关系见[底层架构](../../docs/architecture/foundation.md)。同一项目已有已登记白名单方法的本地Python/CLI实现和只读HTTP投影。显式启用的本地写入、模型和计划操作见[本地工作台](../../docs/local-workbench.md#接口与只读边界)。
 
+## 记录研究者意见
+
+`POST /api/local-workbench/feedback`的精确body为`request_id/project_id/expected_state_version/author/comment/next_step/action_id`。`author`自填且非空、最多120字，`comment`非空且最多6000字，`next_step`可为空文本、最多4000字，`action_id`为null或原项目既有action ID。
+
+manager与core的`record_feedback`保存独立`researcher_feedback`。记录恰含9字段，为`id/request_id/based_on_state_version/plan_version/author/comment/next_step/action_id/content_trust`。id为`feedback-`加原request ID，`plan_version`可为null，`content_trust`为`unverified_researcher_statement`。state版本加1，沿计划同等版本、代码及未决请求门禁处理，原ID和相同内容重放使用原记录，资源用量沿原账本保留。响应为`local-workbench-command-v1`，command为`record_feedback`，status为`completed`，`feedback`携原记录，响应信封另含`replayed`。
+
+sealed selection context的可选`researcher_feedback`字段保留这些原记录，后续plan和recipe提示按未核验人类陈述引用，`feedback_action_ids`继续限定真实工具action。原Host封存context保留，报告包含意见和信任标记。A67工程夹具已核对真实保存、回执丢失后只读确认、原ID重放、下一plan提示组装及四报告下载，模型/工具/Host请求0。使用说明见[工作台](../../docs/local-workbench.md#记录研究者意见)。
+
 ## 模型建议研究计划
 
 `GET /api/project/plan-context.json`只读返回`research-plan-context-v1`，含完整原`selection_context`与实际保存的行动反馈。`research_plan_proposal.py`提供`build_context/build_prompt/parse_host_response/build_proposal/validate_proposal`，`run_host_selection.py prepare/advance --purpose plan`使用同一Host累计grant。

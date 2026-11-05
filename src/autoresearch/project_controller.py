@@ -172,6 +172,8 @@ class ProjectController:
             "evidence": evidence, "scientific_validation": False}
         if project.get("plan_revisions"):
             context["research_plan"] = copy.deepcopy(project["plan_revisions"][-1])
+        if project.get("researcher_feedback"):
+            context["researcher_feedback"] = copy.deepcopy(project["researcher_feedback"])
         return project_selection.seal_context(context)
 
     def selection_context(self, *, need="next_check"):
@@ -363,7 +365,7 @@ class ProjectController:
                     parent, replayed = copy.deepcopy(old), True
                 else:
                     require(self.project._action(con, request_id) is None
-                            and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests")
+                            and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Request ID is already bound to a project command.")
                     require(not any(item["status"] in ("prepared", "running") for item in project.get("controller_requests", [])),
@@ -380,7 +382,7 @@ class ProjectController:
                         plan["decision"]["selection_ref"]["external_usage"] = "no_model_invocation_by_recipe_compiler"
                     child_id = "controller-child-" + fingerprint({"project_id": project["id"], "request_id": request_id})[:32]
                     require(self.project._action(con, child_id) is None
-                            and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests")
+                            and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Derived child ID is already bound to another command.")
                     project["state_version"] += 1
