@@ -10,6 +10,14 @@
 
 模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
 
+### 研究者意见进入后续context
+
+sealed selection context以可选`researcher_feedback`保存原项目意见，每条共9个字段，为`id/request_id/based_on_state_version/plan_version/author/comment/next_step/action_id/content_trust`。意见与原请求、提交依据版本、当时计划版本及可选既有行动关联，`plan_version`可为空，信任标记为`unverified_researcher_statement`。原Host context保留封存内容，新意见随后续新context提供。
+
+计划与配方prompt按未核验研究者陈述读取意见，采用意见时要求在reason中指出原note ID。`feedback_action_ids`继续限于真实工具action。报告保留意见与该信任边界，科学结论按实际工具和来源证据确认。旧项目沿显式源码兼容升级流程使用新写入，资源用量沿原账本累计。用法见[研究者意见](local-workbench.md#记录研究者意见)。
+
+A67工程夹具已真实保存1条意见，下一计划context及prompt的只读组装包含原意见，工具反馈数组为空。该轮模型、研究工具和Host请求均为0，实际模型读取及基于意见生成新计划的效果仍待后续验证。3项定点backend/protocol回归、前端四门禁、真实保存及原ID重放、报告四下载与原意见一致性均已核对，工程联调与实际用户试用分别记录。
+
 ### 导出给子代理并导入原回答
 
 以下沿用已有且有剩余名额的授权。`$projectDir`指向原项目，先从该项目读取当前版本与原grant。
@@ -336,6 +344,8 @@ A35面板将金额标为“CLI配置阈值”，说明单次调用可能超出�
 这次结果供队友直接接入`run_improvement_round`，复用已保存的完整候选和验证结果。外环仍需保存采用或回退决定、有效版本与后轮状态。后续接线沿本次原ID取回结果，再按新的实际问题继续。
 
 ## Limitations
+
+A67使用明确标记的工程夹具验证意见保存、提示组装和报告，真实用户理解反馈仍须独立取得。夹具4页PDF已实看，第2页沿旧模板留白较多，完整意见保留在报告JSON与input中。
 
 Host及工作台入口支持候选选择、研究计划建议和明确采用。模型解释、来源声明与工具结果按领域证据核对，`scientific_validation`保持false。CLI报告的token、模型标签和USD估值按原报告口径保留，现金结算及旧历史费用继续记录实际已知或unknown。`runs/`证据在本机忽略目录，共享时按资料许可提供获准分发的原件与说明。
 

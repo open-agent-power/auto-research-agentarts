@@ -15,6 +15,7 @@ CONTEXT_FIELDS = {
     "project_code_identity", "controller_code_identity", "need", "goal", "domain_scope", "budget",
     "conditions", "candidates", "blockers", "baseline_decision", "evidence", "scientific_validation",
 }
+OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback"}
 PROPOSAL_FIELDS = {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
 
 
@@ -65,7 +66,7 @@ def _json_value(value, maximum, code):
 def _context(payload):
     code = "INVALID_SELECTION_CONTEXT"
     _json_value(payload, MAX_CONTEXT_BYTES, code)
-    _require(type(payload) is dict and CONTEXT_FIELDS <= set(payload) <= CONTEXT_FIELDS | {"research_plan"}
+    _require(type(payload) is dict and CONTEXT_FIELDS <= set(payload) <= CONTEXT_FIELDS | OPTIONAL_CONTEXT_FIELDS
              and payload["schema_version"] == "project-selection-context-v1"
              and payload["scientific_validation"] is False, code, "Exact unapproved host context required.")
     _require(_text(payload["project_id"], 160) and _text(payload["run_id"], 160)
@@ -109,6 +110,24 @@ def _context(payload):
         for key, maximum in text_limits.items():
             _require(type(plan[key]) is str and len(plan[key]) <= maximum and "\x00" not in plan[key]
                      and (key == "basis" or bool(plan[key].strip())), code, "Invalid saved research plan text.")
+    if "researcher_feedback" in payload:
+        notes = payload["researcher_feedback"]
+        _require(type(notes) is list, code, "Researcher feedback must contain saved statements.")
+        fields = {"id", "request_id", "based_on_state_version", "plan_version", "author", "comment",
+                  "next_step", "action_id", "content_trust"}
+        note_ids = set()
+        for note in notes:
+            _require(type(note) is dict and set(note) == fields and _text(note["request_id"], 80)
+                     and note["id"] == "feedback-" + note["request_id"] and note["id"] not in note_ids
+                     and type(note["based_on_state_version"]) is int
+                     and 0 <= note["based_on_state_version"] < payload["state_version"]
+                     and (note["plan_version"] is None or type(note["plan_version"]) is int and note["plan_version"] >= 1)
+                     and _text(note["author"], 120) and _text(note["comment"], 6000)
+                     and type(note["next_step"]) is str and len(note["next_step"]) <= 4000 and "\x00" not in note["next_step"]
+                     and (note["action_id"] is None or _text(note["action_id"], 160))
+                     and note["content_trust"] == "unverified_researcher_statement",
+                     code, "Use saved unverified researcher statements with their original identity and text.")
+            note_ids.add(note["id"])
 
 
 def seal_context(payload) -> dict:
@@ -145,7 +164,7 @@ def validate_proposal(context, proposal) -> dict:
     context_code, code = "INVALID_SELECTION_CONTEXT", "INVALID_SELECTION_PROPOSAL"
     _json_value(context, MAX_CONTEXT_BYTES, context_code)
     _require(type(context) is dict and CONTEXT_FIELDS | {"context_sha256"} <= set(context)
-             <= CONTEXT_FIELDS | {"context_sha256", "research_plan"},
+             <= CONTEXT_FIELDS | {"context_sha256"} | OPTIONAL_CONTEXT_FIELDS,
              context_code, "A sealed host context is required.")
     payload = {key: value for key, value in context.items() if key != "context_sha256"}
     _context(payload)

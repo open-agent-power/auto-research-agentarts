@@ -12,6 +12,7 @@ from autoresearch.local_workbench import LocalWorkbench
 from autoresearch.project_controller import ProjectController
 from autoresearch.project_selection import validate_proposal
 from autoresearch.project_workbench import _projection
+from autoresearch.project_report import collect_report, _markdown
 
 
 class ResearchPlanTests(unittest.TestCase):
@@ -72,6 +73,52 @@ class ResearchPlanTests(unittest.TestCase):
                                                                  expected_state_version=current["state_version"])
         self.assertEqual(caught.exception.code, "STALE_SELECTION_CONTEXT")
         self.assertEqual(self.project.status()["budget"], before["budget"])
+
+    def test_researcher_feedback_preserves_legacy_reads_replay_identity_and_budget(self):
+        with self.project._writer(), self.project._connect() as con:
+            legacy = self.project._project(con)
+            legacy.pop("researcher_feedback", None)
+            self.project._save(con, legacy)
+        before = self.project.status()
+        raw_before = self.project.db.read_bytes()
+        self.assertEqual(_projection(self.project, before)["researcher_feedback"], [])
+        self.assertEqual(self.project.status(), before)
+        self.assertEqual(self.project.db.read_bytes(), raw_before)
+        command = {"request_id": "feedback-core", "expected_state_version": before["state_version"],
+                   "author": "Fixture researcher", "comment": "Check the declared unit before interpretation.\n"
+                   + str(self.project.root) + "\n" + Path(__file__).resolve().parents[1].as_posix(),
+                   "next_step": "Request the original measurement definition.", "action_id": None}
+        saved = self.project.record_feedback(**command)
+        after = self.project.status()
+        self.assertEqual(saved["id"], "feedback-feedback-core")
+        self.assertIsNone(saved["plan_version"])
+        self.assertEqual(saved["content_trust"], "unverified_researcher_statement")
+        self.assertEqual(after["state_version"], before["state_version"] + 1)
+        self.assertEqual(after["budget"], before["budget"])
+        self.assertEqual(after["actions"], before["actions"])
+        self.assertEqual(after["evidence_actions"], before["evidence_actions"])
+        self.assertEqual(after["code_identity"], before["code_identity"])
+        self.assertEqual(_projection(self.project, after)["researcher_feedback"], [saved])
+        self.assertEqual(self.project.record_feedback(**command), saved)
+        self.assertEqual(self.project.status(), after)
+        for values, code in (({**command, "comment": "Changed under the original ID"}, "IDEMPOTENCY_CONFLICT"),
+                             ({**command, "request_id": "feedback-stale"}, "STALE_STATE"),
+                             ({**command, "request_id": "feedback-foreign-action", "expected_state_version": after["state_version"],
+                               "action_id": "action-not-this-project"}, "INVALID_REQUEST")):
+            with self.subTest(code=code), self.assertRaises(ResearchError) as caught:
+                self.project.record_feedback(**values)
+            self.assertEqual(caught.exception.code, code)
+            self.assertEqual(self.project.status(), after)
+        with self.assertRaises(ResearchError) as caught:
+            self.project.save_plan(request_id=command["request_id"], expected_state_version=after["state_version"],
+                                   plan=self.command()["plan"], reason="Attempt to reuse a feedback request.")
+        self.assertEqual(caught.exception.code, "IDEMPOTENCY_CONFLICT")
+        report = collect_report(self.project.root)
+        self.assertEqual(report["project_snapshot_ref"], after["snapshot_ref"])
+        self.assertEqual(report["input"]["researcher_feedback"], [saved])
+        self.assertIn(saved["comment"], _markdown(report))
+        self.assertIn("未核验意见", _markdown(report))
+        self.assertEqual(self.project.status(), after)
 
     def test_stale_conflicting_and_unknown_requests_do_not_change_plan_or_usage(self):
         saved = self.command()

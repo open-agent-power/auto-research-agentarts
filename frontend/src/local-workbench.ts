@@ -5,6 +5,7 @@ import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
 import { createLocalRecipePanel } from "./local-recipe";
+import { researcherFeedbackItems } from "./project-view";
 
 type Obj = Record<string, unknown>;
 type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean };
@@ -145,6 +146,54 @@ function createResearchPlanPanel(deps: {
   return { element: section, update, setLocked(value): void { locked = value; controls(); } };
 }
 
+function createResearcherFeedbackPanel(deps: {
+  current(): Obj; context(): Obj | null; submit(body: Obj): Promise<Obj | null>;
+}): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
+  const section = panel("研究者反馈", "补充你发现的卡点、判断或后续建议。保存的意见会提供给下一次模型计划。"), saved = el("details", "researcher-feedback-saved");
+  section.classList.add("researcher-feedback");
+  const savedTitle = el("summary"), savedBody = el("div"); saved.append(savedTitle, savedBody);
+  const editor = el("details", "researcher-feedback-editor"), summary = el("summary", "", "记录一条反馈"), form = el("form"), fields = el("fieldset", "local-fieldset");
+  const author = el("input"), comment = el("textarea"), nextStep = el("textarea"), action = el("select");
+  author.required = true; author.maxLength = 120; comment.required = true; comment.maxLength = 6000; comment.rows = 4; nextStep.maxLength = 4000; nextStep.rows = 3;
+  fields.append(field("反馈人（自填称呼）", author), field("你发现的问题或判断", comment), field("希望接下来怎样调整（可选）", nextStep), field("关联的已保存工作", action));
+  const status = el("p", "detail-note"), save = el("button", "action-button primary", "保存反馈"), rebase = el("button", "text-button", "核对后按当前版本记录");
+  save.type = "submit"; rebase.type = "button"; rebase.hidden = true;
+  const actions = el("div", "local-actions"); actions.append(save, rebase); form.append(fields, status, actions); editor.append(summary, form); section.append(saved, editor);
+  const drafts = new Map<string, { author: string; comment: string; nextStep: string; actionId: string; stateVersion: number }>();
+  let projectId = "", stateVersion = 0, locked = true;
+  const remember = (): void => { if (projectId) drafts.set(projectId, { author: author.value, comment: comment.value, nextStep: nextStep.value, actionId: action.value, stateVersion }); };
+  function controls(): void {
+    const stale = stateVersion !== deps.current().state_version;
+    const codeChanged = items(deps.context()?.blockers).some(item => item.code === "CODE_CHANGED");
+    fields.disabled = locked || !projectId; save.disabled = fields.disabled || stale || codeChanged;
+    rebase.hidden = !projectId || !stale; rebase.disabled = locked;
+    status.textContent = codeChanged ? "项目源码版本需先明确升级，草稿会保留。" : stale ? "项目已更新，请先核对保存工作，再按当前版本记录这条意见。"
+      : "意见按自填身份保存，属于研究者陈述。采用计划和执行方法仍需分别提交。";
+  }
+  function update(project: Obj): void {
+    projectId = text(project.id, ""); section.hidden = !projectId;
+    const draft = drafts.get(projectId), records = items(project.researcher_feedback);
+    stateVersion = draft?.stateVersion ?? Number(project.state_version);
+    savedTitle.textContent = "已保存反馈 " + records.length + " 条"; saved.hidden = records.length === 0;
+    savedBody.replaceChildren(researcherFeedbackItems(project, records.length));
+    action.replaceChildren(); const whole = el("option", "", "整个项目与当前计划"); whole.value = ""; action.append(whole);
+    for (const record of [...items(project.actions), ...items(project.evidence_actions)]) {
+      const method = text(record.command, ""); const option = el("option", "", (methodNames[method] ?? method) + " · " + text(record.id)); option.value = text(record.id, ""); action.append(option);
+    }
+    author.value = draft?.author ?? ""; comment.value = draft?.comment ?? ""; nextStep.value = draft?.nextStep ?? ""; action.value = draft?.actionId ?? "";
+    controls();
+  }
+  form.addEventListener("input", remember); form.addEventListener("change", remember);
+  rebase.addEventListener("click", () => { stateVersion = Number(deps.current().state_version); remember(); controls(); });
+  form.addEventListener("submit", async event => {
+    event.preventDefault(); if (save.disabled || !form.reportValidity()) return;
+    const submittedProject = projectId; remember();
+    const result = await deps.submit({ project_id: projectId, expected_state_version: stateVersion, author: author.value, comment: comment.value, next_step: nextStep.value, action_id: action.value || null });
+    if (result?.status === "completed") { drafts.delete(submittedProject); update(deps.current()); editor.open = false; saved.open = true; savedTitle.focus(); }
+  });
+  return { element: section, update, setLocked(value): void { locked = value; controls(); } };
+}
+
 export async function mountLocalWorkbench(): Promise<void> {
   document.body.classList.add("project-standalone", "local-workbench-mode");
   $("page-state").hidden = true; $("page-content").hidden = false;
@@ -233,8 +282,9 @@ export async function mountLocalWorkbench(): Promise<void> {
     : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
   const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, submit: body => submit(command("plan", body)) });
+  const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement],
+    planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, feedbackPanel.element], feedback: feedbackPanel.element,
     operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
   function otherModelBlockers(): boolean {
     return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain
@@ -273,6 +323,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     modelPanel.setLocked(busy || description.enabled !== true || otherModelBlockers());
     recipePanel.setLocked(locked || current.id !== activeId());
     planPanel.setLocked(locked || current.id !== activeId());
+    feedbackPanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
     candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
     citationList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked; });
@@ -420,6 +471,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   async function refresh(): Promise<void> {
     const previousId = activeId(); context = null; candidates();
     planPanel.setLocked(true);
+    feedbackPanel.setLocked(true);
     modelPanel.setLocked(true);
     recipePanel.invalidate(); recipePanel.setLocked(true);
     batchPanel.setLocked(true);
@@ -442,12 +494,13 @@ export async function mountLocalWorkbench(): Promise<void> {
     showPending();
     if (now) {
       try { current = await read("/api/project"); }
-      catch (error) { planPanel.update({}); await workspacePages.update({}, null); throw error; }
+      catch (error) { planPanel.update({}); feedbackPanel.update({}); await workspacePages.update({}, null); throw error; }
       const savedPlanIds = new Set(items(obj(current.research_plan).revisions).map(revision => revision.request_id));
-      if (lastRequest?.command === "plan" && savedPlanIds.has(lastRequest.requestId)) lastRequest = null;
+      const savedFeedbackIds = new Set(items(current.researcher_feedback).map(record => record.request_id));
+      if (lastRequest && (lastRequest.command === "plan" && savedPlanIds.has(lastRequest.requestId) || lastRequest.command === "feedback" && savedFeedbackIds.has(lastRequest.requestId))) lastRequest = null;
       try {
         const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
-        if (remembered.command === "plan" && savedPlanIds.has(remembered.request_id)) sessionStorage.removeItem(PENDING_KEY);
+        if (remembered.command === "plan" && savedPlanIds.has(remembered.request_id) || remembered.command === "feedback" && savedFeedbackIds.has(remembered.request_id)) sessionStorage.removeItem(PENDING_KEY);
       } catch { /* The project record remains available when browser storage is unavailable. */ }
       showPending();
       try {
@@ -455,7 +508,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (next.project_id !== now || next.schema_version !== "project-selection-context-v1") throw Error("候选不属于当前项目，请刷新后核对。");
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
-      planPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
+      planPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
       await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
       try {
@@ -463,7 +516,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (modelPanel.decisionResolved(text(remembered.command, ""), text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
       } catch { /* Saved model records remain authoritative. */ }
       showPending();
-    } else { planPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}, null); }
+    } else { planPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}, null); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
   }
@@ -550,6 +603,10 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.command === "plan" && items(obj(current.research_plan).revisions).some(revision => revision.request_id === pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
       outcomeMessage = "研究计划已从保存记录中确认。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
+    }
+    if (pending.command === "feedback" && items(current.researcher_feedback).some(record => record.request_id === pending.requestId)) {
+      pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
+      outcomeMessage = "研究反馈已从保存记录中确认，将作为后续模型计划的参考。";
     }
     if (modelPanel.decisionResolved(pending.command, pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;

@@ -206,6 +206,7 @@ def collect_report(workspace) -> dict:
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
+                        "researcher_feedback": before.get("researcher_feedback", []),
                         "recipe_selections": recipe_selections,
                         "host_models": {"snapshot_sha256": host_models["snapshot_sha256"], "status": host_models["status"],
                                         "asset_names": [asset["name"] for asset in host_models["assets"]]}},
@@ -321,6 +322,19 @@ def _research_plan_rows(state):
             ("依据与材料", current["basis"] or "尚未填写"), ("推进步骤", current["steps"]),
             ("预期反馈与调整", current["expected_feedback"]), ("本次修订理由", current["reason"]),
             ("修订记录", "\n".join("第" + str(item["version"]) + "版 · " + item["reason"] for item in revisions))]
+
+
+RESEARCHER_FEEDBACK_NOTE = "以下为研究者提交的未核验意见和下一步建议。实际工具观察、计划采用与科学结论按各自证据和评审确认。"
+
+
+def _researcher_feedback_rows(state):
+    rows = []
+    for index, item in enumerate(state.get("researcher_feedback", []), 1):
+        plan = "第" + str(item["plan_version"]) + "版计划" if item["plan_version"] is not None else "尚无研究计划"
+        rows.extend([("反馈 " + str(index) + " · " + item["author"], item["comment"]),
+                     ("建议下一步", item["next_step"] or "尚未填写"),
+                     ("关联记录", plan + "\n行动 " + (item["action_id"] or "未指定") + "\n反馈身份 " + item["id"])])
+    return rows
 
 
 HOST_MODEL_NOTE = ("原生本地模型计数不包含宿主CLI或子代理。CLI次数为宿主启动尝试，路由和USD估值来自CLI自报，不是账单或总推理次数；"
@@ -510,6 +524,11 @@ def _markdown(report):
         lines.extend(["## 当前研究计划与修订", ""])
         for label, content in plan_rows:
             lines.extend(["### " + label, "", _text(content, 1800), ""])
+    feedback_rows = _researcher_feedback_rows(state)
+    if feedback_rows:
+        lines.extend(["## 研究者反馈", "", RESEARCHER_FEEDBACK_NOTE, ""])
+        for label, content in feedback_rows:
+            lines.extend(["### " + label, "", _text(content, 6000), ""])
     lines.extend(["## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
              "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
              ""])
@@ -634,6 +653,13 @@ def _pdf(report):
         for label, content in plan_rows:
             story.append(p(label, small))
             story.append(p(content, limit=1800))
+    feedback_rows = _researcher_feedback_rows(state)
+    if feedback_rows:
+        h("研究者反馈")
+        story.append(p(RESEARCHER_FEEDBACK_NOTE, small))
+        for label, content in feedback_rows:
+            story.append(p(label, small))
+            story.append(p(content, limit=6000))
     h("二、方法与冻结评价")
     story.append(p(summary["method"], limit=500))
     h("三、实际结果")

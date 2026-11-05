@@ -14,6 +14,7 @@ const subtitles: Record<ActiveProjectPage, string> = {
 
 export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[]; planning: HTMLElement[];
+  feedback: HTMLElement;
   read(path: string): Promise<Obj>; announce(message: string, error?: boolean): void;
 }): { update(project: Obj, context: Obj | null): Promise<void> } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
@@ -32,7 +33,7 @@ export function createProjectPages(host: HTMLElement, options: {
   operation.append(el("summary", "", "开展下一步 · 方法选择、资料登记与连续批次"), el("p", "detail-note", "展开只显示已有操作草稿，不会执行方法。所有操作仍需明确提交；切页保留原请求、输入与未确认状态。"), ...options.operations);
   const research = panes.get("research")!; research.insertBefore(flow.element, content.get("research")!); research.insertBefore(operation, content.get("research")!);
   flow.element.before(...options.planning);
-  const focusTargets = { operations: operation, plan: options.planning[0] };
+  const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback };
   for (const target of Object.values(focusTargets)) { target.classList.add("project-route-target"); target.tabIndex = -1; }
   host.replaceChildren(common, ...panes.values());
   const nav = $("sections"); nav.replaceChildren();
@@ -42,9 +43,10 @@ export function createProjectPages(host: HTMLElement, options: {
     link.append(el("span", "nav-icon", icons[page]), el("span", "", labels[page])); nav.append(link);
   }
   const brand = document.querySelector<HTMLAnchorElement>(".brand"); if (brand) brand.href = "#/overview";
-  let current: Obj = {}, reportToken = 0, requestedReportToken = -1, activePage: ActiveProjectPage | null = null;
+  let current: Obj = {}, reportToken = 0, requestedReportToken = -1, activePage: ActiveProjectPage | null = null, focusPending = true;
   const bookmarks = new Map<ActiveProjectPage, number>();
   function route(): void {
+    focusPending = true;
     const key = location.hash.split("?")[0].slice(2), page: ActiveProjectPage = Object.hasOwn(labels, key) ? key as ActiveProjectPage : "overview";
     if (location.hash.split("?")[0] !== "#/" + page) history.replaceState(null, "", "#/" + page);
     if (activePage) bookmarks.set(activePage, scrollY);
@@ -62,10 +64,14 @@ export function createProjectPages(host: HTMLElement, options: {
   }
   function focusRoute(): boolean {
     const key = new URLSearchParams(location.hash.split("?")[1] ?? "").get("focus");
-    if (activePage !== "research" || key !== "operations" && key !== "plan") return false;
+    if (!focusPending || !current.id || activePage !== "research" || key !== "operations" && key !== "plan" && key !== "feedback") return false;
     const target = focusTargets[key];
+    if (target.hidden) return false;
+    focusPending = false;
     if (key === "operations") operation.open = true;
-    (key === "operations" ? operation.querySelector("summary")! : target).focus({ preventScroll: true });
+    if (key === "feedback") target.querySelector<HTMLDetailsElement>(".researcher-feedback-editor")!.open = true;
+    const focus = key === "operations" ? operation.querySelector<HTMLElement>("summary")! : key === "feedback" ? target.querySelector<HTMLElement>(".researcher-feedback-editor > summary")! : target;
+    focus.focus({ preventScroll: true });
     target.scrollIntoView({ block: "start", behavior: "instant" }); return true;
   }
   window.addEventListener("hashchange", route); route();

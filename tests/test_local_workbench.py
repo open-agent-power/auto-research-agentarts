@@ -97,6 +97,41 @@ class LocalWorkbenchTests(unittest.TestCase):
         self.assertEqual(len(project.status()["actions"]), 2)
         self.assertNotEqual(second["project_id"], state["id"])
 
+    def test_researcher_feedback_recovers_core_commit_and_preserves_project_binding(self):
+        created = self.manager.create(self.create_body())
+        project, _ = self.manager.binding()
+        self.manager.save_plan({"request_id": "feedback-plan", "project_id": created["project_id"],
+            "expected_state_version": project.status()["state_version"],
+            "plan": {"question": "What does the declared unit mean?", "basis": "", "steps": "Read the measurement definition.",
+                     "expected_feedback": "Confirm the declared scale before comparison."}, "reason": "Define the fixture route."})
+        before = project.status()
+        body = {"request_id": "feedback-manager", "project_id": created["project_id"], "expected_state_version": before["state_version"],
+                "author": "Fixture teammate", "comment": "The definition needs source confirmation.", "next_step": "", "action_id": None}
+        original_save = self.manager._save
+
+        def interrupt_manager_receipt(con, request_id, record):
+            if request_id == body["request_id"] and record["status"] == "completed":
+                raise KeyboardInterrupt("Constructed interruption after durable feedback commit")
+            return original_save(con, request_id, record)
+
+        with patch.object(self.manager, "_save", side_effect=interrupt_manager_receipt):
+            with self.assertRaises(KeyboardInterrupt):
+                self.manager.record_feedback(body)
+        committed = project.status()
+        self.assertEqual(len(committed["researcher_feedback"]), 1)
+        self.assertEqual(committed["researcher_feedback"][0]["plan_version"], 1)
+        self.assertEqual(committed["budget"], before["budget"])
+        recovered = LocalWorkbench(self.root).record_feedback(body)
+        self.assertTrue(recovered["replayed"])
+        self.assertEqual(recovered["feedback"], committed["researcher_feedback"][0])
+        self.assertEqual(self.manager.record_feedback(body), recovered)
+        self.assertEqual(project.status(), committed)
+        changed = {**body, "comment": "Different feedback under the same ID"}
+        self.assert_code("IDEMPOTENCY_CONFLICT", self.manager.record_feedback, changed)
+        self.manager.create(self.create_body("feedback-second-project"))
+        self.assert_code("STALE_STATE", self.manager.record_feedback, body)
+        self.assertEqual(project.status(), committed)
+
     def mock_export(self, *, workspace, output):
         project, _ = self.manager.binding()
         state = project.status(); output = Path(output); output.mkdir()

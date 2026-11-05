@@ -637,6 +637,26 @@ function progressFeedback(action: Obj, source: boolean): string {
   return `已保存 ${observations.length} 条实际观察，具体指标与原决定见实验页。`;
 }
 
+export function researcherFeedbackItems(project: Obj, limit: number): HTMLElement {
+  const list = el("div", "researcher-feedback-records"), records = objects(project.researcher_feedback);
+  if (!records.length) list.append(el("p", "empty-state", "尚未记录研究者反馈，可以补充卡点、判断或下一步建议。"));
+  for (const record of records.slice(-limit).reverse()) {
+    const item = el("article", "researcher-feedback-record"), plan = typeof record.plan_version === "number" ? "计划 v" + record.plan_version : "尚无计划";
+    const comment = string(record.comment, ""), next = string(record.next_step, "");
+    item.append(el("h3", "", string(record.author) + " · " + plan), el("p", "researcher-feedback-copy", comment.length > 240 ? comment.slice(0, 240) + "…" : comment));
+    if (next) item.append(el("h4", "", "后续建议"), el("p", "researcher-feedback-copy", next.length > 160 ? next.slice(0, 160) + "…" : next));
+    if (record.action_id) {
+      const action = [...objects(project.actions), ...objects(project.evidence_actions)].find(action => action.id === record.action_id);
+      item.append(el("p", "detail-note", "关联工作 · " + method(action?.command)));
+    }
+    const full = el("details", "researcher-feedback-full");
+    full.append(el("summary", "", "查看完整意见与原记录"), el("p", "researcher-feedback-copy", comment));
+    if (next) full.append(el("p", "researcher-feedback-copy", next));
+    full.append(details("原反馈记录 JSON", record)); item.append(full); list.append(item);
+  }
+  return list;
+}
+
 function savedProgress(project: Obj): HTMLElement {
   const methods = objects(project.actions), sources = objects(project.evidence_actions);
   const panel = section("已保存的工作", `方法行动 ${methods.length} 项，来源读取 ${sources.length} 项。`);
@@ -652,8 +672,9 @@ function savedProgress(project: Obj): HTMLElement {
   else panel.append(el("p", "empty-state", "当前还没有保存的执行结果。可以先查看研究计划和当前候选。"));
   const hidden = methods.length + sources.length - visible.length;
   if (hidden > 0) panel.append(el("p", "detail-note", `另有 ${hidden} 条保存记录，可在实验与知识页完整查看。`));
+  if (objects(project.researcher_feedback).length) panel.append(el("h3", "project-progress-follow-up", "研究者反馈"), researcherFeedbackItems(project, 2));
   const links = el("div", "project-progress-actions");
-  for (const [label, href] of [["查看方法结果", "#/experiments"], ["阅读来源与定位", "#/knowledge"], ["查看报告与成果", "#/outputs"]]) {
+  for (const [label, href] of [["查看方法结果", "#/experiments"], ["阅读来源与定位", "#/knowledge"], ["查看报告与成果", "#/outputs"], ["补充研究反馈", "#/research?focus=feedback"]]) {
     const link = el("a", "text-button", label); link.href = href; links.append(link);
   }
   panel.append(links); return panel;

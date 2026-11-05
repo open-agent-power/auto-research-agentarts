@@ -1,5 +1,6 @@
 """Read-only domain projects, with optional matching sealed P02 evidence."""
 
+import copy
 import json
 import hashlib
 import socket
@@ -140,7 +141,9 @@ def _projection(project, state, report=None):
                 method_options=research_methods.match_methods(state), scientific_validation=False)
     revisions = state.get("plan_revisions", [])
     view["research_plan"] = {"current": revisions[-1] if revisions else None, "revisions": revisions}
-    return _public(view, project)
+    public_view = _public(view, project)
+    public_view["researcher_feedback"] = copy.deepcopy(state.get("researcher_feedback", []))
+    return public_view
 
 
 def check_project_workbench(*, workspace, bundle=None, report=None):
@@ -340,6 +343,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 commands = {"/api/local-workbench/create": "create", "/api/local-workbench/select": "select",
                             "/api/local-workbench/plan": "save_plan",
+                            "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
                             "/api/local-workbench/advance-recipe": "advance_recipe",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
