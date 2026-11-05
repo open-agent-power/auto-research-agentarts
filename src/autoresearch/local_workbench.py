@@ -13,6 +13,7 @@ from . import source_evidence_adapter as reader, tabular_quality_adapter as tabu
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .project_controller import ProjectController
 from .host_model_selection import HostModelSelection
+from .recipe_improvement_adapter import read_recipe_validation
 from .host_model_report import host_model_report_current
 from .research_project import ResearchProject, safe_path, write_bytes_once
 from .research_recipe import MAX_RECIPE_BYTES, compile_recipe, parse_json
@@ -316,11 +317,13 @@ class LocalWorkbench:
             active = self._active(con)
             project = self._project(con, active)[1] if active is not None else None
         view = {"schema_version": "local-host-model-view-v1", "enabled": enabled,
-                "project_id": active, "journal": None, "records": []}
+                "project_id": active, "journal": None, "records": [], "recipe_validations": []}
         if project is not None:
             journal = HostModelSelection(project.root)
             view["journal"] = journal.status()
             view["records"] = [journal.status(request_id=item["request_id"]) for item in view["journal"]["requests"]]
+            view["recipe_validations"] = [read_recipe_validation(project.root, record["request_id"])
+                                          for record in view["records"] if record.get("purpose") == "recipe"]
         return view
 
     def model_advance(self, body, *, executable):

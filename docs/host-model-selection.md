@@ -58,6 +58,14 @@ Host已支持`purpose=recipe`，复用原累计grant，consume保存为`proposed
 
 验证适配使用同一Host `request_id`，只读编译同一冻结context下的baseline与候选，比较决策，再经原控制器最多执行候选一步。调用方显式提供`allowed_methods`与`allowed_receipts`，来源收据按精确身份限制。原Host请求目录保存`validation-input.json`与终态`validation-result.json`，中断沿原ID恢复，unknown保留待核对状态。本地方法和来源用量沿原项目账本累计，采用或回退由外环决定。参数与返回字段见[队友接口](recipe-research/team-module-interface.md#主开发的配方改进适配接线)。
 
+### 工作台读取验证记录
+
+[read_recipe_validation(workspace, request_id)](../src/autoresearch/recipe_improvement_adapter.py)返回`recipe-change-validation-view-v1`，共7个字段，为`schema_version/project_id/request_id/status/input/result/error`。读取绑定原Host提案、`validation-input.json`、`validation-result.json`和原控制器结果，完成状态需要原证据完整且一致。状态范围为`not_started/pending/recovery_required/unknown/completed/waiting/failed/invalid`。
+
+该reader用于模型视图GET的独立`recipe_validations`数组，`records`承载原Host请求记录。读取仅投影已保存事实，执行恢复沿原显式流程处理。研究页已在计划与画布之间展示版本、冻结baseline及候选选择、实际工具状态、模型理由、原记录定位和验证JSON下载。采用决定及后轮管理由待实现的队友`recipe_improvement`外环提供。
+
+一项定点reader回归通过，前端format、Lint、类型检查和构建通过，桌面及手机8张最终截图已实际查看，无页面横向溢出。验证JSON实际下载与reader view逐值一致，API records逐条等于原Host记录，A64 v13和A63 v11的core及Host完整状态逐值一致。五页正常点击、报告reader和项目切换均已核对，页面错误及HTTP失败为空，服务JS及CSS与最终构建一致。invalid客户端夹具隐藏完成标签与比较，本轮新增模型、工具及报告导出均为0。使用入口见[工作台展示](local-workbench.md#主工作台只读展示)。
+
 ## 已验证到哪里
 
 - **A27：同项目两次显式CLI提交已走通。** 同一hiMSC集成项目先完成主质量检查，再完成绑定该action/result的分组画像；第二次冻结context与第一次执行后的context具有相同项目、版本、快照和context身份。两次请求均applied，控制器结果与子行动均completed，CLI报告合计0.048195USD。见[原反馈context](../runs/a27-workbench-model-20261103/after-first-context.json)、[原用量](../runs/a27-workbench-model-20261103/host-status.json)及[原验证记录](../runs/a27-workbench-model-20261103/validation.json)。这是两次明确提交，不能据此认定`advance-batch`已在真实任务中自动连续成功两次。

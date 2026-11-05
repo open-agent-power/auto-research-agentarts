@@ -114,6 +114,54 @@ class RecipeImprovementAdapterTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "IDEMPOTENCY_CONFLICT")
         self.assertEqual(self.project.status(), after)
 
+    def test_validation_reader_reports_receipt_state_and_preserves_all_saved_bytes(self):
+        candidate = self.propose("data.grouped-quality-profile")
+        journal = HostModelSelection(self.project.root)
+        record = journal.status(request_id=self.options["request_id"])
+        folder = journal.directory / record["directory"]
+        result_path, input_path = folder / "validation-result.json", folder / "validation-input.json"
+
+        def snapshot():
+            return (self.project.status(), journal.status(request_id=record["request_id"]),
+                    {path.relative_to(self.root).as_posix(): path.read_bytes() for path in self.root.rglob("*") if path.is_file()})
+
+        def read_and_check(status):
+            before = snapshot()
+            with patch.object(adapter, "validate_recipe_change", side_effect=AssertionError("A reader must not run validation")):
+                view = adapter.read_recipe_validation(self.project.root, record["request_id"])
+                models = self.manager.model_view()
+            self.assertEqual(view["status"], status)
+            self.assertEqual(models["recipe_validations"], [view])
+            self.assertEqual(models["records"], [before[1]])
+            self.assertEqual(snapshot(), before)
+            return view
+
+        not_started = read_and_check("not_started")
+        self.assertIsNone(not_started["input"])
+        self.assertIsNone(not_started["result"])
+        result = adapter.validate_recipe_change(candidate, self.original, self.goal, workspace=self.project.root,
+            request_id=record["request_id"], allowed_methods=["data.grouped-quality-profile"], allowed_receipts=[])
+        completed = read_and_check("completed")
+        self.assertEqual(completed["result"], result)
+        original_result = result_path.read_bytes()
+        replayed_result = json.loads(original_result)
+        replayed_result["controller_outcome"]["replayed"] = True
+        result_path.write_bytes(canonical(replayed_result).encode("utf-8"))
+        read_and_check("completed")
+        result_path.unlink()
+        missing = read_and_check("recovery_required")
+        self.assertIsNone(missing["result"])
+        self.assertEqual(missing["error"]["code"], "VALIDATION_RECEIPT_MISSING")
+        changed = json.loads(original_result)
+        changed["controller_outcome"]["child_request_id"] = "different-child"
+        result_path.write_bytes(canonical(changed).encode("utf-8"))
+        self.assertEqual(read_and_check("invalid")["error"]["code"], "EVIDENCE_CHANGED")
+        result_path.write_bytes(original_result)
+        changed_input = json.loads(input_path.read_bytes())
+        changed_input["context_sha256"] = "0" * 64
+        input_path.write_bytes(canonical(changed_input).encode("utf-8"))
+        self.assertEqual(read_and_check("invalid")["error"]["code"], "EVIDENCE_CHANGED")
+
 
 if __name__ == "__main__":
     unittest.main()

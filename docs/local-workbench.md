@@ -129,6 +129,14 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 本轮页面验收使用模型CLI关闭的独立18795预览。桌面1440×900与手机390×844共8张真实全页及分段截图已查看，覆盖计划、配方记录和画布，两端无页面横向溢出，键盘展开及收起原记录通过。当前A64项目五页导航逐页访问正确，选中态及URL正确，pageErrors0、httpErrors0。4文件报告已导出，5页PDF已逐页查看，四报告下载HTTP200且与manager导出逐字节一致，运行JS及CSS与本次构建一致。本轮功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并，plan及recipe用途CLI未实际调用，完整范围见[A64记录](host-model-selection.md#a64-配方修改提案与允许工具验证)。
 
+### 主工作台只读展示
+
+研究计划与X6画布之间已接入紧凑的“配方改进”卡，读取已保存的提案与验证证据。A64记录展示原版v1、候选v2，验证时冻结的原版等待与候选读取来源，实际工具验证completed及模型理由。可定位原记录并下载验证JSON。采用或回退决定由待实现的队友外环提供。
+
+模型视图GET通过独立`recipe_validations`数组，逐项投影原Host提案、验证输入与结果及控制器回执，`records`保留原Host记录。[read_recipe_validation](../src/autoresearch/recipe_improvement_adapter.py)返回状态、输入、结果和错误，仅投影已保存证据。完成状态需要原证据完整且相互对应，invalid投影隐藏完成标签与比较。接口与状态见[只读投影约定](../.agent/indexes/interfaces.md#配方验证只读投影)。
+
+一项定点reader回归通过，前端format、Lint、类型检查和构建通过。桌面及手机8张最终全页与分段图已实际查看并完成排版调整，两端无页面横向溢出，验证JSON实际下载与reader view逐值一致。五页正常点击、报告reader及A63/A64切换均已核对，页面错误和HTTP失败为空，实际服务JS及CSS与最终构建一致。invalid客户端夹具隐藏完成标签与比较，原A64 v13、A63 v11的core及Host完整状态逐值一致，API records逐条等于原Host记录。方法卡、采用或回退和后轮管理由队友按长期任务负责。
+
 ## 在同一项目登记资料，再明确读取
 
 “补充资料”面板读取当前项目的实际取证任务，绑定`task_ref / state_version / snapshot_ref`。如果尚无任务，显示“先执行一次检查”，不妨碍创建、选择项目或已有候选操作。任务所需证据及其绑定可展开核对；后续分析提供的证据要求不改写原取证任务身份。
