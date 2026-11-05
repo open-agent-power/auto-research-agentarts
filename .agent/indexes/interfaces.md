@@ -26,7 +26,7 @@ Host支持`purpose=recipe`及`prepare/advance --purpose recipe --recipe <JSON文
 
 [适配模块](../../src/autoresearch/recipe_improvement_adapter.py)的`propose_recipe_change`返回`recipe-change-proposal-result-v1`，其candidate为完整`recipe-change-proposal-v1`，内部candidate才是原生配方。`validate_recipe_change`传完整提案与同一Host请求ID，比较冻结baseline/候选决策，按显式allowed_methods和allowed_receipts经原控制器最多执行候选一步。验证输入与终态结果保存于原请求目录，unknown沿原ID核对恢复。
 
-A64已在已有构造项目通过一次实际子代理候选v2和一次允许来源读取，baseline wait、候选execute，原ID提案与验证重放无新增。队友复用已保存结果接`run_improvement_round`，继续负责`recipe_improvement`外环的版本、采用或回退和连续轮次。桌面与手机截图、五页导航及四报告下载身份均已实际核对，运行静态资源与本次构建一致，代码尚未提交和发布。函数签名与返回字段见[适配约定](../../docs/recipe-research/team-module-interface.md#主开发的配方改进适配接线)，实际运行范围见[A64记录](../../docs/host-model-selection.md#a64-配方修改提案与允许工具验证)。
+A64已在已有构造项目通过一次实际子代理候选v2和一次允许来源读取，baseline wait、候选execute，原ID提案与验证重放无新增。队友复用已保存结果接`run_improvement_round`，继续负责`recipe_improvement`外环的版本、采用或回退和连续轮次。桌面与手机截图、五页导航及四报告下载身份均已实际核对，运行静态资源与本次构建一致，功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并。函数签名与返回字段见[适配约定](../../docs/recipe-research/team-module-interface.md#主开发的配方改进适配接线)，实际运行范围见[A64记录](../../docs/host-model-selection.md#a64-配方修改提案与允许工具验证)。
 
 ## 当前项目的三域只读入口
 

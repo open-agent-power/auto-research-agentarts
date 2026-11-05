@@ -37,7 +37,7 @@
 
 ### 主开发的配方改进适配接线
 
-主开发已在[recipe_improvement_adapter.py](../../src/autoresearch/recipe_improvement_adapter.py)提供以下函数入口。A64已取得一次真实子代理候选和允许来源读取结果，桌面及手机截图、五页导航与四报告下载均已实际核对，运行JS及CSS与本次构建一致，代码尚未提交和发布。队友继续实现`recipe_improvement`外环，消费提案和验证记录，管理版本、采用或回退及连续轮次。
+主开发已在[recipe_improvement_adapter.py](../../src/autoresearch/recipe_improvement_adapter.py)提供以下函数入口。A64已取得一次真实子代理候选和允许来源读取结果，桌面及手机截图、五页导航与四报告下载均已实际核对，运行JS及CSS与本次构建一致，功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并。队友继续实现`recipe_improvement`外环，消费提案和验证记录，管理版本、采用或回退及连续轮次。
 
 ```python
 propose_recipe_change(

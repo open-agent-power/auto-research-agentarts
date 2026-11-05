@@ -127,7 +127,7 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 主开发已落盘recipe change的模型提案与允许工具验证适配，队友负责配方RSI外环、版本、采用或回退和连续轮次。提案冻结实际研究context、当前配方和改进目标，Host的`purpose=recipe`消费后保存`proposed`。验证接收完整提案，比较冻结baseline与候选决策，经原控制器最多执行候选一步并沿原ID恢复。A64已在已有构造四行项目取得一次真实子代理候选v2，并按显式允许方法和receipt完成来源读取，baseline wait、候选execute。队友可复用保存结果继续接外环，函数与CLI接线见[Host说明](host-model-selection.md#配方改进提案与验证接线)及[队友适配约定](recipe-research/team-module-interface.md#主开发的配方改进适配接线)。
 
-本轮页面验收使用模型CLI关闭的独立18795预览。桌面1440×900与手机390×844共8张真实全页及分段截图已查看，覆盖计划、配方记录和画布，两端无页面横向溢出，键盘展开及收起原记录通过。当前A64项目五页导航逐页访问正确，选中态及URL正确，pageErrors0、httpErrors0。4文件报告已导出，5页PDF已逐页查看，四报告下载HTTP200且与manager导出逐字节一致，运行JS及CSS与本次构建一致。本轮代码尚未提交和发布，plan及recipe用途CLI未实际调用，完整范围见[A64记录](host-model-selection.md#a64-配方修改提案与允许工具验证)。
+本轮页面验收使用模型CLI关闭的独立18795预览。桌面1440×900与手机390×844共8张真实全页及分段截图已查看，覆盖计划、配方记录和画布，两端无页面横向溢出，键盘展开及收起原记录通过。当前A64项目五页导航逐页访问正确，选中态及URL正确，pageErrors0、httpErrors0。4文件报告已导出，5页PDF已逐页查看，四报告下载HTTP200且与manager导出逐字节一致，运行JS及CSS与本次构建一致。本轮功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并，plan及recipe用途CLI未实际调用，完整范围见[A64记录](host-model-selection.md#a64-配方修改提案与允许工具验证)。
 
 ## 在同一项目登记资料，再明确读取
 

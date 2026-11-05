@@ -48,7 +48,7 @@ CLI分支采用实际新请求ID，在`advance`中增加`--purpose plan`，同�
 
 ## 配方改进提案与验证接线
 
-主开发已落盘recipe change的模型提案协议与允许工具验证适配。A64已通过一次真实子代理提案和允许来源读取，桌面及手机截图、五页导航与报告下载均已实际核对，代码尚未提交和发布。队友继续拥有`recipe_improvement`外环，负责版本、采用或回退以及连续轮次。实际范围见[A64记录](#a64-配方修改提案与允许工具验证)。
+主开发已落盘recipe change的模型提案协议与允许工具验证适配。A64已通过一次真实子代理提案和允许来源读取，桌面及手机截图、五页导航与报告下载均已实际核对，功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并。队友继续拥有`recipe_improvement`外环，负责版本、采用或回退以及连续轮次。实际范围见[A64记录](#a64-配方修改提案与允许工具验证)。
 
 [recipe_change_proposal.py](../src/autoresearch/recipe_change_proposal.py)冻结实际`research_context`、`current_recipe`与`improvement_goal`，schema为`recipe-change-context-v1`。当前配方必须匹配项目范围和need，轨迹须含已完成或失败的真实反馈。模型原回答恰含`candidate/reason/feedback_action_ids/expected_improvement/validation_plan`。其中`candidate`是`research-recipe-v1`，保留原配方`id`、`scope_match`和`need`，版本加1，`on_no_match`为`wait`。方法与评价引用须成对来自冻结的`selection_context.conditions`，反馈引用须来自实际完成或失败的行动。
 
@@ -321,7 +321,7 @@ A35面板将金额标为“CLI配置阈值”，说明单次调用可能超出�
 
 最终state v13，本地方法1/2、来源1/8、Host 1/1、原生模型调用0。原ID的propose与validate重放后，核心及Host状态均未改变，A63原v11全状态逐值一致。报告正常导出4文件，5页PDF已全部实际查看，部分页沿原模板留白较多。7份Host原件包含真实`validation-input.json`与`validation-result.json`，本机验证记录按忽略规则保存。
 
-页面验收使用CLI关闭的独立18795预览。桌面1440×900与手机390×844共8张全页、计划、配方记录与画布分段截图已实际查看，两端无页面横向溢出，键盘展开和收起原记录通过。当前A64项目五页导航已逐页访问，选中态及URL正确，pageErrors0、httpErrors0。四报告HTTP200，与manager导出逐字节一致，运行JS及CSS与本次构建一致。代码尚未提交和发布，共享主线为`23b6d91`。
+页面验收使用CLI关闭的独立18795预览。桌面1440×900与手机390×844共8张全页、计划、配方记录与画布分段截图已实际查看，两端无页面横向溢出，键盘展开和收起原记录通过。当前A64项目五页导航已逐页访问，选中态及URL正确，pageErrors0、httpErrors0。四报告HTTP200，与manager导出逐字节一致，运行JS及CSS与本次构建一致。A64已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并，功能合并提交为`5e50037`。
 
 实际模型来自协作派发，Host供应商声明仍未核验，内部模型及费用unknown，plan和recipe用途的CLI均未实际调用。原回答的`validation_plan`建议采用后再执行，实际验证独立按显式allowed方法与receipt运行在采用决定前。该文字保留为模型建议，执行权限由调用方提供，原回答未改写，可作为后轮反馈。
 
