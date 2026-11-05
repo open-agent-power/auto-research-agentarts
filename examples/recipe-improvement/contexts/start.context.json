@@ -1,0 +1,33 @@
+{
+  "schema_version": "project-selection-context-v1",
+  "project_id": "synthetic-recipe-handoff",
+  "run_id": "synthetic-run",
+  "snapshot_ref": "1111111111111111111111111111111111111111111111111111111111111111",
+  "state_version": 1,
+  "source_snapshot_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "project_code_identity": "3333333333333333333333333333333333333333333333333333333333333333",
+  "controller_code_identity": "4444444444444444444444444444444444444444444444444444444444444444",
+  "need": "next_check",
+  "goal": "构造接口输入，验证配方和改进模块接线，非实际研究结果。",
+  "domain_scope": {
+    "domain": "data",
+    "contract": "tabular-quality-v1"
+  },
+  "budget": {
+    "local_tool_call_limit": 2
+  },
+  "conditions": [],
+  "candidates": [
+    {
+      "id": "fixture-quality",
+      "method_id": "data.tabular-quality-audit",
+      "parameters": {},
+      "evaluation_ref": "tabular-quality-v1"
+    }
+  ],
+  "blockers": [],
+  "baseline_decision": {},
+  "evidence": [],
+  "scientific_validation": false,
+  "context_sha256": "061a4b948effad46d597586416dc30e7086dfdf527e0d5cc75af148e2d776924"
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "research-method-card-v1",
+  "id": "inspect-feedback-and-continue",
+  "version": 1,
+  "question": "已有质量反馈后，下一步做什么最能推动当前问题？",
+  "rationale": "依据已有结果选择有信息增量的一步，并说明反馈怎样改变后续安排。",
+  "scope_match": {
+    "domain": "data",
+    "contract": "tabular-quality-v1"
+  },
+  "method_refs": [
+    {
+      "method_id": "data.grouped-quality-profile",
+      "evaluation_ref": "grouped-quality-profile-v1"
+    },
+    {
+      "method_id": "research.source-selection",
+      "evaluation_ref": "source-extraction-only-not-scientific-approval"
+    }
+  ],
+  "applicability": {
+    "requires": [
+      "存在宿主提供的对应候选和已有反馈"
+    ],
+    "not_applicable": [
+      "当前输入范围或工具含义不符"
+    ],
+    "uncertain": [
+      "测量含义或分组解释仍需材料，采用时说明判断范围"
+    ]
+  },
+  "evaluation": "当前行动应取得能够影响下一决定的结果，结果说明包含所据实际反馈。",
+  "feedback_branches": [
+    {
+      "id": "continue-analysis",
+      "observed": "已有信息支持在限定范围内继续分析",
+      "suggested_next": "从实际合法候选中选择相关分析",
+      "evidence_required": [
+        "实际观察和适用范围"
+      ]
+    },
+    {
+      "id": "revise-route",
+      "observed": "新反馈说明原步骤重复、信息不足或路线不合适",
+      "suggested_next": "修改后续计划或形成配方改进候选",
+      "evidence_required": [
+        "对应反馈及修改理由"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "local-contract",
+      "url": "urn:autoresearch:research-contracts",
+      "locator": "docs/architecture/research-contracts.md",
+      "note": "本项目目标契约，模板待队友完善。"
+    }
+  ]
+}
