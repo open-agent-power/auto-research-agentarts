@@ -8,6 +8,7 @@ import re
 
 from . import host_selection_protocol as protocol, snapshot_viewer
 from . import research_plan_proposal as plan_protocol
+from . import recipe_change_proposal as recipe_protocol
 from .contracts import ResearchError, canonical, fingerprint
 from .host_model_selection import HostModelSelection
 from .research_project import ResearchProject, safe_path
@@ -16,6 +17,7 @@ MAX_FILE_BYTES = 2 * 1024 * 1024
 MAX_TOTAL_BYTES = 48 * 1024 * 1024  # Raw assets need another third for report Base64.
 FILES = {"context.json": "host_model_context", "prompt.json": "host_model_prompt",
          "proposal.json": "host_model_proposal", "delegated.bin": "host_model_delegated_response",
+         "validation-input.json": "host_recipe_validation_input", "validation-result.json": "host_recipe_validation_result",
          "transport/launch.json": "host_model_cli_launch", "transport/stdout.bin": "host_model_cli_stdout",
          "transport/stderr.bin": "host_model_cli_stderr", "transport/exit.json": "host_model_cli_exit"}
 
@@ -59,7 +61,7 @@ def _verify(record, files):
         if raw is not None:
             _require(hashlib.sha256(raw).hexdigest() == record["response_sha256"], "Original host-model response bytes changed.")
             if "arguments" in record:
-                response_protocol = plan_protocol if record.get("purpose") == "plan" else protocol
+                response_protocol = {"selection": protocol, "plan": plan_protocol, "recipe": recipe_protocol}[record.get("purpose", "selection")]
                 parsed = response_protocol.parse_host_response(raw, record["provider"])
                 _require(all(record.get(key) == value for key, value in parsed.items()),
                          "Host-model parsed response or reported usage differs from its original bytes.")
@@ -135,6 +137,8 @@ def _capture(workspace, *, include_assets):
             _require(record["request_id"] == request_id and re.fullmatch(r"requests/[0-9]{4}", folder) is not None,
                      "Host journal request does not name its original controlled directory.")
             for suffix, role in FILES.items():
+                if suffix in ("validation-input.json", "validation-result.json") and record.get("purpose") != "recipe":
+                    continue
                 name = folder + "/" + suffix
                 path = safe_path(journal.directory / name)
                 inventory.append({"name": name, "exists": path.exists()})

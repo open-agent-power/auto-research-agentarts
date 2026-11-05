@@ -18,7 +18,15 @@
 
 计划consume进入`proposed`，采用后`applied`且`outcome.kind=plan_revision`，拒绝后`rejected`。采用或拒绝已保存建议使用本地操作权限，服务未启用CLI进程时仍可处理。新计划请求与selection共享原`decision_limit/cli_budget_usd/reason`，原ID重放、过期状态与原始回答继续沿Host记录管理。用法见[Host计划建议](../../docs/host-model-selection.md#根据真实反馈建议研究计划)和[工作台计划建议](../../docs/local-workbench.md#模型建议与采用)。
 
-准备selection请求要求存在合法候选，plan请求在无全局阻断时可基于真实反馈处理空候选情形。A63子代理实例已按实际质量反馈修订计划并在网页采用v2，下一次选择带该版本完成来源读取。桌面及手机8张截图、五页导航与四报告下载身份已核对，运行静态资源与构建一致，本轮尚未提交。原ID重放、CLI未实跑及RSI待接线范围见[A63记录](../../docs/host-model-selection.md#a63-真实子代理计划修订与后轮接续)。
+准备selection请求要求存在合法候选，plan请求在无全局阻断时可基于真实反馈处理空候选情形。A63子代理实例已按实际质量反馈修订计划并在网页采用v2，下一次选择带该版本完成来源读取。桌面及手机8张截图、五页导航与四报告下载身份已核对，运行静态资源与构建一致，已通过[PR #8](https://github.com/1263-ux/auto-research-agentarts/pull/8)合并至共享主线`23b6d91`。原ID重放、CLI未实跑及RSI待接线范围见[A63记录](../../docs/host-model-selection.md#a63-真实子代理计划修订与后轮接续)。
+
+## 配方改进提案与验证
+
+Host支持`purpose=recipe`及`prepare/advance --purpose recipe --recipe <JSON文件> --improvement-goal <文字>`，与原grant累计记账，consume保存`proposed`。[协议模块](../../src/autoresearch/recipe_change_proposal.py)冻结实际`research_context/current_recipe/improvement_goal`，校验候选保留原配方id、scope_match和need、版本加1，方法与evaluation_ref成对来自冻结conditions。
+
+[适配模块](../../src/autoresearch/recipe_improvement_adapter.py)的`propose_recipe_change`返回`recipe-change-proposal-result-v1`，其candidate为完整`recipe-change-proposal-v1`，内部candidate才是原生配方。`validate_recipe_change`传完整提案与同一Host请求ID，比较冻结baseline/候选决策，按显式allowed_methods和allowed_receipts经原控制器最多执行候选一步。验证输入与终态结果保存于原请求目录，unknown沿原ID核对恢复。
+
+A64已在已有构造项目通过一次实际子代理候选v2和一次允许来源读取，baseline wait、候选execute，原ID提案与验证重放无新增。队友复用已保存结果接`run_improvement_round`，继续负责`recipe_improvement`外环的版本、采用或回退和连续轮次。桌面与手机截图、五页导航及四报告下载身份均已实际核对，运行静态资源与本次构建一致，代码尚未提交和发布。函数签名与返回字段见[适配约定](../../docs/recipe-research/team-module-interface.md#主开发的配方改进适配接线)，实际运行范围见[A64记录](../../docs/host-model-selection.md#a64-配方修改提案与允许工具验证)。
 
 ## 当前项目的三域只读入口
 

@@ -35,6 +35,37 @@
 
 首版使用普通函数参数连接这两项能力，保持直接调用。构造返回用于模块开发，真实运行使用实际接入能力。
 
+### 主开发的配方改进适配接线
+
+主开发已在[recipe_improvement_adapter.py](../../src/autoresearch/recipe_improvement_adapter.py)提供以下函数入口。A64已取得一次真实子代理候选和允许来源读取结果，桌面及手机截图、五页导航与四报告下载均已实际核对，运行JS及CSS与本次构建一致，代码尚未提交和发布。队友继续实现`recipe_improvement`外环，消费提案和验证记录，管理版本、采用或回退及连续轮次。
+
+```python
+propose_recipe_change(
+    current_version, trace, goal, *, workspace, request_id,
+    decision_limit, cli_budget_usd, reason, provider="delegated",
+    executable=None, response_file=None,
+)
+
+validate_recipe_change(
+    candidate, original, goal, *, workspace, request_id,
+    allowed_methods, allowed_receipts,
+)
+```
+
+`trace`须为本次冻结的完整实际`research-plan-context-v1`，首次由当前项目按原配方need构建，后续调用沿用原请求context中的`research_context`。`current_version`传原生`research-recipe-v1`，`goal`传本轮有界改进目标。Host以`purpose=recipe`复用原累计grant，consume仅保存`proposed`。子代理首次调用返回`prepared`，按`context_ref/prompt_ref`取得原上下文和提示。使用同一ID传入`response_file`后，适配导入原回答并consume，合法提案进入`proposed`。CLI分支使用原传输，`response_file`仅用于子代理。
+
+提案适配返回`recipe-change-proposal-result-v1`，字段为`request_id/status/candidate/context_ref/prompt_ref/response_ref/scientific_validation`，其中`scientific_validation`为false。`prepared`时`candidate`为null，`proposed`时为完整的`recipe-change-proposal-v1`，包含`schema_version/context_sha256/provider/candidate/reason/feedback_action_ids/expected_improvement/validation_plan`。内部`candidate`才是原生配方，保留原`id/scope_match/need`、版本加1、`on_no_match=wait`。方法与`evaluation_ref`必须成对来自冻结conditions，反馈行动ID必须指向实际完成或失败的记录。
+
+调用`validate_recipe_change`时，`candidate`参数传提案结果中的完整`candidate`对象，`original`传原配方，`goal`沿用原目标，`request_id`沿用同一Host请求。适配校验原回答、提案与冻结输入一致，只读编译baseline和候选并比较选择决策，再通过原控制器最多执行候选一步。`allowed_methods`为本轮明确允许的方法ID，`allowed_receipts`为明确允许的来源收据身份，首次验证后沿原ID固定这些权限。原项目本地方法与来源用量继续累计。
+
+返回`recipe-change-validation-v1`，包含`request_id/status/baseline_decision/candidate_decision/selection_changed/controller_outcome/artifact_refs/scientific_validation`。原Host请求目录保存`validation-input.json`与终态`validation-result.json`，completed、waiting、failed或rejected结果可重放，unknown保持可核对与恢复。`selection_changed`记录选择决策差异，外环依据实际结果决定采用或回退。以`proposal_result`表示提案适配返回值时，验证入参为`proposal_result["candidate"]`，决定采用后保存的新有效配方为`proposal_result["candidate"]["candidate"]`。Host用途与CLI参数见[接线说明](../host-model-selection.md#配方改进提案与验证接线)。
+
+### 队友从A64结果继续
+
+A64复用已有构造四行工程项目，经一次实际协作子代理请求`a64-recipe-change`得到完整候选v2。冻结baseline为wait、候选为execute，显式允许的方法和来源收据使原控制器读取团队自写运行说明1次，最终state v13，本地1/2、来源1/8、Host 1/1、native 0。原ID提案与验证重放均无新增，A63原v11全状态一致。
+
+队友将保存的完整提案及`validation-result.json`接入`run_improvement_round`，记录采用或回退、有效版本和下一轮问题。原ID可以取回这次已完成结果。模型原`validation_plan`建议采用后执行，实际验证已独立按显式权限运行在采用决定前，原回答保留，可把这处顺序差异作为后轮反馈。Host7份原件、5页报告和页面证据范围见[A64记录](../host-model-selection.md#a64-配方修改提案与允许工具验证)。
+
 ## 连续推进与接续
 
 入口支持单轮和在本次任务范围内的连续轮次。每轮读取前一轮结果后选下一项改进，沿当前有效版本继续。达到目标、用完本轮资源、缺少输入或有未决执行时保存状态，说明原因与接续位置。
@@ -67,6 +98,6 @@
 
 主团队已取得公开diabetes实例的一条真实轨迹。三次子代理决策依次提出初始计划、读取真实质量反馈后提出修订、按已采用的v2计划选择来源，原控制器完成来源读取。网页采用了计划v1和v2，6页报告已逐页查看，原ID重放后核心状态及用量一致。队友可将这条轨迹作为外环输入，继续实现配方或策略候选的验证、采用或回退与后轮管理。具体范围见[A63记录](../host-model-selection.md#a63-真实子代理计划修订与后轮接续)。
 
-桌面1440×900与手机390×844的8张全页及分段截图已实际查看，覆盖计划、已采用提案和X6画布。两端无页面横向溢出，五页导航访问正确，pageErrors0、httpErrors0。四个正常报告下载HTTP200，与manager导出逐字节一致，运行app.js及CSS与构建文件一致。本轮尚未提交和发布。
+桌面1440×900与手机390×844的8张全页及分段截图已实际查看，覆盖计划、已采用提案和X6画布。两端无页面横向溢出，五页导航访问正确，pageErrors0、httpErrors0。四个正常报告下载HTTP200，与manager导出逐字节一致，运行app.js及CSS与构建文件一致。A63已通过[PR #8](https://github.com/1263-ux/auto-research-agentarts/pull/8)合并，共享主线为`23b6d91`。
 
 实例任务范围是数据质量与计划调整，目标量表、变量编码和样本独立性按来源声明及实际证据解释。Host导入声明保留未核验的执行、模型和用量字段，协作实际派发另有会话工具记录。新增plan用途的CLI传输仍待单独实跑，配方RSI外环仍由队友接线。

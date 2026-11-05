@@ -145,11 +145,13 @@ class ProjectController:
             conditions.append({key: copy.deepcopy(option[key]) for key in
                                ("method_id", "condition", "completed", "reasons", "missing_information") if key in option})
             conditions[-1]["execution_blockers"] = reasons
+            evaluation_ref = (registry.evaluation_ref(method_id) if not registry.is_source(method_id)
+                              else "source-extraction-only-not-scientific-approval")
+            conditions[-1]["evaluation_ref"] = evaluation_ref
             if not reasons and not blockers:
                 for parameter in parameters:
                     candidate = {"method_id": method_id, "parameters": parameter,
-                                 "evaluation_ref": registry.evaluation_ref(method_id) if not registry.is_source(method_id)
-                                 else "source-extraction-only-not-scientific-approval"}
+                                 "evaluation_ref": evaluation_ref}
                     candidates.append({"id": "choice-" + fingerprint(candidate)[:32], **candidate})
         evidence = []
         for hit in plan["selection_evidence"][:5]:
