@@ -13,7 +13,7 @@ const subtitles: Record<ActiveProjectPage, string> = {
 };
 
 export function createProjectPages(host: HTMLElement, options: {
-  shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[];
+  shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[]; planning: HTMLElement[];
   read(path: string): Promise<Obj>; announce(message: string, error?: boolean): void;
 }): { update(project: Obj): Promise<void> } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
@@ -31,6 +31,7 @@ export function createProjectPages(host: HTMLElement, options: {
   const flow = createProjectFlow(options.announce), operation = el("details", "project-operations content-section");
   operation.append(el("summary", "", "开展下一步 · 方法选择、资料登记与连续批次"), el("p", "detail-note", "展开只显示已有操作草稿，不会执行方法。所有操作仍需明确提交；切页保留原请求、输入与未确认状态。"), ...options.operations);
   const research = panes.get("research")!; research.insertBefore(flow.element, content.get("research")!); research.insertBefore(operation, content.get("research")!);
+  flow.element.before(...options.planning);
   host.replaceChildren(common, ...panes.values());
   const nav = $("sections"); nav.replaceChildren();
   const icons = { overview: "◈", research: "⌁", experiments: "⚗", knowledge: "▤", outputs: "▧" };

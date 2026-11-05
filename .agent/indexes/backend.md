@@ -60,3 +60,5 @@ A28 [host_model_report](../../src/autoresearch/host_model_report.py)提供 `capt
 A29 [research_recipe](../../src/autoresearch/research_recipe.py)把明确的 `ordered_methods` 编译成原六字段 proposal 和独立 `research-recipe-decision-v1`。`ProjectController.advance_recipe`在真实 context 中选择一步，将完整配方 decision 存入原父请求；原 child、预算、事务与重放机制共用，不发送模型。范围/need/blockers及方法评价匹配控制可选项，跳过原因留存；报告 `input.recipe_selections` 保留原 context/decision，PDF/Markdown展示顺序与选择。队友原型固定版本、主线接入用法及本轮证据见[配方整合](../../docs/recipe-research/integration.md)，研究依据与历史失败仍见[原研究记录](../../docs/recipe-research/experiment.md)。配置分歧不证明研究收益。
 
 - A30 [LocalWorkbench.recipes/advance_recipe](../../src/autoresearch/local_workbench.py)将两份固定配方接回原本地会话；GET用真实context编译且复核快照，POST复用原writer/活动项目/pending及A29控制器，不另建预算或执行账本。新HTTP路径见[接口](interfaces.md)。
+
+- [ResearchProject.save_plan](../../src/autoresearch/research_project.py)将使用者编写的计划与修订理由保存到原项目`plan_revisions`，递增项目版本，沿原锁、事务、代码身份、未决执行和原ID重放机制。当前版本进入`ProjectController.selection_context`及现有宿主模型提示，页面读取和保存见[研究计划](../../docs/local-workbench.md#保存与修订研究计划)。
