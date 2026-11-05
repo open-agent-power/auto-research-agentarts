@@ -1,11 +1,13 @@
 # 后端索引
 
-本页导航现有实现；项目入口见 [docs/README](../../docs/README.md)。同一项目已连接登记白名单方法、条件选择一步、来源反馈与恢复；各领域Observation保留自身含义。开放式方法扩展仍待实现，有界模型选择的跨域收益仍待验证，目标设计见[自适应研究](../../docs/research/adaptive-research.md)。
+本页导航现有实现；项目入口见 [docs/README](../../docs/README.md)。同一项目已连接登记白名单方法、条件选择一步、来源反馈与恢复；各领域Observation保留自身含义。开放式方法扩展仍待实现，有界模型选择的跨域收益仍待验证，目标设计见[研究架构](../../docs/architecture/foundation.md)。
 
 架构基线见[底层模块与依赖](../../docs/architecture/foundation.md)和[状态/能力契约](../../docs/architecture/research-contracts.md)。已实现的是有限本地命令/目录、有界选择与既有执行协调，不等于目标契约全部端口或LLM自主科研。
 
 ## 项目与状态
 
+- 模型计划建议由[research_plan_proposal](../../src/autoresearch/research_plan_proposal.py)构造原selection context与真实保存反馈，提供prompt、原回答解析及提案校验。[HostModelSelection](../../src/autoresearch/host_model_selection.py)以`purpose=plan`复用原grant，consume保存`proposed`，`adopt_plan/reject_plan`分别记录采用或拒绝。采用生成原项目研究计划修订，保留原ID恢复与过期状态，见[Host用法](../../docs/host-model-selection.md#根据真实反馈建议研究计划)。该轨迹可供配方RSI模块接线，外环职责见[队友接口](../../docs/recipe-research/team-module-interface.md#主团队提供的真实轨迹与host接线)。
+  A63已在公开diabetes实例取得三次真实子代理决策、两版计划的网页采用、一次质量方法及随后一次来源读取，原ID重放后状态与用量一致，6页报告已实际查看。桌面及手机8张截图、五页导航和四报告下载身份已核对，运行静态资源与构建一致，本轮尚未提交。Host保留原未核验声明，内部推理与费用unknown，新增plan用途的CLI传输仍待实跑。具体范围见[实际接续](../../docs/host-model-selection.md#a63-真实子代理计划修订与后轮接续)。
 - 本地项目：[ResearchProject](../../src/autoresearch/research_project.py) 的 `create/status/step/resume` 保存单Run、行动/方法实例、完整工件、反馈与固定策略下一决定；最初的[saved_oof_adapter](../../src/autoresearch/saved_oof_adapter.py)保留P02保存OOF语义。见[用法与边界](../../docs/project-slice.md)：不导入历史请求计数，不调用模型；HTTP仅作只读投影，unknown不自动重算。
 - 同项目来源：`upgrade/register_evidence/read_evidence/attach_evidence/evidence_task/method_options/knowledge`；[source_evidence_adapter](../../src/autoresearch/source_evidence_adapter.py)捕获任务绑定原件并提取选区。登记只做原件I/O/哈希/收据，不扣提取次数；读取才创建行动/观察和FTS，原attach保留兼容。[research_methods](../../src/autoresearch/research_methods.py)匹配条件，[project_knowledge](../../src/autoresearch/project_knowledge.py)检索真实选区，来源观察不批准终点。
 - A7 注册方法：[method_registry](../../src/autoresearch/method_registry.py)只允许 P02、[钢材模型复核](../../src/autoresearch/steel_audit_adapter.py)、[软件原件捕获检查](../../src/autoresearch/source_integrity_adapter.py)三个主方法，经同一 ResearchProject 的事务、恢复和预算执行。来源任务使用通用 research.source-selection（旧 P02 ID 保留），失败收据不自动重试，不把各领域塞入共同科学终点。

@@ -7,6 +7,7 @@ import json
 import re
 
 from . import host_selection_protocol as protocol, snapshot_viewer
+from . import research_plan_proposal as plan_protocol
 from .contracts import ResearchError, canonical, fingerprint
 from .host_model_selection import HostModelSelection
 from .research_project import ResearchProject, safe_path
@@ -58,7 +59,8 @@ def _verify(record, files):
         if raw is not None:
             _require(hashlib.sha256(raw).hexdigest() == record["response_sha256"], "Original host-model response bytes changed.")
             if "arguments" in record:
-                parsed = protocol.parse_host_response(raw, record["provider"])
+                response_protocol = plan_protocol if record.get("purpose") == "plan" else protocol
+                parsed = response_protocol.parse_host_response(raw, record["provider"])
                 _require(all(record.get(key) == value for key, value in parsed.items()),
                          "Host-model parsed response or reported usage differs from its original bytes.")
             elif record["provider"] == "claude_cli" and any(record.get(key) is not None for key in

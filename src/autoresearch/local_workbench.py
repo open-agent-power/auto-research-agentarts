@@ -327,11 +327,34 @@ class LocalWorkbench:
         _body(body, ("request_id", "project_id", "expected_state_version", "decision_limit", "cli_budget_usd", "reason"))
         return self._model_command(body, executable=executable, resume=False)
 
+    def model_plan_advance(self, body, *, executable):
+        _body(body, ("request_id", "project_id", "expected_state_version", "decision_limit", "cli_budget_usd", "reason"))
+        return self._model_command(body, executable=executable, resume=False, purpose="plan")
+
+    def model_plan_adopt(self, body):
+        _body(body, ("request_id", "project_id"))
+        return self._plan_decision(body, reject=False)
+
+    def model_plan_reject(self, body):
+        _body(body, ("request_id", "project_id", "reason"))
+        return self._plan_decision(body, reject=True)
+
+    def _plan_decision(self, body, *, reject):
+        with self._writer():
+            with self._connect(readonly=True) as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+            journal = HostModelSelection(project.root)
+            record = (journal.reject_plan(request_id=body["request_id"], reason=body["reason"]) if reject
+                      else journal.adopt_plan(request_id=body["request_id"]))
+            return self._response("model-plan-reject" if reject else "model-plan-adopt", body["request_id"], body["project_id"],
+                                  status=record["status"], model_record=record, usage=journal.status())
+
     def model_resume(self, body, *, executable):
         _body(body, ("request_id", "project_id"))
         return self._model_command(body, executable=executable, resume=True)
 
-    def _model_command(self, body, *, executable, resume):
+    def _model_command(self, body, *, executable, resume, purpose="selection"):
         _require(executable is not None and Path(executable).is_file(), "MODEL_DISABLED", "No host-selected CLI is enabled.")
         executable = str(Path(executable).absolute())
         with self._writer():
@@ -347,11 +370,12 @@ class LocalWorkbench:
             else:
                 record = journal.prepare(request_id=body["request_id"], provider="claude_cli", executable=executable,
                     expected_state_version=body["expected_state_version"], decision_limit=body["decision_limit"],
-                    cli_budget_usd=body["cli_budget_usd"], reason=body["reason"])
+                    cli_budget_usd=body["cli_budget_usd"], reason=body["reason"], purpose=purpose)
             record = journal.request(request_id=body["request_id"])
             if record["status"] == "received":
                 record = journal.consume(request_id=body["request_id"])
-            return self._response("model-resume" if resume else "model-advance", body["request_id"], body["project_id"],
+            command = "model-resume" if resume else "model-plan-advance" if purpose == "plan" else "model-advance"
+            return self._response(command, body["request_id"], body["project_id"],
                                   status=record["status"], model_record=record, usage=journal.status())
 
     @staticmethod

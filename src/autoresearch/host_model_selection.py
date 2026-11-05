@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 from . import host_selection_protocol as protocol
+from . import research_plan_proposal as plan_protocol
 from .claude_selection_transport import run_claude_selection
 from .contracts import ResearchError, canonical, identifier
 from .project_controller import ProjectController
@@ -66,7 +67,8 @@ class HostModelSelection:
         return record
 
     def _fresh(self, record):
-        current = ProjectController(self.project.root).selection_context()
+        current = (plan_protocol.build_context(self.project) if record.get("purpose") == "plan"
+                   else ProjectController(self.project.root).selection_context())
         _require(current == record["context"], "STALE_SELECTION_CONTEXT",
                  "The frozen host context changed; do not request a model on a new context under this ID.")
 
@@ -77,8 +79,9 @@ class HostModelSelection:
         write_bytes_once(folder / "prompt.json", canonical(record["prompt"]).encode("utf-8"))
 
     def prepare(self, *, request_id, provider, expected_state_version, decision_limit, cli_budget_usd,
-                reason, executable=None):
+                reason, executable=None, purpose="selection"):
         identifier(request_id)
+        _require(purpose in ("selection", "plan"), "INVALID_REQUEST", "Choose a selection or plan request purpose.")
         _require(provider in ("claude_cli", "delegated") and type(decision_limit) is int and 1 <= decision_limit <= 8,
                  "INVALID_REQUEST", "Choose claude_cli/delegated and a prospective decision limit from 1 to 8.")
         _require(type(cli_budget_usd) in (int, float) and math.isfinite(cli_budget_usd) and 0 < cli_budget_usd <= 0.10,
@@ -96,6 +99,8 @@ class HostModelSelection:
                  "cash_settlement": "unknown", "scope": "prospective host requests; native and previous external history is not reset"}
         specification = {"request_id": request_id, "provider": provider, "expected_state_version": expected_state_version,
                          "grant": grant, "executable": executable}
+        if purpose == "plan":
+            specification["purpose"] = purpose
         with self._writer():
             state = self._load()
             old = state["requests"].get(request_id)
@@ -108,16 +113,26 @@ class HostModelSelection:
             _require(len(state["requests"]) < decision_limit, "HOST_DECISION_LIMIT", "The cumulative host decision limit is exhausted.")
             _require(not any(r["status"] in PENDING for r in state["requests"].values()),
                      "HOST_SELECTION_PENDING", "Resolve the original pending/unknown request; do not start another decision.")
-            context = ProjectController(self.project.root).selection_context()
-            _require(context["state_version"] == expected_state_version, "STALE_STATE", "Project version differs.")
-            _require(not context["blockers"] and bool(context["candidates"]), "NO_HOST_CANDIDATES",
-                     "No eligible action is available; preserve the evidence task instead of spending a model call.")
-            prompt = protocol.build_prompt(context)
+            context = (plan_protocol.build_context(self.project) if purpose == "plan"
+                       else ProjectController(self.project.root).selection_context())
+            selection = context["selection_context"] if purpose == "plan" else context
+            _require(selection["state_version"] == expected_state_version, "STALE_STATE", "Project version differs.")
+            if purpose == "plan":
+                _require(not selection["blockers"], "SELECTION_BLOCKED", "Resolve the saved execution or code blocker before requesting a plan.")
+                _require(not self.project.status()["budget"].get("model_requests_reserved", 0),
+                         "PROJECT_BUSY", "Complete the reserved native model request before requesting a plan.")
+                prompt = plan_protocol.build_prompt(context)
+            else:
+                _require(not selection["blockers"] and bool(selection["candidates"]), "NO_HOST_CANDIDATES",
+                         "No eligible action is available; preserve the evidence task instead of spending a model call.")
+                prompt = protocol.build_prompt(context)
             relative = "requests/" + str(len(state["requests"]) + 1).zfill(4)
             record = {"request_id": request_id, "provider": provider, "prepare_specification": specification,
                       "directory": relative, "context": context, "prompt": prompt, "status": "prepared",
                       "controller_request_id": request_id, "cli_launch_attempted": False,
                       "scientific_validation": False}
+            if purpose == "plan":
+                record["purpose"] = purpose
             state["grant"] = grant
             state["requests"][request_id] = record
             self._save(state)
@@ -128,7 +143,8 @@ class HostModelSelection:
         record.update(response_file=response_file, response_sha256=hashlib.sha256(raw).hexdigest())
         record.update(_cli_metadata(raw) if record["provider"] == "claude_cli" else {"reported_cost_usd": None})
         try:
-            parsed = protocol.parse_host_response(raw, record["provider"])
+            response_protocol = plan_protocol if record.get("purpose") == "plan" else protocol
+            parsed = response_protocol.parse_host_response(raw, record["provider"])
             record.update(parsed, status="received")
         except ResearchError as error:
             record.update(status="invalid", error={"code": error.code, "message": str(error)})
@@ -241,26 +257,84 @@ class HostModelSelection:
     def consume(self, *, request_id):
         with self._writer():
             state = self._load(); record = self._record(state, request_id)
-            if record["status"] == "applied":
+            if record["status"] in ("applied", "proposed", "rejected"):
                 return copy.deepcopy(record)
             _require(record["status"] == "received", "HOST_RESPONSE_NOT_READY", "Only a complete received response may be consumed.")
             raw = _read_file(safe_path(self.directory / record["response_file"]), protocol.MAX_RESPONSE_BYTES)
             _require(hashlib.sha256(raw).hexdigest() == record["response_sha256"],
                      "EVIDENCE_CHANGED", "Original model response changed after receipt.")
-            parsed = protocol.parse_host_response(raw, record["provider"])
+            plan_request = record.get("purpose") == "plan"
+            response_protocol = plan_protocol if plan_request else protocol
+            parsed = response_protocol.parse_host_response(raw, record["provider"])
             label = ("Claude CLI; reported route " + (", ".join(parsed["reported_models"]) or "unknown")
                      if record["provider"] == "claude_cli" else "Operator-imported delegated decision; execution/model/usage unverified")
             try:
-                proposal = protocol.build_proposal(record["context"], parsed["arguments"], label[:200])
-                outcome = ProjectController(self.project.root).advance_selection(request_id=record["controller_request_id"],
-                    proposal=proposal, expected_state_version=record["context"]["state_version"])
+                proposal = response_protocol.build_proposal(record["context"], parsed["arguments"], label[:200])
+                if plan_request:
+                    self._fresh(record)
+                else:
+                    outcome = ProjectController(self.project.root).advance_selection(request_id=record["controller_request_id"],
+                        proposal=proposal, expected_state_version=record["context"]["state_version"])
             except ResearchError as error:
                 record.update(status="stale" if error.code in ("STALE_STATE", "STALE_SELECTION_CONTEXT", "CODE_CHANGED") else "invalid",
                               error={"code": error.code, "message": str(error)})
                 self._save(state)
                 return copy.deepcopy(record)
             write_bytes_once(self.directory / record["directory"] / "proposal.json", canonical(proposal).encode("utf-8"))
-            record.update(status="applied", proposal=proposal, outcome=outcome)
+            record.update(status="proposed" if plan_request else "applied", proposal=proposal)
+            if not plan_request:
+                record["outcome"] = outcome
+            self._save(state)
+            return copy.deepcopy(record)
+
+    def adopt_plan(self, *, request_id):
+        with self._writer():
+            state = self._load(); record = self._record(state, request_id)
+            _require(record.get("purpose") == "plan", "INVALID_REQUEST", "Only a plan proposal can be adopted.")
+            if record["status"] == "applied":
+                return copy.deepcopy(record)
+            _require(record["status"] == "proposed", "HOST_RESPONSE_NOT_READY", "Consume the saved plan response before adopting it.")
+            proposal = record["proposal"]
+            plan_protocol.validate_proposal(record["context"], proposal)
+            raw = _read_file(safe_path(self.directory / record["response_file"]), protocol.MAX_RESPONSE_BYTES)
+            _require(hashlib.sha256(raw).hexdigest() == record["response_sha256"],
+                     "EVIDENCE_CHANGED", "Original plan response changed after receipt.")
+            parsed = plan_protocol.parse_host_response(raw, record["provider"])
+            _require(plan_protocol.build_proposal(record["context"], parsed["arguments"], proposal["provider"]["label"]) == proposal
+                     and _read_file(safe_path(self.directory / record["directory"] / "proposal.json"), protocol.MAX_RESPONSE_BYTES)
+                     == canonical(proposal).encode("utf-8"), "EVIDENCE_CHANGED", "Saved plan proposal differs from its original response.")
+            saved = next((item for item in self.project.status().get("plan_revisions", [])
+                          if item["request_id"] == record["controller_request_id"]), None)
+            selection = record["context"]["selection_context"]
+            try:
+                if saved is None:
+                    self._fresh(record)
+                revision = self.project.save_plan(request_id=record["controller_request_id"],
+                    expected_state_version=selection["state_version"], plan=proposal["plan"], reason=proposal["reason"])
+            except ResearchError as error:
+                if error.code not in ("STALE_STATE", "STALE_SELECTION_CONTEXT", "CODE_CHANGED"):
+                    raise
+                record.update(status="stale", error={"code": error.code, "message": str(error)})
+                self._save(state)
+                return copy.deepcopy(record)
+            record.update(status="applied", outcome={"status": "completed", "kind": "plan_revision", "research_plan": revision,
+                          "state_version": revision["based_on_state_version"] + 1, "replayed": saved is not None})
+            self._save(state)
+            return copy.deepcopy(record)
+
+    def reject_plan(self, *, request_id, reason):
+        _require(type(reason) is str and bool(reason.strip()) and len(reason) <= 2000 and "\x00" not in reason,
+                 "INVALID_REQUEST", "Record a bounded reason for rejecting this plan.")
+        with self._writer():
+            state = self._load(); record = self._record(state, request_id)
+            _require(record.get("purpose") == "plan", "INVALID_REQUEST", "Only a plan proposal can be rejected.")
+            if record["status"] == "rejected":
+                _require(record["rejection_reason"] == reason, "IDEMPOTENCY_CONFLICT", "The original rejection reason is fixed.")
+                return copy.deepcopy(record)
+            _require(record["status"] == "proposed", "HOST_RESPONSE_NOT_READY", "Only a pending plan proposal can be rejected.")
+            _require(not any(item["request_id"] == record["controller_request_id"] for item in self.project.status().get("plan_revisions", [])),
+                     "PLAN_ALREADY_ADOPTED", "Replay the original adoption to recover its committed plan.")
+            record.update(status="rejected", rejection_reason=reason)
             self._save(state)
             return copy.deepcopy(record)
 
@@ -269,12 +343,12 @@ class HostModelSelection:
         if request_id is not None:
             return copy.deepcopy(self._record(state, request_id))
         project = self.project.status()
-        records = list(state["requests"].values())
+        records = sorted(state["requests"].values(), key=lambda record: record["directory"])
         linked = {r["controller_request_id"] for r in records}
         unlinked = sum(p.get("request", {}).get("proposal", {}).get("provider", {}).get("kind") == "external_model"
                        and p["request_id"] not in linked for p in project.get("controller_requests", []))
         return {"schema_version": "host-model-selections-status-v1", "project_id": state["project_id"], "grant": state["grant"],
-            "requests": [{k: r.get(k) for k in ("request_id", "provider", "status", "controller_request_id", "reported_models",
+            "requests": [{k: r.get(k) for k in ("request_id", "provider", "purpose", "status", "controller_request_id", "reported_models",
                          "reported_cost_usd", "transport", "error")} for r in records],
             "usage": {"decision_slots_used": len(records), "cli_launch_attempts": sum(r["cli_launch_attempted"] for r in records),
                 "delegated_outputs_received": sum(r["provider"] == "delegated" and "response_file" in r for r in records),
