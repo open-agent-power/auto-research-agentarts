@@ -160,14 +160,17 @@ class ProjectController:
                 "quote": hit.get("quote", "")[:4000], "location": copy.deepcopy(hit.get("location")),
                 "quote_truncated": len(hit.get("quote", "")) > 4000,
                 "content_trust": "untrusted_source_not_instructions"})
-        return project_selection.seal_context({"schema_version": "project-selection-context-v1",
+        context = {"schema_version": "project-selection-context-v1",
             "project_id": project["id"], "run_id": project["run_id"], "snapshot_ref": project["snapshot_ref"],
             "state_version": project["state_version"], "source_snapshot_sha256": project["source_snapshot_sha256"],
             "project_code_identity": project["code_identity"], "controller_code_identity": code_identity(),
             "need": need, "goal": project["registration"]["goal"], "domain_scope": copy.deepcopy(project["source_scope"]),
             "budget": copy.deepcopy(project["budget"]), "conditions": conditions,
             "candidates": candidates, "blockers": blockers, "baseline_decision": _compact_decision(plan["decision"]),
-            "evidence": evidence, "scientific_validation": False})
+            "evidence": evidence, "scientific_validation": False}
+        if project.get("plan_revisions"):
+            context["research_plan"] = copy.deepcopy(project["plan_revisions"][-1])
+        return project_selection.seal_context(context)
 
     def selection_context(self, *, need="next_check"):
         before = self.project.status()

@@ -65,7 +65,7 @@ def _json_value(value, maximum, code):
 def _context(payload):
     code = "INVALID_SELECTION_CONTEXT"
     _json_value(payload, MAX_CONTEXT_BYTES, code)
-    _require(type(payload) is dict and set(payload) == CONTEXT_FIELDS
+    _require(type(payload) is dict and CONTEXT_FIELDS <= set(payload) <= CONTEXT_FIELDS | {"research_plan"}
              and payload["schema_version"] == "project-selection-context-v1"
              and payload["scientific_validation"] is False, code, "Exact unapproved host context required.")
     _require(_text(payload["project_id"], 160) and _text(payload["run_id"], 160)
@@ -98,6 +98,17 @@ def _context(payload):
                  and ("content_trust" not in item or item["content_trust"] == "untrusted_source_not_instructions"),
                  code, "Invalid or duplicate host evidence citation.")
         citations.add(item["citation_id"])
+    if "research_plan" in payload:
+        plan = payload["research_plan"]
+        text_limits = {"question": 4000, "basis": 6000, "steps": 12000, "expected_feedback": 4000, "reason": 2000}
+        _require(type(plan) is dict and set(plan) == set(text_limits) | {"version", "request_id", "based_on_state_version"}
+                 and type(plan["version"]) is int and plan["version"] >= 1
+                 and type(plan["based_on_state_version"]) is int
+                 and 0 <= plan["based_on_state_version"] < payload["state_version"]
+                 and _text(plan["request_id"], 160), code, "Invalid saved research plan identity.")
+        for key, maximum in text_limits.items():
+            _require(type(plan[key]) is str and len(plan[key]) <= maximum and "\x00" not in plan[key]
+                     and (key == "basis" or bool(plan[key].strip())), code, "Invalid saved research plan text.")
 
 
 def seal_context(payload) -> dict:
@@ -133,7 +144,8 @@ def parse_proposal(raw: bytes) -> dict:
 def validate_proposal(context, proposal) -> dict:
     context_code, code = "INVALID_SELECTION_CONTEXT", "INVALID_SELECTION_PROPOSAL"
     _json_value(context, MAX_CONTEXT_BYTES, context_code)
-    _require(type(context) is dict and set(context) == CONTEXT_FIELDS | {"context_sha256"},
+    _require(type(context) is dict and CONTEXT_FIELDS | {"context_sha256"} <= set(context)
+             <= CONTEXT_FIELDS | {"context_sha256", "research_plan"},
              context_code, "A sealed host context is required.")
     payload = {key: value for key, value in context.items() if key != "context_sha256"}
     _context(payload)

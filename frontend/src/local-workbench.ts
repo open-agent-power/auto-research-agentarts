@@ -75,6 +75,75 @@ function panel(title: string, description: string): HTMLElement {
 
 function requestId(command: string): string { return "local-" + command + "-" + crypto.randomUUID(); }
 
+function createResearchPlanPanel(deps: {
+  current(): Obj; submit(body: Obj): Promise<Obj | null>;
+}): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
+  const section = panel("研究计划", "写下当前问题、准备采取的步骤，以及什么反馈会让你调整路线。"), preview = el("div", "research-plan-copy");
+  section.classList.add("research-plan");
+  const editor = el("details", "research-plan-editor"), summary = el("summary", "", "编写计划"), form = el("form"), fields = el("fieldset", "local-fieldset");
+  const definitions = [
+    { key: "question", label: "这轮要解决的问题", maximum: 4000, required: true },
+    { key: "basis", label: "依据与已有材料", maximum: 6000, required: false },
+    { key: "steps", label: "准备怎样推进", maximum: 12000, required: true },
+    { key: "expected_feedback", label: "预期反馈与调整条件", maximum: 4000, required: true },
+    { key: "reason", label: "本次制定或修订的理由", maximum: 2000, required: true },
+  ];
+  const inputs = new Map<string, HTMLTextAreaElement>();
+  for (const definition of definitions) {
+    const control = el("textarea"); control.maxLength = definition.maximum; control.required = definition.required; control.rows = definition.key === "steps" ? 4 : 2;
+    inputs.set(definition.key, control); fields.append(field(definition.label, control));
+  }
+  const status = el("p", "detail-note"), save = el("button", "local-primary", "保存计划"), rebase = el("button", "text-button", "按当前版本继续编辑");
+  save.type = "submit"; rebase.type = "button"; rebase.hidden = true;
+  const actions = el("div", "local-actions"); actions.append(save, rebase); form.append(fields, status, actions); editor.append(summary, form);
+  const history = el("details", "research-plan-history"), historyBody = el("div"); history.append(el("summary", "", "查看修订记录"), historyBody);
+  section.append(preview, editor, history);
+  const drafts = new Map<string, { values: Record<string, string>; stateVersion: number }>();
+  let projectId = "", stateVersion = 0, locked = true;
+  const values = (): Record<string, string> => Object.fromEntries([...inputs].map(([key, control]) => [key, control.value]));
+  function controls(): void {
+    const stale = stateVersion !== deps.current().state_version;
+    fields.disabled = locked || !projectId; save.disabled = fields.disabled || stale;
+    rebase.hidden = !projectId || !stale; rebase.disabled = locked;
+    status.textContent = stale ? "项目已更新，草稿已保留。核对当前计划后，可按当前版本继续编辑。" : "保存后进入项目记录，下一次模型选择会读取当前计划。";
+  }
+  function update(project: Obj): void {
+    projectId = text(project.id, ""); section.hidden = !projectId;
+    const plan = obj(project.research_plan), saved = obj(plan.current), draft = drafts.get(projectId);
+    stateVersion = draft?.stateVersion ?? Number(project.state_version);
+    summary.textContent = typeof saved.version === "number" ? "修订计划 · 当前第" + saved.version + "版" : "编写计划";
+    preview.replaceChildren();
+    if (saved.version) {
+      const route = el("div"), feedback = el("div");
+      route.append(el("h3", "", text(saved.question)), el("p", "research-plan-steps", text(saved.steps)));
+      if (saved.basis) route.append(el("h4", "", "依据与材料"), el("p", "", text(saved.basis)));
+      feedback.append(el("h4", "", "预期反馈与调整"), el("p", "", text(saved.expected_feedback)), el("h4", "", "本次修订依据"), el("p", "", text(saved.reason)));
+      preview.append(route, feedback);
+    } else preview.append(el("p", "detail-note", "当前项目尚未保存研究计划，可以从本轮问题开始编写。"));
+    for (const [key, control] of inputs) control.value = draft ? draft.values[key] : key === "reason" ? "" : text(saved[key], key === "question" ? text(project.goal, "") : "");
+    historyBody.replaceChildren(); const revisions = items(plan.revisions); history.hidden = revisions.length === 0;
+    for (const revision of [...revisions].reverse()) {
+      const record = el("details"), heading = el("summary", "", "第" + revision.version + "版 · " + text(revision.reason));
+      record.append(heading, el("p", "", text(revision.question)), el("p", "research-plan-steps", text(revision.steps)), el("p", "", "预期反馈与调整 · " + text(revision.expected_feedback)));
+      if (revision.basis) record.append(el("p", "", "依据与材料 · " + text(revision.basis)));
+      historyBody.append(record);
+    }
+    controls();
+  }
+  form.addEventListener("input", () => { if (projectId) drafts.set(projectId, { values: values(), stateVersion }); });
+  rebase.addEventListener("click", () => {
+    stateVersion = Number(deps.current().state_version); drafts.set(projectId, { values: values(), stateVersion }); controls();
+  });
+  form.addEventListener("submit", async event => {
+    event.preventDefault(); if (save.disabled || !form.reportValidity()) return;
+    const submittedProject = projectId, content = values(), { reason, ...plan } = content;
+    drafts.set(projectId, { values: content, stateVersion });
+    const result = await deps.submit({ project_id: projectId, expected_state_version: stateVersion, plan, reason });
+    if (result?.status === "completed") { drafts.delete(submittedProject); update(deps.current()); editor.open = false; summary.focus(); }
+  });
+  return { element: section, update, setLocked(value): void { locked = value; controls(); } };
+}
+
 export async function mountLocalWorkbench(): Promise<void> {
   document.body.classList.add("project-standalone", "local-workbench-mode");
   $("page-state").hidden = true; $("page-content").hidden = false;
@@ -162,7 +231,9 @@ export async function mountLocalWorkbench(): Promise<void> {
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
     : command(name, body)), announce });
   const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
+  const planPanel = createResearchPlanPanel({ current: () => current, submit: body => submit(command("plan", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
+    planning: [planPanel.element],
     operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
   function otherModelBlockers(): boolean {
     return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain
@@ -200,6 +271,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     batchPanel.setLocked(locked || typeof current.state_version !== "number" || current.id !== activeId());
     modelPanel.setLocked(busy || description.enabled !== true || otherModelBlockers());
     recipePanel.setLocked(locked || current.id !== activeId());
+    planPanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
     candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
     citationList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked; });
@@ -346,6 +418,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   }
   async function refresh(): Promise<void> {
     const previousId = activeId(); context = null; candidates();
+    planPanel.setLocked(true);
     modelPanel.setLocked(true);
     recipePanel.invalidate(); recipePanel.setLocked(true);
     batchPanel.setLocked(true);
@@ -368,15 +441,22 @@ export async function mountLocalWorkbench(): Promise<void> {
     showPending();
     if (now) {
       try { current = await read("/api/project"); }
-      catch (error) { await workspacePages.update({}); throw error; }
+      catch (error) { planPanel.update({}); await workspacePages.update({}); throw error; }
+      const savedPlanIds = new Set(items(obj(current.research_plan).revisions).map(revision => revision.request_id));
+      if (lastRequest?.command === "plan" && savedPlanIds.has(lastRequest.requestId)) lastRequest = null;
+      try {
+        const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
+        if (remembered.command === "plan" && savedPlanIds.has(remembered.request_id)) sessionStorage.removeItem(PENDING_KEY);
+      } catch { /* The project record remains available when browser storage is unavailable. */ }
+      showPending();
       try {
         const next = await read("/api/project/selection-context.json");
         if (next.project_id !== now || next.schema_version !== "project-selection-context-v1") throw Error("候选不属于当前项目，请刷新后核对。");
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
-      candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
+      planPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
       await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current);
-    } else { batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}); }
+    } else { planPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
   }
@@ -403,6 +483,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         pending.uncertain = response.status >= 500 || /UNKNOWN|NEEDS_REVIEW|INCOMPLETE/.test(text(result.code, ""));
         const reasons: Record<string, string> = { INVALID_SPEC: "字段声明与CSV需要逐项核对", INVALID_CSV: "CSV编码、表头或行宽不满足范围", INVALID_BUNDLE: "来源文件或选区声明需要核对", INVALID_LOCATOR: "选区坐标不满足当前读取范围", TASK_MISMATCH: "资料与当前取证任务不匹配", STALE_SELECTION_CONTEXT: "项目已变化，请重新读取候选后决定", STALE_STATE: "项目版本或当前选择已变化", IDEMPOTENCY_CONFLICT: "原请求ID已经绑定其他内容", BUDGET_EXHAUSTED: "本地调用额度已用完，已有用量保留", OPERATION_INCOMPLETE: "原操作未完成，需要保留并核对" };
         Object.assign(reasons, { MODEL_DISABLED: "服务尚未启用Claude CLI，请按使用说明启动", HOST_DECISION_LIMIT: "本项目模型决策名额已用尽", HOST_GRANT_CHANGED: "原累计额度和理由已冻结，不能替换", HOST_SELECTION_PENDING: "请核对原模型请求", HOST_USAGE_UNKNOWN: "原模型费用未知，不能按零计后继续发送" });
+        reasons.CODE_CHANGED = "当前项目需按使用说明明确升级到本次代码版本";
         const code = text(result.code, String(response.status));
         failed = true; outcomeMessage = "提交未完成：" + (reasons[code] ?? "请核对当前条件与输入") + "（" + code + "）。输入已保留；" + (pending.uncertain ? "结果仍需核对，不自动重发。" : "可以用原ID和原内容显式重试，或核对后修正输入。");
       } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))) {
@@ -424,6 +505,7 @@ export async function mountLocalWorkbench(): Promise<void> {
             : result.status === "completed" ? "配方已推进一步并保存实际反馈；选择规则未调用模型。"
               : "配方请求已保存，请核对实际行动和原请求状态；没有自动继续。";
         }
+        if (pending.command === "plan") outcomeMessage = "研究计划已保存。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
         if (modelCommand) {
           const record = obj(result.model_record), outcome = obj(record.outcome), state = text(record.status, ""), actual = text(outcome.status, "尚未提交行动");
           const labels: Record<string, string> = { completed: "已完成", waiting: "已保存等待", failed: "失败，原记录保留", unknown: "未知，保留原请求核对" };
@@ -448,6 +530,10 @@ export async function mountLocalWorkbench(): Promise<void> {
       else if (batchUncertain?.requestId === pending.requestId) batchUncertain = null;
     }
     try { await refresh(); } catch (error) { outcomeMessage += " 保存状态刷新未完成，可稍后只读刷新。"; context = null; announce(error instanceof Error ? error.message : "状态读取失败。", true); }
+    if (pending.command === "plan" && items(obj(current.research_plan).revisions).some(revision => revision.request_id === pending.requestId)) {
+      pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
+      outcomeMessage = "研究计划已从保存记录中确认。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
+    }
     busy = false; candidates(); downloads(); controls(); showPending(); announce(outcomeMessage, failed);
     return accepted;
   }

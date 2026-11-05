@@ -226,7 +226,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
@@ -240,6 +240,48 @@ class ResearchProject:
                         for action in current["actions"] + current["evidence_actions"])
                 and not any(item["status"] in ("sending", "unknown") for item in project.get("source_requests", [])),
                 "EXECUTION_UNKNOWN", "Recover the original operation before accepting new work.")
+
+    def save_plan(self, *, request_id, expected_state_version, plan, reason):
+        """Save an operator-authored plan revision without dispatching research."""
+        identifier(request_id)
+        require(type(expected_state_version) is int and expected_state_version >= 0,
+                "INVALID_REQUEST", "Bind the current project version before saving a plan.")
+        limits = {"question": 4000, "basis": 6000, "steps": 12000, "expected_feedback": 4000}
+        require(type(plan) is dict and set(plan) == set(limits),
+                "INVALID_REQUEST", "Use the exact research plan fields.")
+        for key, limit in limits.items():
+            value = plan[key]
+            require(type(value) is str and len(value) <= limit and "\x00" not in value
+                    and (key == "basis" or bool(value.strip())),
+                    "INVALID_REQUEST", "Research plan text is missing or exceeds its field limit.")
+        require(type(reason) is str and 0 < len(reason) <= 2000 and bool(reason.strip()) and "\x00" not in reason,
+                "INVALID_REQUEST", "Record a reason for the plan revision.")
+        with self._writer():
+            with self._connect() as con:
+                project = self._project(con)
+                previous = next((item for item in project.get("plan_revisions", []) if item["request_id"] == request_id), None)
+                if previous is not None:
+                    require(previous["based_on_state_version"] == expected_state_version
+                            and previous["reason"] == reason and all(previous[key] == plan[key] for key in limits),
+                            "IDEMPOTENCY_CONFLICT", "The original plan revision is bound to different content.")
+                    return previous
+                require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
+                self._require_unclaimed(project, request_id, except_collection="plan_revisions")
+                self._require_fresh(project, self.status(), expected_state_version)
+                require(not any(item["status"] in ("prepared", "running", "unknown")
+                                for item in project.get("controller_requests", []))
+                        and not any(item["status"] == "reserved" for item in project.get("local_model_requests", [])),
+                        "PROJECT_BUSY", "Complete the accepted request before revising its research plan.")
+                from .host_model_selection import HostModelSelection, PENDING
+                require(not any(item["status"] in PENDING for item in HostModelSelection(self.root).status()["requests"]),
+                        "HOST_SELECTION_PENDING", "Reconcile the original host-model request before revising its plan.")
+                revisions = project.setdefault("plan_revisions", [])
+                revision = {"version": len(revisions) + 1, **plan, "reason": reason, "request_id": request_id,
+                            "based_on_state_version": expected_state_version}
+                revisions.append(revision)
+                project["state_version"] += 1
+                self._save(con, project)
+                return revision
 
     def _commit_result(self, action, envelope):
         require(envelope.get("sha256") == fingerprint({k: v for k, v in envelope.items() if k != "sha256"})

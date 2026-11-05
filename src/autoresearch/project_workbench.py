@@ -137,6 +137,8 @@ def _projection(project, state, report=None):
                 primary_method=method_registry.primary_id(state), domain_scope=state["source_scope"], report=capability,
                 selection_history=selection_view(state), registered_evidence=registered,
                 method_options=research_methods.match_methods(state), scientific_validation=False)
+    revisions = state.get("plan_revisions", [])
+    view["research_plan"] = {"current": revisions[-1] if revisions else None, "revisions": revisions}
     return _public(view, project)
 
 
@@ -336,6 +338,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                          "LOCAL_ORIGIN_REQUIRED", "Use the current local page and its session token.")
                 parsed = urlsplit(self.path)
                 commands = {"/api/local-workbench/create": "create", "/api/local-workbench/select": "select",
+                            "/api/local-workbench/plan": "save_plan",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
                             "/api/local-workbench/advance-recipe": "advance_recipe",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
