@@ -1,8 +1,20 @@
 # 开发边界与代码地图
 
-开发任务先用[Agent 导航](../.agent/README.md)和[开发提醒 Skill](../.agent/skills/research-dev-router/SKILL.md)选入口；正式阶段见[产品计划](plan.md)。下表保留现有代码定位，自适应目标接口见[研究设计](research/adaptive-research.md)，未接线部分不算已实现。
+开发任务先用[Agent 导航](../.agent/README.md)和[开发提醒 Skill](../.agent/skills/research-dev-router/SKILL.md)选入口。当前目标和分工见[提交计划](research/submission-plan-20261130.md)，职责与目标接口见[底层架构](architecture/foundation.md)和[研究契约](architecture/research-contracts.md)。这些入口随源码分发，主开发本机计划的归属见[文档说明](README.md)。
 
 ## 从哪里改
+
+当前开发从统一项目、计划、模型建议和工作台进入。新工作区的创建、计划及意见操作见[本地工作台](local-workbench.md)，队友的持续配方与RSI任务见[长期任务书](recipe-research/team-module-handoff.md)。
+
+| 工作 | 当前代码 | 使用与验证入口 |
+|---|---|---|
+| 项目、计划和研究者意见保存 | [research_project.py](../src/autoresearch/research_project.py)、[local_workbench.py](../src/autoresearch/local_workbench.py)、[project_workbench.py](../src/autoresearch/project_workbench.py) | [计划与修订](local-workbench.md#保存与修订研究计划)、[研究者意见](local-workbench.md#记录研究者意见)，`test_research_project.py`、`test_local_workbench.py`、`test_local_workbench_http.py` |
+| 模型计划建议、采用和拒绝 | [research_plan_proposal.py](../src/autoresearch/research_plan_proposal.py)、[host_model_selection.py](../src/autoresearch/host_model_selection.py) | [模型建议入口](host-model-selection.md#根据真实反馈建议研究计划)，`test_research_plan_proposal.py`、`test_host_model_selection.py` |
+| 注册方法与下一步选择 | [research_methods.py](../src/autoresearch/research_methods.py)、[method_registry.py](../src/autoresearch/method_registry.py)、[project_controller.py](../src/autoresearch/project_controller.py) | 原项目selection context与显式执行，`test_research_methods.py`、`test_research_project.py` |
+| 配方修改候选与允许工具验证 | [recipe_change_proposal.py](../src/autoresearch/recipe_change_proposal.py)、[recipe_improvement_adapter.py](../src/autoresearch/recipe_improvement_adapter.py) | [适配接口](recipe-research/team-module-interface.md#主开发的配方改进适配接线)，`test_recipe_change_proposal.py`、`test_recipe_improvement_adapter.py` |
+| 五页工作台、计划和反馈展示 | [local-workbench.ts](../frontend/src/local-workbench.ts)、[project-pages.ts](../frontend/src/project-pages.ts)、[project-view.ts](../frontend/src/project-view.ts)、[project-flow.ts](../frontend/src/project-flow.ts) | [总览与下一步](local-workbench.md#总览页的当前进度与下一步)，前端格式、Lint、类型检查及真实页面验收 |
+
+### 专项实现
 
 | 工作 | 当前代码 | 对应验证入口 |
 |---|---|---|
@@ -24,7 +36,9 @@
 
 表中Python模块位于 `src/autoresearch/`，测试位于 `tests/`。运行、前端构建和报告依赖的命令见[README](../README.md)。测试里的fixture不算新增科学实验；图形与交互验收必须使用实际界面。
 
-现有主要实现围绕P02化学—纹理—细胞案例；下一阶段先适配统一项目控制器，而非继续给每个案例新增同构循环。C01与钢材Engine保留先前实现和运行证据，数据、账本和结论分别保存。C01验证器限定8合金、4特征、4终点；P02现有代理目标仍缺作者导出映射，不能改文件或标签后称通用外验。文件真实、字段可比、独立评价和模型决策质量分别验收。
+统一项目控制器已接通有限注册方法、来源、计划修订、模型建议和意见保存，具体运行范围见[工作台用法](local-workbench.md)与[模型接入](host-model-selection.md)。主开发继续负责这些公共入口及页面整合，队友负责方法知识、配方RSI的采用或回退、有效版本和后轮管理，实际接线按[接口约定](recipe-research/team-module-interface.md)推进。
+
+P02、C01与钢材专项保留各自的数据、账本和结论。C01验证器限定8合金、4特征、4终点，P02代理目标仍待作者导出映射。领域有效性和真实用户收益继续依对应证据确认，平台接入沿既有暂缓安排。
 
 ## 文件归属
 
