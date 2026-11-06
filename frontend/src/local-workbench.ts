@@ -5,7 +5,7 @@ import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
 import { createLocalRecipePanel } from "./local-recipe";
-import { researcherFeedbackItems } from "./project-view";
+import { progressFeedback, researcherFeedbackItems } from "./project-view";
 
 type Obj = Record<string, unknown>;
 type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean };
@@ -77,21 +77,59 @@ function panel(title: string, description: string): HTMLElement {
 
 function requestId(command: string): string { return "local-" + command + "-" + crypto.randomUUID(); }
 
+const planFields = [
+  { key: "question", label: "这轮要解决的问题", maximum: 4000, required: true },
+  { key: "basis", label: "依据与已有材料", maximum: 6000, required: false },
+  { key: "steps", label: "准备怎样推进", maximum: 12000, required: true },
+  { key: "expected_feedback", label: "预期反馈与调整条件", maximum: 4000, required: true },
+  { key: "reason", label: "本次制定或修订的理由", maximum: 2000, required: true },
+];
+
+function planChangeView(previous: Obj, saved: Obj, projectId: string, modelRecords: Obj[]): DocumentFragment {
+  const body = document.createDocumentFragment();
+  const changed = planFields.filter(definition => definition.key !== "reason" && text(previous[definition.key], "") !== text(saved[definition.key], ""));
+  if (!changed.length) body.append(el("p", "detail-note", "两版计划正文一致，可结合上方修订依据查看本次记录。"));
+  for (const definition of changed) {
+    const change = el("section", "research-plan-change"), columns = el("div", "research-plan-change-columns");
+    change.append(el("h4", "", definition.label));
+    for (const [label, version] of [["调整前", previous], ["调整后", saved]] as const) {
+      const column = el("div"); column.append(el("h5", "", label), el("p", "", text(version[definition.key], "未填写"))); columns.append(column);
+    }
+    change.append(columns); body.append(change);
+  }
+  const model = modelRecords.find(record => {
+    const outcome = obj(record.outcome), adopted = obj(outcome.research_plan), context = obj(obj(record.context).selection_context), proposal = obj(record.proposal);
+    return record.purpose === "plan" && record.status === "applied" && record.controller_request_id === saved.request_id
+      && outcome.kind === "plan_revision" && context.project_id === projectId && context.state_version === saved.based_on_state_version
+      && ["request_id", "version", "based_on_state_version"].every(key => adopted[key] === saved[key])
+      && planFields.filter(definition => definition.key !== "reason").every(definition => obj(proposal.plan)[definition.key] === adopted[definition.key])
+      && proposal.reason === adopted.reason;
+  });
+  if (model) {
+    const references = names(obj(model.proposal).feedback_action_ids), feedback = items(obj(model.context).feedback);
+    const evidence = el("section", "research-plan-evidence"); evidence.append(el("h4", "", "这次建议引用的工具反馈"));
+    if (!references.length) evidence.append(el("p", "detail-note", "该模型建议没有引用工具行动。"));
+    for (const id of references) {
+      const action = feedback.find(record => record.action_id === id);
+      if (!action) continue;
+      const source = ["research.source-selection", "p02.source-mapping-check"].includes(text(action.method_id, ""));
+      const raw = el("details"), link = el("a", "text-button", "查看实际" + (source ? "来源" : "方法") + "结果"); link.href = source ? "#/knowledge" : "#/experiments";
+      evidence.append(el("h5", "", methodNames[text(action.method_id, "")] ?? text(action.method_id)), el("p", "", progressFeedback(action, source)), link);
+      raw.append(el("summary", "", "查看这条反馈原记录"), el("pre", "project-source-text", JSON.stringify(action, null, 2))); evidence.append(raw);
+    }
+    body.append(evidence);
+  }
+  return body;
+}
+
 function createResearchPlanPanel(deps: {
-  current(): Obj; submit(body: Obj): Promise<Obj | null>;
+  current(): Obj; modelRecords(projectId: string): Obj[]; submit(body: Obj): Promise<Obj | null>;
 }): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
   const section = panel("研究计划", "写下当前问题、准备采取的步骤，以及什么反馈会让你调整路线。"), preview = el("div", "research-plan-copy");
   section.classList.add("research-plan");
   const editor = el("details", "research-plan-editor"), summary = el("summary", "", "编写计划"), form = el("form"), fields = el("fieldset", "local-fieldset");
-  const definitions = [
-    { key: "question", label: "这轮要解决的问题", maximum: 4000, required: true },
-    { key: "basis", label: "依据与已有材料", maximum: 6000, required: false },
-    { key: "steps", label: "准备怎样推进", maximum: 12000, required: true },
-    { key: "expected_feedback", label: "预期反馈与调整条件", maximum: 4000, required: true },
-    { key: "reason", label: "本次制定或修订的理由", maximum: 2000, required: true },
-  ];
   const inputs = new Map<string, HTMLTextAreaElement>();
-  for (const definition of definitions) {
+  for (const definition of planFields) {
     const control = el("textarea"); control.maxLength = definition.maximum; control.required = definition.required; control.rows = definition.key === "steps" ? 4 : 2;
     inputs.set(definition.key, control); fields.append(field(definition.label, control));
   }
@@ -99,7 +137,9 @@ function createResearchPlanPanel(deps: {
   save.type = "submit"; rebase.type = "button"; rebase.hidden = true;
   const actions = el("div", "local-actions"); actions.append(save, rebase); form.append(fields, status, actions); editor.append(summary, form);
   const history = el("details", "research-plan-history"), historyBody = el("div"); history.append(el("summary", "", "查看修订记录"), historyBody);
-  section.append(preview, editor, history);
+  const comparison = el("details", "research-plan-comparison"), comparisonTitle = el("summary"), comparisonBody = el("div");
+  comparison.append(comparisonTitle, comparisonBody); comparison.hidden = true;
+  section.append(preview, comparison, editor, history);
   const drafts = new Map<string, { values: Record<string, string>; stateVersion: number }>();
   let projectId = "", stateVersion = 0, locked = true;
   const values = (): Record<string, string> => Object.fromEntries([...inputs].map(([key, control]) => [key, control.value]));
@@ -110,6 +150,7 @@ function createResearchPlanPanel(deps: {
     status.textContent = stale ? "项目已更新，草稿已保留。核对当前计划后，可按当前版本继续编辑。" : "保存后进入项目记录，下一次模型选择会读取当前计划。";
   }
   function update(project: Obj): void {
+    if (projectId !== project.id) comparison.open = false;
     projectId = text(project.id, ""); section.hidden = !projectId;
     const plan = obj(project.research_plan), saved = obj(plan.current), draft = drafts.get(projectId);
     stateVersion = draft?.stateVersion ?? Number(project.state_version);
@@ -124,6 +165,12 @@ function createResearchPlanPanel(deps: {
     } else preview.append(el("p", "detail-note", "当前项目尚未保存研究计划，可以从本轮问题开始编写。"));
     for (const [key, control] of inputs) control.value = draft ? draft.values[key] : key === "reason" ? "" : text(saved[key], key === "question" ? text(project.goal, "") : "");
     historyBody.replaceChildren(); const revisions = items(plan.revisions); history.hidden = revisions.length === 0;
+    const previous = revisions.find(revision => typeof saved.version === "number" && revision.version === saved.version - 1);
+    comparison.hidden = !previous; comparisonBody.replaceChildren();
+    if (previous) {
+      comparisonTitle.textContent = "查看本次调整 · 第" + previous.version + "版 → 第" + saved.version + "版";
+      comparisonBody.append(planChangeView(previous, saved, projectId, deps.modelRecords(projectId)));
+    }
     for (const revision of [...revisions].reverse()) {
       const record = el("details"), heading = el("summary", "", "第" + revision.version + "版 · " + text(revision.reason));
       record.append(heading, el("p", "", text(revision.question)), el("p", "research-plan-steps", text(revision.steps)), el("p", "", "预期反馈与调整 · " + text(revision.expected_feedback)));
@@ -281,7 +328,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
     : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
   const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
-  const planPanel = createResearchPlanPanel({ current: () => current, submit: body => submit(command("plan", body)) });
+  const planPanel = createResearchPlanPanel({ current: () => current, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, feedbackPanel.element], feedback: feedbackPanel.element,
@@ -509,7 +556,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
       planPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
-      await modelPanel.refresh(now, current, context); await recipePanel.refresh(now, current, context); await workspacePages.update(current, context);
+      await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
       try {
         const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
