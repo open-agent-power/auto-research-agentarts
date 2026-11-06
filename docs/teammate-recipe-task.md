@@ -9,7 +9,7 @@
 ## 从这里开始
 
 1. 拉取最新`main`，阅读[长期任务书](recipe-research/team-module-handoff.md)和[接口约定](recipe-research/team-module-interface.md)。
-2. 从任务队列第1项开始，开自己的分支，实现方法卡读取与候选关联，使用[现有示例](../examples/recipe-improvement/README.md)熟悉输入输出。
+2. PR19已完成方法卡读取与候选关联。从[A64接续任务](recipe-research/a64-rsi-handoff.md)开始，领取材料包，在新分支完成采用或回退、有效版本及后轮读取。
 3. 每个实际开发日反馈完成、卡点和下一步。每周二、周五安排PR交付窗口，完成一个独立能力可以提前交。
 4. PR合并后拉取主线，按任务队列和本轮反馈开下一条分支继续。主开发接续真实接口和产品整合。
 
