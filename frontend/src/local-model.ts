@@ -31,6 +31,7 @@ export function createLocalModelPanel(host: Host): {
   refresh(projectId: string, project: Obj, context: Obj | null): Promise<void>;
   setLocked(value: boolean): void; pending(): boolean; canResume(body: Obj): boolean;
   decisionResolved(command: string, requestId: string): boolean;
+  savedRecords(projectId: string): Obj[];
 } {
   const section = el("section", "local-panel local-model content-section");
   section.append(el("h2", "section-title", "模型建议与行动"),
@@ -289,5 +290,6 @@ export function createLocalModelPanel(host: Host): {
   controls();
   const decisionResolved = (command: string, id: string): boolean => records.some(record => record.request_id === id && record.purpose === "plan"
     && (command === "model-plan-adopt" && record.status === "applied" || command === "model-plan-reject" && record.status === "rejected"));
-  return { element: section, planElement: planHistory, improvementElement: improvement, refresh, pending, canResume, decisionResolved, setLocked(value: boolean): void { locked = value; controls(); } };
+  return { element: section, planElement: planHistory, improvementElement: improvement, refresh, pending, canResume, decisionResolved,
+    savedRecords(id): Obj[] { return loaded && projectId === id ? records : []; }, setLocked(value: boolean): void { locked = value; controls(); } };
 }

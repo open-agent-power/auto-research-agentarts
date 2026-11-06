@@ -603,7 +603,7 @@ function standaloneHeader(project: Obj): void {
 
 export type ActiveProjectPage = "overview" | "research" | "experiments" | "knowledge" | "outputs";
 
-function progressFeedback(action: Obj, source: boolean): string {
+export function progressFeedback(action: Obj, source: boolean): string {
   if (action.status !== "completed") {
     if (["unknown", "needs_review"].includes(string(action.status, ""))) return "原请求的结果尚待核对。";
     return action.status === "failed" ? "失败记录已保存，详细结果见原行动。" : "此行动尚无已完成的结果。";
