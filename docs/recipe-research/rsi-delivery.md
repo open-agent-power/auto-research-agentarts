@@ -90,13 +90,21 @@
 
 原A64现已通过页面明确采用该保存结果。兼容代码登记使 state 14→15，随后以显式理由保存 `saved-a64`／Host `a64-recipe-change` 的 keep 决定，state 15→16。项目有效配方为 `a62-quality-follow-up` v2、revision 1，普通刷新后仍可读取。默认 `ProjectController.next` 与 `selection_context.baseline_decision` 均带 `policy_ref.kind=effective_recipe`、version 2、revision 1，当前选择 `data.grouped-quality-profile`。
 
-该下一步尚未执行，原A64仍无基于有效v2生成的后轮 Host 请求。后轮消费的执行证据继续限定于明确标记的构造双轮演示，本次新增研究、模型及工具调用为0，预算与 Host 全部保留原值。A64原20份文件中，`project.sqlite`按上述状态写入，其余原件字节一致，仅新增兼容登记与配方修订工件。A63原24份文件、state和Host全等；manager新增1条completed采用请求，旧19条记录完整保留，其中含2条旧preparing记录。证据保存在本机 ignored `runs/a76-effective-recipe-20261106/actual-adoption-result.json`。[A64材料和读取边界](a64-rsi-handoff.md)
+A76采用验证结束时，该下一步尚未执行，原A64仍无基于有效v2生成的后轮 Host 请求。当时后轮消费的执行证据来自明确标记的构造双轮演示，该次采用新增研究、模型及工具调用为0，预算与 Host 全部保留原值。A64原20份文件中，`project.sqlite`按上述状态写入，其余原件字节一致，仅新增兼容登记与配方修订工件。A63原24份文件、state和Host全等；manager新增1条completed采用请求，旧19条记录完整保留，其中含2条旧preparing记录。证据保存在本机 ignored `runs/a76-effective-recipe-20261106/actual-adoption-result.json`。[A64材料和读取边界](a64-rsi-handoff.md)
 
 项目保存、原ID恢复、回退、过期原版、并发有效版本变更及HTTP接线共8项必要回归通过，前端四门禁通过。8张最终桌面／手机全页及分段截图已实际查看，五页导航和画布保留，当前版本、理由、刷新草稿及已保存轮次的重复采用停用均已核对。
 
+### A64有效v2的实际后续行动
+
+2026-11-07，通过原 CLI `scripts/run_research_project.py advance` 提交 `a77-effective-v2-grouped-20261107`，绑定原 state 16。默认控制器使用 `effective_recipe_revision=1`、冻结 `recipe_version=2`，完成 `data.grouped-quality-profile`，state 16→20。父请求关联 `controller-child-84c45c43749cf26a7af7dbd3ac1e7f3c` 与 `action-30c32ef36b47dc91a7cfb13bbb3f9660`。相同原ID和原版本重放后，完整项目状态一致。
+
+保存反馈为4行、2个完整组，A与B各2行。`measurement` 唯一缺失为 B组逻辑记录3、物理行4的 empty，已按原CSV坐标回看确认，零值数为0。当前 `next` 为 waiting、`executable=false`，原因为 `NO_MATCHING_HOST_CANDIDATE`。继续前需补充来源、采集与分组定义及缺失解释，再依据新条件决定下一步。本地方法已用2/2、来源1/8、Host仍1/1，本轮新增模型、来源及拟合调用为0。
+
+页面已导出 state 20 的当前报告，PDF共6页，已逐页查看。四种报告下载均HTTP200且与manager导出逐字节一致，报告保留v2实际选择、分组反馈及等待原因。A64本轮仅更新 `project.sqlite` 并新增1份行动工件，A63全部文件、state及Host一致。执行与原ID回读证据位于本机 ignored `runs/a77-effective-recipe-continuation-20261107/execution-validation.json`，导出及下载核对为同目录 `export-receipt.json` 与 `report-validation.json`。此次已采用配方驱动了实际工具行动，输入仍为四行工程样例，科学收益和真实用户价值仍待验证。PDF沿用现有分页模板，第3页留白较大。
+
 ### 后续工作
 
-1. 原A64保存结果已通过页面采用，默认控制器已读取有效v2。后轮执行按实际问题和原累计资源安排。离线材料包支持读取原件，`saved-host`入口通过原数据库和控制器账本核对。
+1. 原A64有效v2已驱动一次分组画像并生成当前报告，目前保存为等待。后续先补足来源与缺失解释，再按实际问题和原累计资源安排。离线材料包支持读取原件，`saved-host`入口通过原数据库和控制器账本核对。
 2. **P1，接续与连续推进**：单轮只读消费已实现；pending原ID核对、同轮阶段接续、资源边界与连续调度按实际需要实现，不用新外环记录绕过原Host未决状态。
 3. **P2，扩充验收类型与结构化条件**：现判据只覆盖遗漏目标方法，文本条件不自动求值。根据真实问题增加小型、可比较的判据，不用选择变化代替收益。
 
