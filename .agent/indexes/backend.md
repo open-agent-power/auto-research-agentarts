@@ -1,6 +1,6 @@
 # 后端索引
 
-[单轮RSI](../../docs/recipe-research/rsi-delivery.md)由`recipe_improvement.run_improvement_round/read_improvement_round`评估已有提案与验证，保存不可变输入、采用／回退／pending和有效配方。`saved-host`仅读原Host／控制器账本。项目接线由[project_recipe](../../src/autoresearch/project_recipe.py)核对原Host原件、保存显式`recipe_revisions`与完整工件，沿原ID恢复并保留预算。默认控制器读取最后有效配方，旧请求继续使用冻结版本，新请求在写入锁内再核对revision。原A64已页面采用v2，默认下一决定已读取，后轮实际执行仍待安排，阶段内接续与连续调度另行推进。
+[单轮RSI](../../docs/recipe-research/rsi-delivery.md)由`recipe_improvement.run_improvement_round/read_improvement_round`评估已有提案与验证，保存不可变输入、采用／回退／pending和有效配方。`saved-host`仅读原Host／控制器账本。项目接线由[project_recipe](../../src/autoresearch/project_recipe.py)核对原Host原件、保存显式`recipe_revisions`与完整工件，沿原ID恢复并保留预算。默认控制器读取最后有效配方，旧请求继续使用冻结版本，新请求在写入锁内再核对revision。原A64已页面采用v2并由默认控制器完成后续分组行动、反馈和state20报告。真实任务的新Host后轮、外环阶段恢复及有限多轮继续推进，已有项目batch和Host行动batch可复用。
 
 `research_recipe`新增[方法卡纯读取与候选关联](../../docs/recipe-research/recipe-design.md)，复用原sealed context校验，返回完整方法知识、宿主候选与条件缺口，不进入执行／状态／预算路径。原`compile_recipe/advance_recipe`协议不变；该文件属于既有controller代码哈希，历史项目仍需原显式代码兼容处理，不自动升级。
 
