@@ -7,6 +7,7 @@
 - [队友长期负责：通用配方与RSI持续改进](teammate-recipe-task.md)；[持续任务、反馈与PR安排](recipe-research/team-module-handoff.md)与[接口约定](recipe-research/team-module-interface.md)
 - [随源码提供的配方与RSI示例](../examples/recipe-improvement/README.md)，包含接口草案和构造context
 - [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)
+- [方法卡读取、条件说明与候选关联](recipe-research/recipe-design.md)：纯函数、实际CLI演示、必要验证与下一轮RSI接续
 - [架构基线](architecture/foundation.md)与[开发地图](development.md)
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)

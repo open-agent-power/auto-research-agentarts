@@ -10,6 +10,8 @@
 
 现有`compile_recipe`、`research-recipe-v1`和选择提案继续服务已有调用。实际执行参数由宿主候选提供。
 
+2026-11-06方法卡基础轮已提供`parse_method_card/validate_method_card/match_method_card`及原编译CLI的互斥`--method-card`模式，返回`research-method-card-match-v1`并只写`match.json`。精确字段、阻断／不匹配状态、未核验条件与实际演示见[方法卡设计](recipe-design.md)；本分支待审阅／合并，不表示RSI外环已实现。
+
 ## 外环的四份输入输出
 
 | 对象 | 最少内容 | 提供方 |

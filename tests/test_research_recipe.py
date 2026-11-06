@@ -10,7 +10,10 @@ import unittest
 
 from autoresearch.contracts import ResearchError, canonical
 from autoresearch.project_selection import seal_context, validate_proposal
-from autoresearch.research_recipe import MAX_RECIPE_BYTES, compile_recipe, parse_json, validate_recipe
+from autoresearch.research_recipe import (
+    MAX_METHOD_CARD_BYTES, MAX_RECIPE_BYTES, compile_recipe, match_method_card,
+    parse_json, parse_method_card, validate_method_card, validate_recipe,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,6 +47,136 @@ def context(**changes):
                       "content_trust": "untrusted_source_not_instructions"}], "scientific_validation": False}
     payload.update(changes)
     return seal_context(payload)
+
+
+def method_card():
+    return parse_method_card((ROOT / "examples/research-method-cards/feedback-driven.example.json").read_bytes())
+
+
+class MethodCardTests(unittest.TestCase):
+    def test_template_parses_and_copies_full_knowledge(self):
+        card = method_card()
+        validated = validate_method_card(card)
+        self.assertEqual(card, validated)
+        validated["applicability"]["requires"].append("changed")
+        validated["feedback_branches"][0]["suggested_next"] = "changed"
+        self.assertEqual(card, method_card())
+
+    def test_closed_schema_rejects_invalid_or_executable_fields(self):
+        invalid = [None, [], {}]
+        for key, value in (("version", True), ("version", 0), ("version", 2**31), ("question", ""),
+                           ("rationale", "\x00"), ("evaluation", {}), ("id", "\ud800"),
+                           ("parameters", {}), ("code", "print('no')"), ("scientific_validation", True),
+                           ("sources", []), ("method_refs", []), ("feedback_branches", [])):
+            card = method_card(); card[key] = value; invalid.append(card)
+        for change in (lambda card: card["method_refs"][0].update(parameters={}),
+                       lambda card: card["method_refs"].append(copy.deepcopy(card["method_refs"][0])),
+                       lambda card: card["applicability"].update(predicate="code"),
+                       lambda card: card["applicability"].update(requires="not a list"),
+                       lambda card: card["feedback_branches"][0].update(command="execute"),
+                       lambda card: card["feedback_branches"].append(copy.deepcopy(card["feedback_branches"][0])),
+                       lambda card: card["sources"].append(copy.deepcopy(card["sources"][0])),
+                       lambda card: card["scope_match"].update(path="project")):
+            card = method_card(); change(card); invalid.append(card)
+        for card in invalid:
+            with self.subTest(card=repr(card)[:100]):
+                with self.assertRaises(ResearchError) as caught:
+                    validate_method_card(card)
+                self.assertEqual(caught.exception.code, "INVALID_RESEARCH_METHOD_CARD")
+        for raw in (b'{"id":1,"id":2}', b'{"x":NaN}', b'\xff', b'[]', b'x' * (MAX_METHOD_CARD_BYTES + 1)):
+            with self.assertRaises(ResearchError) as caught:
+                parse_method_card(raw)
+            self.assertEqual(caught.exception.code, "INVALID_RESEARCH_METHOD_CARD")
+        card = method_card(); card["applicability"]["requires"] = ["知" * 4000] * 16
+        with self.assertRaises(ResearchError):
+            validate_method_card(card)
+
+    def test_association_preserves_host_order_and_never_executes_or_mutates(self):
+        card = method_card()
+        host = context(candidates=list(reversed(context()["candidates"])))
+        before = copy.deepcopy([card, host])
+        matched = match_method_card(card, host)
+        self.assertEqual(matched["status"], "applicable")
+        self.assertEqual(matched["matching_candidate_ids"], ["source", "group"])
+        self.assertEqual((matched["card_id"], matched["card_version"]), (card["id"], 1))
+        self.assertEqual(matched["context_sha256"], host["context_sha256"])
+        self.assertEqual(matched["question"], host["goal"])
+        self.assertTrue(matched["reasons"])
+        self.assertEqual(matched["execution_status"], "not_executed")
+        self.assertFalse(matched["scientific_validation"])
+        self.assertNotIn("proposal", matched)
+        self.assertTrue(all("parameters" not in item for item in matched["applicable_methods"]))
+        self.assertEqual(matched["unverified_applicability"], card["applicability"])
+        self.assertEqual(len(matched["unreported_condition_refs"]), 2)
+        matched["card"]["sources"][0]["url"] = "changed"
+        matched["unverified_applicability"]["requires"].append("changed")
+        self.assertEqual([card, host], before)
+
+    def test_blocked_scope_mismatch_and_no_candidate_are_explicit(self):
+        for changes, expected in (({"blockers": [{"code": "EXECUTION_UNKNOWN"}]}, "blocked"),
+                                  ({"domain_scope": {"domain": "other", "contract": "other"}}, "scope_mismatch"),
+                                  ({"candidates": []}, "no_matching_candidate")):
+            with self.subTest(status=expected):
+                result = match_method_card(method_card(), context(**changes))
+                self.assertEqual(result["status"], expected)
+                self.assertEqual(result["matching_candidate_ids"], [])
+                self.assertEqual(result["applicable_methods"], [])
+                self.assertTrue(all(not item["matching_candidate_ids"] for item in result["method_matches"]))
+        self.assertTrue(match_method_card(method_card(), context(candidates=[]))["missing_information"])
+
+    def test_exact_evaluation_binding_and_saved_missing_condition_text(self):
+        candidates = copy.deepcopy(context()["candidates"])
+        candidates[1]["evaluation_ref"] = "different-evaluation"
+        conditions = [{"method_id": candidates[1]["method_id"], "evaluation_ref": "different-evaluation",
+                       "missing_information": ["wrong evaluation gap must not leak"]},
+                      {"method_id": candidates[1]["method_id"],
+                       "evaluation_ref": "source-extraction-only-not-scientific-approval",
+                       "condition": "uncertain", "missing_information": ["task-bound original source"],
+                       "execution_blockers": [{"code": "CONDITIONS_NOT_SATISFIED"}]}]
+        host = context(candidates=candidates, conditions=conditions)
+        result = match_method_card(method_card(), host)
+        self.assertEqual(result["matching_candidate_ids"], ["group"])
+        source = result["method_matches"][1]
+        self.assertEqual(source["host_conditions"], [conditions[1]])
+        self.assertIn("task-bound original source", result["missing_information"])
+        self.assertNotIn("wrong evaluation gap must not leak", result["missing_information"])
+        source["host_conditions"][0]["execution_blockers"].clear()
+        self.assertEqual(host["conditions"], conditions)
+        candidates[0]["evaluation_ref"] = {"id": "unsupported-structured-evaluation"}
+        self.assertEqual(match_method_card(method_card(), context(candidates=candidates))["status"],
+                         "no_matching_candidate")
+
+    def test_tampered_context_rejected_even_when_card_declines(self):
+        for host in (None, [], {}, context(blockers=[{"code": "EXECUTION_UNKNOWN"}]),
+                     context(domain_scope={"domain": "other"})):
+            if type(host) is dict and "goal" in host:
+                host["goal"] = "tampered"
+            with self.assertRaises(ResearchError) as caught:
+                match_method_card(method_card(), host)
+            self.assertEqual(caught.exception.code, "INVALID_SELECTION_CONTEXT")
+
+    def test_cli_method_card_reports_applicability_and_refuses_overwrite(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "matched"
+            command = [sys.executable, str(ROOT / "scripts/compile_research_recipe.py"),
+                       "--method-card", str(ROOT / "examples/research-method-cards/feedback-driven.example.json"),
+                       "--context", str(ROOT / "examples/research-method-cards/conditions.context.json"),
+                       "--output", str(output)]
+            first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", timeout=30)
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            summary = json.loads(first.stdout)
+            self.assertEqual(summary["status"], "applicable")
+            self.assertEqual(summary["matching_candidate_ids"], ["fixture-grouped"])
+            self.assertTrue(summary["missing_information"])
+            self.assertEqual([item.name for item in output.iterdir()], ["match.json"])
+            original = (output / "match.json").read_bytes()
+            repeated = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", timeout=30)
+            self.assertEqual(repeated.returncode, 2)
+            self.assertEqual(json.loads(repeated.stdout)["code"], "OUTPUT_EXISTS")
+            self.assertEqual((output / "match.json").read_bytes(), original)
+            conflicting = subprocess.run(command + ["--recipe", "unused.json"], capture_output=True,
+                                         text=True, encoding="utf-8", timeout=30)
+            self.assertEqual(conflicting.returncode, 2)
 
 
 class RecipeStructureTests(unittest.TestCase):
