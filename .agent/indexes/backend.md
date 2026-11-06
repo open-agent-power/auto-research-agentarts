@@ -1,5 +1,7 @@
 # 后端索引
 
+`research_recipe`新增[方法卡纯读取与候选关联](../../docs/recipe-research/recipe-design.md)，复用原sealed context校验，返回完整方法知识、宿主候选与条件缺口，不进入执行／状态／预算路径。原`compile_recipe/advance_recipe`协议不变；该文件属于既有controller代码哈希，历史项目仍需原显式代码兼容处理，不自动升级。
+
 本页导航现有实现；项目入口见 [docs/README](../../docs/README.md)。同一项目已连接登记白名单方法、条件选择一步、来源反馈与恢复；各领域Observation保留自身含义。开放式方法扩展仍待实现，有界模型选择的跨域收益仍待验证，目标设计见[研究架构](../../docs/architecture/foundation.md)。
 
 架构基线见[底层模块与依赖](../../docs/architecture/foundation.md)和[状态/能力契约](../../docs/architecture/research-contracts.md)。已实现的是有限本地命令/目录、有界选择与既有执行协调，不等于目标契约全部端口或LLM自主科研。

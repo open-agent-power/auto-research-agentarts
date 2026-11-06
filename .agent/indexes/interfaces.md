@@ -1,5 +1,7 @@
 # 接口索引
 
+方法卡新增只读`parse_method_card/validate_method_card/match_method_card`，现有编译CLI新增互斥`--method-card`，只写`research-method-card-match-v1`的`match.json`。按原sealed context的范围与方法／评价精确关联，返回候选、条件、理由、缺口及未核验说明；不改原配方／proposal格式，不执行方法。完整字段与CLI结果见[方法卡设计](../../docs/recipe-research/recipe-design.md)。
+
 这是现有入口导航，不是新 API 规范。统一项目命令和研究Observation见[研究契约](../../docs/architecture/research-contracts.md)，**尚未实现通用 create/start/resume REST 接口**。
 
 新项目/运行/行动对象及命令边界见[研究契约](../../docs/architecture/research-contracts.md)，依赖关系见[底层架构](../../docs/architecture/foundation.md)。同一项目已有已登记白名单方法的本地Python/CLI实现和只读HTTP投影。显式启用的本地写入、模型和计划操作见[本地工作台](../../docs/local-workbench.md#接口与只读边界)。
