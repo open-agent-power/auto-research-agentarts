@@ -5,6 +5,7 @@ from pathlib import Path
 
 from . import method_registry as registry, project_knowledge, research_methods, project_selection, research_recipe
 from .contracts import ResearchError, canonical, fingerprint, identifier
+from .project_recipe import current_recipe
 from .research_project import ResearchProject, code_identity as project_code_identity, require
 
 
@@ -49,7 +50,7 @@ class ProjectController:
     def __init__(self, workspace):
         self.project = ResearchProject(workspace)
 
-    def _plan(self, project, need, *, include_knowledge=False):
+    def _base_plan(self, project, need, *, include_knowledge=False):
         options = research_methods.match_methods(project, need)
         query = project_knowledge.decision_needs(project)["interpretation"]
         knowledge = project_knowledge.query(self.project.root, project, need=query, point="interpretation")
@@ -100,6 +101,26 @@ class ProjectController:
             result["selection_evidence"] = knowledge.get("evidence", [])
         return result
 
+    def _recipe_plan(self, project, need, context):
+        recipe = current_recipe(project)
+        compiled = research_recipe.compile_recipe(recipe, context)
+        plan = self._selected_plan(project, need, compiled["proposal"], context=context)
+        plan["decision"]["policy_ref"] = {"id": recipe["id"], "version": recipe["version"],
+                                           "kind": "effective_recipe",
+                                           "revision": project["recipe_revisions"][-1]["revision"]}
+        plan["decision"]["selection_ref"]["external_usage"] = "no_model_invocation_by_recipe_compiler"
+        plan["recipe_decision"] = compiled
+        return plan
+
+    def _plan(self, project, need, *, include_knowledge=False):
+        plan = self._base_plan(project, need, include_knowledge=True)
+        if current_recipe(project) is not None:
+            context = self._selection_context(project, need, base_plan=plan)
+            plan.update(self._recipe_plan(project, need, context))
+        if not include_knowledge:
+            plan.pop("selection_evidence", None)
+        return plan
+
     def next(self, *, need="next_check"):
         need = _need(need)
         before = self.project.status()
@@ -108,8 +129,8 @@ class ProjectController:
                 "STALE_STATE", "Project changed while preparing the next decision.")
         return result
 
-    def _selection_context(self, project, need):
-        plan = self._plan(project, need, include_knowledge=True)
+    def _selection_context(self, project, need, *, base_plan=None):
+        plan = base_plan if base_plan is not None else self._base_plan(project, need, include_knowledge=True)
         # Budget/wait blockers above apply to the default choice. Recheck each
         # candidate independently so an unread source can remain eligible.
         blockers = [copy.deepcopy(item) for item in plan["blockers"]
@@ -174,6 +195,11 @@ class ProjectController:
             context["research_plan"] = copy.deepcopy(project["plan_revisions"][-1])
         if project.get("researcher_feedback"):
             context["researcher_feedback"] = copy.deepcopy(project["researcher_feedback"])
+        if current_recipe(project) is not None:
+            selected = self._recipe_plan(project, need, project_selection.seal_context(context))
+            # A context cannot contain a selection reference to its own final hash.
+            selected["decision"].pop("selection_ref", None)
+            context["baseline_decision"] = _compact_decision(selected["decision"])
         return project_selection.seal_context(context)
 
     def selection_context(self, *, need="next_check"):
@@ -183,8 +209,8 @@ class ProjectController:
                 "STALE_STATE", "Project changed while preparing selection context.")
         return context
 
-    def _selected_plan(self, project, need, proposal):
-        context = self._selection_context(project, need)
+    def _selected_plan(self, project, need, proposal, *, context=None):
+        context = context if context is not None else self._selection_context(project, need)
         selected = project_selection.validate_proposal(context, proposal)
         candidate = selected["candidate"]
         status = ("active" if candidate else "needs_review" if any(item["code"] == "EXECUTION_UNKNOWN"
@@ -317,7 +343,22 @@ class ProjectController:
         return self._response(finished, replayed)
 
     def advance(self, *, request_id, need="next_check", expected_state_version=None):
-        return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version)
+        identifier(request_id)
+        need = _need(need)
+        state = self.project.status()
+        old = self._parent(state, request_id)
+        if old is not None and "effective_recipe_revision" in old:
+            recipe = old["request"]["recipe_decision"]["recipe"]
+            revision = old["effective_recipe_revision"]
+        elif old is None and current_recipe(state) is not None:
+            recipe = current_recipe(state)
+            revision = state["recipe_revisions"][-1]["revision"]
+        else:
+            return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version)
+        context = old["selection_context"] if old is not None else self.selection_context(need=need)
+        decision = research_recipe.compile_recipe(recipe, context)
+        return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version,
+                             proposal=decision["proposal"], recipe_decision=decision, effective_revision=revision)
 
     def advance_selection(self, *, request_id, proposal, need="next_check", expected_state_version=None):
         try:
@@ -338,7 +379,7 @@ class ProjectController:
         return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version,
                              proposal=decision["proposal"], recipe_decision=decision)
 
-    def _advance(self, *, request_id, need, expected_state_version, proposal=None, recipe_decision=None):
+    def _advance(self, *, request_id, need, expected_state_version, proposal=None, recipe_decision=None, effective_revision=None):
         identifier(request_id)
         need = _need(need)
         require(expected_state_version is None or (type(expected_state_version) is int and expected_state_version >= 0),
@@ -354,8 +395,8 @@ class ProjectController:
                 if recipe_decision is not None:
                     require(proposal is not None, "EVIDENCE_CHANGED", "A recipe decision requires its exact proposal.")
                     request.update(command="controller.advance_recipe", recipe_decision=copy.deepcopy(recipe_decision))
-                digest = fingerprint(request)
                 old = self._parent(project, request_id)
+                digest = fingerprint(request)
                 if old is not None:
                     require(old["request_sha256"] == digest, "IDEMPOTENCY_CONFLICT", "Controller request content changed.")
                     if recipe_decision is not None:
@@ -364,8 +405,12 @@ class ProjectController:
                         _check_recipe_decision(old["selection_context"], old["request"]["proposal"], old["request"]["recipe_decision"])
                     parent, replayed = copy.deepcopy(old), True
                 else:
+                    if effective_revision is not None:
+                        revisions = project.get("recipe_revisions", [])
+                        require(bool(revisions) and revisions[-1]["revision"] == effective_revision,
+                                "STALE_RECIPE", "Effective recipe changed before this request was accepted.")
                     require(self.project._action(con, request_id) is None
-                            and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback")
+                            and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Request ID is already bound to a project command.")
                     require(not any(item["status"] in ("prepared", "running") for item in project.get("controller_requests", [])),
@@ -382,7 +427,7 @@ class ProjectController:
                         plan["decision"]["selection_ref"]["external_usage"] = "no_model_invocation_by_recipe_compiler"
                     child_id = "controller-child-" + fingerprint({"project_id": project["id"], "request_id": request_id})[:32]
                     require(self.project._action(con, child_id) is None
-                            and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback")
+                            and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Derived child ID is already bound to another command.")
                     project["state_version"] += 1
@@ -396,6 +441,8 @@ class ProjectController:
                               "status": "prepared" if plan["executable"] else plan["status"], "result": None}
                     if "selection_context" in plan:
                         parent["selection_context"] = copy.deepcopy(plan["selection_context"])
+                    if effective_revision is not None:
+                        parent["effective_recipe_revision"] = effective_revision
                     parent["decision_sha256"] = fingerprint(parent["decision"])
                     project.setdefault("controller_requests", []).append(parent)
                     self.project._save(con, project)
