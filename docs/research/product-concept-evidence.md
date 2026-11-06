@@ -1,6 +1,12 @@
 # Auto Research 产品概念研究的依据与取舍
 
-核对日期：2026-11-05。本文连接一手材料、实际阅读范围和[产品概念建议](product-concepts.md)，供后续讨论和修改追溯。
+核对于2026-11-06。本文连接一手材料、实际阅读范围和[产品概念建议](product-concepts.md)，供后续讨论和修改追溯。新增的当前产品比较、能力取舍和平台自动化路径见[横向调研](product-landscape-20261106.md)。
+
+## 11月6日横向调研带来的修订
+
+Elicit已提供可回改的综述步骤，Perplexity公开说明会调整研究路线，当前Kosmos进一步描述持久编码Agent与交互反馈。可修改计划、长期项目和多Agent由这些来源共同确认为已有产品机制。本项目的差异主张转向实际任务中检查依据、作出研究判断和继续工作的体验，收益需要使用证据。[Elicit](https://elicit.com/blog/systematic-review)、[Perplexity](https://perplexity.ai/help-center/en/articles/10738684-what-is-research-mode)、[Kosmos 2026工程说明](https://advances.edisonscientific.com/research/how-we-built-kosmos)
+
+能力优先级据此调整为问题具体化、受约束的实际分析、主要结论关联依据，以及AgentArts实际接通。资料检索和通用Host优先复用现成能力，方法和执行按原控制器接入。队友配方与RSI外环依用户指令暂缓，主开发后续推进平台自动化尝试。完整比较和分阶段结果统一在[调研决策](product-landscape-20261106.md#5-能力引进与优化决策)维护。
 
 ## 产品建议与证据怎样对应
 
@@ -50,7 +56,7 @@
 
 产品目标参照[底层架构](../architecture/foundation.md)与[研究契约](../architecture/research-contracts.md)。当前能力参照[配方接入](../recipe-research/integration.md)、[宿主模型选择](../host-model-selection.md)、[项目知识](../../src/autoresearch/project_knowledge.py)和[条件记忆说明](../research-memory.md)。
 
-现有配方编译器的字段和匹配逻辑位于[research_recipe.py](../../src/autoresearch/research_recipe.py)：主要按范围和预写方法顺序选候选。当前模型提案协议位于[project_selection.py](../../src/autoresearch/project_selection.py)，接收候选选择、理由和引用。它们已经承担有限执行职责，尚未完整表达上述用户可修改的研究计划。
+现有配方编译器的字段和匹配逻辑位于[research_recipe.py](../../src/autoresearch/research_recipe.py)，主要按范围和预写方法顺序选候选。当前模型提案协议位于[project_selection.py](../../src/autoresearch/project_selection.py)，接收候选选择、理由和引用。可修改计划、模型提案采用、研究者意见与版本比较已经接通，实际范围见[工作台](../local-workbench.md)与[模型接入](../host-model-selection.md)。当前缺口主要是通用研究分析与结论依据的关联。
 
 已有[固定流程比较](../policy-comparison.md)保留其同路线结果；某一次工作簿核对、来源读取或接口重放的成功，不被扩大成配方收益、跨域科研有效性或自我改进完成。
 
@@ -58,7 +64,7 @@
 
 这是选择性调研，定向读取相关正文、局限和官方说明，没有逐字审阅所有附录，也没有复现这些系统。固定版本论文不能代表所有后续版本；同一论文的多个版本不算独立佐证。官网与README的能力描述属于作者说明。
 
-LitPivot的17人研究主要覆盖短时构思和计算机/信息科学，论文明确不运行代码或实验，长期效果仍待研究。Kosmos v2描述的是2025年系统；其当时不能中途交互的限制，不作为2026年当前产品的事实。Google的案例与内部假设排名也不直接证明任意领域的研究效果。
+LitPivot的17人研究主要覆盖短时构思和计算机/信息科学，论文明确不运行代码或实验，长期效果仍待研究。Kosmos v2描述的是2025年系统，2026-05-18官方工程说明已描述交互反馈和持久编码Agent，论文旧版限制分别保留原范围。Google的案例与内部假设排名也不直接证明任意领域的研究效果。
 
 TruthInsightBench仍是探索性预印本：回顾性冻结数据、单一基础模型与单次运行、单一LLM裁判及专家校准未完成，限制了其结论。ScienceAgentBench与DiscoveryBench各自评价特定任务产物或参考结论，不能穷尽开放科学研究，也不能由局部通过认定真实新发现。
 
