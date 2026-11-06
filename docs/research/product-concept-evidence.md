@@ -1,12 +1,12 @@
 # Auto Research 产品概念研究的依据与取舍
 
-核对于2026-11-06。本文连接一手材料、实际阅读范围和[产品概念建议](product-concepts.md)，供后续讨论和修改追溯。新增的当前产品比较、能力取舍和平台自动化路径见[横向调研](product-landscape-20261106.md)。
+实现状态对齐于2026-11-07，外部材料沿用2026-11-06核对记录。本文连接一手材料、实际阅读范围和[产品概念建议](product-concepts.md)，供后续讨论和修改追溯。当前产品比较、能力取舍和平台自动化路径见[横向调研](product-landscape-20261106.md)。
 
 ## 11月6日横向调研带来的修订
 
 Elicit已提供可回改的综述步骤，Perplexity公开说明会调整研究路线，当前Kosmos进一步描述持久编码Agent与交互反馈。可修改计划、长期项目和多Agent由这些来源共同确认为已有产品机制。本项目的差异主张转向实际任务中检查依据、作出研究判断和继续工作的体验，收益需要使用证据。[Elicit](https://elicit.com/blog/systematic-review)、[Perplexity](https://perplexity.ai/help-center/en/articles/10738684-what-is-research-mode)、[Kosmos 2026工程说明](https://advances.edisonscientific.com/research/how-we-built-kosmos)
 
-能力方向据此调整为问题具体化、受约束的实际分析、主要结论关联依据，以及AgentArts实际接通。PR #19已合并方法卡基础，当前先由主开发补A64只读交接、队友消费已有提案与验证，接上显式采用或回退及理由、有效版本和后轮读取。主开发整合本地这段闭环后推进平台自动化尝试。OKS与集群保留为后续方向。完整比较和分阶段结果统一在[调研决策](product-landscape-20261106.md#5-能力引进与优化决策)维护。
+能力方向据此调整为问题具体化、受约束的实际分析、主要结论关联依据，以及AgentArts实际接通。PR #19、#20、#22、#23已合并方法卡、单轮keep/revert、显式项目采用及有效v2的默认后续执行。A64交接材料和state 20报告已交付，后续围绕真实任务、有限多轮接续和平台接通推进，OKS与集群保留为后续方向。完整比较和分阶段结果统一在[调研决策](product-landscape-20261106.md#5-能力引进与优化决策)维护。
 
 ## 产品建议与证据怎样对应
 
@@ -56,7 +56,9 @@ Elicit已提供可回改的综述步骤，Perplexity公开说明会调整研究�
 
 产品目标参照[底层架构](../architecture/foundation.md)与[研究契约](../architecture/research-contracts.md)。当前能力参照[配方接入](../recipe-research/integration.md)、[宿主模型选择](../host-model-selection.md)、[项目知识](../../src/autoresearch/project_knowledge.py)和[条件记忆说明](../research-memory.md)。
 
-现有配方编译器的字段和匹配逻辑位于[research_recipe.py](../../src/autoresearch/research_recipe.py)，主要按范围和预写方法顺序选候选。PR #19已合并方法卡读取、校验和宿主候选关联，保留未核验条件说明，实际范围见[方法卡设计](../recipe-research/recipe-design.md)。当前模型提案协议位于[project_selection.py](../../src/autoresearch/project_selection.py)，接收候选选择、理由和引用。可修改计划、模型提案采用、研究者意见与版本比较已经接通，实际范围见[工作台](../local-workbench.md)与[模型接入](../host-model-selection.md)。A64已有提案和验证供[离线接续](../recipe-research/a64-rsi-handoff.md)复用，采用或回退、有效版本和后轮读取仍待下一份PR接通。研究能力缺口继续包括通用研究分析与结论依据的关联。
+现有配方编译器的字段和匹配逻辑位于[research_recipe.py](../../src/autoresearch/research_recipe.py)，主要按范围和预写方法顺序选候选。方法卡已可读取、校验和关联宿主候选，保留未核验条件说明，实际范围见[方法卡设计](../recipe-research/recipe-design.md)。模型提案协议位于[project_selection.py](../../src/autoresearch/project_selection.py)，接收候选选择、理由和引用。可修改计划、模型提案采用、研究者意见与版本比较已经接通，实际范围见[工作台](../local-workbench.md)与[模型接入](../host-model-selection.md)。
+
+A64单轮外环已消费原Host提案与验证，项目明确采用 `a62-quality-follow-up` v2／revision 1。默认控制器按v2完成实际分组画像，保存反馈和state 20报告，随后因无匹配候选等待。当前本地方法2/2、Host 1/1。四行构造工程样例以此收口，资料缺口保留于原记录。公开A63实例另已完成计划→质量反馈→计划修订→来源读取。下一项转向真实材料的问题，受约束的通用表格分析、主要结论依据、基于有效版本的新Host提案、外环阶段恢复及真实使用反馈仍是缺口。[实际外环与后续行动](../recipe-research/rsi-delivery.md#a64有效v2的实际后续行动)
 
 已有[固定流程比较](../policy-comparison.md)保留其同路线结果；某一次工作簿核对、来源读取或接口重放的成功，不被扩大成配方收益、跨域科研有效性或自我改进完成。
 
@@ -68,4 +70,4 @@ LitPivot的17人研究主要覆盖短时构思和计算机/信息科学，论文
 
 TruthInsightBench仍是探索性预印本：回顾性冻结数据、单一基础模型与单次运行、单一LLM裁判及专家校准未完成，限制了其结论。ScienceAgentBench与DiscoveryBench各自评价特定任务产物或参考结论，不能穷尽开放科学研究，也不能由局部通过认定真实新发现。
 
-论文的任务、领域、预算与指标不一致，本次不拼接排行榜或统一分数。目标用户的真实需求与本产品差异优势仍是待核实的产品假设。研究检索的结算未知；没有修改产品预算或以新目录重置原额度。
+论文的任务、领域、预算与指标不一致，本次不拼接排行榜或统一分数。目标用户的真实需求与本产品差异优势仍是待核实的产品假设。现有A64轨迹支持四行工程输入下的单轮决定与有效版本后续执行，真实任务科研收益、真人价值及多轮自主持续RSI仍缺证据。研究检索的结算未知，原项目额度与历史用量继续保留。
