@@ -101,8 +101,8 @@ pnpm --config.verify-deps-before-run=false --config.offline=true --config.update
 
 ## 剩余问题与下一项
 
-1. 首份 PR 合并后，从最新 main 开下一轮：关联实际反馈说明，再接入 `recipe_improvement` 的单轮候选、验证、采用／回退及下一轮有效版本。现有 `propose_recipe_change/validate_recipe_change` 继续由主开发维护，不另造模型或执行器。
-2. **P1，真实外环取证交接**：本克隆没有 A64 原运行目录。需要主开发给出请求 `a64-recipe-change` 的原当前配方、完整冻结 research context、完整提案结果、`validation-input.json`、`validation-result.json` 及其原 Host／控制器结果的可读路径。先复用保存结果，不重新派发或读取来源；缺失时只能标明构造验证，不能宣称真实 RSI 已完成。
+1. 方法卡首份PR已合并。队友从最新main开下一轮，关联实际反馈说明，接入`recipe_improvement`的采用或回退、有效版本及后轮读取。现有`propose_recipe_change/validate_recipe_change`由主开发维护。
+2. A64原当前配方、完整冻结context、完整提案、验证输入与结果、关联Host及工件已整理为只读交接包，由负责人转交。[材料位置与下一份PR要求](a64-rsi-handoff.md)说明原件和派生视图的对应关系，先复用保存结果开发接续。
 3. **P2，方法条件自动核验**：当前自由文本不能可靠地自动求值；后续若真实使用需要更细条件，应提出小型、可验证的宿主事实字段约定，不增加任意表达式或脚本入口。
 
 第一轮未实现通用自然语言方法理解、反馈驱动策略收益、RSI 采用／回退或跨实例泛化。真实科学结论与用户价值仍需匹配的实际证据和专业判断。

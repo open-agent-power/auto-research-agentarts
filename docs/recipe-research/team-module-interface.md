@@ -10,7 +10,7 @@
 
 现有`compile_recipe`、`research-recipe-v1`和选择提案继续服务已有调用。实际执行参数由宿主候选提供。
 
-2026-11-06方法卡基础轮已通过PR19合并，提供`parse_method_card/validate_method_card/match_method_card`及原编译CLI的互斥`--method-card`模式，返回`research-method-card-match-v1`并只写`match.json`。精确字段与演示见[方法卡设计](recipe-design.md)。随后的单轮RSI入口读取保存结果、形成采用／回退与有效版本，范围见[本轮说明](rsi-delivery.md)；后者仍需本次PR审阅和真实材料联合接线。
+2026-11-06方法卡基础轮已由[PR #19](https://github.com/1263-ux/auto-research-agentarts/pull/19)合并，提供`parse_method_card/validate_method_card/match_method_card`及原编译CLI的互斥`--method-card`模式，返回`research-method-card-match-v1`并只写`match.json`。精确字段与实际演示见[方法卡设计](recipe-design.md)。单轮RSI入口读取保存结果、形成采用或回退与有效版本，见[交付说明](rsi-delivery.md)。原件与派生视图的对应关系见[A64材料](a64-rsi-handoff.md)。
 
 ## 外环的四份输入输出
 
@@ -69,6 +69,8 @@ validate_recipe_change(
 A64复用已有构造四行工程项目，经一次实际协作子代理请求`a64-recipe-change`得到完整候选v2。冻结baseline为wait、候选为execute，显式允许的方法和来源收据使原控制器读取团队自写运行说明1次，最终state v13，本地1/2、来源1/8、Host 1/1、native 0。原ID提案与验证重放均无新增，A63原v11全状态一致。
 
 队友将保存的完整提案及`validation-result.json`接入`run_improvement_round`，记录采用或回退、有效版本和下一轮问题。原ID可以取回这次已完成结果。模型原`validation_plan`建议采用后执行，实际验证已独立按显式权限运行在采用决定前，原回答保留，可把这处顺序差异作为后轮反馈。Host7份原件、5页报告和页面证据范围见[A64记录](../host-model-selection.md#a64-配方修改提案与允许工具验证)。
+
+主开发已整理只读材料包，原件、派生视图和两层candidate结构见[A64接续说明](a64-rsi-handoff.md#先取得材料)。包内`derived/proposal-result.json`按既有适配返回字段导出，采用状态由待实现的外环记录。在线回调与原项目写入继续由主开发接入。
 
 ## 连续推进与接续
 

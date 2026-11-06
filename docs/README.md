@@ -9,6 +9,7 @@
 - [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)
 - [方法卡读取、条件说明与候选关联](recipe-research/recipe-design.md)：纯函数、实际CLI演示、必要验证与下一轮RSI接续
 - [单轮RSI保存结果与后轮使用](recipe-research/rsi-delivery.md)：已有反馈和验证、采用／回退理由、有效配方、构造双轮演示与原Host只读入口
+- [A64材料交接与下一份RSI PR](recipe-research/a64-rsi-handoff.md)，包含只读包内容、输入映射、采用或回退交付和推送节奏
 - [架构基线](architecture/foundation.md)与[开发地图](development.md)
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
 - [设计规范](../DESIGN.md)与[空间布局](design/workspace.md)
