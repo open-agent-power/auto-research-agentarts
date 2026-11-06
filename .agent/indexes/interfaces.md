@@ -2,6 +2,8 @@
 
 [单轮RSI入口](../../scripts/run_recipe_improvement.py)提供`fixture --input`与`saved-host --workspace --request-id --spec`，共用`--output/--round-id/--previous-round-id`。通过`recipe_improvement`消费现有适配结果，输出`recipe-improvement-result-v1`、理由与有效原生配方。后轮必须匹配前轮有效版本；saved-host使用原reader核对保存账本，不派发模型／工具。字段、pending和验收边界见[RSI交付](../../docs/recipe-research/rsi-delivery.md)。
 
+项目采用入口为同源CSRF保护的`POST /api/local-workbench/recipe-preview`（`project_id/input`）与`recipe-adopt`（`request_id/project_id/expected_state_version/input/reason`）。前者只读核对原Host与控制器原件，后者保存completed的keep／revert及有效配方。`GET /api/local-workbench/recipes`增加`effective_recipe`，`GET /api/project`增加`recipe_revisions`。默认next／advance消费该版本，原ID重放保留冻结决定，接口用法见[工作台](../../docs/local-workbench.md#核对外环并保存有效版本)。
+
 方法卡新增只读`parse_method_card/validate_method_card/match_method_card`，现有编译CLI新增互斥`--method-card`，只写`research-method-card-match-v1`的`match.json`。按原sealed context的范围与方法／评价精确关联，返回候选、条件、理由、缺口及未核验说明；不改原配方／proposal格式，不执行方法。完整字段与CLI结果见[方法卡设计](../../docs/recipe-research/recipe-design.md)。
 
 这是现有入口导航，不是新 API 规范。统一项目命令和研究Observation见[研究契约](../../docs/architecture/research-contracts.md)，**尚未实现通用 create/start/resume REST 接口**。
