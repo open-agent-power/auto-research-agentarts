@@ -1,5 +1,7 @@
 # 后端索引
 
+[单轮RSI](../../docs/recipe-research/rsi-delivery.md)由`recipe_improvement.run_improvement_round/read_improvement_round`评估已有提案与验证，保存不可变输入、采用／回退／pending和有效配方。后轮核对前轮结果后使用有效版本；不更改公共项目存储、控制器或预算。`saved-host`仅读原Host／控制器账本，阶段内接续与连续调度另行推进。
+
 `research_recipe`新增[方法卡纯读取与候选关联](../../docs/recipe-research/recipe-design.md)，复用原sealed context校验，返回完整方法知识、宿主候选与条件缺口，不进入执行／状态／预算路径。原`compile_recipe/advance_recipe`协议不变；该文件属于既有controller代码哈希，历史项目仍需原显式代码兼容处理，不自动升级。
 
 本页导航现有实现；项目入口见 [docs/README](../../docs/README.md)。同一项目已连接登记白名单方法、条件选择一步、来源反馈与恢复；各领域Observation保留自身含义。开放式方法扩展仍待实现，有界模型选择的跨域收益仍待验证，目标设计见[研究架构](../../docs/architecture/foundation.md)。

@@ -1,0 +1,11 @@
+{
+  "issue": {
+    "summary": "示例：原配方遗漏了实际反馈后可用的后续方法；请按原反馈改写。",
+    "feedback_action_ids": ["REPLACE_WITH_ORIGINAL_COMPLETED_ACTION_ID"]
+  },
+  "acceptance": {
+    "method_id": "data.grouped-quality-profile",
+    "evaluation_ref": "grouped-quality-profile-v1"
+  },
+  "next_question": "核对本轮有效版本后，下一轮需要解决什么实际问题？"
+}

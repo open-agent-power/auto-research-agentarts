@@ -10,7 +10,7 @@
 
 现有`compile_recipe`、`research-recipe-v1`和选择提案继续服务已有调用。实际执行参数由宿主候选提供。
 
-2026-11-06方法卡基础轮已提供`parse_method_card/validate_method_card/match_method_card`及原编译CLI的互斥`--method-card`模式，返回`research-method-card-match-v1`并只写`match.json`。精确字段、阻断／不匹配状态、未核验条件与实际演示见[方法卡设计](recipe-design.md)；本分支待审阅／合并，不表示RSI外环已实现。
+2026-11-06方法卡基础轮已通过PR19合并，提供`parse_method_card/validate_method_card/match_method_card`及原编译CLI的互斥`--method-card`模式，返回`research-method-card-match-v1`并只写`match.json`。精确字段与演示见[方法卡设计](recipe-design.md)。随后的单轮RSI入口读取保存结果、形成采用／回退与有效版本，范围见[本轮说明](rsi-delivery.md)；后者仍需本次PR审阅和真实材料联合接线。
 
 ## 外环的四份输入输出
 
@@ -24,6 +24,8 @@
 首版可保存为JSON和可读摘要，复用现有本地存储。先让一轮真实闭环完成，再按出现的问题补字段。
 
 ## 一轮改进
+
+当前单轮实现使用普通函数`run_improvement_round(current_version, trace, goal, proposal_result, validation_result, *, directory, round_id, request_id, issue, acceptance, next_question, evidence_kind, previous_round_id=None)`，消费已有`propose_recipe_change/validate_recipe_change`返回格式，不自行调用模型或工具。输出`recipe-improvement-result-v1`及有效原生配方；下一轮显式关联前轮，必须使用其有效版本。现支持“补上遗漏的目标方法”这一有限工程判据，pending保留原版。CLI的`saved-host`通过原reader核对账本，fixture与实际来源分开；完整字段、原子保存、理由及后轮运行见[RSI交付说明](rsi-delivery.md)。下面的完整主动外环流程仍按真实接口和资源边界逐步接续。
 
 新模块`recipe_improvement.py`建议提供`run_improvement_round`，调用入口为`run_recipe_improvement.py`。一轮按以下顺序执行。
 

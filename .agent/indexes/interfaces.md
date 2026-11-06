@@ -1,5 +1,7 @@
 # 接口索引
 
+[单轮RSI入口](../../scripts/run_recipe_improvement.py)提供`fixture --input`与`saved-host --workspace --request-id --spec`，共用`--output/--round-id/--previous-round-id`。通过`recipe_improvement`消费现有适配结果，输出`recipe-improvement-result-v1`、理由与有效原生配方。后轮必须匹配前轮有效版本；saved-host使用原reader核对保存账本，不派发模型／工具。字段、pending和验收边界见[RSI交付](../../docs/recipe-research/rsi-delivery.md)。
+
 方法卡新增只读`parse_method_card/validate_method_card/match_method_card`，现有编译CLI新增互斥`--method-card`，只写`research-method-card-match-v1`的`match.json`。按原sealed context的范围与方法／评价精确关联，返回候选、条件、理由、缺口及未核验说明；不改原配方／proposal格式，不执行方法。完整字段与CLI结果见[方法卡设计](../../docs/recipe-research/recipe-design.md)。
 
 这是现有入口导航，不是新 API 规范。统一项目命令和研究Observation见[研究契约](../../docs/architecture/research-contracts.md)，**尚未实现通用 create/start/resume REST 接口**。
@@ -42,7 +44,7 @@ A64已在已有构造项目通过一次实际子代理候选v2和一次允许来
 
 `GET /api/local-workbench/model`在`local-host-model-view-v1`中提供独立`recipe_validations`数组。`records`承载Host原请求，验证投影逐项使用`recipe-change-validation-view-v1`，共7个字段，为`schema_version/project_id/request_id/status/input/result/error`。reader入口为[read_recipe_validation(workspace, request_id)](../../src/autoresearch/recipe_improvement_adapter.py)，读取仅投影已保存证据。
 
-状态范围为`not_started/pending/recovery_required/unknown/completed/waiting/failed/invalid`。完成投影需要原Host提案、两个validation sidecar与原控制器结果相互对应。缺失回执或证据不一致时，状态反映当前未收口事实。研究页已展示验证时原版及候选选择、实际工具状态和JSON下载，invalid投影隐藏完成标签与比较。采用决定由待实现的队友外环提供。
+状态范围为`not_started/pending/recovery_required/unknown/completed/waiting/failed/invalid`。完成投影需要原Host提案、两个validation sidecar与原控制器结果相互对应。缺失回执或证据不一致时，状态反映当前未收口事实。研究页已展示验证时原版及候选选择、实际工具状态和JSON下载，invalid投影隐藏完成标签与比较。采用决定由队友外环单独保存，本轮CLI不代表页面已整合采用操作。
 
 一项reader定点回归、前端format、Lint、类型检查及构建通过。桌面及手机8张最终截图、JSON实际下载与API一致性、invalid客户端夹具及A63/A64切换均已核对。使用说明见[工作台](../../docs/local-workbench.md#主工作台只读展示)和[Host读取边界](../../docs/host-model-selection.md#工作台读取验证记录)。
 
