@@ -178,9 +178,19 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 2026-11-06，原A64项目先完成兼容代码登记，state 14→15，再通过页面填写显式理由，采用 `saved-a64` 外环及原 Host `a64-recipe-change` 的 keep 决定，state 15→16。当前有效配方为 `a62-quality-follow-up` v2、revision 1，普通刷新后仍显示该版本。
 
-默认 `ProjectController.next` 与 `selection_context.baseline_decision` 均读取 `policy_ref.kind=effective_recipe`、version 2、revision 1，当前选择 `data.grouped-quality-profile`。该下一步尚未执行，后轮 Host 请求仍待实际问题确定。本次新增研究、模型及工具调用为0，预算与 Host 记录沿原值保存，A63原24份文件及状态均一致。采用回执及原件核对保存在本机 ignored `runs/a76-effective-recipe-20261106/actual-adoption-result.json`。
+采用时，默认 `ProjectController.next` 与 `selection_context.baseline_decision` 均读取 `policy_ref.kind=effective_recipe`、version 2、revision 1，选择 `data.grouped-quality-profile`。A76当时尚未执行该下一步，新增研究、模型及工具调用为0，预算与 Host 记录沿原值保存，A63原24份文件及状态均一致。采用回执及原件核对保存在本机 ignored `runs/a76-effective-recipe-20261106/actual-adoption-result.json`，后续实际执行见下节。
 
 本次接线通过8项必要回归及前端format、lint、typecheck、build。默认推进在持有项目写入锁时再核对有效版本，期间已保存新版会拒绝过期提交。1440×900与390×844的8张最终全页及分段截图已实际查看，五页导航、原画布、键盘选择和刷新草稿均可用，两端无页面横向溢出，pageErrors与HTTP错误均为0。重复核对已保存的同一轮会显示“本轮决定已保存”并停用再次采用。有效版本与理由作为正文展示，原决定可展开核对。
+
+### A64有效v2的实际接续
+
+2026-11-07，原项目通过正常默认`advance`执行一次分组质量画像，原请求为`a77-effective-v2-grouped-20261107`。控制器冻结有效v2及revision 1，完成行动`action-30c32ef36b47dc91a7cfb13bbb3f9660`，state 16→20。沿相同请求ID和原expected version回读后，完整项目状态与累计用量一致。
+
+结果为4行、2个完整组，measurement有1个空值。按原CSV坐标回看，A、B组各2行，空值位于B组的逻辑记录3／物理行4。分组行动保存了前序质量检查与原件坐标，工具反馈要求补充采集和分组定义、缺失解释及来源资格。当前默认下一决定为waiting／`NO_MATCHING_HOST_CANDIDATE`。本地工具累计2/2，来源1/8，Host决策1/1；本次新增1次本地工具，模型、来源与拟合新增0。
+
+随后通过页面生成state20当前快照报告，6页PDF已逐页查看，PDF、JSON、Markdown及重现输入四下载均HTTP200且与manager导出逐字节一致。报告包含v2实际选择记录、分组画像和等待补资料的反馈，完整有效配方修订保留在`report.json.project.recipe_revisions`。运行证据在本机 ignored `runs/a77-effective-recipe-continuation-20261107/`。
+
+本例仍为四行构造工程输入，当前完成到“采用版本驱动实际方法并留下反馈”。新一轮Host提案及科研收益尚待实际任务确认。PDF沿用现有分页模板，第3页留白较大。
 
 ### 配方改进的开发接线
 
