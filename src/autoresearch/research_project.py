@@ -24,9 +24,12 @@ def _source_metadata(receipt):
 
 
 def code_identity():
+    from . import project_recipe, recipe_improvement
     from . import project_model_protocol
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
+                        "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
+                        "recipe_improvement": hashlib.sha256(Path(recipe_improvement.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})
@@ -227,7 +230,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
@@ -241,6 +244,15 @@ class ResearchProject:
                         for action in current["actions"] + current["evidence_actions"])
                 and not any(item["status"] in ("sending", "unknown") for item in project.get("source_requests", [])),
                 "EXECUTION_UNKNOWN", "Recover the original operation before accepting new work.")
+
+    def preview_recipe_round(self, round_input):
+        from .project_recipe import preview_recipe_round
+        return preview_recipe_round(self, round_input)
+
+    def apply_recipe_round(self, *, request_id, expected_state_version, round_input, reason):
+        from .project_recipe import apply_recipe_round
+        return apply_recipe_round(self, request_id=request_id, expected_state_version=expected_state_version,
+                                  round_input=round_input, reason=reason)
 
     def save_plan(self, *, request_id, expected_state_version, plan, reason):
         """Save an operator-authored plan revision without dispatching research."""

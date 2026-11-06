@@ -45,7 +45,7 @@ class LocalRecipeWorkbenchTests(unittest.TestCase):
         empty_db = self.manager.db.read_bytes()
         status, empty = self.request(disabled, "/api/local-workbench/recipes")
         self.assertEqual((status, empty), (200, {"schema_version": "local-research-recipes-v1", "project_id": None,
-                                              "state_version": None, "context_sha256": None, "recipes": []}))
+            "state_version": None, "context_sha256": None, "recipes": [], "effective_recipe": None}))
         self.assertEqual(self.manager.db.read_bytes(), empty_db)
         self.populate()
         core_bytes, manager_bytes = self.project.db.read_bytes(), self.manager.db.read_bytes()
@@ -118,6 +118,61 @@ class LocalRecipeWorkbenchTests(unittest.TestCase):
             model.assert_not_called()
         self.assertEqual((after_wait["budget"]["local_tool_calls_used"], after_wait["budget"]["evidence_reads_used"]), (2, 1))
         self.assertEqual((after_wait["budget"]["new_model_requests"], after_wait["budget"]["new_fits"]), (0, 0))
+
+    def test_saved_round_preview_adoption_readback_and_manager_recovery(self):
+        import test_recipe_improvement_adapter as adapter_fixtures
+        from autoresearch import recipe_improvement_adapter as adapter
+        from autoresearch.host_model_selection import HostModelSelection
+
+        fixture = adapter_fixtures.RecipeImprovementAdapterTests()
+        self.addCleanup(fixture.doCleanups)
+        fixture.setUp()
+        self.manager, self.project = fixture.manager, fixture.project
+        candidate = fixture.propose(grouped.TOOL_ID)
+        validation = adapter.validate_recipe_change(candidate, fixture.original, fixture.goal,
+            workspace=self.project.root, request_id=fixture.options["request_id"],
+            allowed_methods=[grouped.TOOL_ID], allowed_receipts=[])
+        proposal = adapter.propose_recipe_change(fixture.original, fixture.trace, fixture.goal,
+            response_file=fixture.response, **fixture.options)
+        method = candidate["candidate"]["ordered_methods"][0]
+        saved_input = {"schema_version": "recipe-improvement-input-v1", "round_id": "browser-saved-round",
+            "request_id": fixture.options["request_id"], "evidence_kind": "saved_host_validation",
+            "current_recipe": fixture.original, "trace": fixture.trace, "goal": fixture.goal,
+            "issue": {"summary": "Saved feedback needs the available follow-up.",
+                      "feedback_action_ids": candidate["feedback_action_ids"]},
+            "acceptance": method, "proposal_result": proposal, "validation_result": validation,
+            "previous_round": None, "next_question": "Read the effective version before choosing the next action."}
+        before = self.project.status()
+        host_before = HostModelSelection(self.project.root).status()
+        server = self.serve(local_workspace=self.manager, allow_local_actions=True)
+        headers = self.session(server)
+        preview_body = {"project_id": before["id"], "input": saved_input}
+        denied, error = self.request(server, "/api/local-workbench/recipe-preview", "POST", preview_body,
+                                     {**headers, "X-AutoResearch-CSRF": "invalid"})
+        self.assertEqual((denied, error["code"]), (403, "LOCAL_ORIGIN_REQUIRED"))
+        status, preview = self.request(server, "/api/local-workbench/recipe-preview", "POST", preview_body, headers)
+        self.assertEqual((status, preview["result"]["decision"]), (200, "keep"))
+        self.assertEqual(self.project.status(), before)
+        body = {"request_id": "browser-adopt-round", "project_id": before["id"],
+                "expected_state_version": before["state_version"], "input": saved_input,
+                "reason": "Keep the verified recipe for the next project decision."}
+        with patch.object(self.manager, "_save", side_effect=RuntimeError("Lost manager commit")):
+            status, failure = self.request(server, "/api/local-workbench/recipe-adopt", "POST", body, headers)
+        self.assertEqual((status, failure["code"]), (500, "LOCAL_COMMAND_FAILED"))
+        after = self.project.status()
+        self.assertEqual(after["recipe_revisions"][0]["recipe"]["version"], 2)
+        self.assertEqual(after["budget"], before["budget"])
+        self.assertEqual(after["actions"], before["actions"])
+        self.assertEqual(HostModelSelection(self.project.root).status(), host_before)
+        status, replay = self.request(server, "/api/local-workbench/recipe-adopt", "POST", body, headers)
+        self.assertEqual((status, replay["status"], replay["replayed"]), (200, "completed", True))
+        self.assertEqual(self.project.status(), after)
+        _, recipes = self.request(server, "/api/local-workbench/recipes")
+        self.assertEqual(recipes["effective_recipe"]["recipe"], candidate["candidate"])
+        self.assertEqual(recipes["recipes"][0]["recipe"], candidate["candidate"])
+        _, project_view = self.request(server, "/api/project")
+        self.assertEqual(project_view["recipe_revisions"][0]["request_id"], body["request_id"])
+        self.assertEqual(self.project.status()["budget"], before["budget"])
 
 
 if __name__ == "__main__":

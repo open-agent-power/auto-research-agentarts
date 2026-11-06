@@ -327,11 +327,12 @@ export async function mountLocalWorkbench(): Promise<void> {
   const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(["model-resume", "model-plan-adopt", "model-plan-reject"].includes(name)
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
     : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
-  const recipePanel = createLocalRecipePanel({ read, submit: body => submit(command("advance-recipe", body)), announce });
+  const recipePanel = createLocalRecipePanel({ read, preview: previewRecipe,
+    submit: (name, body) => submit(command(name, body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, feedbackPanel.element], feedback: feedbackPanel.element,
+    planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
     operations: [modelPanel.element, recipePanel.element, runSection, evidencePanel.element, batchPanel.element], read, announce });
   function otherModelBlockers(): boolean {
     return serverPending() || !!batchUncertain || !!evidencePending.get(activeId())?.uncertain
@@ -478,6 +479,16 @@ export async function mountLocalWorkbench(): Promise<void> {
     const value: unknown = await response.json(); if (!response.ok) throw Error("读取失败：" + text(obj(value).code, String(response.status)));
     return obj(value);
   }
+  async function previewRecipe(body: Obj): Promise<Obj> {
+    const response = await fetch("/api/local-workbench/recipe-preview", {
+      method: "POST", credentials: "same-origin", cache: "no-store",
+      headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") },
+      body: JSON.stringify(body), signal: AbortSignal.timeout(15000),
+    });
+    const result = obj(await response.json());
+    if (!response.ok) throw Error("外环核对失败：" + text(result.code, String(response.status)));
+    return result;
+  }
   function candidates(): void {
     candidateList.replaceChildren(); citationList.replaceChildren();
     if (!context) { contextStatus.textContent = activeId() ? "当前候选未载入；只读刷新可重新核对。" : "创建或选择项目后读取候选。"; controls(); return; }
@@ -613,6 +624,7 @@ export async function mountLocalWorkbench(): Promise<void> {
               : "配方请求已保存，请核对实际行动和原请求状态；没有自动继续。";
         }
         if (pending.command === "plan") outcomeMessage = "研究计划已保存。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
+        if (pending.command === "recipe-adopt") outcomeMessage = "外环决定已写入项目，后续配方决策将读取当前有效版本。";
         if (modelCommand) {
           const record = obj(result.model_record), outcome = obj(record.outcome), state = text(record.status, ""), actual = text(outcome.status, "尚未提交行动");
           const labels: Record<string, string> = { completed: "已完成", waiting: "已保存等待", failed: "失败，原记录保留", unknown: "未知，保留原请求核对" };
@@ -654,6 +666,10 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.command === "feedback" && items(current.researcher_feedback).some(record => record.request_id === pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
       outcomeMessage = "研究反馈已从保存记录中确认，将作为后续模型计划的参考。";
+    }
+    if (pending.command === "recipe-adopt" && items(current.recipe_revisions).some(record => record.request_id === pending.requestId)) {
+      pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
+      outcomeMessage = "已从项目保存记录确认外环决定，当前有效配方可供后续决策使用。";
     }
     if (modelPanel.decisionResolved(pending.command, pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;

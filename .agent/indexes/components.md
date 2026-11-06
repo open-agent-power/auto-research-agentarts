@@ -10,7 +10,7 @@
 | 研究者意见 | [local-workbench.ts](../../frontend/src/local-workbench.ts)、[project-view.ts](../../frontend/src/project-view.ts)、[project-pages.ts](../../frontend/src/project-pages.ts) | 原研究页表单保存作者、评论、后续建议及可选行动绑定，总览显示最近2条并可展开原记录，`focus=feedback`定位表单。复用草稿与原ID恢复，回执不明时只读确认保存记录；意见标为未核验研究者陈述，工程联调与真实用户反馈分别记录 |
 | 可操作本地项目五页 | [local-workbench.ts](../../frontend/src/local-workbench.ts)、[project-pages.ts](../../frontend/src/project-pages.ts) | 操作DOM只创建一次，五个hash页共用实际项目；`renderProjectPage`显式分派原section，不把CSV映射为历史P02 trials |
 | 本地工作台的明确模型选择 | [local-model.ts](../../frontend/src/local-model.ts) | 位于研究页展开操作区，复用宿主原请求日志；显示累计grant、模型解释/控制器结果、CLI路由与原生/外部用量，沿原ID核对 |
-| 本地工作台的确定性配方 | [local-recipe.ts](../../frontend/src/local-recipe.ts)、[local-workbench.ts](../../frontend/src/local-workbench.ts) | 原研究操作区预览两正式配方，按项目/版本/context核对；明确一步或等待，沿原请求恢复；选择记录由project-view区分配方身份 |
+| 本地工作台的确定性配方 | [local-recipe.ts](../../frontend/src/local-recipe.ts)、[local-workbench.ts](../../frontend/src/local-workbench.ts) | 研究正文显示当前有效版本和采用理由；原操作区核对保存的外环input.json，再显式采用或记录回退。预览包含有效配方和两份示例，以id＋version区分，刷新使旧核对失效并保留草稿，已保存轮次停用重复采用。后续一步仍须明确提交，沿原请求恢复 |
 | 本地项目真实研究画布 | [project-flow.ts](../../frontend/src/project-flow.ts)、[c01-app.ts](../../frontend/src/c01-app.ts) | 复用C01Board/X6，显示实际课题/资料/行动/反馈/待办；原记录引用与项目包含关系分开，布局仅存浏览器 |
 | 材料/软件独立项目入口 | [app.ts](../../frontend/src/app.ts)、[project-view.ts](../../frontend/src/project-view.ts) | `data-case=project`→`mountStandaloneProject`，沿用玻璃外壳，只保留可用项目入口，隐藏封存五页/全局搜索；P02仍由原shell挂载`#/project` |
 | 当前快照报告与下载 | [project-view.ts](../../frontend/src/project-view.ts)、[project_workbench.py](../../src/autoresearch/project_workbench.py) | API的`report.available/stale`控制当前PDF/JSON，过期禁用；P02顶部封存PDF/ZIP保持独立，不能替代项目报告 |

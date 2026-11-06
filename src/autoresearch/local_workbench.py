@@ -300,23 +300,62 @@ class LocalWorkbench:
 
     def recipes(self):
         view = {"schema_version": "local-research-recipes-v1", "project_id": None,
-                "state_version": None, "context_sha256": None, "recipes": []}
+                "state_version": None, "context_sha256": None, "recipes": [], "effective_recipe": None}
         with self._connect(readonly=True) as con:
             active = self._active(con)
             project = self._project(con, active)[1] if active is not None else None
         if project is None:
             return view
         context = ProjectController(project.root).selection_context()
+        revisions = project.status().get("recipe_revisions", [])
+        effective = revisions[-1] if revisions else None
+        recipes = [effective["recipe"]] if effective is not None else []
         directory = Path(__file__).resolve().parents[2] / "examples/research-recipes"
         for name in ("tabular-group-first.json", "tabular-source-first.json"):
             recipe = parse_json(reader._read_file(safe_path(directory / name), MAX_RECIPE_BYTES),
                                 maximum=MAX_RECIPE_BYTES, code="INVALID_RESEARCH_RECIPE")
+            if any((item["id"], item["version"]) == (recipe["id"], recipe["version"]) for item in recipes):
+                continue
+            recipes.append(recipe)
+        for recipe in recipes:
             view["recipes"].append({"recipe": recipe, "decision": compile_recipe(recipe, context)})
         _require(project.status()["snapshot_ref"] == context["snapshot_ref"],
                  "STALE_STATE", "Project changed while previewing recipes.")
         view.update(project_id=context["project_id"], state_version=context["state_version"],
-                    context_sha256=context["context_sha256"])
+                    context_sha256=context["context_sha256"], effective_recipe=copy.deepcopy(effective))
         return view
+
+    def preview_recipe_round(self, body):
+        _require(type(body) is dict and set(body) == {"project_id", "input"},
+                 "INVALID_REQUEST", "Provide the project and complete saved round input.")
+        with self._connect(readonly=True) as con:
+            _, project = self._project(con, body["project_id"], active=True)
+        before = project.status()
+        result = project.preview_recipe_round(body["input"])
+        _require(project.status()["snapshot_ref"] == before["snapshot_ref"],
+                 "STALE_STATE", "Project changed while verifying the saved round.")
+        return {"schema_version": "local-recipe-preview-v1", "project_id": before["id"],
+                "state_version": before["state_version"], "result": result}
+
+    def adopt_recipe_round(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "input", "reason"))
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                old = self._old(con, body, digest)
+                if old is not None and old["status"] == "completed":
+                    return self._completed(old)
+                if old is None:
+                    self._accept(con, body, digest, "adopt_recipe_round", {"project_id": body["project_id"]})
+            revision = project.apply_recipe_round(request_id=body["request_id"],
+                expected_state_version=body["expected_state_version"], round_input=body["input"], reason=body["reason"])
+            response = self._response("recipe-adopt", body["request_id"], body["project_id"],
+                                      status="completed", recipe_revision=revision, replayed=old is not None)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status": "completed", "result": response,
+                                                    "intent": {"project_id": body["project_id"]}})
+            return response
 
     def advance_recipe(self, body):
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "recipe"))

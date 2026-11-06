@@ -149,13 +149,38 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 ## 按配方推进一步
 
-进入“研究推进”，展开画布下方的操作区，在“按配方推进”中选择“先看分组，再读来源”或“先读来源，再看分组”。页面显示实际配置版本、方法顺序和当前预览；预览由同一项目的真实候选编译，读取或换选项都不执行。
+进入“研究推进”，在主内容区的“当前有效配方”阅读已保存版本、采用或回退决定及理由。展开画布下方的操作区，在“按配方推进”中选择本次配置。选项按实际方法顺序和版本显示，已保存的有效配方排在首位。预览由同一项目的真实候选编译。
 
 点“按此配方推进一步”才会提交最多一个合法行动；没有匹配候选时可明确保存本次等待。完成后读取新反馈，预览可能转到后一项方法。配方不启动模型、不改变工具参数或增加额度，原始值、未知和来源要求继续保留。它与“模型建议与行动”、手工选择、有界批次分别操作。
 
 刷新会先停用旧预览，再核对项目、版本及 context；读取失败保留配方选择并显示错误，不能提交旧预览。换页保留选择。请求身份、原配方、原版本和实际结果由既有控制器保存；网络结果不明时核对原请求，不能换 ID 重发。方法选择记录区标明配方 id/version、顺序与取舍，完整原件和报告仍沿用原入口。
 
-网页只读接口为 `GET /api/local-workbench/recipes`，固定读取两份正式配方，返回 `project_id/state_version/context_sha256/recipes`；每项包含 `recipe/decision`。无活动项目返回 null/空列表。`POST /api/local-workbench/advance-recipe` 只接受 `request_id/project_id/expected_state_version/recipe`，沿用启动写操作开关、本机会话、活动项目和未完成操作限制，`need` 固定为 `next_check`。配置全文进入原请求，原 ID 重放保留当时的配置与 context，不重新选当前候选。CLI 用法见[配方集成](recipe-research/integration.md)。
+网页只读接口为 `GET /api/local-workbench/recipes`，返回 `project_id/state_version/context_sha256/recipes/effective_recipe`。`effective_recipe` 是项目最后一条 `recipe_revisions` 记录或 null，内含完整 `recipe`、决定、原轮次与模型请求、保存理由及依据。`recipes` 每项包含 `recipe/decision`，先列有效配方，再列两份正式配方，按 id/version 去重。无活动项目返回 null/空列表。
+
+`POST /api/local-workbench/advance-recipe` 接受 `request_id/project_id/expected_state_version/recipe`，沿用启动写操作开关、本机会话、活动项目和未完成操作限制，`need` 固定为 `next_check`。配置全文进入原请求，原 ID 重放使用当时保存的配置与 context。CLI 用法见[配方集成](recipe-research/integration.md)。
+
+### 核对外环并保存有效版本
+
+在“按配方推进”下方的“保存外环决定”选择已保存的完整 `input.json`，文件上限 4 MiB，再点“核对已保存外环”。宿主会重新计算工程判据，并核对原项目的 Host context、prompt、回答、提案、验证原件及控制器回执。文件须属于当前项目并对应原 Host 保存记录。
+
+核对结果展示原版、候选和本轮有效版本、原 round/request 引用、逐项判据及原说明。`keep` 表示本轮判据支持候选，填写非空理由后点“采用 vN”。`revert` 表示保存原版为有效配方，点“记录回退，保留 vN”。`pending` 表示原提案或验证尚未收口，采用按钮停用，先核对原 Host 请求。既有验证行动和累计用量继续保存在原账本。
+
+| 接口 | 请求字段 | 返回内容 |
+|---|---|---|
+| `POST /api/local-workbench/recipe-preview` | `project_id/input` | `local-recipe-preview-v1`，含当前项目版本及原生 `recipe-improvement-result-v1` 结果 |
+| `POST /api/local-workbench/recipe-adopt` | `request_id/project_id/expected_state_version/input/reason` | 标准本地 completed 回执及 `recipe_revision` |
+
+核对使用只读路径。保存决定时，宿主再次核对原件与当前项目版本，理由最多2000字，追加 `recipe_revisions` 并使项目 state 版本加1。后续默认 `ProjectController.next/advance` 读取最后保存的有效配方，在当前真实候选上重新编译。原请求重放继续使用其冻结版本。
+
+切页保留文件和理由草稿，切换项目按项目恢复草稿并清除外来预览。只读刷新也会停用旧预览，须重新核对后保存。busy、unknown、过期或核对错误时采用停用。保存回执不明时只读刷新，按原请求 ID 查项目 `recipe_revisions` 再恢复。[外环决定与证据范围](recipe-research/rsi-delivery.md)
+
+### A64页面采用与默认读取
+
+2026-11-06，原A64项目先完成兼容代码登记，state 14→15，再通过页面填写显式理由，采用 `saved-a64` 外环及原 Host `a64-recipe-change` 的 keep 决定，state 15→16。当前有效配方为 `a62-quality-follow-up` v2、revision 1，普通刷新后仍显示该版本。
+
+默认 `ProjectController.next` 与 `selection_context.baseline_decision` 均读取 `policy_ref.kind=effective_recipe`、version 2、revision 1，当前选择 `data.grouped-quality-profile`。该下一步尚未执行，后轮 Host 请求仍待实际问题确定。本次新增研究、模型及工具调用为0，预算与 Host 记录沿原值保存，A63原24份文件及状态均一致。采用回执及原件核对保存在本机 ignored `runs/a76-effective-recipe-20261106/actual-adoption-result.json`。
+
+本次接线通过8项必要回归及前端format、lint、typecheck、build。默认推进在持有项目写入锁时再核对有效版本，期间已保存新版会拒绝过期提交。1440×900与390×844的8张最终全页及分段截图已实际查看，五页导航、原画布、键盘选择和刷新草稿均可用，两端无页面横向溢出，pageErrors与HTTP错误均为0。重复核对已保存的同一轮会显示“本轮决定已保存”并停用再次采用。有效版本与理由作为正文展示，原决定可展开核对。
 
 ### 配方改进的开发接线
 
@@ -165,11 +190,11 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 ### 主工作台只读展示
 
-研究计划与X6画布之间已接入紧凑的“配方改进”卡，读取已保存的提案与验证证据。A64记录展示原版v1、候选v2，验证时冻结的原版等待与候选读取来源，实际工具验证completed及模型理由。可定位原记录并下载验证JSON。采用或回退决定由待实现的队友外环提供。
+研究计划与X6画布之间已接入紧凑的“配方改进”卡，读取已保存的提案与验证证据。A64记录展示原版v1、候选v2，验证时冻结的原版等待与候选读取来源，实际工具验证completed及模型理由。可定位原记录并下载验证JSON。外环决定可通过上节入口核对后明确保存，主内容区的“当前有效配方”显示项目已保存的决定。
 
 模型视图GET通过独立`recipe_validations`数组，逐项投影原Host提案、验证输入与结果及控制器回执，`records`保留原Host记录。[read_recipe_validation](../src/autoresearch/recipe_improvement_adapter.py)返回状态、输入、结果和错误，仅投影已保存证据。完成状态需要原证据完整且相互对应，invalid投影隐藏完成标签与比较。接口与状态见[只读投影约定](../.agent/indexes/interfaces.md#配方验证只读投影)。
 
-一项定点reader回归通过，前端format、Lint、类型检查和构建通过。桌面及手机8张最终全页与分段图已实际查看并完成排版调整，两端无页面横向溢出，验证JSON实际下载与reader view逐值一致。五页正常点击、报告reader及A63/A64切换均已核对，页面错误和HTTP失败为空，实际服务JS及CSS与最终构建一致。invalid客户端夹具隐藏完成标签与比较，原A64 v13、A63 v11的core及Host完整状态逐值一致，API records逐条等于原Host记录。方法卡、采用或回退和后轮管理由队友按长期任务负责。
+原只读展示轮的一项定点reader回归通过，前端format、Lint、类型检查和构建通过。桌面及手机8张最终全页与分段图已实际查看并完成排版调整，两端无页面横向溢出，验证JSON实际下载与reader view逐值一致。五页正常点击、报告reader及A63/A64切换均已核对，页面错误和HTTP失败为空，实际服务JS及CSS与最终构建一致。invalid客户端夹具隐藏完成标签与比较，原A64 v13、A63 v11的core及Host完整状态逐值一致，API records逐条等于原Host记录。这些是当时只读投影的验收记录，本次有效配方保存结果见上节。
 
 ## 在同一项目登记资料，再明确读取
 

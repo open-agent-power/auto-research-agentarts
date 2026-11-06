@@ -141,6 +141,7 @@ def _projection(project, state, report=None):
                 method_options=research_methods.match_methods(state), scientific_validation=False)
     revisions = state.get("plan_revisions", [])
     view["research_plan"] = {"current": revisions[-1] if revisions else None, "revisions": revisions}
+    view["recipe_revisions"] = copy.deepcopy(state.get("recipe_revisions", []))
     public_view = _public(view, project)
     public_view["researcher_feedback"] = copy.deepcopy(state.get("researcher_feedback", []))
     return public_view
@@ -346,6 +347,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
                             "/api/local-workbench/advance-recipe": "advance_recipe",
+                            "/api/local-workbench/recipe-preview": "preview_recipe_round",
+                            "/api/local-workbench/recipe-adopt": "adopt_recipe_round",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
                             "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume",
                             "/api/local-workbench/model-plan-advance": "model_plan_advance",
