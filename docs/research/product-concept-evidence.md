@@ -6,7 +6,7 @@
 
 Elicit已提供可回改的综述步骤，Perplexity公开说明会调整研究路线，当前Kosmos进一步描述持久编码Agent与交互反馈。可修改计划、长期项目和多Agent由这些来源共同确认为已有产品机制。本项目的差异主张转向实际任务中检查依据、作出研究判断和继续工作的体验，收益需要使用证据。[Elicit](https://elicit.com/blog/systematic-review)、[Perplexity](https://perplexity.ai/help-center/en/articles/10738684-what-is-research-mode)、[Kosmos 2026工程说明](https://advances.edisonscientific.com/research/how-we-built-kosmos)
 
-能力优先级据此调整为问题具体化、受约束的实际分析、主要结论关联依据，以及AgentArts实际接通。资料检索和通用Host优先复用现成能力，方法和执行按原控制器接入。队友配方与RSI外环依用户指令暂缓，主开发后续推进平台自动化尝试。完整比较和分阶段结果统一在[调研决策](product-landscape-20261106.md#5-能力引进与优化决策)维护。
+能力方向据此调整为问题具体化、受约束的实际分析、主要结论关联依据，以及AgentArts实际接通。PR #19已合并方法卡基础，当前先由主开发补A64只读交接、队友消费已有提案与验证，接上显式采用或回退及理由、有效版本和后轮读取。主开发整合本地这段闭环后推进平台自动化尝试。OKS与集群保留为后续方向。完整比较和分阶段结果统一在[调研决策](product-landscape-20261106.md#5-能力引进与优化决策)维护。
 
 ## 产品建议与证据怎样对应
 
@@ -56,7 +56,7 @@ Elicit已提供可回改的综述步骤，Perplexity公开说明会调整研究�
 
 产品目标参照[底层架构](../architecture/foundation.md)与[研究契约](../architecture/research-contracts.md)。当前能力参照[配方接入](../recipe-research/integration.md)、[宿主模型选择](../host-model-selection.md)、[项目知识](../../src/autoresearch/project_knowledge.py)和[条件记忆说明](../research-memory.md)。
 
-现有配方编译器的字段和匹配逻辑位于[research_recipe.py](../../src/autoresearch/research_recipe.py)，主要按范围和预写方法顺序选候选。当前模型提案协议位于[project_selection.py](../../src/autoresearch/project_selection.py)，接收候选选择、理由和引用。可修改计划、模型提案采用、研究者意见与版本比较已经接通，实际范围见[工作台](../local-workbench.md)与[模型接入](../host-model-selection.md)。当前缺口主要是通用研究分析与结论依据的关联。
+现有配方编译器的字段和匹配逻辑位于[research_recipe.py](../../src/autoresearch/research_recipe.py)，主要按范围和预写方法顺序选候选。PR #19已合并方法卡读取、校验和宿主候选关联，保留未核验条件说明，实际范围见[方法卡设计](../recipe-research/recipe-design.md)。当前模型提案协议位于[project_selection.py](../../src/autoresearch/project_selection.py)，接收候选选择、理由和引用。可修改计划、模型提案采用、研究者意见与版本比较已经接通，实际范围见[工作台](../local-workbench.md)与[模型接入](../host-model-selection.md)。A64已有提案和验证供[离线接续](../recipe-research/a64-rsi-handoff.md)复用，采用或回退、有效版本和后轮读取仍待下一份PR接通。研究能力缺口继续包括通用研究分析与结论依据的关联。
 
 已有[固定流程比较](../policy-comparison.md)保留其同路线结果；某一次工作簿核对、来源读取或接口重放的成功，不被扩大成配方收益、跨域科研有效性或自我改进完成。
 
