@@ -4,8 +4,8 @@
 
 ## 已实现的入口
 
-- `src/autoresearch/recipe_improvement.py`：`run_improvement_round`接收原配方、完整`research-plan-context-v1`、原目标、`propose_recipe_change`格式的返回值及已有`recipe-change-validation-v1`结果。输出决定、逐项检查、可读理由、有效配方和下一项问题。`read_improvement_round`重新核对保存记录。
-- `scripts/run_recipe_improvement.py`：`fixture`处理明确构造输入；`saved-host`通过已有`read_recipe_validation`核对原Host、验证sidecar及控制器账本，仅读取，不调用`propose/validate/advance`或恢复执行。实际模型和工具接线仍由主开发负责。
+- `src/autoresearch/recipe_improvement.py`：`run_improvement_round`接收原配方、完整`research-plan-context-v1`、原目标、`propose_recipe_change`格式的返回值及已有`recipe-change-validation-v1`结果。输出决定、逐项检查、可读理由、有效配方和下一项问题。显式 `resume=True` 可在同一轮追加新的保存回执。`read_improvement_round`重新核对并返回最新完整阶段，`read_improvement_snapshot`另提供对应原生输入和 `input_path`。
+- `scripts/run_recipe_improvement.py`：`fixture`处理明确构造输入；`saved-host`通过已有`read_recipe_validation`核对原Host、验证sidecar及控制器账本，`--resume`继续同一外环记录。CLI始终输出当前最新完整阶段的 `input_path`。实际模型和工具接线仍由主开发负责。
 - 项目与工作台通过 `preview_recipe_round/apply_recipe_round` 核对原 Host 保存记录并追加 `recipe_revisions`。研究页展示当前有效版本，上传完整 `input.json` 后先核对，再填写理由明确采用或记录回退。操作步骤与 HTTP 字段见[工作台说明](../local-workbench.md#核对外环并保存有效版本)。
 
 完整函数签名以源码为准。普通Python调用直接将既有适配返回值作为函数参数，无动态插件、进程或表达式。`evidence_kind`是证据来源类别，不证明真实用户、真实模型调用或科学效果；直接函数调用者必须提供可信的适配结果。脱离原账本的任意JSON只能使用`fixture`入口，不能作为Host验证原件。
@@ -29,15 +29,19 @@
 
 ## 保存和下一轮
 
-每轮在`<output>/<round-id>/`保存三份原子发布的JSON：
+每轮首次在 `<output>/<round-id>/` 逐文件不可变发布三份JSON，三件套完整后才作为可读取的当前阶段。
 
 - `input.json`：原配方、完整反馈、问题、目标、验收对、完整提案与验证、前轮结果及其SHA。
 - `result.json`：`recipe-improvement-result-v1`，含`decision/reason/explanation/checks`、原版／候选版本、`effective_recipe`、前轮ID和决定、下一项问题；始终`scientific_validation:false`。
 - `effective-recipe.json`：与结果逐项相等的当前有效原生配方。
 
-沿用原有目录writer lock和`write_bytes_once`，不新增数据库。相同轮ID／输入重放不覆盖；中断在原子文件发布之间可用完全相同输入补齐。不同输入使用同轮ID会拒绝。读取前轮重新计算决定、核对有效配方，后轮必须传该版本，并保持同项目和同证据类别；被拒候选不能污染后轮。
+沿用原有目录writer lock和 `write_bytes_once`。相同轮ID和相同最新输入重放复用该阶段。显式接续时，新的 `proposal_result/validation_result` 保存到同轮 `stages/0001/`、`stages/0002/` 等目录，各有同样三件套，原根目录和已保存阶段保留原字节。round／Host请求ID、原配方、冻结trace、目标、问题、判据、前轮和下一问题均固定，已保存候选及其来源引用也须一致，completed终态保持冻结。
 
-传`previous_round_id`或CLI的`--previous-round-id`显式关联前轮。前轮决定及下一项问题保存在新轮输入，可供主开发／研究者确定下一目标；首版不会自动生成新目标或自动申请资源。未知／待验证快照保持不可变，先由原Host完成核对，随后用新**外环记录ID**读取同一**Host请求ID**；这不是新模型／工具请求。完整阶段内接续和资源受限连续调度留在队列第4项。
+只读入口遇到合法半写阶段时返回前一个完整阶段，已存在的不一致记录会报错。`resume=True`先按半写阶段已保存的input补齐，再处理新的回执。原pending记录继续保留其当时状态，新的阶段反映原Host提案与验证的后续结果。Host或控制器原请求的执行与回执核对由原入口处理，外环接续读取这些保存事实。控制器完成但验证回执缺失时仍保存pending。
+
+传 `previous_round_id` 或CLI的 `--previous-round-id` 显式关联下一轮的前轮。读取前轮时重新核对最新完整结果，前轮须已completed，后轮原配方须等于其有效版本，并保持同项目和证据类别。前轮决定及下一项问题保存在新轮输入，供研究者确定下一目标。
+
+两项新增定点检查已通过，覆盖 prepared→proposed→验证终态的同轮接续、半写阶段补齐、损坏记录拒绝、原pending字节保留、终态冻结，以及CLI读取前后原Host、控制器、预算和项目文件一致。另运行受影响的原子发布恢复与旧两轮CLI演示，两项均通过。日志保存在本机 ignored `runs/a80-feedback-stage-resumption-20261107/new-tests.log` 和 `existing-tests.log`。Host阶段演进使用隔离工程项目与构造回答，真实研究多轮推进仍需对应任务记录。
 
 ### 保存到项目并供控制器使用
 
@@ -66,13 +70,17 @@
 
 ```powershell
 .venv/Scripts/python.exe -B scripts/run_recipe_improvement.py saved-host --workspace <原Host项目目录> --request-id a64-recipe-change --spec <本轮spec.json> --output runs/recipe-rsi-real --round-id saved-a64
+# 原请求的提案或验证后来取得新回执时，沿同round-id明确接续
+.venv/Scripts/python.exe -B scripts/run_recipe_improvement.py saved-host --workspace <原Host项目目录> --request-id a64-recipe-change --spec <同一本轮spec.json> --output runs/recipe-rsi-real --round-id saved-a64 --resume
 # 后轮有自己的原Host请求、原冻结反馈／配方及spec；原配方须等于前轮有效版本
 .venv/Scripts/python.exe -B scripts/run_recipe_improvement.py saved-host --workspace <同一项目目录> --request-id <后轮原Host请求ID> --spec <后轮spec.json> --output runs/recipe-rsi-real --round-id next-round --previous-round-id saved-a64
 ```
 
-第二条不是自动发起新轮的命令，只消费已经存在的后轮请求。`--output`选独立外环目录，不选原项目目录。成功读取包括pending状态均退出0，非法／不一致输入退出2。没有原Host项目时不要伪造workspace或重新执行A64来凑结果。
+三条命令分别保存首个阶段、继续同轮、读取已有后轮请求。`--output`选独立外环目录。接续后按CLI返回的 `input_path` 选择文件交给工作台核对及采用，例如 `saved-a64/stages/0002/input.json`；根目录 `input.json`继续保存首次观察，可能仍为pending。成功读取包括pending状态均退出0，非法／不一致输入退出2。没有原Host项目时，使用明确构造的fixture演示。
 
 ## 原单轮模块的验证记录
+
+2026-11-07，同轮接续新增两项必要验证：prepared→proposed→验证终态、半写恢复与不可变原件；以及正常`saved-host --resume`对原Host、控制器与预算无新增写入。另两项受影响的原发布中断／双轮CLI回归通过。原A64已完成Host账本也由新版CLI读取，终态接续重放一致，未执行其研究。阶段演进验证来自隔离工程项目和构造回答；真实研究中的阶段演进及多轮配方收益仍待实际记录。原件位于本机ignored `runs/a80-feedback-stage-resumption-20261107/`。
 
 针对性检查覆盖采用、失败／等待／拒绝回退、未决不采用、仅改变选择不采用、目标已满足不采用、原版和候选不可变、原件及身份不一致拒绝、前轮篡改拒绝、旧版本不能接续、原子发布中断补齐、实际CLI两轮及重放。另在新建构造项目通过原适配器保存一份验证，再运行`saved-host`CLI，核对读取前后项目、Host记录及所有已有文件字节不变，篡改原控制器回执后入口拒绝。该检查的本地工具仅作用于隔离测试数据，导入的模型回答仍是构造的，不是实际模型调用。
 
@@ -105,7 +113,7 @@ A76采用验证结束时，该下一步尚未执行，原A64仍无基于有效v2
 ### 后续工作
 
 1. 原A64有效v2已驱动一次分组画像并生成当前报告，四行工程样例已收口。下一项从真实研究材料中的未决问题选择，明确所需分析、来源与资源后接续。离线材料包保留为工程证据，`saved-host`入口继续通过原数据库和控制器账本核对。
-2. **P1，接续与连续推进**：单轮只读消费已实现；pending原ID核对、同轮阶段接续、资源边界与连续调度按实际需要实现，不用新外环记录绕过原Host未决状态。
+2. **P1，真实多轮与验收类型**：同轮保存阶段接续已接入，prepared／pending可读取原提案与验证的后续回执，资源受限的真实多轮调度按实际任务继续。原Host未决状态先沿原入口核对。
 3. **P2，扩充验收类型与结构化条件**：现判据只覆盖遗漏目标方法，文本条件不自动求值。根据真实问题增加小型、可比较的判据，不用选择变化代替收益。
 
 后续从合并后的 main 选择依赖已满足的一项，围绕实际后轮问题推进中断接续或新的保存结果消费。PR合并由主开发执行。

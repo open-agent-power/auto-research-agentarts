@@ -22,9 +22,135 @@ class RecipeImprovementTests(unittest.TestCase):
         self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.directory = self.root / "rounds"
 
-    def run_round(self, inputs=None, round_id="round-1", previous=None):
+    def run_round(self, inputs=None, round_id="round-1", previous=None, *, resume=False):
         return improvement.run_improvement_round(**(inputs or fixture_inputs()), directory=self.directory,
-            round_id=round_id, previous_round_id=previous, evidence_kind="synthetic_engineering_fixture")
+            round_id=round_id, previous_round_id=previous, evidence_kind="synthetic_engineering_fixture", resume=resume)
+
+    def test_same_round_stage_resume_preserves_snapshots_and_recovers_publication(self):
+        terminal = fixture_inputs()
+        prepared = copy.deepcopy(terminal)
+        prepared["proposal_result"].update(status="prepared", candidate=None, response_ref=None)
+        prepared["validation_result"] = None
+        initial = self.run_round(prepared)
+        folder = self.directory / "round-1"
+        originals = {path: path.read_bytes() for path in folder.glob("*.json")}
+        proposed = copy.deepcopy(terminal)
+        proposed["validation_result"] = None
+        with self.assertRaises(ResearchError):
+            self.run_round(proposed)
+        write = improvement.write_bytes_once
+
+        def interrupt(path, raw):
+            if path.parent.name == "0001" and path.name == "effective-recipe.json":
+                raise KeyboardInterrupt("Constructed interruption before a stage becomes complete")
+            return write(path, raw)
+
+        with patch.object(improvement, "write_bytes_once", side_effect=interrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_round(proposed, resume=True)
+        snapshot = improvement.read_improvement_snapshot(self.directory, "round-1")
+        self.assertEqual(snapshot["result"], initial)
+        self.assertEqual(Path(snapshot["input_path"]), folder / "input.json")
+        partial = folder / "stages/0001/result.json"
+        original_partial = partial.read_bytes()
+        altered = json.loads(original_partial)
+        altered["decision"] = "keep"
+        partial.write_bytes(canonical(altered).encode("utf-8"))
+        with self.assertRaises(ResearchError):
+            improvement.read_improvement_round(self.directory, "round-1")
+        with self.assertRaises(ResearchError):
+            self.run_round(terminal, resume=True)
+        self.assertFalse((folder / "stages/0002").exists())
+        partial.write_bytes(original_partial)
+        changed_candidate = copy.deepcopy(proposed)
+        changed_candidate["proposal_result"]["candidate"]["expected_improvement"] = "Different saved model text."
+        with self.assertRaises(ResearchError):
+            self.run_round(changed_candidate, resume=True)
+        self.assertFalse((folder / "stages/0001/effective-recipe.json").exists())
+        result = self.run_round(terminal, resume=True)
+        self.assertEqual(result["decision"], "keep")
+        self.assertEqual(improvement.read_improvement_round(self.directory, "round-1"), result)
+        snapshot = improvement.read_improvement_snapshot(self.directory, "round-1")
+        self.assertEqual(Path(snapshot["input_path"]), folder / "stages/0002/input.json")
+        self.assertEqual(snapshot["input"]["proposal_result"], terminal["proposal_result"])
+        self.assertEqual(json.loads(partial.read_bytes())["decision"], "pending")
+        self.assertEqual({path: path.read_bytes() for path in originals}, originals)
+        all_bytes = {path: path.read_bytes() for path in folder.rglob("*.json")}
+        self.assertEqual(self.run_round(terminal, resume=True), result)
+        self.assertEqual({path: path.read_bytes() for path in folder.rglob("*.json")}, all_bytes)
+        changed_goal = copy.deepcopy(terminal)
+        changed_goal["issue"]["summary"] = "A different issue after the original round completed."
+        failed = copy.deepcopy(terminal)
+        failed["validation_result"]["status"] = failed["validation_result"]["controller_outcome"]["status"] = "failed"
+        for changed in (changed_goal, failed, prepared):
+            with self.assertRaises(ResearchError):
+                self.run_round(changed, resume=True)
+        self.assertEqual({path: path.read_bytes() for path in folder.rglob("*.json")}, all_bytes)
+        next_round = self.run_round(fixture_inputs(result["effective_recipe"], request_id="next"), "round-2", "round-1")
+        self.assertEqual((next_round["base_version"], next_round["previous_decision"]), (2, "keep"))
+
+    def test_saved_host_cli_resumes_same_round_without_host_or_controller_writes(self):
+        import test_recipe_improvement_adapter as adapter_fixtures
+        from autoresearch import recipe_improvement_adapter as adapter
+        from autoresearch.host_model_selection import HostModelSelection
+        from autoresearch.research_plan_proposal import build_context
+
+        fixture = adapter_fixtures.RecipeImprovementAdapterTests()
+        self.addCleanup(fixture.doCleanups)
+        fixture.setUp()
+        trace = build_context(fixture.project)
+        prepared = adapter.propose_recipe_change(fixture.original, trace, fixture.goal, **fixture.options)
+        self.assertEqual(prepared["status"], "prepared")
+        request_id = fixture.options["request_id"]
+        spec = {"issue": {"summary": "Continue this saved Host round as its actual receipts arrive.",
+                          "feedback_action_ids": [fixture.project.status()["actions"][0]["id"]]},
+                "acceptance": GROUPED, "next_question": "Inspect actual source conditions next."}
+        spec_path = self.root / "resume-spec.json"
+        spec_path.write_bytes(canonical(spec).encode("utf-8"))
+        command = [sys.executable, "-B", str(ROOT / "scripts/run_recipe_improvement.py"), "saved-host",
+            "--workspace", str(fixture.project.root), "--request-id", request_id, "--spec", str(spec_path),
+            "--output", str(self.directory), "--round-id", "same-host-round"]
+
+        def run_cli(*, resume=False):
+            state = fixture.project.status()
+            host = HostModelSelection(fixture.project.root).status()
+            files = {path: path.read_bytes() for path in fixture.project.root.rglob("*") if path.is_file()}
+            completed = subprocess.run(command + (["--resume"] if resume else []),
+                capture_output=True, text=True, encoding="utf-8", timeout=30)
+            self.assertEqual(completed.returncode, 0, completed.stderr + completed.stdout)
+            self.assertEqual(fixture.project.status(), state)
+            self.assertEqual(HostModelSelection(fixture.project.root).status(), host)
+            self.assertEqual({path: path.read_bytes() for path in fixture.project.root.rglob("*") if path.is_file()}, files)
+            return json.loads(completed.stdout)
+
+        first = run_cli()
+        self.assertEqual((first["decision"], Path(first["input_path"]).parent.name), ("pending", "same-host-round"))
+        initial_files = {path: path.read_bytes() for path in (self.directory / "same-host-round").glob("*.json")}
+        candidate = fixture.propose(GROUPED["method_id"])
+        pending = run_cli(resume=True)
+        self.assertEqual((pending["decision"], Path(pending["input_path"]).parent.name), ("pending", "0001"))
+        validation_options = {"workspace": fixture.project.root, "request_id": request_id,
+                              "allowed_methods": [GROUPED["method_id"]], "allowed_receipts": []}
+        write = adapter.write_bytes_once
+
+        def interrupt_receipt(path, raw):
+            if path.name == "validation-result.json":
+                raise KeyboardInterrupt("Constructed interruption after original fixture controller completion")
+            return write(path, raw)
+
+        with patch.object(adapter, "write_bytes_once", side_effect=interrupt_receipt):
+            with self.assertRaises(KeyboardInterrupt):
+                adapter.validate_recipe_change(candidate, fixture.original, fixture.goal, **validation_options)
+        self.assertEqual(run_cli(resume=True), pending)
+        committed = fixture.project.status()
+        adapter.validate_recipe_change(candidate, fixture.original, fixture.goal, **validation_options)
+        self.assertEqual(fixture.project.status(), committed)
+        result = run_cli(resume=True)
+        self.assertEqual((result["decision"], Path(result["input_path"]).parent.name), ("keep", "0002"))
+        self.assertEqual(improvement.read_json(result["input_path"])["request_id"], request_id)
+        self.assertEqual(run_cli(resume=True), result)
+        self.assertEqual({path: path.read_bytes() for path in initial_files}, initial_files)
+        self.assertEqual(fixture.project.status()["budget"], committed["budget"])
 
     def test_keep_replay_and_failed_next_round_use_actual_effective_version(self):
         inputs = fixture_inputs()
