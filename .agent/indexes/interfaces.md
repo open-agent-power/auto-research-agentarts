@@ -1,5 +1,7 @@
 # 接口索引
 
+`POST /api/local-workbench/continue`接收冻结的计划／行动范围，`GET /api/local-workbench/continue/<id>.json`与`describe.continuations`投影`phase/plan_ref/batch_ref/steps/stop`；采用后仍以首次版本和全部原body继续。只对精确关联计划请求放行原model-resume/adopt/reject，模型行动固定服务CLI及原grant。完整字段见[继续研究接口](../../docs/host-model-selection.md#继续研究的计划与行动阶段)。
+
 RSI `saved-host --resume`沿原Host请求和同round-id读取后续回执；`read_improvement_round`返回最新完整结果，新增`read_improvement_snapshot`提供原生input及其路径。CLI额外`input_path`用于选择最新stage文件交给既有工作台核对／采用，原result schema保留，见[保存和接续](../../docs/recipe-research/rsi-delivery.md#保存和下一轮)。
 
 `data.numeric-association`复用原方法选择、控制器、行动工件与报告接口，参数为已保存质量前序的`based_on_action_id/based_on_result_sha256`。结果为`numeric-association-v1`，观察为`numeric_association`，含`overall/groups/incomplete_group`及成对`n/excluded/pearson_r/reason`。声明目标须在数值列中并至少有一项其他数值列，字段口径见[数值关联](../../docs/numeric-association.md)。

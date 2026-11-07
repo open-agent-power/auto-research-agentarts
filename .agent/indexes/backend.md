@@ -1,5 +1,7 @@
 # 后端索引
 
+[LocalWorkbench.continue_research](../../src/autoresearch/local_workbench.py)以同ID冻结计划方式、执行方式、方法和确切收据；复用已有Host计划明确采用门、LocalWorkbench.batch或HostModelBatch。有效配方批次核对原编译决策与revision；恢复沿原父／子请求，未知不重发。建议阶段固定delegated准备，不创建grant；见[阶段合同](../../docs/host-model-selection.md#继续研究的计划与行动阶段)。
+
 [同轮阶段接续](../../docs/recipe-research/rsi-delivery.md)已由`run_improvement_round(resume=True)`实现：同round-id仅追加保存提案／验证的不可变stage，原pending、冻结上下文、已保存候选及终态保持。原Host／控制器核对仍走原入口，阶段读取与接续不派发模型或工具。
 
 [数值关联](../../docs/numeric-association.md)由`numeric_association_adapter`注册为`data.numeric-association`，在原表格质量结果后按声明字段执行总体／分组Pearson分析。原控制器核对前序行动及结果身份，结果保留有效对、排除数、不可计算原因和原CSV坐标；调用消耗原本地工具额度，模型与拟合0。公开diabetes实际路径已完成state9及当前报告，原ID回读不重复执行。
