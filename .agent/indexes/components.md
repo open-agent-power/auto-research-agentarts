@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`project-view.ts`沿现有实验卡显示`numeric_association`的总体结论、分组成对指标、不可计算原因和CSV定位；原行动及匹配前序质量结果可下载。总览摘要、候选、配方、batch和画布使用对应方法名称；PDF／Markdown沿`project_report`展示同一保存结果。实际桌面、手机横向表格及五页／X6已核对，详见[数值关联用法](../../docs/numeric-association.md)。
+
 当前前端为原生 TypeScript / DOM + X6，不是 React 组件项目。[依赖与构建](../../frontend/package.json)保存实际版本；先找已有实现，再决定是否抽取组件。
 
 | 要搭建什么 | 优先复用入口 | 说明 |

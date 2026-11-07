@@ -1,5 +1,7 @@
 # 接口索引
 
+`data.numeric-association`复用原方法选择、控制器、行动工件与报告接口，参数为已保存质量前序的`based_on_action_id/based_on_result_sha256`。结果为`numeric-association-v1`，观察为`numeric_association`，含`overall/groups/incomplete_group`及成对`n/excluded/pearson_r/reason`。声明目标须在数值列中并至少有一项其他数值列，字段口径见[数值关联](../../docs/numeric-association.md)。
+
 [单轮RSI入口](../../scripts/run_recipe_improvement.py)提供`fixture --input`与`saved-host --workspace --request-id --spec`，共用`--output/--round-id/--previous-round-id`。通过`recipe_improvement`消费现有适配结果，输出`recipe-improvement-result-v1`、理由与有效原生配方。后轮必须匹配前轮有效版本；saved-host使用原reader核对保存账本，不派发模型／工具。字段、pending和验收边界见[RSI交付](../../docs/recipe-research/rsi-delivery.md)。
 
 项目采用入口为同源CSRF保护的`POST /api/local-workbench/recipe-preview`（`project_id/input`）与`recipe-adopt`（`request_id/project_id/expected_state_version/input/reason`）。前者只读核对原Host与控制器原件，后者保存completed的keep／revert及有效配方。`GET /api/local-workbench/recipes`增加`effective_recipe`，`GET /api/project`增加`recipe_revisions`。默认next／advance消费该版本，原ID重放保留冻结决定，接口用法见[工作台](../../docs/local-workbench.md#核对外环并保存有效版本)。
