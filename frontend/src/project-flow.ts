@@ -8,6 +8,7 @@ const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obje
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
 const methodNames: Record<string, string> = {
   "data.tabular-quality-audit": "表格质量与分组核对", "data.grouped-quality-profile": "分组质量画像",
+  "data.numeric-association": "数值关联分析",
   "materials.saved-steel-audit": "保存钢材模型复核", "software.source-integrity-check": "文件完整性检查",
   "p02.saved-oof-residuals": "保存预测残差诊断", "research.source-selection": "读取来源选区", "p02.source-mapping-check": "读取来源选区",
 };

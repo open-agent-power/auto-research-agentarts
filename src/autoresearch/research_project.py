@@ -491,7 +491,10 @@ class ResearchProject:
                         "EVIDENCE_CHANGED", "The follow-up predecessor identity differs.")
                 self._recover(predecessor)
                 original = json.loads(self._artifact(predecessor).read_bytes())["tool_result"]
-                if method_id != registry.WORKBOOK:
+                if method_id == registry.NUMERIC:
+                    require(methods.numeric_feedback_eligible(original["result"]["scope"]),
+                            "CONDITION_NOT_SATISFIED", "The verified original result does not qualify numeric association.")
+                elif method_id != registry.WORKBOOK:
                     require(methods.grouped_feedback_eligible(original["result"]["profile"], original["result"]["scope"]),
                             "CONDITION_NOT_SATISFIED", "The verified original result does not qualify this follow-up.")
             else:

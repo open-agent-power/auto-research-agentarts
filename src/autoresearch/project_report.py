@@ -352,6 +352,42 @@ _GROUP_EVENTS = (("zero", "零值"), ("empty", "空串"), ("declared_missing", "
                  ("invalid_numeric", "非法数值"), ("nonfinite", "非有限"))
 
 
+_ASSOCIATION_HEADERS = ["范围", "字段", "有效对", "排除", "Pearson r", "说明"]
+_ASSOCIATION_NOTICE = ("仅描述本次捕获记录中字段的线性关联。每个字段与目标分别取成对有限值，"
+                       "分组不完整记录仍进入全样本计算并另列。因果、预测能力和组间差异保留为待验证问题。"
+                       "原件、完整组、前序检查和排除计数保留在行动JSON。")
+
+
+def _association_notes(report):
+    return [{"action_id": entry["action_id"], "result": entry["tool_result"]["result"]}
+            for entry in report["action_results"] if entry["status"] == "completed"
+            and ((entry.get("tool_result") or {}).get("result") or {}).get("schema_version") == "numeric-association-v1"][-3:]
+
+
+def _association_rows(result):
+    reasons = {"insufficient_pairs": "有效对少于3", "constant_target": "目标为常量",
+               "constant_predictor": "字段为常量", "constant_both": "目标与字段均为常量"}
+    scopes = [("全样本", result["overall"])]
+    for index, group in enumerate(result["groups"][:8], 1):
+        coordinate = group["first_coordinate"]
+        scopes.append(("组" + str(index) + " · 起始记录" + str(coordinate["logical_record"]), group["associations"]))
+    if result["incomplete_group"]["rows"]:
+        scopes.append(("分组不完整", result["incomplete_group"]["associations"]))
+    rows = []
+    for label, pairs in scopes:
+        for pair in pairs[:8]:
+            value = pair["pearson_r"]
+            if value is None:
+                explanation = reasons.get(pair["reason"], "未计算")
+            elif value == 0:
+                explanation = "线性相关为0"
+            else:
+                explanation = "正向关联" if value > 0 else "负向关联"
+            rows.append([label, pair["predictor"], pair["n"], pair["excluded"], _number(value),
+                         explanation])
+    return rows
+
+
 def _grouped_quality_notes(report):
     notes = []
     for entry in report["action_results"]:
@@ -549,6 +585,12 @@ def _markdown(report):
                       "", "代表定位（最多5例）：" + _grouped_quality_locations(note),
                       "", "逻辑记录从1起且不含表头；物理行为CSV记录结束行，含表头及带引号换行。组ID为原声明分组字符串的哈希，不能当作生物或材料类别。",
                       "", "完整groups、各列集中份额/top_groups、全量计数及前序身份见本行动的JSON；未改写主方法原profile或来源记录，不推断组间独立性、目标含义或训练资格。", ""])
+    for note in _association_notes(report):
+        result = note["result"]
+        lines.extend(["## 后续分析：数值关联", "", "目标字段 " + _text(result["target_column"], 120),
+                      "", "行动 " + note["action_id"] + "，前序质量检查 " + result["predecessor"]["based_on_action_id"],
+                      "", _markdown_table(_ASSOCIATION_HEADERS, _association_rows(result)),
+                      "", "摘要最多8个完整组及每组8个字段，完整结果见JSON。", "", _ASSOCIATION_NOTICE, ""])
     for note in _workbook_projection_notes(report):
         result = note["result"]
         lines.extend(["## 后续方法：工作簿候选投影核对", "", "行动：" + note["action_id"] + "；前序绑定：" + canonical(result["predecessor"]),
@@ -693,6 +735,15 @@ def _pdf(report):
             story.append(p("代表定位（最多5例）：" + _grouped_quality_locations(note), small, 700))
             story.append(p("逻辑记录从1起、不含表头；物理行为记录结束行，包含表头及带引号换行。组ID为声明分组的哈希，不赋予独立样本身份。", small, 220))
         story.append(p("完整groups、集中份额、前序结果SHA与原观察见JSON。此后续方法不覆盖原profile，不批准目标、单位、领域结论或训练资格。", small, 250))
+    for note in _association_notes(report):
+        result = note["result"]
+        h("后续分析 · 数值关联")
+        story.append(p("目标字段 " + _text(result["target_column"], 120)))
+        story.append(p("行动 " + note["action_id"] + "，前序质量检查 "
+                       + result["predecessor"]["based_on_action_id"], small, 240))
+        table(_ASSOCIATION_HEADERS, _association_rows(result), [.24, .15, .10, .10, .14, .27])
+        story.append(p("摘要最多8个完整组及每组8个字段，完整结果见JSON。", small))
+        story.append(p(_ASSOCIATION_NOTICE, small, 650))
     projection_notes = _workbook_projection_notes(report)
     if projection_notes:
         story.append(PageBreak())

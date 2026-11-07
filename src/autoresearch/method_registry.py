@@ -2,14 +2,15 @@
 import hashlib
 from pathlib import Path
 
-from . import saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, grouped_quality_adapter, workbook_projection_adapter
+from . import saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter
 from .contracts import ResearchError
 
 SOURCE = "research.source-selection"
 LEGACY_SOURCE = "p02.source-mapping-check"
 PRIMARY = {module.TOOL_ID: module for module in (saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter)}
 WORKBOOK = workbook_projection_adapter.TOOL_ID
-FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter)}
+NUMERIC = numeric_association_adapter.TOOL_ID
+FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter)}
 
 
 def primary_id(project):
@@ -32,7 +33,7 @@ def get_analysis(method_id):
 
 def followup_ids(primary_method_id):
     get(primary_method_id)
-    return [grouped_quality_adapter.TOOL_ID, WORKBOOK] if primary_method_id == tabular_quality_adapter.TOOL_ID else []
+    return [grouped_quality_adapter.TOOL_ID, WORKBOOK, NUMERIC] if primary_method_id == tabular_quality_adapter.TOOL_ID else []
 
 
 def source_id(project):
@@ -50,6 +51,7 @@ def evaluation_ref(method_id):
             source_integrity_adapter.TOOL_ID: "file-capture-consistency-v1",
             tabular_quality_adapter.TOOL_ID: "tabular-quality-v1",
             grouped_quality_adapter.TOOL_ID: "grouped-quality-profile-v1",
+            NUMERIC: "numeric-association-v1",
             WORKBOOK: "workbook-projection-v1"}[method_id]
 
 

@@ -16,6 +16,7 @@ const names = (value: unknown): string[] => Array.isArray(value) ? value.filter(
 const methodNames: Record<string, string> = {
   "data.tabular-quality-audit": "核对表格质量、重复与声明分组",
   "data.grouped-quality-profile": "查看零值与缺失集中于哪些组",
+  "data.numeric-association": "查看数值字段与目标的关联",
   "research.source-selection": "读取已登记的来源选区",
   "p02.source-mapping-check": "读取已登记的来源选区",
 };

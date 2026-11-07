@@ -24,6 +24,7 @@ const methodNames: Record<string, string> = {
   "software.source-integrity-check": "软件文件读取与完整性检查",
   "data.tabular-quality-audit": "表格质量与分组核对",
   "data.grouped-quality-profile": "分组质量画像",
+  "data.numeric-association": "数值关联分析",
   "data.workbook-projection-check": "CSV与工作簿保存值核对",
   "research.source-selection": "补充来源与条件证据",
 };
@@ -151,7 +152,21 @@ function resultTable(caption: string, headings: string[], values: string[][]): H
   table.append(body); wrap.append(table); return wrap;
 }
 
-function comparison(action: Obj): HTMLElement {
+function associationReason(value: unknown): string {
+  const reasons: Record<string, string> = { insufficient_pairs: "成对有效记录不足", constant_target: "目标字段为常量",
+    constant_predictor: "预测字段为常量", constant_both: "两个字段均为常量" };
+  return reasons[string(value, "")] ?? string(value, "原因未记录");
+}
+
+function associationSummary(pair: Obj, target: unknown): string {
+  const label = string(pair.predictor) + " 与 " + string(target), r = pair.pearson_r;
+  const counts = `成对有效 ${numeric(pair.n)} 条，排除 ${numeric(pair.excluded)} 条。`;
+  if (typeof r !== "number" || !Number.isFinite(r)) return label + "的 Pearson r 无法计算，" + associationReason(pair.reason) + "。" + counts;
+  const relation = r === 0 ? "观察到的线性关联为零" : r > 0 ? "呈正向描述性线性关联" : "呈负向描述性线性关联";
+  return `${label}${relation}，Pearson r = ${numeric(r)}。${counts}`;
+}
+
+function comparison(action: Obj, project: Obj): HTMLElement {
   const observations = objects(action.observations);
   if (!observations.length) {
     const wrap = el("div", "project-comparison");
@@ -226,6 +241,42 @@ function comparison(action: Obj): HTMLElement {
       predecessor: groupedQuality.predecessor, scope: groupedQuality.scope }));
     return wrap;
   }
+  const association = observations.find(item => item.kind === "numeric_association");
+  if (association) {
+    const summary = object(association.summary), overall = objects(association.overall), groups = objects(association.groups);
+    const incomplete = object(association.incomplete_group), groupColumns = words(association.group_columns);
+    const wrap = el("div", "project-tabular-quality"), counts = el("dl", "detail-dl");
+    for (const [label, value] of [["原记录", summary.rows], ["完整分组记录", summary.complete_group_rows],
+      ["分组不完整记录", summary.incomplete_group_rows], ["完整组数", summary.group_count]] as [string, unknown][]) field(counts, label, numeric(value));
+    wrap.append(el("p", "detail-note", "结果用于描述已保存记录中的线性关联。有效 n 按两字段均为有限数值的记录计算，排除数对应本项计算。临床、因果和独立性判断仍需研究设计与来源证据。"), counts);
+    for (const pair of overall) wrap.append(el("p", "detail-note", "全样本中，" + associationSummary(pair, association.target_column)));
+    wrap.append(el("p", "detail-note", groupColumns.length
+      ? "分组字段为 " + groupColumns.join("、") + "。分组序号沿保存顺序，原字段值可按下方CSV坐标核对。"
+      : "本次未声明分组字段。"));
+    const scopes: { label: string; pairs: Obj[] }[] = [{ label: "全样本", pairs: overall },
+      ...groups.map((group, index) => ({ label: "完整组" + String(index + 1), pairs: objects(group.associations) }))];
+    if (typeof incomplete.rows === "number" && incomplete.rows > 0)
+      scopes.push({ label: "分组不完整记录", pairs: objects(incomplete.associations) });
+    wrap.append(resultTable("全样本与分组的成对描述性关联", ["范围", "字段对", "有效 n", "排除记录", "Pearson r", "计算状态或原因"],
+      scopes.flatMap(scope => scope.pairs.map(pair => {
+        const computed = typeof pair.pearson_r === "number" && Number.isFinite(pair.pearson_r);
+        return [scope.label, string(pair.predictor) + " / " + string(association.target_column), numeric(pair.n), numeric(pair.excluded),
+          computed ? numeric(pair.pearson_r) : "不可计算", computed ? "已计算" : associationReason(pair.reason)];
+      }))));
+    const original = details("核对原行动、前序结果与来源坐标", { action_id: action.id, request_id: action.request_id,
+      result_sha256: action.result_sha256, target_column: association.target_column, predictor_columns: association.predictor_columns,
+      group_columns: association.group_columns, scope: association.scope, predecessor: association.predecessor,
+      evidence_refs: association.evidence_refs, groups: association.groups, incomplete_group: association.incomplete_group });
+    if (groups.length) original.insertBefore(resultTable("分组代表定位 · 物理行包含表头及带引号换行", ["范围", "记录数", "首条逻辑记录", "记录结束物理行"],
+      groups.map((group, index) => { const coordinate = object(group.first_coordinate); return ["完整组" + String(index + 1), numeric(group.rows),
+        numeric(coordinate.logical_record), numeric(coordinate.physical_line_end)]; })), original.querySelector("pre"));
+    const predecessor = object(association.predecessor), prior = objects(project.actions).find(item => item.id === predecessor.based_on_action_id
+      && item.result_sha256 === predecessor.based_on_result_sha256);
+    const priorDownload = prior && download(prior);
+    if (priorDownload) { priorDownload.textContent = "下载前序检查的完整结果 JSON ↓"; original.append(priorDownload); }
+    wrap.append(original);
+    return wrap;
+  }
   const workbookProjection = observations.find(item => item.kind === "workbook_projection_check");
   if (workbookProjection) {
     const summary = object(workbookProjection.summary), candidates = objects(workbookProjection.candidates);
@@ -274,7 +325,7 @@ function executionRecords(project: Obj): HTMLElement {
     p02: "数值负结果保留为有效观察。差值为正表示候选误差更高；不同目标处理规则不能排成优劣榜。",
     materials: "只复核保存模型与原采用门槛。MSE 单位为 MPa²；采用与科学有效性分别判断。",
     software: "展示实际文件读取和受控故障注入，保留预期、真实返回与未通过项，不推断生产事故。",
-    data: "对本次捕获的表格做机械检查；字段角色和单位为提交者声明，检查完成不批准科研或训练资格。",
+    data: "读取已捕获表格的质量、分组和描述性分析结果，字段含义、单位及研究解释依据原记录核对。",
     other: "以下是实际保存的观察与决定；计划和下一任务不计为已经执行。",
   };
   const panel = section("实际执行与反馈", notes[kind]);
@@ -284,7 +335,7 @@ function executionRecords(project: Obj): HTMLElement {
     const card = el("article", "project-action evidence-card content-section");
     const title = action.command === "p02.saved-oof-residuals" ? dimension(action.dimension) + "残差诊断" : method(action.command);
     card.append(el("h3", "", title), badge(action.status, "执行："));
-    card.append(comparison(action));
+    card.append(comparison(action, project));
     const next = object(action.next_decision);
     if (Object.keys(next).length) card.append(el("p", "detail-note", "反馈后的决定：" + nextTitle(next) + "；下一任务仍需另行执行。"));
     if (action.failure) card.append(details("失败或未知的原始记录", action.failure));
@@ -628,6 +679,13 @@ export function progressFeedback(action: Obj, source: boolean): string {
   if (grouped) {
     const summary = object(grouped.summary);
     return `已查看 ${numeric(summary.rows)} 条记录的分组分布，完整组 ${numeric(summary.group_count)} 个，分组字段不完整的记录 ${numeric(summary.incomplete_group_rows)} 条。`;
+  }
+  const association = observations.find(item => item.kind === "numeric_association");
+  if (association) {
+    const pairs = objects(association.overall);
+    return pairs.length ? "全样本中，" + associationSummary(pairs[0], association.target_column)
+      + (pairs.length > 1 ? "其余字段及分组结果见实验页。" : "分组结果和来源坐标见实验页。")
+      : "已保存数值关联观察，具体指标及不可计算原因见实验页。";
   }
   const workbook = observations.find(item => item.kind === "workbook_projection_check");
   if (workbook) {

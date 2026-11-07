@@ -13,6 +13,7 @@ const text = (value: unknown, fallback = "未记录"): string => typeof value ==
 const sourceMethod = (id: string): boolean => ["research.source-selection", "p02.source-mapping-check"].includes(id);
 const names: Record<string, string> = {
   "data.tabular-quality-audit": "表格质量与分组核对", "data.grouped-quality-profile": "分组质量画像",
+  "data.numeric-association": "数值关联分析",
   "materials.saved-steel-audit": "钢材保存模型复核", "software.source-integrity-check": "软件文件完整性检查",
   "p02.saved-oof-residuals": "保存预测的残差诊断", "research.source-selection": "读取已登记来源", "p02.source-mapping-check": "读取已登记来源",
 };

@@ -14,7 +14,7 @@ type Host = {
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(object) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
-const methods: Record<string, string> = { "data.tabular-quality-audit": "表格质量核对", "data.grouped-quality-profile": "分组画像", "research.source-selection": "读取来源" };
+const methods: Record<string, string> = { "data.tabular-quality-audit": "表格质量核对", "data.grouped-quality-profile": "分组画像", "data.numeric-association": "数值关联分析", "research.source-selection": "读取来源" };
 const method = (value: unknown): string => methods[text(value)] ?? text(value);
 const recipeKey = (recipe: Obj): string => JSON.stringify([recipe.id, recipe.version]);
 
