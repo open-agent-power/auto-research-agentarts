@@ -5,7 +5,7 @@ import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel, continuationStopReason } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
 import { createLocalRecipePanel } from "./local-recipe";
-import { progressFeedback, researcherFeedbackItems } from "./project-view";
+import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
 type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean };
@@ -125,10 +125,34 @@ function planChangeView(previous: Obj, saved: Obj, projectId: string, modelRecor
   return body;
 }
 
+function planSourceFeedback(project: Obj, saved: Obj): HTMLElement {
+  const feedback = el("div", "research-plan-evidence"), completed = items(project.evidence_actions).filter(action => action.status === "completed");
+  const selectionCount = completed.reduce((count, action) => count + items(action.observations).filter(observation => observation.kind === "source_observed").length, 0);
+  const latest = completed.at(-1), questions = names(obj(latest?.next_decision).remaining_questions);
+  const basisState = typeof saved.based_on_state_version === "number" ? String(saved.based_on_state_version) : "未记录";
+  const currentState = typeof project.state_version === "number" ? String(project.state_version) : "未记录";
+  feedback.append(el("h3", "", "当前保存的来源反馈"),
+    el("p", "detail-note", `第${String(saved.version)}版计划依据项目状态 ${basisState} 制定，当前项目状态为 ${currentState}。下方计划正文保留制定时记录。`),
+    el("p", "project-progress-copy", `当前已完成 ${completed.length} 次来源读取，共提取 ${selectionCount} 个选区。提取完成不表示资料解释或提交者主张已获确认。`));
+  if (latest) {
+    feedback.append(el("h4", "", "最近一次来源读取仍待确认的问题"));
+    if (questions.length) {
+      const list = el("ul", "project-questions");
+      for (const question of new Set(questions.map(sourceQuestionText))) list.append(el("li", "", question));
+      feedback.append(list);
+    } else feedback.append(el("p", "detail-note", "该来源行动未保存具体未决问题，可查看来源原文与实际实验记录继续核对。"));
+  } else feedback.append(el("p", "detail-note", "尚无已完成的来源读取；已登记资料仍需明确读取后才会出现在这里。"));
+  const links = el("div", "local-actions");
+  for (const [label, href] of [["查看来源原文与定位", "#/knowledge"], ["查看已完成实验", "#/experiments"]]) {
+    const link = el("a", "text-button", label); link.href = href; links.append(link);
+  }
+  feedback.append(links); return feedback;
+}
+
 function createResearchPlanPanel(deps: {
   current(): Obj; modelRecords(projectId: string): Obj[]; submit(body: Obj): Promise<Obj | null>;
 }): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
-  const section = panel("研究计划", "写下当前问题、准备采取的步骤，以及什么反馈会让你调整路线。"), preview = el("div", "research-plan-copy");
+  const section = panel("研究计划", "写下当前问题、准备采取的步骤，以及什么反馈会让你调整路线。"), sourceFeedback = el("div"), preview = el("div", "research-plan-copy");
   section.classList.add("research-plan");
   const editor = el("details", "research-plan-editor"), summary = el("summary", "", "编写计划"), form = el("form"), fields = el("fieldset", "local-fieldset");
   const inputs = new Map<string, HTMLTextAreaElement>();
@@ -142,7 +166,7 @@ function createResearchPlanPanel(deps: {
   const history = el("details", "research-plan-history"), historyBody = el("div"); history.append(el("summary", "", "查看修订记录"), historyBody);
   const comparison = el("details", "research-plan-comparison"), comparisonTitle = el("summary"), comparisonBody = el("div");
   comparison.append(comparisonTitle, comparisonBody); comparison.hidden = true;
-  section.append(preview, comparison, editor, history);
+  section.append(sourceFeedback, preview, comparison, editor, history);
   const drafts = new Map<string, { values: Record<string, string>; stateVersion: number }>();
   let projectId = "", stateVersion = 0, locked = true;
   const values = (): Record<string, string> => Object.fromEntries([...inputs].map(([key, control]) => [key, control.value]));
@@ -159,9 +183,12 @@ function createResearchPlanPanel(deps: {
     stateVersion = draft?.stateVersion ?? Number(project.state_version);
     summary.textContent = typeof saved.version === "number" ? "修订计划 · 当前第" + saved.version + "版" : "编写计划";
     preview.replaceChildren();
+    sourceFeedback.replaceChildren();
     if (saved.version) {
+      sourceFeedback.append(planSourceFeedback(project, saved));
       const route = el("div"), feedback = el("div");
-      route.append(el("h3", "", text(saved.question)), el("p", "research-plan-steps", text(saved.steps)));
+      route.append(el("p", "project-progress-copy", "第" + String(saved.version) + "版已采用计划 · 以下为制定时原文"),
+        el("h3", "", text(saved.question)), el("p", "research-plan-steps", text(saved.steps)));
       if (saved.basis) route.append(el("h4", "", "依据与材料"), el("p", "", text(saved.basis)));
       feedback.append(el("h4", "", "预期反馈与调整"), el("p", "", text(saved.expected_feedback)), el("h4", "", "本次修订依据"), el("p", "", text(saved.reason)));
       preview.append(route, feedback);
