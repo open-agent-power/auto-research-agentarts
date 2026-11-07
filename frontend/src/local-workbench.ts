@@ -330,10 +330,11 @@ export async function mountLocalWorkbench(): Promise<void> {
   const rationale = el("textarea"); rationale.rows = 3; rationale.maxLength = 4000; rationale.placeholder = "说明为何现在执行这个检查，或为何等待。";
   const executeButton = el("button", "action-button primary", "明确执行所选候选一次"); executeButton.type = "button";
   const waitButton = el("button", "action-button", "本次选择等待"); waitButton.type = "button";
-  const reportButton = el("button", "action-button", "生成当前快照报告"); reportButton.type = "button";
-  const runActions = el("div", "local-actions"); runActions.append(executeButton, waitButton, reportButton);
+  const reportButton = el("button", "action-button primary", "生成当前快照报告"); reportButton.type = "button";
+  reportButton.title = "只汇总已保存记录，不继续研究。";
+  const runActions = el("div", "local-actions"); runActions.append(executeButton, waitButton);
   runSection.append(contextStatus, candidateList, field("这次选择的理由", rationale), citationList, runActions,
-    el("p", "detail-note", "等待仅保存本次选择，不表示项目暂停或方法耗尽。生成报告不继续研究。"));
+    el("p", "detail-note", "等待仅保存本次选择，不表示项目暂停或方法耗尽。"));
 
   let description: Obj = {}, current: Obj = {}, context: Obj | null = null, busy = false, loadingFile = false;
   let selectedCandidate = "", citations = new Set<string>(), lastRequest: Pending | null = null;
@@ -363,7 +364,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
-    operations: [batchPanel.element, modelPanel.element, recipePanel.element, runSection, evidencePanel.element], read, announce });
+    operations: [batchPanel.element, modelPanel.element, recipePanel.element, runSection, evidencePanel.element], reportButton, read, announce });
   function planContinuation(requestId = ""): Obj | undefined {
     return items(description.continuations).find(record => record.project_id === activeId() && record.record_status === "incomplete"
       && ["plan", "awaiting_adoption"].includes(text(record.phase, "")) && obj(record.plan_ref).kind === "host_plan"
@@ -401,7 +402,10 @@ export async function mountLocalWorkbench(): Promise<void> {
     selectButton.disabled = navigationLocked || !projectSelect.value || projectSelect.value === activeId(); projectSelect.disabled = navigationLocked;
     executeButton.disabled = locked || !context || !selectedCandidate || !rationale.value.trim() || items(context.blockers).length > 0;
     waitButton.disabled = locked || !context || !rationale.value.trim();
-    reportButton.disabled = locked || !activeId() || typeof current.state_version !== "number" || (obj(current.report).available === true && obj(current.report).stale !== true);
+    const reportReady = obj(current.report).available === true && obj(current.report).stale !== true;
+    reportButton.hidden = reportReady;
+    reportButton.disabled = locked || !activeId() || typeof current.state_version !== "number" || reportReady;
+    reportButton.textContent = busy && lastRequest?.command === "report" ? "正在生成报告…" : "生成当前快照报告";
     refreshButton.disabled = busy;
     retry.hidden = !lastRequest; retry.disabled = busy || !lastRequest || lastRequest.uncertain || (lastRequest.command === "evidence" && requestProject(lastRequest) !== activeId()) || description.enabled !== true;
     evidencePanel.setLocked(locked);
