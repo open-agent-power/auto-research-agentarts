@@ -29,7 +29,7 @@ function field(label: string, control: HTMLElement): HTMLElement {
 export function createLocalModelPanel(host: Host): {
   element: HTMLElement; planElement: HTMLElement; improvementElement: HTMLElement;
   refresh(projectId: string, project: Obj, context: Obj | null): Promise<void>;
-  setLocked(value: boolean): void; pending(): boolean; canResume(body: Obj): boolean;
+  setLocked(value: boolean, allowedRequestId?: string): void; pending(): boolean; canResume(body: Obj): boolean;
   decisionResolved(command: string, requestId: string): boolean;
   savedRecords(projectId: string): Obj[];
 } {
@@ -58,6 +58,7 @@ export function createLocalModelPanel(host: Host): {
   const improvement = el("section", "local-panel local-improvement content-section"); improvement.hidden = true;
   let projectId = "", project: Obj = {}, context: Obj | null = null, view: Obj = {}, records: Obj[] = [];
   let locked = true, loading = true, loaded = false, refreshId = 0;
+  let allowedRequestId = "";
   const resumeButtons: { button: HTMLButtonElement; body: Obj }[] = [];
   const decisionButtons: { button: HTMLButtonElement; record: Obj; rejectReason?: HTMLTextAreaElement }[] = [];
   const rejectDrafts = new Map<string, string>();
@@ -66,6 +67,7 @@ export function createLocalModelPanel(host: Host): {
   const enabled = (): boolean => loaded && view.enabled === true && view.project_id === projectId;
   const canResume = (body: Obj): boolean => loaded && !!projectId && body.project_id === projectId
     && records.some(record => record.request_id === body.request_id && (record.purpose === "plan" && ["proposed", "applied", "rejected"].includes(text(record.status, ""))
+      || record.request_id === allowedRequestId && record.purpose === "plan" && record.provider === "delegated" && pendingStates.has(text(record.status, ""))
       || enabled() && record.provider === "claude_cli" && resumableStates.has(text(record.status, ""))));
   function available(): boolean {
     if (locked || loading || !enabled() || !projectId || !context || context.project_id !== projectId
@@ -84,10 +86,10 @@ export function createLocalModelPanel(host: Host): {
     start.textContent = purpose.value === "plan" ? "让模型建议研究计划" : "用模型选择并执行一步";
     const validCap = Number(cap.value) > 0 && Number(cap.value) <= 0.10;
     start.disabled = !available() || !validCap || !reason.value.trim();
-    for (const { button, body } of resumeButtons) button.disabled = locked || loading || !canResume(body);
+    for (const { button, body } of resumeButtons) button.disabled = locked && body.request_id !== allowedRequestId || loading || !canResume(body);
     for (const { button, record, rejectReason } of decisionButtons) {
       const selected = object(object(record.context).selection_context);
-      button.disabled = locked || loading || record.status !== "proposed" || (rejectReason ? !rejectReason.value.trim() : selected.context_sha256 !== context?.context_sha256);
+      button.disabled = locked && record.request_id !== allowedRequestId || loading || record.status !== "proposed" || (rejectReason ? !rejectReason.value.trim() : selected.context_sha256 !== context?.context_sha256);
     }
   }
 
@@ -222,10 +224,10 @@ export function createLocalModelPanel(host: Host): {
       if (pendingStates.has(text(record.status, ""))) card.append(el("p", "detail-note", "保留原ID核对。未知请求不会重新发送模型，刷新只读已保存状态。"));
       const actions = el("div", "local-actions");
       if (isPlan) planSuggestion(record, card, actions);
-      if (record.provider === "claude_cli" && resumableStates.has(text(record.status, "")) && (!isPlan || pendingStates.has(text(record.status, "")))) {
+      if ((record.provider === "claude_cli" || isPlan && record.provider === "delegated") && resumableStates.has(text(record.status, "")) && (!isPlan || pendingStates.has(text(record.status, "")))) {
         const body = { request_id: id, project_id: projectId }, resume = el("button", "action-button", "核对原请求"); resume.type = "button";
         resume.setAttribute("aria-label", "核对原模型请求 " + id);
-        resume.addEventListener("click", () => { if (!locked && !loading && canResume(body)) void host.submit("model-resume", body); });
+        resume.addEventListener("click", () => { if ((!locked || id === allowedRequestId) && !loading && canResume(body)) void host.submit("model-resume", body); });
         actions.append(resume); resumeButtons.push({ button: resume, body });
       }
       const save = el("button", "quiet-button", "下载原请求 JSON"); save.type = "button"; save.addEventListener("click", () => download(record)); actions.append(save);
@@ -291,5 +293,5 @@ export function createLocalModelPanel(host: Host): {
   const decisionResolved = (command: string, id: string): boolean => records.some(record => record.request_id === id && record.purpose === "plan"
     && (command === "model-plan-adopt" && record.status === "applied" || command === "model-plan-reject" && record.status === "rejected"));
   return { element: section, planElement: planHistory, improvementElement: improvement, refresh, pending, canResume, decisionResolved,
-    savedRecords(id): Obj[] { return loaded && projectId === id ? records : []; }, setLocked(value: boolean): void { locked = value; controls(); } };
+    savedRecords(id): Obj[] { return loaded && projectId === id ? records : []; }, setLocked(value: boolean, allowedId = ""): void { locked = value; allowedRequestId = allowedId; controls(); } };
 }

@@ -2,9 +2,10 @@
 import { el } from "./dom";
 
 type Obj = Record<string, unknown>;
+type Command = "continue" | "batch";
 type Host = {
-  submit(body: Obj, recover: boolean): Promise<Obj | null>;
-  canRecover(body: Obj): boolean;
+  submit(body: Obj, recover: boolean, command: Command): Promise<Obj | null>;
+  canRecover(body: Obj, command: Command): boolean;
   announce(message: string, error?: boolean): void;
 };
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
@@ -14,42 +15,71 @@ const sourceMethod = (id: string): boolean => ["research.source-selection", "p02
 const names: Record<string, string> = {
   "data.tabular-quality-audit": "表格质量与分组核对", "data.grouped-quality-profile": "分组质量画像",
   "data.numeric-association": "数值关联分析",
+  "data.workbook-projection-check": "CSV与工作簿保存值核对",
   "materials.saved-steel-audit": "钢材保存模型复核", "software.source-integrity-check": "软件文件完整性检查",
   "p02.saved-oof-residuals": "保存预测的残差诊断", "research.source-selection": "读取已登记来源", "p02.source-mapping-check": "读取已登记来源",
 };
 const states: Record<string, string> = {
+  applied: "已采用", proposed: "待采用", prepared: "已保存，等待原回答", received: "已收到原回答",
   completed: "已完成", waiting: "等待后续条件", limit_reached: "达到授权步数", not_authorized: "下一方法未获本次授权",
   blocked: "条件或原额度阻断", failed: "执行失败，原记录保留", needs_review: "待核对，未知行动不重发",
   interrupted: "推进中断，可核对原批次", running: "原批次未收口", preparing: "原批次已预留", incomplete: "原批次未完成",
 };
 const resumable = (record: Obj): boolean => ["preparing", "incomplete"].includes(text(record.record_status, ""));
+const phases: Record<string, string> = { plan: "取得计划建议", awaiting_adoption: "等待计划决定", actions: "推进行动", stopped: "已停止" };
+const stopReasons: Record<string, string> = {
+  PLAN_REQUIRED: "先保存一版研究计划，或选择取得计划建议。", HOST_GRANT_REQUIRED: "当前没有已授权模型名额，需先通过原模型流程明确授权。",
+  HOST_DECISION_LIMIT: "原模型决策名额已用完，已有用量保留。", MODEL_DISABLED: "行动的模型选择需要服务启用已有CLI。",
+  CLI_NOT_FOUND: "行动的模型选择需要服务启用已有CLI。", HOST_PLAN_PENDING: "等待原模型回答，沿本页原请求处理。",
+  PLAN_ADOPTION_REQUIRED: "先在本页采用或拒绝原计划建议，再继续此任务。", PLAN_REJECTED: "原计划建议已拒绝，保留原决定。",
+  NO_HOST_CANDIDATES: "当前没有可执行候选，需先补充实际条件或资料。", BUDGET_EXHAUSTED: "原本地工具额度已用完。",
+  STALE_STATE: "项目在此任务之外发生了变化，请核对原阶段。", HOST_SELECTION_PENDING: "原模型请求仍未收口，请先核对。",
+  BATCH_SCOPE_CHANGED: "当前候选超过本次允许的方法或资料范围。", MAX_ACTIONS: "已达到本次允许的行动数。",
+  NOT_AUTHORIZED: "下一步超出本次勾选的方法或资料范围，原记录已保留。",
+  WAITING: "当前反馈没有可继续执行的行动。请先核对缺少的资料或条件，再决定下一步。",
+  ACTION_LIMIT: "已达到本次允许的行动数，原结果已保存。", EXECUTION_UNKNOWN: "原行动结果未知，保留原请求核对，不会重新发送。",
+  BATCH_INTERRUPTED: "原批次中断，请核对并继续原任务。", CONTINUATION_INTERRUPTED: "原任务中断，请核对保存阶段后继续。",
+  CODE_CHANGED: "原任务使用的代码版本已变化，需先核对原记录。", TOOL_FAILED: "原行动失败，已保留结果，没有自动重试。",
+};
+export const continuationStopReason = (stop: Obj): string => stopReasons[text(stop.code)] ?? text(stop.reason, "");
 
 export function createLocalBatchPanel(host: Host): {
   element: HTMLElement; update(description: Obj, project: Obj): void; setLocked(value: boolean): void;
 } {
   const section = el("section", "local-panel local-batch content-section");
-  section.append(el("h2", "section-title", "有界连续推进"),
-    el("p", "detail-note", "明确授权方法、已登记资料包和最多行动数后，由本地条件规则逐步推进。不是模型自主研究；不扩本地、来源或费用额度，登记资料也不会自动启动批次。"));
+  section.append(el("h2", "section-title", "继续研究"),
+    el("p", "detail-note", "沿当前计划推进行动，或先取得计划建议、明确采用后接着推进。选择本次范围，途中停下时保留原阶段和请求。"));
   const status = el("p", "notice", "先创建或选择项目，再明确授权。"); status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
   const form = el("form", "local-batch-form"), fields = el("fieldset", "local-fieldset");
   const methodList = el("div", "local-batch-methods"), receipts = el("div", "local-batch-sources");
+  const planMode = el("select"), executionMode = el("select");
+  for (const [value, label] of [["reuse", "沿当前已采用计划"], ["suggest", "先取得一份计划建议"]]) {
+    const option = el("option", "", label); option.value = value; planMode.append(option);
+  }
+  for (const [value, label] of [["rules", "按当前条件规则选择"], ["model", "由已有CLI模型选择"]]) {
+    const option = el("option", "", label); option.value = value; executionMode.append(option);
+  }
   const limit = el("select"); limit.required = true;
   for (const [value, label] of [["", "明确选择最多行动数"], ["1", "最多1次行动"], ["2", "最多2次行动"]]) { const option = el("option", "", label); option.value = value; limit.append(option); }
   const reason = el("textarea"); reason.rows = 3; reason.maxLength = 4000; reason.required = true; reason.placeholder = "说明本次授权推进的范围与理由。";
   const labelled = (label: string, control: HTMLElement): HTMLElement => { const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap; };
-  const start = el("button", "action-button primary", "按本次授权连续推进"); start.type = "submit";
-  fields.append(el("h3", "", "可授权的本地方法"), el("p", "detail-note", "默认均不勾选。勾选只限定允许范围，每一步仍由宿主重新核对条件；已完成结果复用。"), methodList,
+  const modes = el("div", "local-form-grid"); modes.append(labelled("计划从哪里继续", planMode), labelled("行动怎样选择", executionMode));
+  const start = el("button", "action-button primary", "按本次范围继续研究"); start.type = "submit";
+  fields.append(modes, el("p", "detail-note", "计划建议沿已有Host名额准备，先等原回答与明确采用。模型行动沿服务固定CLI和原额度执行。"),
+    el("h3", "", "允许执行的方法"), el("p", "detail-note", "每一步仍核对当前条件，已完成结果复用。"), methodList,
     el("h3", "", "允许读取的确切未读资料包"), el("p", "detail-note", "只授权下方明确勾选的收据，不包含未来上传的资料；不勾选就不读取来源。"), receipts,
-    labelled("本批最多行动数", limit), labelled("本次授权理由", reason));
-  form.append(fields, start, el("p", "detail-note", "无候选、下一步未获授权、达到上限、失败或未知即停止。刷新与重开不自动继续；完成批次的旧ID只回读原结果。"));
+    labelled("本次最多行动数", limit), labelled("本次范围与理由", reason));
+  form.append(fields, start, el("p", "detail-note", "无候选、额度不足、未获本次授权、失败或未知即停止。刷新只读取；继续使用原ID及原范围。"));
   const history = el("div", "local-batch-history"); section.append(status, form, history);
   let description: Obj = {}, project: Obj = {}, projectId = "", locked = true;
   let methods = new Set<string>(), selectedReceipts = new Set<string>(), readerId = "";
-  const recoveryButtons: { button: HTMLButtonElement; body: Obj }[] = [];
+  const recoveryButtons: { button: HTMLButtonElement; body: Obj; command: Command }[] = [];
   const controls = (): void => {
     fields.disabled = locked || !projectId || typeof project.state_version !== "number";
-    start.disabled = fields.disabled || !limit.value || !reason.value.trim() || (!methods.size && !selectedReceipts.size);
-    for (const { button, body } of recoveryButtons) button.disabled = !host.canRecover(body);
+    const hasPlan = typeof object(object(project.research_plan).current).version === "number";
+    start.disabled = fields.disabled || !limit.value || !reason.value.trim() || (!methods.size && !selectedReceipts.size)
+      || planMode.value === "reuse" && !hasPlan;
+    for (const { button, body, command } of recoveryButtons) button.disabled = !host.canRecover(body, command);
   };
   function checkbox(target: HTMLElement, label: string, id: string, selected: Set<string>): void {
     const row = el("label", "local-checkbox"), check = el("input"); check.type = "checkbox"; check.checked = selected.has(id);
@@ -78,9 +108,9 @@ export function createLocalBatchPanel(host: Host): {
     if (!unread.length) receipts.append(el("p", "detail-note", "当前没有已登记且未读的资料包；将来登记的资料不在本次授权内。"));
   }
   function savedBatches(): void {
-    recoveryButtons.length = 0; history.replaceChildren(el("h3", "", "已保存批次 · 最近8条"));
-    const records = objects(description.batches).slice(0, 8);
-    if (!records.length) history.append(el("p", "detail-note", "尚无批次记录。不会因打开页面创建批次。"));
+    const linked = new Set(objects(description.continuations).map(record => object(record.batch_ref).request_id));
+    const records = objects(description.batches).filter(record => !linked.has(record.request_id)).slice(0, 8);
+    if (records.length) history.append(el("h3", "", "单独的行动批次"));
     for (const record of records) {
       const body = object(record.body), response = object(record.result), batch = object(response.batch), stop = object(batch.stop);
       const id = text(record.request_id, ""), card = el("details", "local-batch-record"), currentProject = record.project_id === projectId;
@@ -97,8 +127,8 @@ export function createLocalBatchPanel(host: Host): {
       }
       if (resumable(record) && body.request_id === id && body.project_id === record.project_id) {
         const resume = el("button", "action-button", "核对并继续原批次"); resume.type = "button";
-        resume.addEventListener("click", () => { if (host.canRecover(body)) void host.submit(body, true); });
-        card.append(el("p", "detail-note", "使用宿主保存的原授权与原ID；需仍选中原项目。只恢复原步骤，遇到未知工具执行仍停止待核对，不自动重发。"), resume); recoveryButtons.push({ button: resume, body });
+        resume.addEventListener("click", () => { if (host.canRecover(body, "batch")) void host.submit(body, true, "batch"); });
+        card.append(el("p", "detail-note", "沿保存范围与原ID核对。未知行动不重发。"), resume); recoveryButtons.push({ button: resume, body, command: "batch" });
       }
       const raw = el("details", "local-advanced"); raw.append(el("summary", "", "原授权、每步父/子身份和完整停止记录"), el("pre", "project-source-text", JSON.stringify({ request_id: id, project_id: record.project_id, status: record.status, record_status: record.record_status, body, result: record.result }, null, 2)));
       card.append(raw);
@@ -106,21 +136,64 @@ export function createLocalBatchPanel(host: Host): {
       history.append(card);
     }
   }
+  function savedContinuations(): void {
+    const opened = new Set([...history.querySelectorAll<HTMLDetailsElement>("details[data-request]")].filter(node => node.open).map(node => node.dataset.request));
+    const existed = new Set([...history.querySelectorAll<HTMLDetailsElement>("details[data-request]")].map(node => node.dataset.request));
+    recoveryButtons.length = 0; history.replaceChildren(el("h3", "", "继续记录"));
+    const records = objects(description.continuations).slice(0, 8);
+    if (!records.length) history.append(el("p", "detail-note", "尚无继续任务；查看页面不会创建请求。"));
+    records.forEach((record, index) => {
+      const body = object(record.body), stop = object(record.stop), plan = object(record.plan_ref), batch = object(record.batch_ref);
+      const id = text(record.request_id, ""), card = el("details", "local-batch-record");
+      card.dataset.request = id; card.open = opened.has(id) || !existed.has(id) && index === 0 && record.project_id === projectId;
+      const phase = phases[text(record.phase)] ?? "阶段待核对";
+      card.append(el("summary", "", phase + " · " + (states[text(record.status)] ?? "状态待核对") + " · " + id));
+      card.append(el("p", "detail-note", "原范围最多" + String(body.max_actions ?? "?") + "次行动 · "
+        + (body.plan_mode === "suggest" ? "先取得计划建议" : "沿已采用计划") + " · "
+        + (body.execution_mode === "model" ? "CLI模型选择" : "条件规则选择")));
+      if (Object.keys(plan).length) card.append(el("p", "detail-note", "研究计划："
+        + (typeof plan.plan_version === "number" ? "第" + plan.plan_version + "版" : "尚未采用")
+        + " · 原请求 " + text(plan.request_id)));
+      if (Object.keys(batch).length) card.append(el("p", "detail-note", "行动批次：" + text(batch.request_id)
+        + " · " + (states[text(batch.status)] ?? text(batch.status))));
+      if (stop.code || stop.reason) card.append(el("p", "notice", continuationStopReason(stop)));
+      for (const step of objects(record.steps)) card.append(el("p", "detail-note", "第" + String(step.ordinal ?? "?") + "阶段 · "
+        + (step.phase === "plan" && body.plan_mode === "reuse" ? "沿已采用计划" : phases[text(step.phase)] ?? text(step.phase)) + " · " + (states[text(step.status)] ?? text(step.status))
+        + "；原请求 " + text(step.request_id) + (step.child_request_id ? "；行动 " + text(step.child_request_id) : "")));
+      if (record.phase === "awaiting_adoption") {
+        const review = el("a", "text-button", "查看本页计划建议"); review.href = "#/research?focus=plan"; card.append(review);
+      }
+      if (resumable(record) && stop.resume_allowed === true && body.request_id === id && body.project_id === record.project_id) {
+        const resume = el("button", "action-button", "核对并继续原任务"); resume.type = "button";
+        resume.addEventListener("click", () => { if (host.canRecover(body, "continue")) void host.submit(body, true, "continue"); });
+        card.append(resume); recoveryButtons.push({ button: resume, body, command: "continue" });
+      }
+      const raw = el("details", "local-advanced"); raw.append(el("summary", "", "原范围、阶段与完整停止记录"),
+        el("pre", "project-source-text", JSON.stringify(record, null, 2))); card.append(raw);
+      if (/^[A-Za-z0-9_.:-]{1,160}$/.test(id)) {
+        const link = el("a", "text-button", "下载原继续记录 JSON ↓"); link.href = "/api/local-workbench/continue/" + encodeURIComponent(id) + ".json"; card.append(link);
+      }
+      history.append(card);
+    });
+  }
   form.addEventListener("submit", event => {
     event.preventDefault(); if (locked || !projectId || typeof project.state_version !== "number" || !form.reportValidity()) return;
     const allowed = [...methods]; if (selectedReceipts.size && readerId) allowed.push(readerId);
     if (!allowed.length || (selectedReceipts.size && !readerId)) { host.announce("请明确勾选实际方法或当前可读取的资料包。", true); return; }
     if (![1, 2].includes(Number(limit.value)) || !reason.value.trim()) { host.announce("请选择本批1或2次行动上限，并填写授权理由。", true); return; }
     void host.submit({ project_id: projectId, expected_state_version: project.state_version, max_actions: Number(limit.value),
-      allowed_methods: allowed, source_receipt_sha256s: [...selectedReceipts], reason: reason.value.trim() }, false);
+      plan_mode: planMode.value, execution_mode: executionMode.value,
+      allowed_methods: allowed, source_receipt_sha256s: [...selectedReceipts], reason: reason.value.trim() }, false, "continue");
   });
-  for (const control of [limit, reason]) control.addEventListener("input", controls);
+  for (const control of [limit, reason, planMode, executionMode]) control.addEventListener("input", controls);
   function update(nextDescription: Obj, nextProject: Obj): void {
     description = nextDescription; project = nextProject;
     const nextId = text(project.id, "");
-    if (nextId !== projectId) { methods.clear(); selectedReceipts.clear(); reason.value = ""; limit.value = ""; }
-    projectId = nextId; options(); savedBatches();
-    status.textContent = projectId ? "本次授权只作用于当前项目；每一步保存原父/子记录，累计用量沿原账本。" : "先创建或选择项目，再明确授权；历史未完成批次仍可按原ID核对。";
+    if (nextId !== projectId) { methods.clear(); selectedReceipts.clear(); reason.value = ""; limit.value = ""; planMode.value = "reuse"; executionMode.value = "rules"; }
+    projectId = nextId; options(); savedContinuations(); savedBatches();
+    const version = object(object(project.research_plan).current).version;
+    status.textContent = projectId ? (typeof version === "number" ? "当前采用研究计划第" + version + "版。" : "先保存计划，或选择取得计划建议。")
+      + " 本次沿原项目和累计额度继续。" : "先创建或选择项目，再明确本次推进范围。";
     controls();
   }
   update({}, {});

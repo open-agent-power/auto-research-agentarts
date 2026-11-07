@@ -72,6 +72,22 @@ v2保留总体及两个原编码组的正向描述性关联，将下一步从重
 
 这次补上了实际分析反馈→计划修订→资料补充→新反馈→后轮模型选择及执行的轨迹。默认baseline已能选择该来源，未人为构造遗漏方法或创建配方版本，不据此声称配方收益或多轮RSI已完成。字段语义可支持部分描述，具体量尺、编码语义、独立性及原数据使用条件仍按[来源解释范围](numeric-association.md#来源反馈后的实际接续)保留未知。state21的7页PDF已逐页查看，四下载与保存原件一致；PDF第3、5页留白较大，沿用原分页。原件在本机ignored `runs/a81-source-feedback-continuation-20261107/`。
 
+## 继续研究的计划与行动阶段
+
+工作台的“继续研究”把计划处理和行动批次放在同一条持久记录中，沿用原Host请求、采用门和执行器。起步与恢复步骤见[工作台用法](local-workbench.md#继续研究选计划再按授权行动)。
+
+`POST /api/local-workbench/continue`严格接收`request_id/project_id/expected_state_version/plan_mode/execution_mode/max_actions/allowed_methods/source_receipt_sha256s/reason`。`plan_mode`只能为`reuse`或`suggest`，`execution_mode`只能为`rules`或`model`；方法与确切收据按本次body冻结，后续资料不会自动加入。
+
+- `reuse`绑定当前已采用的研究计划，不创建计划建议。
+- `suggest`沿已有且有剩余名额的Host grant准备`purpose=plan`，冻结实际context与反馈。建议阶段固定准备delegated请求，即使服务启用CLI也先保存为`prepared`，等待原Host导出/导入流程提供回答；该入口不派发Codex子代理。回答消费为建议后停在明确采用/拒绝门，不自动采用。采用后沿原continue ID继续，拒绝不自动切换计划方式。
+- 计划阶段完成后，`rules`接回原`LocalWorkbench.batch`，`model`接回原`HostModelBatch`。模型执行要求服务已启用固定CLI；浏览器不能更改可执行文件或提供方。每个模型选择仍按原grant计数，计划请求也占一个名额，`max_actions`不代表总模型请求数。
+
+`GET /api/local-workbench/continue/<request_id>.json`只读返回完整冻结body与`phase/plan_ref/batch_ref/steps/stop`，工作台`describe.continuations`列出接续记录。恢复先核对原记录，再以同ID、首次版本及全部原body明确继续；中间采用计划不会允许把当前版本替换进冻结body。原批次一经关联就沿该`batch_ref`恢复，已收口重放只返回原结果，unknown不重新派发或覆盖回答。
+
+模型分支会先核对实际候选是否都在本次范围内；两次模型决策还要求授权覆盖原Host batch冻结的完整方法和收据范围，包括已有登记。因此只勾选未读资料不能满足某些旧项目的两步模型范围，入口会保存`NOT_AUTHORIZED`并停止；不会扩大授权或另造执行器。可按当前实际范围明确选择一次行动。
+
+需要Host的阶段无grant或累计名额用尽时停止；`model`行动阶段CLI未启用、候选未获授权、原请求unknown及其他阻断也保存停止，不默认配置或扩大额度。规则批次与模型批次继续沿各自原预算及恢复门禁处理，历史费用unknown和现金归属保留。研究计划v2不等于配方v2；这个入口不创建新配方版本、不自动采用配方，RSI的验证及明确采用/回退仍走独立流程。
+
 ## 配方改进提案与验证接线
 
 主开发已落盘recipe change的模型提案协议与允许工具验证适配。A64已通过一次真实子代理提案和允许来源读取，桌面及手机截图、五页导航与报告下载均已实际核对，功能已通过[PR #9](https://github.com/1263-ux/auto-research-agentarts/pull/9)合并。队友继续拥有`recipe_improvement`外环，负责版本、采用或回退以及连续轮次。实际范围见[A64记录](#a64-配方修改提案与允许工具验证)。
@@ -142,7 +158,7 @@ $hostArgs = @(
 
 ## 一次授权，按模型反馈最多推进两步
 
-`advance-batch`连续复用上述原请求链。每一步都从最新真实项目状态构建context，再让CLI选择；本地固定规则批次仍是单独入口。以下示例仅适用于本journal尚未固定grant，或已有grant与示例完全一致的情况；`--reason`须填写实际已授权范围。
+`advance-batch`连续复用上述原请求链。每一步都从最新真实项目状态构建context，再让CLI选择；规则批次沿原本地执行器处理，工作台通过“继续研究”选择这两种执行方式。以下CLI示例仅适用于本journal尚未固定grant，或已有grant与示例完全一致的情况；`--reason`须填写实际已授权范围。
 
 ```powershell
 .venv/Scripts/python.exe scripts/run_host_selection.py advance-batch `
@@ -161,7 +177,7 @@ $hostArgs = @(
 
 `batch-status`只读。中断后用首次原命令、原版本和全部原参数核对；只恢复原子请求，不能覆盖回答或重新派发sending/unknown。`record_status=incomplete`表示仍需核对原请求；`record_status=completed`表示本批已收口，原命令重放只返回保存记录，不增加模型或行动。子请求的`status=applied`仍须看其`outcome.status`，不代表工具成功或科学批准。
 
-当前报告捕获完整批次收据为`host_model_batch`原件，报告JSON的`host_models.batches`保留授权、步骤和停止原因，输入包的`host-model-evidence/batches/`附件保留原字节。批次进展也会改变host快照，使旧报告过期；导出不会自动续批。此入口目前为CLI，尚未增加网页连续模型按钮。
+当前报告捕获完整批次收据为`host_model_batch`原件，报告JSON的`host_models.batches`保留授权、步骤和停止原因，输入包的`host-model-evidence/batches/`附件保留原字节。批次进展也会改变host快照，使旧报告过期；导出不会自动续批。工作台“继续研究”的`model`分支接回同一模型批次，旧批次记录继续读取。
 
 2026-11-04，原A16钢材项目在同一ID/Run上从v5显式升级并登记版本匹配资料，随后真实CLI批次从v7执行一次来源读取至v11。CLI报告路由为`deepseek-flash`，估值0.040875USD、实际结算unknown；来源1/8，本地数值仍1/1，原生模型和拟合新增0。下一步无合法候选，批次保存`waiting/completed`，没有调用第二次模型。三个原登记/升级/批次ID重放均无新增，六页报告含批次及14份原件，见[A33结果](../runs/a33-bounded-model-20261104/README.md)。真实任务本次只有一次模型选择；双模型反馈及中断/未知恢复由两项工程夹具验证，不写成已在真实任务观察到两次连续模型决定。
 
@@ -315,7 +331,7 @@ A26按当时格式分别交付核心报告与host-status，原生计数未包含
 
 同一请求日志已接入本地工作台的“研究推进 → 开展下一步 → 模型选择与执行”。服务须同时显式传入 `--enable-local-actions` 和 `--claude-executable`，模型默认关闭；路径由宿主启动指定，浏览器不能改命令、可执行文件或提供方。启动示例、原请求核对及两次真实反馈接续见[工作台用法](local-workbench.md#用模型选择并执行一步)。
 
-页面每次明确点击最多完成一次CLI选择与一个合法行动，首次提交固定累计grant；无候选或条件阻断时不发送。刷新和重开只读原日志，“核对原请求”沿原ID恢复，unknown不重发。模型可能沿CLI现有路由联网；原生Qwen计数与宿主外部用量分别显示，当前报告包也保留这一区分及原请求证据。
+原单步“模型建议与行动”每次明确点击最多完成一次CLI选择与一个合法行动，首次提交固定累计grant；无候选或条件阻断时不发送。“继续研究”按[计划与行动阶段](#继续研究的计划与行动阶段)处理，沿既有grant进入原批次。刷新和重开只读原日志，“核对原请求”沿原ID恢复，unknown不重发。模型可能沿CLI现有路由联网；原生Qwen计数与宿主外部用量分别显示，当前报告包也保留这一区分及原请求证据。
 
 A35面板将金额标为“CLI配置阈值”，说明单次调用可能超出、现金结算未知；达到或超出阈值、费用尚未核对的停止提示独立展示，不被无候选、旧内核或名额耗尽提示遮住。原请求逐条显示CLI报告估值，失败和回答无效的合法报告金额也计入累计；未启动请求不显示为零费用。此次只改展示，沿用原grant、请求与发送门禁。
 
