@@ -14,7 +14,7 @@ const subtitles: Record<ActiveProjectPage, string> = {
 
 export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[]; planning: HTMLElement[];
-  feedback: HTMLElement;
+  feedback: HTMLElement; reportButton: HTMLButtonElement;
   read(path: string): Promise<Obj>; announce(message: string, error?: boolean): void;
 }): { update(project: Obj, context: Obj | null): Promise<void> } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
@@ -99,6 +99,7 @@ export function createProjectPages(host: HTMLElement, options: {
     for (const [page, target] of content) {
       if (project.id) renderProjectPage(target, project, page, context);
       else target.replaceChildren(el("p", "empty-state", page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
+      if (page === "outputs" && project.id) target.querySelector(".project-report-actions")!.prepend(options.reportButton);
     }
     manage.open = !project.id;
     flow.update(project); if (activePage === "research") flow.activate();
