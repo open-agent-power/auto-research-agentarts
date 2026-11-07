@@ -79,8 +79,10 @@ v2保留总体及两个原编码组的正向描述性关联，将下一步从重
 `POST /api/local-workbench/continue`严格接收`request_id/project_id/expected_state_version/plan_mode/execution_mode/max_actions/allowed_methods/source_receipt_sha256s/reason`。`plan_mode`只能为`reuse`或`suggest`，`execution_mode`只能为`rules`或`model`；方法与确切收据按本次body冻结，后续资料不会自动加入。
 
 - `reuse`绑定当前已采用的研究计划，不创建计划建议。
-- `suggest`沿已有且有剩余名额的Host grant准备`purpose=plan`，冻结实际context与反馈。建议阶段固定准备delegated请求，即使服务启用CLI也先保存为`prepared`，等待原Host导出/导入流程提供回答；该入口不派发Codex子代理。回答消费为建议后停在明确采用/拒绝门，不自动采用。采用后沿原continue ID继续，拒绝不自动切换计划方式。
+- `suggest`沿已有且有剩余名额的Host grant准备`purpose=plan`，冻结实际context与反馈。服务显式启用固定`--claude-executable`时，新计划请求沿原Host的`prepare → request → consume`取得并保存建议；未启用CLI时仍准备delegated请求，停在`prepared`，需要沿原[导出/导入流程](#导出给子代理并导入原回答)提供原回答并消费。该入口不派发Codex子代理。回答消费为建议后停在明确采用/拒绝门，不自动采用。采用后沿原continue ID继续，拒绝不自动切换计划方式。
 - 计划阶段完成后，`rules`接回原`LocalWorkbench.batch`，`model`接回原`HostModelBatch`。模型执行要求服务已启用固定CLI；浏览器不能更改可执行文件或提供方。每个模型选择仍按原grant计数，计划请求也占一个名额，`max_actions`不代表总模型请求数。
+
+计划请求首次准备时冻结provider及可执行文件路径。旧delegated请求即使后来启用CLI，也只沿原请求的导出/导入流程恢复。CLI计划请求处于`prepared/sending/unknown`时，服务配置缺失或可执行文件路径改变，保留原计划阶段及请求，不改走delegated或另一CLI路径；恢复须匹配原配置。`received`只消费已保存回答，`proposed/applied`只读原建议及采用记录，不再准备或启动CLI。
 
 `GET /api/local-workbench/continue/<request_id>.json`只读返回完整冻结body与`phase/plan_ref/batch_ref/steps/stop`，工作台`describe.continuations`列出接续记录。恢复先核对原记录，再以同ID、首次版本及全部原body明确继续；中间采用计划不会允许把当前版本替换进冻结body。原批次一经关联就沿该`batch_ref`恢复，已收口重放只返回原结果，unknown不重新派发或覆盖回答。
 

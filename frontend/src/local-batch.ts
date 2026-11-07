@@ -29,8 +29,9 @@ const resumable = (record: Obj): boolean => ["preparing", "incomplete"].includes
 const phases: Record<string, string> = { plan: "取得计划建议", awaiting_adoption: "等待计划决定", actions: "推进行动", stopped: "已停止" };
 const stopReasons: Record<string, string> = {
   PLAN_REQUIRED: "先保存一版研究计划，或选择取得计划建议。", HOST_GRANT_REQUIRED: "当前没有已授权模型名额，需先通过原模型流程明确授权。",
-  HOST_DECISION_LIMIT: "原模型决策名额已用完，已有用量保留。", MODEL_DISABLED: "行动的模型选择需要服务启用已有CLI。",
-  CLI_NOT_FOUND: "行动的模型选择需要服务启用已有CLI。", HOST_PLAN_PENDING: "等待原模型回答，沿本页原请求处理。",
+  HOST_DECISION_LIMIT: "原模型决策名额已用完，已有用量保留。", MODEL_DISABLED: "模型阶段需要已启用的服务CLI；恢复时须沿原请求配置。",
+  CLI_NOT_FOUND: "未找到服务选定的CLI，请核对配置后继续原任务。", HOST_PLAN_PENDING: "等待原模型回答，沿本页原请求处理。",
+  CONFIG_CHANGED: "原任务选定的CLI配置已变化，需先恢复原配置；不会切换提供方。",
   PLAN_ADOPTION_REQUIRED: "先在本页采用或拒绝原计划建议，再继续此任务。", PLAN_REJECTED: "原计划建议已拒绝，保留原决定。",
   NO_HOST_CANDIDATES: "当前没有可执行候选，需先补充实际条件或资料。", BUDGET_EXHAUSTED: "原本地工具额度已用完。",
   STALE_STATE: "项目在此任务之外发生了变化，请核对原阶段。", HOST_SELECTION_PENDING: "原模型请求仍未收口，请先核对。",
@@ -65,7 +66,7 @@ export function createLocalBatchPanel(host: Host): {
   const labelled = (label: string, control: HTMLElement): HTMLElement => { const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap; };
   const modes = el("div", "local-form-grid"); modes.append(labelled("计划从哪里继续", planMode), labelled("行动怎样选择", executionMode));
   const start = el("button", "action-button primary", "按本次范围继续研究"); start.type = "submit";
-  fields.append(modes, el("p", "detail-note", "计划建议沿已有Host名额准备，先等原回答与明确采用。模型行动沿服务固定CLI和原额度执行。"),
+  fields.append(modes, el("p", "detail-note", "已启用CLI时，可用原模型名额取得计划建议；未启用时准备待导入的原请求。建议必须明确采用，行动沿原额度推进。"),
     el("h3", "", "允许执行的方法"), el("p", "detail-note", "每一步仍核对当前条件，已完成结果复用。"), methodList,
     el("h3", "", "允许读取的确切未读资料包"), el("p", "detail-note", "只授权下方明确勾选的收据，不包含未来上传的资料；不勾选就不读取来源。"), receipts,
     labelled("本次最多行动数", limit), labelled("本次范围与理由", reason));

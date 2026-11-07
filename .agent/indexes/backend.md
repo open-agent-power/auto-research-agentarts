@@ -2,7 +2,7 @@
 
 [A64离线导出补充](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)核对保存Host、回答SHA、提案、验证、行动和来源资产，形成独立外环结果；不构造数据库、不升级历史代码、不更改原项目或预算。`next-input`只读最新完整stage的有效配方，保留已有在线采用和阶段接续的职责边界。
 
-[LocalWorkbench.continue_research](../../src/autoresearch/local_workbench.py)以同ID冻结计划方式、执行方式、方法和确切收据；复用已有Host计划明确采用门、LocalWorkbench.batch或HostModelBatch。有效配方批次核对原编译决策与revision；恢复沿原父／子请求，未知不重发。建议阶段固定delegated准备，不创建grant；见[阶段合同](../../docs/host-model-selection.md#继续研究的计划与行动阶段)。
+[LocalWorkbench.continue_research](../../src/autoresearch/local_workbench.py)以同ID冻结计划方式、执行方式、方法和确切收据；复用已有Host计划明确采用门、LocalWorkbench.batch或HostModelBatch。服务启用固定CLI时，计划阶段沿原Host取得建议；未启用则准备delegated，首次提供方／路径保持，配置漂移保留原阶段。有效配方批次核对原编译决策与revision；未知不重发，不创建grant；见[阶段合同](../../docs/host-model-selection.md#继续研究的计划与行动阶段)。
 
 [同轮阶段接续](../../docs/recipe-research/rsi-delivery.md)已由`run_improvement_round(resume=True)`实现：同round-id仅追加保存提案／验证的不可变stage，原pending、冻结上下文、已保存候选及终态保持。原Host／控制器核对仍走原入口，阶段读取与接续不派发模型或工具。
 

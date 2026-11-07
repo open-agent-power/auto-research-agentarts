@@ -760,7 +760,28 @@ class LocalWorkbench:
                  "HOST_CLI_BUDGET_EXHAUSTED", "The original reported CLI estimate cap is exhausted.")
         return grant
 
-    def _continue_plan(self, record, project):
+    def _request_continuation_plan(self, record, journal, host, executable):
+        specification, view = record["intent"]["plan_specification"], record["result"]
+        request_id = specification["request_id"]
+        model = journal.status(request_id=request_id) if any(item["request_id"] == request_id for item in host["requests"]) else None
+        if model is not None:
+            _require(model["provider"] == specification["provider"] and model.get("purpose") == "plan"
+                     and model["prepare_specification"]["executable"] == specification.get("executable"),
+                     "EVIDENCE_CHANGED", "The plan request differs from its frozen provider and route.")
+            view["plan_ref"]["status"] = view["steps"][0]["status"] = model["status"]
+        if specification["provider"] == "claude_cli" and (model is None or model["status"] in {"prepared", "sending", "unknown"}):
+            _require(executable is not None and Path(executable).is_file(), "MODEL_DISABLED", "Resume the plan with the original service-selected native CLI.")
+            _require(str(Path(executable).absolute()) == specification["executable"],
+                     "CONFIG_CHANGED", "The plan must keep its original service-selected native CLI path.")
+        if model is None or model["status"] in {"prepared", "sending", "unknown"}:
+            model = journal.prepare(**specification)
+        if model["provider"] == "claude_cli" and model["status"] in {"prepared", "sending", "unknown"}:
+            model = journal.request(request_id=request_id)
+        if model["status"] == "received":
+            model = journal.consume(request_id=request_id)
+        return model
+
+    def _continue_plan(self, record, project, executable):
         view, intent = record["result"], record["intent"]
         state = project.status()
         journal = HostModelSelection(project.root)
@@ -784,15 +805,15 @@ class LocalWorkbench:
                 grant = self._continuation_grant(host)
                 request_id = "continue-" + intent["request_sha256"][:32] + "-plan"
                 view["plan_ref"] = ref = {"kind": "host_plan", "request_id": request_id, "plan_version": None, "status": "preparing"}
-                intent["plan_specification"] = {"request_id": request_id, "provider": "delegated", "purpose": "plan",
+                intent["plan_specification"] = {"request_id": request_id, "provider": "claude_cli" if executable is not None else "delegated", "purpose": "plan",
                     "expected_state_version": view["cursor_state_version"], **{key: grant[key] for key in ("decision_limit", "cli_budget_usd", "reason")}}
+                if executable is not None:
+                    intent["plan_specification"]["executable"] = str(Path(executable).absolute())
                 view["steps"] = [{"ordinal": 1, "phase": "plan", "request_id": request_id, "status": "preparing",
                     "controller_request_id": request_id, "child_request_id": None,
                     "snapshot_ref_before": intent["cursor_snapshot_ref"], "snapshot_ref_after": None}]
                 self._save_continuation(record)
-            model = journal.prepare(**intent["plan_specification"])
-            if model["status"] == "received":
-                model = journal.consume(request_id=ref["request_id"])
+            model = self._request_continuation_plan(record, journal, host, executable)
             ref["status"] = view["steps"][0]["status"] = model["status"]
             if model["status"] == "applied":
                 revision = (model.get("outcome") or {}).get("research_plan")
@@ -811,8 +832,11 @@ class LocalWorkbench:
                     self._stop_continuation(record, "waiting", "PLAN_ADOPTION_REQUIRED", "Explicitly adopt or reject the linked saved plan before continuing.",
                                             incomplete=True, phase="awaiting_adoption")
                 elif model["status"] in PENDING:
+                    reason = ("Reconcile the original CLI plan request and saved transport; an unresolved launch will not be resent."
+                              if model["provider"] == "claude_cli" else
+                              "Wait for or import the original delegated plan response; no model was launched by this continuation.")
                     self._stop_continuation(record, "needs_review" if model["status"] in {"sending", "unknown"} else "waiting",
-                        "HOST_PLAN_PENDING", "Wait for or import the original delegated plan response; no model was launched by this continuation.",
+                        "HOST_PLAN_PENDING", reason,
                         incomplete=True, phase="plan")
                 else:
                     self._stop_continuation(record, "blocked", "PLAN_" + model["status"].upper(), "The original plan proposal stopped; no replacement was prepared.")
@@ -934,14 +958,17 @@ class LocalWorkbench:
                 else:
                     record = old
             try:
-                if record["result"]["phase"] in {"plan", "awaiting_adoption"} and not self._continue_plan(record, project):
+                if record["result"]["phase"] in {"plan", "awaiting_adoption"} and not self._continue_plan(record, project, executable):
                     return copy.deepcopy(record["result"])
                 self._prepare_continuation_actions(record, project, executable)
             except ResearchError as error:
                 pending_batch = "batch_body" in record["intent"]
-                status = "needs_review" if pending_batch or error.code in {"EXECUTION_UNKNOWN", "PROJECT_BUSY"} else "waiting" if error.code == "NO_HOST_CANDIDATES" else "blocked"
+                pending_plan = (record["result"]["phase"] == "plan" and record["intent"].get("plan_specification", {}).get("provider") == "claude_cli"
+                                and error.code in {"MODEL_DISABLED", "CONFIG_CHANGED"})
+                status = "needs_review" if pending_batch or pending_plan or error.code in {"EXECUTION_UNKNOWN", "PROJECT_BUSY"} else "waiting" if error.code == "NO_HOST_CANDIDATES" else "blocked"
                 return self._stop_continuation(record, status,
-                    error.code, str(error), incomplete=pending_batch, phase="actions" if pending_batch else "stopped")
+                    error.code, str(error), incomplete=pending_batch or pending_plan,
+                    phase="actions" if pending_batch else "plan" if pending_plan else "stopped")
             batch_body = copy.deepcopy(record["intent"]["batch_body"])
         # Existing batches acquire their own manager/Host locks and preserve original IDs.
         try:

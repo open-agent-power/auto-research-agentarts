@@ -1,6 +1,8 @@
-"""Three bounded continuation checks; constructed providers, original core actions and HTTP."""
+"""Bounded continuation checks; constructed providers, original core actions and HTTP."""
 
 import copy
+import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -75,6 +77,27 @@ class LocalWorkbenchContinuationTests(unittest.TestCase):
         journal.adopt_plan(request_id="seed-plan")
         return journal
 
+    def plan_transport(self, *, unknown=False, **kwargs):
+        context = json.loads(kwargs["prompt"].split("\n", 1)[1])
+        self.contexts.append(context)
+        arguments = {"plan": self.plan(), "reason": "Use only the actual feedback in this frozen engineering context.",
+            "feedback_action_ids": [context["feedback"][0]["action_id"]] if context["feedback"] else [],
+            "expected_improvement": "Retain the original grants and require explicit adoption before an action."}
+        raw = b"" if unknown else canonical({"type": "result", "subtype": "success", "is_error": False,
+            "result": canonical(arguments), "modelUsage": {"fixture-plan-route": {}},
+            "usage": {"input_tokens": 23, "output_tokens": 17}, "total_cost_usd": .02}).encode("utf-8")
+        folder, incoming = kwargs["directory"], kwargs["prompt"].encode("utf-8")
+        launch = {"argv": [kwargs["executable"], "--system-prompt", kwargs["system_prompt"]],
+            "stdin_sha256": hashlib.sha256(incoming).hexdigest(), "stdin_bytes": len(incoming),
+            "configured_max_budget_usd": kwargs["max_budget_usd"]}
+        (folder / "launch.json").write_text(canonical(launch), encoding="utf-8")
+        (folder / "stdout.bin").write_bytes(raw)
+        (folder / "stderr.bin").write_bytes(b"")
+        receipt = {"status": "unknown" if unknown else "received", "exit_code": None if unknown else 0,
+            "stdout_file": "stdout.bin", "stdout_bytes": len(raw), "stdout_sha256": hashlib.sha256(raw).hexdigest()}
+        (folder / "exit.json").write_text(canonical(receipt), encoding="utf-8")
+        return receipt
+
     def assert_code(self, code, callback, *args):
         with self.assertRaises(ResearchError) as caught:
             callback(*args)
@@ -123,6 +146,10 @@ class LocalWorkbenchContinuationTests(unittest.TestCase):
             self.assertEqual((prepared["phase"], prepared["status"], prepared["record_status"]), ("plan", "waiting", "incomplete"))
             plan_id = prepared["plan_ref"]["request_id"]
             self.assertEqual(journal.status(request_id=plan_id)["provider"], "delegated")
+            original_specification = journal.status(request_id=plan_id)["prepare_specification"]
+            self.assertEqual(self.manager.continue_research(body, executable=Path(__file__).absolute()), prepared)
+            self.assertEqual(self.manager.continue_research(body), prepared)
+            self.assertEqual(journal.status(request_id=plan_id)["prepare_specification"], original_specification)
             self.assertEqual(self.project.status(), before)
             self.assert_code("OPERATION_INCOMPLETE", self.manager.save_plan,
                 {"request_id": "unrelated-plan", "project_id": before["id"], "expected_state_version": before["state_version"],
@@ -132,6 +159,8 @@ class LocalWorkbenchContinuationTests(unittest.TestCase):
             self.assertEqual(resumed["status"], "proposed")
             awaiting = self.manager.continue_research(body)
             self.assertEqual((awaiting["phase"], awaiting["stop"]["code"]), ("awaiting_adoption", "PLAN_ADOPTION_REQUIRED"))
+            self.assertEqual(self.manager.continue_research(body, executable=Path(__file__).absolute()), awaiting)
+            self.assertEqual(journal.status(request_id=plan_id)["provider"], "delegated")
             self.assert_code("OPERATION_INCOMPLETE", self.manager.model_plan_adopt,
                              {"project_id": before["id"], "request_id": "unrelated-model"})
             snapshot = os.environ.get("AUTORESEARCH_CONTINUATION_FIXTURE")
@@ -201,6 +230,91 @@ class LocalWorkbenchContinuationTests(unittest.TestCase):
             self.assertEqual(self.project.status(), before)
             self.assertEqual(before["budget"]["local_tool_calls_reserved"], 1)
             primary.assert_called_once()
+
+    def test_http_cli_plan_stops_at_adoption_then_resumes_original_rules_batch(self):
+        self.fresh()
+        journal = self.seed_grant(2)
+        before, original_grant = self.project.status(), journal.status()["grant"]
+        executable = Path(__file__).absolute()
+        server = self.serve(local_workspace=self.manager, allow_local_actions=True, claude_executable=executable)
+        headers = self.session(server)
+        body = self.body("cli-plan-and-rules", plan_mode="suggest", maximum=1)
+        with patch("autoresearch.host_model_selection.run_claude_selection", side_effect=self.plan_transport) as model:
+            status, proposed = self.request(server, "/api/local-workbench/continue", "POST", body, headers)
+            self.assertEqual((status, proposed["phase"], proposed["record_status"]), (200, "awaiting_adoption", "incomplete"))
+            self.assertEqual(proposed["stop"]["code"], "PLAN_ADOPTION_REQUIRED")
+            request_id = proposed["plan_ref"]["request_id"]
+            saved = journal.status(request_id=request_id)
+            self.assertEqual((saved["provider"], saved["purpose"], saved["status"]), ("claude_cli", "plan", "proposed"))
+            self.assertEqual(saved["prepare_specification"]["executable"], str(executable))
+            self.assertEqual((saved["reported_cost_usd"], saved["reported_models"]), (.02, ["fixture-plan-route"]))
+            self.assertEqual(self.project.status(), before)
+            self.assertEqual(self.request(server, "/api/local-workbench/continue", "POST", body, headers), (200, proposed))
+            self.assertEqual(self.manager.continue_research(body), proposed)
+            self.assertEqual(model.call_count, 1)
+            status, adopted = self.request(server, "/api/local-workbench/model-plan-adopt", "POST",
+                {"request_id": request_id, "project_id": before["id"]}, headers)
+            self.assertEqual((status, adopted["status"]), (200, "applied"))
+            status, completed = self.request(server, "/api/local-workbench/continue", "POST", body, headers)
+            self.assertEqual((status, completed["phase"], completed["record_status"], completed["batch_ref"]["kind"]),
+                             (200, "stopped", "completed", "local"))
+            state = self.project.status()
+            self.assertEqual(completed["steps"][1]["controller_request_id"], state["controller_requests"][-1]["request_id"])
+            self.assertEqual((state["plan_revisions"][-1]["version"], len(state["actions"]), state["budget"]["local_tool_calls_used"]), (2, 1, 1))
+            self.assertEqual(self.request(server, "/api/local-workbench/continue", "POST", body, headers), (200, completed))
+            self.assertEqual(journal.status()["grant"], original_grant)
+            self.assertEqual(journal.status()["usage"]["decision_slots_used"], 2)
+            self.assertEqual(model.call_count, 1)
+            self.assertEqual((state["budget"]["new_model_requests"], state["budget"]["new_fits"], state["budget"]["existing_cash_cap_cny"]), (0, 0, 5))
+
+    def test_cli_pending_configuration_drift_and_saved_transport_never_resend(self):
+        executable, changed_executable = Path(__file__).absolute(), Path(host_fixtures.__file__).absolute()
+        for interrupted in (False, True):
+            with self.subTest(interrupted=interrupted):
+                self.fresh()
+                journal = self.seed_grant(2)
+                before, original_grant = self.project.status(), journal.status()["grant"]
+                body = self.body("cli-plan-recovery", plan_mode="suggest", maximum=1)
+
+                def transport(**kwargs):
+                    receipt = self.plan_transport(unknown=not interrupted, **kwargs)
+                    if interrupted:
+                        raise SimulatedCrash()
+                    return receipt
+
+                with patch("autoresearch.host_model_selection.run_claude_selection", side_effect=transport) as model:
+                    if interrupted:
+                        with self.assertRaises(SimulatedCrash):
+                            self.manager.continue_research(body, executable=executable)
+                        pending = self.manager.continuation_record(body["request_id"])
+                    else:
+                        pending = self.manager.continue_research(body, executable=executable)
+                    request_id = pending["plan_ref"]["request_id"]
+                    saved = journal.status(request_id=request_id)
+                    self.assertEqual(saved["status"], "sending" if interrupted else "unknown")
+                    self.assertIsNone(saved.get("reported_cost_usd"))
+                    self.assertTrue(journal.status()["usage"]["cli_cost_unknown"])
+                    for configured, code in ((None, "MODEL_DISABLED"), (changed_executable, "CONFIG_CHANGED")):
+                        stopped = self.manager.continue_research(body, executable=configured)
+                        self.assertEqual((stopped["record_status"], stopped["phase"], stopped["stop"]["code"]), ("incomplete", "plan", code))
+                        self.assertTrue(stopped["stop"]["resume_allowed"])
+                        self.assertEqual(stopped["plan_ref"]["request_id"], request_id)
+                        self.assertEqual(journal.status(request_id=request_id), saved)
+                    self.assertEqual(model.call_count, 1)
+                    if interrupted:
+                        self.assertEqual(journal.request(request_id=request_id)["status"], "received")
+                        recovered = self.manager.continue_research(body)
+                        self.assertEqual((recovered["phase"], recovered["plan_ref"]["status"]), ("awaiting_adoption", "proposed"))
+                        self.assertEqual(journal.status(request_id=request_id)["reported_cost_usd"], .02)
+                    else:
+                        recovered = self.manager.continue_research(body, executable=executable)
+                        self.assertEqual((recovered["phase"], recovered["plan_ref"]["status"]), ("plan", "unknown"))
+                        self.assertTrue(journal.status()["usage"]["cli_cost_unknown"])
+                        self.assertIsNone(journal.status(request_id=request_id)["reported_cost_usd"])
+                    self.assertEqual(journal.status()["grant"], original_grant)
+                    self.assertEqual(journal.status()["usage"]["decision_slots_used"], 2)
+                    self.assertEqual(self.project.status(), before)
+                    self.assertEqual(model.call_count, 1)
 
     def test_http_scopes_original_host_grant_and_fixed_model_batch(self):
         self.fresh()
