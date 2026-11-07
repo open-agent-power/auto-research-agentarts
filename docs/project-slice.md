@@ -60,9 +60,21 @@ next只读检查真实方法条件、现有来源索引、输入身份与预算�
 
 原`next/advance`固定策略之外，`selection-context --workspace ... [--need next_check]`只读导出真实条件、预算、候选和FTS原文；`advance-selection --workspace ... --request-id ... --proposal <UTF-8文件> [--need next_check] [--expected-state-version ...]`接收受限提案。方法、参数和评价由宿主候选确定，提案只能选该`id`或等待，不能增补任意命令或工具。
 
-## 在同一项目接回来源
+## 代码变化后继续原项目
 
-旧 A4 项目升级必须显式引用 status 中的旧 code_identity：
+`CODE_CHANGED`表示原项目登记的代码身份与当前实现不同。先核对实际代码差异，确认已保存结果仍可读取，且没有执行中或状态不明的工具、来源和模型请求，再明确登记兼容版本。以下命令使用原项目的旧身份和来源额度，不增加研究或模型额度：
+
+```powershell
+$status = .venv/Scripts/python.exe scripts/run_research_project.py status --workspace $projectPath | ConvertFrom-Json
+.venv/Scripts/python.exe scripts/run_research_project.py upgrade --workspace $projectPath --request-id register-compatible-code-1 --expected-code-identity $status.code_identity --evidence-read-limit $status.budget.evidence_read_limit
+.venv/Scripts/python.exe scripts/run_research_project.py next --workspace $projectPath
+```
+
+`upgrade`保存兼容登记原件并使state版本加1，保留原行动、来源、Host用量和累计预算；它不判断任意代码变更是否兼容，也不执行下一步研究。同一请求恢复时沿用原来的旧身份、额度和请求ID，不重新读取新身份拼成一次不同请求。
+
+项目快照变化后，旧报告仍是原快照材料，当前下载会标记过期。在“研究推进”展开“开展下一步”，点击“生成当前快照报告”，再到“成果与复现”核对和下载；不覆盖旧报告或旧演示材料。版本门解除后若无符合条件的候选，等待仍是有效结果，不能通过增加额度或伪造新反馈继续。
+
+## 在同一项目接回来源
 
 ```powershell
 $registration = .venv/Scripts/python.exe scripts/run_research_project.py register-evidence --workspace $projectPath --request-id register-sources-1 --bundle runs/my-source-bundle | ConvertFrom-Json
