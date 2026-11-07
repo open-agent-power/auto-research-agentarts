@@ -639,13 +639,15 @@ export async function mountLocalWorkbench(): Promise<void> {
     const blocked = switching ? navigationBlocked() : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
     if (!recoverBatch && !recoverModel && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
     const modelCommand = MODEL_COMMANDS.has(pending.command);
-    lastRequest = pending; busy = true; controls(); downloads(); announce(modelCommand ? "正在处理原模型请求；将保留回答和实际行动结果…" : "正在提交一次明确的本地命令…");
+    const continuation = pending.command === "continue" ? obj(JSON.parse(pending.body)) : {};
+    const modelContinuation = pending.command === "continue" && (continuation.plan_mode === "suggest" || continuation.execution_mode === "model");
+    lastRequest = pending; busy = true; controls(); downloads(); announce(modelCommand || modelContinuation ? "正在处理原模型请求；将保留回答和实际行动结果…" : "正在提交一次明确的本地命令…");
     if (pending.command === "evidence") evidencePending.set(targetProject, pending);
     try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ request_id: pending.requestId, command: pending.command })); } catch { /* Host journal remains authoritative. */ }
     let outcomeMessage = "", failed = false, accepted: Obj | null = null;
     try {
       const response = await fetch("/api/local-workbench/" + pending.command, { method: "POST", credentials: "same-origin", cache: "no-store",
-        headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(modelCommand ? 210000 : 60000) });
+        headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(modelContinuation ? 420000 : modelCommand ? 210000 : 60000) });
       const result = obj(await response.json());
       if (!response.ok) {
         pending.uncertain = response.status >= 500 || /UNKNOWN|NEEDS_REVIEW|INCOMPLETE/.test(text(result.code, ""));
