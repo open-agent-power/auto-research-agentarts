@@ -1,5 +1,9 @@
 # 组件搭建索引
 
+计划原文与当前事实分开显示：[local-workbench.ts](../../frontend/src/local-workbench.ts)保留制定时原文，另从已完成来源行动显示当前读取／选区数量与最新未决项；不据此推断先后或科学确认。[project-view.ts](../../frontend/src/project-view.ts)的`sourceQuestionText`复用精确中文释义，未知问题保留原文，来源卡去重展示且保留完整原数组。两处共用同一问题显示方式。
+
+“继续研究”复用[local-batch.ts](../../frontend/src/local-batch.ts)与原操作区，显示计划方式、执行方式及原阶段记录；[local-workbench.ts](../../frontend/src/local-workbench.ts)按原body确认丢失回执并恢复同ID，[local-model.ts](../../frontend/src/local-model.ts)仅对该任务关联的原计划请求放行核对／采用／拒绝。刷新不执行，其他新请求保持原锁。见[操作用法](../../docs/local-workbench.md#继续研究选计划再按授权行动)。
+
 `project-view.ts`沿现有实验卡显示`numeric_association`的总体结论、分组成对指标、不可计算原因和CSV定位；原行动及匹配前序质量结果可下载。总览摘要、候选、配方、batch和画布使用对应方法名称；PDF／Markdown沿`project_report`展示同一保存结果。实际桌面、手机横向表格及五页／X6已核对，详见[数值关联用法](../../docs/numeric-association.md)。
 
 当前前端为原生 TypeScript / DOM + X6，不是 React 组件项目。[依赖与构建](../../frontend/package.json)保存实际版本；先找已有实现，再决定是否抽取组件。

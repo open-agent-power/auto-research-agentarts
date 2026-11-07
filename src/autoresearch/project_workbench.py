@@ -350,6 +350,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/recipe-preview": "preview_recipe_round",
                             "/api/local-workbench/recipe-adopt": "adopt_recipe_round",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
+                            "/api/local-workbench/continue": "continue_research",
                             "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume",
                             "/api/local-workbench/model-plan-advance": "model_plan_advance",
                             "/api/local-workbench/model-plan-adopt": "model_plan_adopt",
@@ -373,8 +374,10 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 _require(len(raw) == length, "INVALID_REQUEST", "The complete request body was not received.")
                 body = _local_body(raw)
                 command = commands[parsed.path]
-                if command in ("model_advance", "model_resume", "model_plan_advance"):
+                if command in ("model_advance", "model_plan_advance"):
                     _require(claude_executable is not None, "MODEL_DISABLED", "Host model selection was not enabled.")
+                    result = getattr(local_workspace, command)(body, executable=claude_executable)
+                elif command in ("continue_research", "model_resume"):
                     result = getattr(local_workspace, command)(body, executable=claude_executable)
                 else:
                     result = getattr(local_workspace, command)(body)
@@ -434,6 +437,15 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                         raise ResearchError("INVALID_REQUEST", "Invalid batch identifier encoding.") from None
                     identifier(request_id)
                     return self.send_json(200, local_workspace.batch_record(request_id), request_id + ".json")
+                if parsed.path.startswith("/api/local-workbench/continue/") and local_workspace is not None:
+                    _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved continuation JSON identifier.")
+                    encoded = parsed.path.removeprefix("/api/local-workbench/continue/")[:-5]
+                    try:
+                        request_id = unquote(encoded, encoding="utf-8", errors="strict")
+                    except UnicodeError:
+                        raise ResearchError("INVALID_REQUEST", "Invalid continuation identifier encoding.") from None
+                    identifier(request_id)
+                    return self.send_json(200, local_workspace.continuation_record(request_id), request_id + ".json")
                 project, iteration_snapshot, report = binding()
                 if parsed.path == "/api/project":
                     _require(not parsed.query, "INVALID_QUERY", "Project status does not accept a query.")
