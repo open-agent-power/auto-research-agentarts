@@ -50,29 +50,40 @@ const domainTitle: Record<Domain, string> = {
   data: "数据 · 质量与分组核对",
 };
 
+const tabularNeeds: Record<string, string> = {
+  "Real task value and scientific source qualification remain unvalidated.": "真实任务价值与科学来源资格仍待验证。",
+  "Original data provenance, access and license evidence; submitter declarations remain unverified.": "核对原始数据的来源、访问和许可证据，提交者声明仍未核验",
+  "Confirm target meaning and unit before any scientific or training use.": "核对目标字段的含义和单位，再判断科研或训练用途",
+  "Clarify the intended target or confirm this is an untargeted data-quality task.": "明确目标字段，或确认只做无目标字段的数据质量检查",
+  "Confirm grouping and independence meaning against collection records.": "依据采集记录核对分组与样本独立性",
+  "Obtain grouping or sampling-unit definitions; absent group columns do not prove independence.": "取得分组或采样单位定义，未声明分组不证明独立性",
+  "Confirm the submitter-declared key's uniqueness and conflict-resolution rules.": "核对声明键的唯一性和冲突处理规则",
+  "Original collection/group definitions and sample-unit records; grouped counts do not establish independence.": "补齐原始采集、分组定义与采样单位记录；分组计数不证明独立性",
+  "Confirm target meaning, unit, zero/missing rules, provenance and license against original records.": "对照原始记录核对目标含义、单位、零值与缺失规则、来源及许可",
+  "Resolve the original grouping fields for records counted separately as incomplete groups.": "为单独统计的分组不完整记录，查清原始分组字段",
+  "Confirm the biological target/channel and actual units using source measurement records; raw red intensity is not approved as ALP.": "依据原始测量记录核对生物目标、通道及实际单位；原始红强度尚未确认可作为ALP",
+  "Confirm group independence and technical-repeat semantics before any statistical learning; repeated group rows are not independent samples.": "在统计学习前核对分组独立性和技术重复含义；同组多行不等于独立样本",
+  "No rows were removed or zeros imputed; table mechanics alone do not resolve prior processed-workbook column-role conflicts.": "原记录与零值均保留；机械核对仍不能解决既有处理工作簿的列角色冲突",
+  "Three complete duplicate CSV records are retained; source/acquisition evidence must determine whether these are repeated measurements or accidental duplication, not automatic deduplication.": "3条完整重复记录仍保留；需用来源及采集记录区分重复测量或意外复制，不能自动删重",
+  "Actual acquisition/run logs and original exported tables, plus the author conversion records or script linking them to the workbook and CSV rows.": "取得本次采集或运行日志、原始导出表，以及连接导出、工作簿和CSV行的作者转换记录或脚本",
+  "Confirm endpoint identity and unit, zero/missing rules, provenance and license against original records.": "对照原始记录核对目标字段的含义与单位、零值与缺失规则、数据来源及许可",
+  "Confirm grouping, sample units and independence; matching workbook caches do not establish these meanings.": "核对分组、采样单位和独立性；工作簿保存值相同不能证明这些含义",
+  "Resolve the multiple exact candidate worksheets using original run and conversion records.": "用原始运行和转换记录，区分多个完全一致的候选工作表",
+  "Identify the original worksheet and column transformation; no complete header candidate was found.": "查清原工作表和列转换；目前未找到完整列头匹配的候选",
+  "completed quality feedback and a captured XLSX matching the submitted origin SHA": "先完成表格质量检查，并补充与声明来源一致的已捕获原工作簿",
+  "Original sex-code semantic mapping remains unconfirmed.": "原sex编码分别代表什么仍未确认。",
+  "Exact progression target scale and numeric direction remain unconfirmed.": "疾病进展目标的具体量尺及数值高低的含义仍未确认。",
+  "Original collection, sampling, independence and dataset use terms remain unconfirmed.": "原始采集、抽样、样本独立性及数据集使用条件仍未确认。",
+  "Original sex-code semantic mapping is not supplied by this page.": "该来源页面未说明原sex编码分别代表什么。",
+  "The exact target measurement scale, numerical direction and dataset use terms are not supplied by this page.": "该来源页面未说明目标的具体测量量尺、数值高低的含义及数据集使用条件。",
+  "A statement about442 diabetes patients does not by itself establish sampling independence or eligibility for new scientific uses.": "仅说明有442位糖尿病患者，不能据此确认样本独立，也不能确认可用于新的科研用途。",
+};
+
+export function sourceQuestionText(value: string): string {
+  return Object.hasOwn(tabularNeeds, value) ? tabularNeeds[value] : value;
+}
+
 function note(value: string, fallback: string): string {
-  const tabularNeeds: Record<string, string> = {
-    "Real task value and scientific source qualification remain unvalidated.": "真实任务价值与科学来源资格仍待验证。",
-    "Original data provenance, access and license evidence; submitter declarations remain unverified.": "核对原始数据的来源、访问和许可证据，提交者声明仍未核验",
-    "Confirm target meaning and unit before any scientific or training use.": "核对目标字段的含义和单位，再判断科研或训练用途",
-    "Clarify the intended target or confirm this is an untargeted data-quality task.": "明确目标字段，或确认只做无目标字段的数据质量检查",
-    "Confirm grouping and independence meaning against collection records.": "依据采集记录核对分组与样本独立性",
-    "Obtain grouping or sampling-unit definitions; absent group columns do not prove independence.": "取得分组或采样单位定义，未声明分组不证明独立性",
-    "Confirm the submitter-declared key's uniqueness and conflict-resolution rules.": "核对声明键的唯一性和冲突处理规则",
-    "Original collection/group definitions and sample-unit records; grouped counts do not establish independence.": "补齐原始采集、分组定义与采样单位记录；分组计数不证明独立性",
-    "Confirm target meaning, unit, zero/missing rules, provenance and license against original records.": "对照原始记录核对目标含义、单位、零值与缺失规则、来源及许可",
-    "Resolve the original grouping fields for records counted separately as incomplete groups.": "为单独统计的分组不完整记录，查清原始分组字段",
-    "Confirm the biological target/channel and actual units using source measurement records; raw red intensity is not approved as ALP.": "依据原始测量记录核对生物目标、通道及实际单位；原始红强度尚未确认可作为ALP",
-    "Confirm group independence and technical-repeat semantics before any statistical learning; repeated group rows are not independent samples.": "在统计学习前核对分组独立性和技术重复含义；同组多行不等于独立样本",
-    "No rows were removed or zeros imputed; table mechanics alone do not resolve prior processed-workbook column-role conflicts.": "原记录与零值均保留；机械核对仍不能解决既有处理工作簿的列角色冲突",
-    "Three complete duplicate CSV records are retained; source/acquisition evidence must determine whether these are repeated measurements or accidental duplication, not automatic deduplication.": "3条完整重复记录仍保留；需用来源及采集记录区分重复测量或意外复制，不能自动删重",
-    "Actual acquisition/run logs and original exported tables, plus the author conversion records or script linking them to the workbook and CSV rows.": "取得本次采集或运行日志、原始导出表，以及连接导出、工作簿和CSV行的作者转换记录或脚本",
-    "Confirm endpoint identity and unit, zero/missing rules, provenance and license against original records.": "对照原始记录核对目标字段的含义与单位、零值与缺失规则、数据来源及许可",
-    "Confirm grouping, sample units and independence; matching workbook caches do not establish these meanings.": "核对分组、采样单位和独立性；工作簿保存值相同不能证明这些含义",
-    "Resolve the multiple exact candidate worksheets using original run and conversion records.": "用原始运行和转换记录，区分多个完全一致的候选工作表",
-    "Identify the original worksheet and column transformation; no complete header candidate was found.": "查清原工作表和列转换；目前未找到完整列头匹配的候选",
-    "completed quality feedback and a captured XLSX matching the submitted origin SHA": "先完成表格质量检查，并补充与声明来源一致的已捕获原工作簿",
-  };
   if (tabularNeeds[value]) return tabularNeeds[value];
   const groupedPrefix = "Explain the observed group distributions without changing or deleting original values:";
   if (value.startsWith(groupedPrefix)) {
@@ -351,7 +362,7 @@ function executionRecords(project: Obj): HTMLElement {
     const remaining = words(object(action.next_decision).remaining_questions);
     if (remaining.length) {
       const questions = el("ul", "project-questions");
-      for (const question of remaining) questions.append(el("li", "", note(question, "仍有具体条件未确认，见原记录。")));
+      for (const question of new Set(remaining.map(sourceQuestionText))) questions.append(el("li", "", question));
       card.append(el("h4", "", "仍缺的资料"), questions);
       card.append(details("未解决问题（完整原记录）", remaining));
     }
