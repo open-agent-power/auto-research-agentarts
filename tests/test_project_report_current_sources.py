@@ -7,10 +7,38 @@ import unittest
 import test_local_workbench as fixtures
 from autoresearch.contracts import canonical
 from autoresearch.local_workbench import LocalWorkbench
-from autoresearch.project_report import _latest_source_review_lines, _markdown, _source_notes, collect_report
+from autoresearch.project_report import _association_rows, _latest_source_review_lines, _markdown, _pdf, _source_notes, collect_report
 
 
 class ProjectReportCurrentSourcesTests(unittest.TestCase):
+    def test_numeric_association_report_shows_sample_scope_and_null_reason(self):
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        manager = LocalWorkbench(root / "manager")
+        manager.create(fixtures.LocalWorkbenchTests.create_body(self))
+        project, _ = manager.binding()
+        report = collect_report(project.root)
+        result = {"schema_version": "numeric-association-v1", "target_column": "progression_target",
+                  "predecessor": {"based_on_action_id": "quality-action"},
+                  "overall": [{"predictor": "bmi", "n": 4, "excluded": 0, "pearson_r": 1.0, "reason": None}],
+                  "groups": [{"group_id": "group-a", "rows": 3,
+                              "first_coordinate": {"logical_record": 1, "physical_line_end": 2},
+                              "associations": [{"predictor": "bmi", "n": 3, "excluded": 0, "pearson_r": 1.0, "reason": None}]},
+                             {"group_id": "group-b", "rows": 1,
+                              "first_coordinate": {"logical_record": 4, "physical_line_end": 5},
+                              "associations": [{"predictor": "bmi", "n": 1, "excluded": 0, "pearson_r": None,
+                                                "reason": "insufficient_pairs"}]}],
+                  "incomplete_group": {"rows": 0, "associations": []}}
+        report["action_results"] = [{"action_id": "association-action", "command": "data.numeric-association",
+                                      "status": "completed", "failure": None,
+                                      "tool_result": {"result": result}}]
+        before = canonical(report)
+        self.assertEqual(_association_rows(result)[-1][-1], "有效对少于3")
+        markdown = _markdown(report)
+        for expected in ("数值关联", "progression_target", "association-action", "quality-action", "有效对少于3"):
+            self.assertIn(expected, markdown)
+        self.assertTrue(_pdf(report).startswith(b"%PDF-"))
+        self.assertEqual(canonical(report), before)
+
     @staticmethod
     def selection(index, claim):
         return {"id": "selection-" + str(index), "source": {"id": "fixture-source", "sha256": "a" * 64,

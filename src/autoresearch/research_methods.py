@@ -162,6 +162,12 @@ def grouped_feedback_eligible(profile, scope):
         for column in profile.get("numeric_columns", [])))
 
 
+def numeric_feedback_eligible(scope):
+    """A declared numeric target and another numeric field qualify descriptive association."""
+    target, numeric = scope.get("target_column"), scope.get("numeric_columns", [])
+    return target is not None and target in numeric and any(name != target for name in numeric)
+
+
 def _workbook_origin(project):
     declared = project.get("source_provenance", {}).get("origin_sha256")
     for receipt in project.get("evidence_sources", []):
@@ -215,6 +221,10 @@ def _domain_methods(project, need):
                 parameters.update(origin)
             reason = "Compare the unchanged CSV against saved workbook cells from its declared, captured origin; retain all unmatched or ambiguous projection candidates."
             missing = ["completed quality feedback and a captured XLSX matching the submitted origin SHA"]
+        elif method_id == registry.NUMERIC:
+            eligible = numeric_feedback_eligible(project.get("source_scope", {}))
+            reason = "Describe pairwise finite numeric associations after saved quality feedback; target and grouping declarations remain unverified."
+            missing = ["completed quality feedback, a declared numeric target and at least one other numeric column"]
         done = [item for item in project.get("actions", []) if item["command"] == method_id
                 and item["status"] == "completed" and item["method_instance"]["parameters"] == parameters]
         options.append({"method_id": method_id,
@@ -253,6 +263,8 @@ def _domain_choice(project, options, knowledge):
                     "parameters": copy.deepcopy(option["parameters"]), "kind": "conditional_proposal", "execution_status": "not_executed"},
                     "reason": ("Saved quality feedback and the captured declared origin qualify a workbook candidate projection check; conversion and scientific questions remain unresolved."
                                if method_id == registry.WORKBOOK else
+                               "Saved quality feedback and declared numeric fields qualify descriptive Pearson associations; no causal or clinical conclusion is implied."
+                               if method_id == registry.NUMERIC else
                                "Saved quality feedback qualifies a grouped zero/missing inspection; prior source and scientific questions remain unresolved.")}
     saved = copy.deepcopy((project.get("next_decision") or {}).get("next_action", {}))
     if saved.get("method_id") != registry.SOURCE or saved.get("kind") != "evidence_task":
