@@ -65,6 +65,12 @@
 
 本轮CSV仍为上述原字节，因spec限定了分析字段角色，任务snapshot为`77c5e5539a85ca78f970d56dbc1c92311d7999603de536c09b6ad261a2310bc7`，与旧A63不同。[本机执行证据](../runs/a79-numeric-association-20261107/workbench/projects/1c3f5511b341aab6d3d42bebb27a8268bde90bcdeccba4002e90ee9eae53b6c1/)保存在ignored目录；普通克隆可直接阅读本节结果及方法口径，不依赖该目录。
 
+## 来源反馈后的实际接续
+
+沿研究计划v2，先登记并正常读取本机scikit-learn 1.9.1描述全文1–38行与A63 loader源码1042–1161行，完成行动`action-7087f722425a13d262cd6642ef954e71`；再登记NCSU原HTML的11–44行，由真实Host请求`a81-follow-planv2`选择，原控制器完成行动`action-1a95f98ceb49740b3d8ce7515c8b9188`。项目至state21，计划仍为v2；来源2/8、Host决策2/2、CLI调用0、本地工具2/2、原生模型0、拟合0，原ID重放无新增。当前已无未读资料候选，正常waiting。原baseline已能选择该来源，此次承接计划v2，不涉及新配方版本，也不据此声称配方改进。
+
+[NCSU原说明](https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html)与[scikit-learn数据说明](https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)支持BMI名称及target为基线一年后定量疾病进展指标的语义；两份说明指向同源LARS资料，不能视为独立验证。具体量尺、sex编码映射、抽样/独立性和原数据使用条件仍未确认。本次没有新增逐行数值核对，A79的raw版本与target对应关系仍保留为提交者声明；描述页的默认标准化说明不覆盖已声明的`scaled=False`投影。
+
 ## 交给研究者实际使用
 
 请研究者在当前工作台的“实验中心”阅读本例已保存的442行结果，比较整体及两个原编码组的`n/excluded/pearson_r`，用自己的话回答原问题。随后打开本次关联行动的完整原记录，定位一项判断所依据的读数或CSV坐标；结合仍未确认的编码、目标量尺或独立性，提出下一步及理由。本次只阅读已有结果，不再执行方法或请求模型，不增加额度。
