@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from autoresearch.contracts import ResearchError
 from autoresearch.host_model_selection import HostModelSelection
-from autoresearch.recipe_improvement import read_json, run_improvement_round
+from autoresearch.recipe_improvement import read_json, read_improvement_snapshot, run_improvement_round
 from autoresearch.recipe_improvement_adapter import read_recipe_validation
 
 
@@ -48,6 +48,7 @@ def main():
     host.add_argument("--workspace", required=True)
     host.add_argument("--request-id", required=True)
     host.add_argument("--spec", required=True)
+    host.add_argument("--resume", action="store_true", help="Append saved evidence to the same pending round without dispatch.")
     for command in (fixture, host):
         command.add_argument("--output", required=True, help="Outer-loop receipt directory, not project storage.")
         command.add_argument("--round-id", required=True)
@@ -64,9 +65,11 @@ def main():
         else:
             inputs = saved_host_inputs(args.workspace, args.request_id, read_json(args.spec))
             kind = "saved_host_validation"
-        result = run_improvement_round(**inputs, directory=args.output, round_id=args.round_id,
-            previous_round_id=args.previous_round_id, evidence_kind=kind)
-        print(json.dumps({"ok": True, **result}, ensure_ascii=False))
+        run_improvement_round(**inputs, directory=args.output, round_id=args.round_id,
+            previous_round_id=args.previous_round_id, evidence_kind=kind,
+            resume=args.mode == "saved-host" and args.resume)
+        snapshot = read_improvement_snapshot(args.output, args.round_id)
+        print(json.dumps({"ok": True, **snapshot["result"], "input_path": snapshot["input_path"]}, ensure_ascii=False))
         return 0
     except (ResearchError, OSError, ValueError, TypeError, KeyError) as error:
         print(json.dumps({"ok": False, "code": getattr(error, "code", "IMPROVEMENT_READ_FAILED"),

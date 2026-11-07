@@ -164,25 +164,76 @@ def _assess(value):
     return result
 
 
-def read_improvement_round(directory, round_id):
-    """Read and recheck one immutable receipt; no project/Host dispatch or recovery."""
+def _snapshot_folders(folder):
+    stages = safe_path(folder / "stages")
+    children = sorted((path for path in stages.iterdir() if path.is_dir() and path.name.isdecimal()),
+                      key=lambda path: int(path.name)) if stages.is_dir() else []
+    return [folder, *[safe_path(path) for path in children]]
+
+
+def _read_snapshot(folder, round_id):
+    value = read_json(folder / "input.json")
+    result = _assess(value)
+    _require(value["round_id"] == round_id, "Saved stage belongs to another round.", "EVIDENCE_CHANGED")
+    complete = True
+    for name, expected in (("result.json", result), ("effective-recipe.json", result["effective_recipe"])):
+        path = safe_path(folder / name)
+        if path.is_file():
+            _require(read_json(path) == expected, "Saved snapshot differs from its recomputed decision.", "EVIDENCE_CHANGED")
+        else:
+            complete = False
+    return value, result, complete
+
+
+def _check_stage(previous, previous_result, value, code):
+    frozen = INPUT_FIELDS - {"proposal_result", "validation_result"}
+    _require({key: previous[key] for key in frozen} == {key: value[key] for key in frozen},
+             "The original round identity, context, goal and acceptance are fixed.", code)
+    _require(previous == value or previous_result["status"] == "pending",
+             "A completed round cannot be changed or reopened.", code)
+    old, new = previous["proposal_result"], value["proposal_result"]
+    _require(all(old[key] == new[key] for key in ("context_ref", "prompt_ref"))
+             and all(old[key] is None or old[key] == new[key] for key in ("candidate", "response_ref")),
+             "A saved candidate and its original evidence references cannot be replaced.", code)
+    _require(previous["validation_result"] is None or value["validation_result"] is not None,
+             "A saved validation cannot be removed during continuation.", code)
+
+
+def _write_snapshot(folder, value, result):
+    folder.mkdir(parents=True, exist_ok=True)
+    for name, content in (("input.json", value), ("result.json", result),
+                          ("effective-recipe.json", result["effective_recipe"])):
+        write_bytes_once(folder / name, canonical(content).encode("utf-8"))
+
+
+def read_improvement_snapshot(directory, round_id):
+    """Return the latest complete immutable stage and its adoptable input path."""
     folder = safe_path(Path(directory).absolute() / _round_id(round_id))
-    value, result = read_json(folder / "input.json"), read_json(folder / "result.json")
-    _require(value["round_id"] == round_id and result == _assess(value),
-             "Round evidence differs from its recomputed decision.", "EVIDENCE_CHANGED")
-    _require(read_json(folder / "effective-recipe.json") == result["effective_recipe"],
-             "Effective recipe differs from its round receipt.", "EVIDENCE_CHANGED")
-    return result
+    value, result, complete = _read_snapshot(folder, round_id)
+    _require(complete, "The initial round snapshot is incomplete.", "IMPROVEMENT_ROUND_INCOMPLETE")
+    for stage in _snapshot_folders(folder)[1:]:
+        if not safe_path(stage / "input.json").is_file():
+            _require(not any(safe_path(stage / name).exists() for name in ("result.json", "effective-recipe.json")),
+                     "A saved stage is missing its original input.", "EVIDENCE_CHANGED")
+            break
+        next_value, next_result, complete = _read_snapshot(stage, round_id)
+        _check_stage(value, result, next_value, "EVIDENCE_CHANGED")
+        if not complete:
+            break
+        folder, value, result = stage, next_value, next_result
+    return {"input_path": str(folder / "input.json"), "input": value, "result": result}
+
+
+def read_improvement_round(directory, round_id):
+    """Read the latest complete stage without project/Host dispatch or recovery."""
+    return read_improvement_snapshot(directory, round_id)["result"]
 
 
 def run_improvement_round(current_version, trace, goal, proposal_result, validation_result, *,
                           directory, round_id, request_id, issue, acceptance, next_question,
-                          evidence_kind, previous_round_id=None):
-    """Assess already-saved callbacks' outputs. Keep/revert is not tool execution.
-
-    A pending snapshot remains immutable; after reconciliation use a new round ID
-    with the SAME Host request, not a new model/tool request. Full resume is a later task.
-    """
+                          evidence_kind, previous_round_id=None, resume=False):
+    """Assess saved evidence, explicitly appending stages to the same pending round."""
+    _require(type(resume) is bool, "Resume must be an explicit boolean.")
     root = safe_path(Path(directory).absolute())
     _round_id(round_id)
     _require(previous_round_id != round_id, "A round cannot be its own predecessor.")
@@ -199,8 +250,31 @@ def run_improvement_round(current_version, trace, goal, proposal_result, validat
             "previous_round": prior, "next_question": next_question})
         result = _assess(value)
         folder = safe_path(root / round_id)
-        folder.mkdir(exist_ok=True)
-        for name, content in (("input.json", value), ("result.json", result),
-                              ("effective-recipe.json", result["effective_recipe"])):
-            write_bytes_once(folder / name, canonical(content).encode("utf-8"))
+        if not safe_path(folder / "input.json").is_file():
+            _require(not resume, "Save the initial round before resuming it.", "IMPROVEMENT_ROUND_NOT_FOUND")
+            _write_snapshot(folder, value, result)
+            return result
+        folders = _snapshot_folders(folder)
+        latest = folders[-1] if safe_path(folders[-1] / "input.json").is_file() else folders[-2]
+        current = read_json(latest / "input.json")
+        current_result = _assess(current)
+        _require(resume or current == value, "Use resume to append new evidence to the original round.", "IDEMPOTENCY_CONFLICT")
+        _check_stage(current, current_result, value, "IDEMPOTENCY_CONFLICT")
+        previous = previous_result = None
+        for saved_folder in folders:
+            if not safe_path(saved_folder / "input.json").is_file():
+                _require(not any(safe_path(saved_folder / name).exists() for name in ("result.json", "effective-recipe.json")),
+                         "A saved stage is missing its original input.", "EVIDENCE_CHANGED")
+                break
+            saved = read_json(saved_folder / "input.json")
+            saved_result = _assess(saved)
+            _require(saved["round_id"] == round_id, "Saved stage belongs to another round.", "EVIDENCE_CHANGED")
+            if previous is not None:
+                _check_stage(previous, previous_result, saved, "EVIDENCE_CHANGED")
+            _write_snapshot(saved_folder, saved, saved_result)
+            previous, previous_result = saved, saved_result
+        if current == value:
+            return current_result
+        stage = folders[-1] if folders[-1] != latest else safe_path(folder / "stages" / f"{len(folders):04d}")
+        _write_snapshot(stage, value, result)
         return result
