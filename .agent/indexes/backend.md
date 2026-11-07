@@ -1,5 +1,7 @@
 # 后端索引
 
+[A64离线导出补充](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)核对保存Host、回答SHA、提案、验证、行动和来源资产，形成独立外环结果；不构造数据库、不升级历史代码、不更改原项目或预算。`next-input`只读最新完整stage的有效配方，保留已有在线采用和阶段接续的职责边界。
+
 [同轮阶段接续](../../docs/recipe-research/rsi-delivery.md)已由`run_improvement_round(resume=True)`实现：同round-id仅追加保存提案／验证的不可变stage，原pending、冻结上下文、已保存候选及终态保持。原Host／控制器核对仍走原入口，阶段读取与接续不派发模型或工具。
 
 [数值关联](../../docs/numeric-association.md)由`numeric_association_adapter`注册为`data.numeric-association`，在原表格质量结果后按声明字段执行总体／分组Pearson分析。原控制器核对前序行动及结果身份，结果保留有效对、排除数、不可计算原因和原CSV坐标；调用消耗原本地工具额度，模型与拟合0。公开diabetes实际路径已完成state9及当前报告，原ID回读不重复执行。

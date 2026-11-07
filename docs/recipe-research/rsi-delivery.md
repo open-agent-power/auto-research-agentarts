@@ -6,9 +6,10 @@
 
 - `src/autoresearch/recipe_improvement.py`：`run_improvement_round`接收原配方、完整`research-plan-context-v1`、原目标、`propose_recipe_change`格式的返回值及已有`recipe-change-validation-v1`结果。输出决定、逐项检查、可读理由、有效配方和下一项问题。显式 `resume=True` 可在同一轮追加新的保存回执。`read_improvement_round`重新核对并返回最新完整阶段，`read_improvement_snapshot`另提供对应原生输入和 `input_path`。
 - `scripts/run_recipe_improvement.py`：`fixture`处理明确构造输入；`saved-host`通过已有`read_recipe_validation`核对原Host、验证sidecar及控制器账本，`--resume`继续同一外环记录。CLI始终输出当前最新完整阶段的 `input_path`。实际模型和工具接线仍由主开发负责。
+- 离线材料使用`saved-export --evidence-root --spec`及`load_saved_export`，核对团队导出原件后保存独立外环结果，不构造数据库。`next-input --output --round-id`读取最新完整阶段的有效配方、前轮结果和下一项问题，状态为`awaiting_next_feedback`，不产生新提案或行动。
 - 项目与工作台通过 `preview_recipe_round/apply_recipe_round` 核对原 Host 保存记录并追加 `recipe_revisions`。研究页展示当前有效版本，上传完整 `input.json` 后先核对，再填写理由明确采用或记录回退。操作步骤与 HTTP 字段见[工作台说明](../local-workbench.md#核对外环并保存有效版本)。
 
-完整函数签名以源码为准。普通Python调用直接将既有适配返回值作为函数参数，无动态插件、进程或表达式。`evidence_kind`是证据来源类别，不证明真实用户、真实模型调用或科学效果；直接函数调用者必须提供可信的适配结果。脱离原账本的任意JSON只能使用`fixture`入口，不能作为Host验证原件。
+完整函数签名以源码为准。普通Python调用直接将既有适配返回值作为函数参数，无动态插件、进程或表达式。`evidence_kind`是证据来源类别，不证明真实用户、真实模型调用或科学效果；直接函数调用者必须提供可信的适配结果。任意脱离原件的JSON只能使用`fixture`；团队完整导出使用独立的`saved_export_validation`类别，只核对包内一致性，不冒充原数据库核对。既有项目采用入口仍只允许`saved_host_validation`，不能上传离线结果绕过在线Host核验。
 
 ## 如何决定
 
@@ -109,6 +110,27 @@ A76采用验证结束时，该下一步尚未执行，原A64仍无基于有效v2
 保存反馈为4行、2个完整组，A与B各2行。`measurement` 唯一缺失为 B组逻辑记录3、物理行4的 empty，已按原CSV坐标回看确认，零值数为0。当前 `next` 为 waiting、`executable=false`，原因为 `NO_MATCHING_HOST_CANDIDATE`。继续前需补充来源、采集与分组定义及缺失解释，再依据新条件决定下一步。本地方法已用2/2、来源1/8、Host仍1/1，本轮新增模型、来源及拟合调用为0。
 
 页面已导出 state 20 的当前报告，PDF共6页，已逐页查看。四种报告下载均HTTP200且与manager导出逐字节一致，报告保留v2实际选择、分组反馈及等待原因。A64本轮仅更新 `project.sqlite` 并新增1份行动工件，A63全部文件、state及Host一致。执行与原ID回读证据位于本机 ignored `runs/a77-effective-recipe-continuation-20261107/execution-validation.json`，导出及下载核对为同目录 `export-receipt.json` 与 `report-validation.json`。此次已采用配方驱动了实际工具行动，输入仍为四行工程样例，科学收益和真实用户价值仍待验证。PDF沿用现有分页模板，第3页留白较大。
+
+### 队友收到离线包后的补充（2026-11-07）
+
+本轮要改善：负责人转交的是不含`project.sqlite`的证据包，原`saved-host`入口不能直接读取。新增离线导出读取与后轮输入预备，沿最新main `cd3768f`保留团队已合并的在线采用、v2后续行动和同轮阶段接续，不重复执行这些路径。
+
+收到`A64-RSI接续材料-20261106(1).zip`，SHA-256为`28e11a81514b0c081da2ae47e243027e21ffab6bb089412a3b50b1789a3f2fae`，共18文件、101433未压缩字节。安全解包到本机ignored `runs/a64-rsi-received-20261106/a64-rsi-handoff-20261106/`，仅读包内文档作为交接资料，没有执行其中命令。运行后18份文件的SHA仍逐一与ZIP原条目相等。运行包不提交Git。
+
+`load_saved_export`核对原Host/context/prompt、原回答SHA及重建提案、四个派生视图、冻结验证输入和显式方法／收据权限、两份行动工件及反馈观察、来源收据／原资产。历史质量工件与后续来源验证的代码身份不同，保持其各自原值；历史观察按原提交规则补行动／观察ID后核对，不擅自升级历史身份。包内一致性不等于独立认证原执行或模型身份，原模型／用量unknown仍保留。
+
+根据原质量反馈的1个空值，将本轮问题限定为“原配方只列已完成主检查，遗漏已有来源候选”。spec中的验收对为`research.source-selection`与`source-extraction-only-not-scientific-approval`，反馈ID取原提案实际引用，不使用模板占位值。原始工具来源仍是团队自写说明，`mapping_status=unresolved/endpoint_eligibility=unknown`。
+
+```powershell
+.venv/Scripts/python.exe -B scripts/run_recipe_improvement.py saved-export --evidence-root runs/a64-rsi-received-20261106/a64-rsi-handoff-20261106 --spec <按原反馈填写的spec.json> --output runs/recipe-rsi-a64-20261107 --round-id a64-saved-round
+.venv/Scripts/python.exe -B scripts/run_recipe_improvement.py next-input --output runs/recipe-rsi-a64-20261107 --round-id a64-saved-round
+```
+
+实际离线结果为`keep`、有效v2，input SHA为`4986883d28a8050cfb1b187c9de6ca7dae5d94876e3d512d4453cd805516ccf6`；同参数重放相同。`next-input`确实读出该v2和前轮理由，保持`awaiting_next_feedback`。下一项问题保留原模型“采用后验证”建议与已保存独立验证顺序的差异，并要求先核对已读来源的未决状态，不重读原来源。这里没有伪造新反馈、候选v3或实际第二轮，也没有改写主团队已经完成的在线采用和后续行动。
+
+必要检查覆盖无数据库导出、真实CLI及下一输入、原件读取前后字节一致、原回答／派生配方／来源资产篡改拒绝、路径越界拒绝，以及离线输入被原项目采用入口拒绝。保留并验证主线`saved-host --resume`与最新stage的`input_path`输出。实际新增模型、工具、来源读取、拟合、付费及原项目写入均为0；工程采用决定不等于科学收益。
+
+在最新主线`cd3768f`上运行`.venv/Scripts/python.exe -B -m unittest discover -s tests -p 'test_*recipe*.py' -v`，48项全部通过，包含新增离线导出检查及主线阶段接续回归。上述两条实际A64命令在同一基线上重放成功，18份原件的SHA仍与ZIP全部对应。现有前端format/lint/typecheck均退出0，format34文件、修改0，无依赖安装或升级。
 
 ### 后续工作
 

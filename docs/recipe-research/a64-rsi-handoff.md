@@ -76,6 +76,8 @@ git push -u origin feat/recipe-stage-resume
 
 ## Limitations
 
+2026-11-07队友已收到18文件离线包，可通过`scripts/run_recipe_improvement.py saved-export --evidence-root <解包目录> --spec <按原反馈填写的spec.json> --output <独立外环目录> --round-id <本轮ID>`核对原件并保存工程决定；`next-input --output <同目录> --round-id <本轮ID>`读出有效版本，等待新反馈。此入口不依赖数据库、不调用模型或工具，结果类别为`saved_export_validation`，不可冒充在线`saved-host`交给项目采用。实际离线结果、逐项核对及限制见[RSI补充](rsi-delivery.md#队友收到离线包后的补充2026-11-07)。
+
 材料包支持读取已有证据与开发外环。原项目在线写入需要数据库、原累计权限和兼容源码登记，由主开发在原工作区接续。包内原始Host资源配置属于历史记录。
 
 原模型建议的验证顺序与实际执行顺序有差异，原回答和独立验证均保留。选择改变及工具completed说明本轮发生了什么，科研收益、跨实例效果与持续改进收益仍需对应证据。模型身份、原生用量与现金结算中的unknown继续使用原口径。
