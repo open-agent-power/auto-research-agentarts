@@ -1,5 +1,7 @@
 # 接口索引
 
+RSI `saved-host --resume`沿原Host请求和同round-id读取后续回执；`read_improvement_round`返回最新完整结果，新增`read_improvement_snapshot`提供原生input及其路径。CLI额外`input_path`用于选择最新stage文件交给既有工作台核对／采用，原result schema保留，见[保存和接续](../../docs/recipe-research/rsi-delivery.md#保存和下一轮)。
+
 `data.numeric-association`复用原方法选择、控制器、行动工件与报告接口，参数为已保存质量前序的`based_on_action_id/based_on_result_sha256`。结果为`numeric-association-v1`，观察为`numeric_association`，含`overall/groups/incomplete_group`及成对`n/excluded/pearson_r/reason`。声明目标须在数值列中并至少有一项其他数值列，字段口径见[数值关联](../../docs/numeric-association.md)。
 
 [单轮RSI入口](../../scripts/run_recipe_improvement.py)提供`fixture --input`与`saved-host --workspace --request-id --spec`，共用`--output/--round-id/--previous-round-id`。通过`recipe_improvement`消费现有适配结果，输出`recipe-improvement-result-v1`、理由与有效原生配方。后轮必须匹配前轮有效版本；saved-host使用原reader核对保存账本，不派发模型／工具。字段、pending和验收边界见[RSI交付](../../docs/recipe-research/rsi-delivery.md)。
