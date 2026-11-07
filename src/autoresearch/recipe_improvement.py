@@ -1,7 +1,8 @@
 """Assess saved recipe validation; never dispatch a model or research action."""
 
 import copy
-from pathlib import Path
+import hashlib
+from pathlib import Path, PurePosixPath
 
 from . import recipe_change_proposal as protocol
 from .contracts import ResearchError, canonical, fingerprint, identifier
@@ -53,7 +54,7 @@ def _assess(value):
              and value["schema_version"] == "recipe-improvement-input-v1", "Use the complete round input.")
     _round_id(value["round_id"])
     identifier(value["request_id"])
-    _require(value["evidence_kind"] in ("synthetic_engineering_fixture", "saved_host_validation"),
+    _require(value["evidence_kind"] in ("synthetic_engineering_fixture", "saved_host_validation", "saved_export_validation"),
              "Declare fixture or saved Host evidence; neither establishes scientific benefit.")
     context = {"schema_version": "recipe-change-context-v1", "current_recipe": value["current_recipe"],
                "research_context": value["trace"], "improvement_goal": value["goal"]}
@@ -278,3 +279,111 @@ def run_improvement_round(current_version, trace, goal, proposal_result, validat
         stage = folders[-1] if folders[-1] != latest else safe_path(folder / "stages" / f"{len(folders):04d}")
         _write_snapshot(stage, value, result)
         return result
+
+
+def load_saved_export(directory):
+    """Read the team's offline evidence export, not a reconstructed live project.
+
+    Cross-check supplied originals and hashes. This is internal consistency, not
+    independent authentication of a model or the absent original database.
+    """
+    from .recipe_improvement_adapter import _allowed
+
+    root = safe_path(Path(directory).absolute())
+
+    def read(relative, *, raw=False):
+        _require(type(relative) is str and 0 < len(relative) <= 1000 and "\\" not in relative
+                 and ":" not in relative and not relative.startswith("/")
+                 and all(part not in ("", ".", "..") for part in relative.split("/")),
+                 "Export references must stay inside the supplied evidence directory.")
+        path = safe_path(root.joinpath(*PurePosixPath(relative).parts))
+        return _read_file(path, MAX_ROUND_BYTES) if raw else read_json(path)
+
+    handoff = read("handoff.json")
+    _require(type(handoff) is dict and handoff.get("schema_version") == "a64-rsi-evidence-handoff-v1",
+             "Use the team's saved evidence export.")
+    request_id = identifier(handoff["request_id"])
+    host = read("project/host-model-selections/state.json")
+    record = host["requests"][request_id]
+    _require(host["project_id"] == handoff["project_id"] and record["request_id"] == request_id
+             and record["purpose"] == "recipe" and record["status"] == "proposed"
+             and record["controller_request_id"] == request_id, "Export Host/request identities differ.")
+    prefix = "project/host-model-selections/" + record["directory"] + "/"
+    context = read(prefix + "context.json")
+    _require(context == record["context"] and read(prefix + "prompt.json") == record["prompt"],
+             "Export context or prompt differs from its original Host record.")
+    protocol._context(context)
+    selection = context["research_context"]["selection_context"]
+    _require(selection["project_id"] == handoff["project_id"], "Export project differs from its frozen context.")
+    from .tabular_quality_adapter import _checked
+    source_snapshot = read("project/source.json")
+    _checked(source_snapshot)
+    _require(source_snapshot["snapshot_sha256"] == selection["source_snapshot_sha256"],
+             "Original input differs from the frozen source snapshot.")
+    response = read("project/host-model-selections/" + record["response_file"], raw=True)
+    _require(hashlib.sha256(response).hexdigest() == record["response_sha256"], "Export raw response SHA differs.")
+    proposal = read(prefix + "proposal.json")
+    parsed = protocol.parse_host_response(response, record["provider"])
+    _require(proposal == record["proposal"] == protocol.build_proposal(context, parsed["arguments"],
+             proposal["provider"]["label"]), "Export proposal differs from the original raw response.")
+    result = read("derived/proposal-result.json")
+    expected = {"schema_version": "recipe-change-proposal-result-v1", "request_id": request_id,
+        "status": "proposed", "candidate": proposal,
+        "context_ref": "host-model-selections/" + record["directory"] + "/context.json",
+        "prompt_ref": "host-model-selections/" + record["directory"] + "/prompt.json",
+        "response_ref": "host-model-selections/" + record["response_file"], "scientific_validation": False}
+    _require(result == expected and read("derived/current-recipe.json") == context["current_recipe"]
+             and read("derived/candidate-recipe.json") == proposal["candidate"]
+             and read("derived/selection-context.json") == selection, "Derived views differ from supplied originals.")
+    validation, permissions = read(prefix + "validation-result.json"), read(prefix + "validation-input.json")
+    baseline, candidate = compile_recipe(context["current_recipe"], selection), compile_recipe(proposal["candidate"], selection)
+    methods = _allowed(permissions["allowed_methods"])
+    receipts = _allowed(permissions["allowed_receipts"], receipts=True)
+    _require(permissions == {"schema_version": "recipe-change-validation-input-v1", "request_id": request_id,
+             "context_sha256": selection["context_sha256"], "allowed_methods": methods, "allowed_receipts": receipts,
+             "baseline_decision": baseline, "candidate_decision": candidate}, "Original validation inputs differ.")
+    chosen = next((item for item in selection["candidates"] if item["id"] == candidate["selected_candidate_id"]), None)
+    _require(chosen is None or (chosen["method_id"] in methods
+             and (chosen["parameters"].get("receipt_snapshot_sha256") is None
+                  or chosen["parameters"]["receipt_snapshot_sha256"] in receipts)), "Export validation was not permitted.")
+    artifacts = {}
+    for relative in validation["artifact_refs"] + [item["artifact_ref"] for item in context["research_context"]["feedback"]
+                                                   if item["artifact_ref"] is not None]:
+        envelope = read("project/" + relative)
+        _require(envelope["sha256"] == fingerprint({k: v for k, v in envelope.items() if k != "sha256"})
+                 and envelope["source_snapshot_sha256"] == selection["source_snapshot_sha256"],
+                 "Export artifact identity differs.")
+        artifacts[relative] = envelope
+    for item in context["research_context"]["feedback"]:
+        if item["artifact_ref"] is not None:
+            envelope = artifacts[item["artifact_ref"]]
+            observations = [dict(observation, id=item["action_id"] + ":observation:" + str(index),
+                                 action_id=item["action_id"])
+                            for index, observation in enumerate(envelope["tool_result"]["observations"])]
+            _require(envelope["action_id"] == item["action_id"]
+                     and observations == item["observations"],
+                     "Export feedback differs from the original saved artifact.")
+    outcome = validation["controller_outcome"]
+    if validation["status"] == "completed":
+        child = outcome["result"]["child"]
+        _require(child["artifact"] in validation["artifact_refs"] and child["status"] == "completed"
+                 and child["request_id"] == outcome["child_request_id"]
+                 and chosen is not None and child["command"] == chosen["method_id"]
+                 and artifacts[child["artifact"]]["action_id"] == child["id"]
+                 and artifacts[child["artifact"]]["tool_result"].get("status") == "completed"
+                 and artifacts[child["artifact"]]["code_identity"] == selection["project_code_identity"]
+                 and artifacts[child["artifact"]]["sha256"] == child["result_sha256"],
+                 "Export controller result differs from its original completed artifact.")
+    for receipt_id in receipts:
+        prefix = "project/evidence-inputs/" + receipt_id + "/"
+        receipt = read(prefix + "receipt.json")
+        _require(receipt["snapshot_sha256"] == receipt_id
+                 == fingerprint({k: v for k, v in receipt.items() if k != "snapshot_sha256"})
+                 and receipt["task_ref"]["project_id"] == selection["project_id"], "Export source receipt differs.")
+        for source in receipt["sources"]:
+            raw = read(prefix + source["asset_sha256"] + ".bin", raw=True)
+            _require(hashlib.sha256(raw).hexdigest() == source["asset_sha256"] == source["sha256"],
+                     "Export source asset SHA differs.")
+    return {"current_version": context["current_recipe"], "trace": context["research_context"],
+            "goal": context["improvement_goal"], "proposal_result": result, "validation_result": validation,
+            "request_id": request_id}

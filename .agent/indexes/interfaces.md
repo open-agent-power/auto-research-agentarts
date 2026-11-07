@@ -1,5 +1,7 @@
 # 接口索引
 
+`recipe_improvement.load_saved_export`与CLI `saved-export --evidence-root --spec`只读核对A64完整导出，不需要SQLite；结果类别为`saved_export_validation`，不能绕过项目采用入口对`saved_host_validation`的要求。`next-input --output --round-id`读取最新有效版本／前轮结果／下一问题，明确等待新反馈，不派发任何请求。原`saved-host --resume`及`input_path`保持，见[离线补充](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)。
+
 `POST /api/local-workbench/continue`接收冻结的计划／行动范围，`GET /api/local-workbench/continue/<id>.json`与`describe.continuations`投影`phase/plan_ref/batch_ref/steps/stop`；采用后仍以首次版本和全部原body继续。只对精确关联计划请求放行原model-resume/adopt/reject，模型行动固定服务CLI及原grant。完整字段见[继续研究接口](../../docs/host-model-selection.md#继续研究的计划与行动阶段)。
 
 RSI `saved-host --resume`沿原Host请求和同round-id读取后续回执；`read_improvement_round`返回最新完整结果，新增`read_improvement_snapshot`提供原生input及其路径。CLI额外`input_path`用于选择最新stage文件交给既有工作台核对／采用，原result schema保留，见[保存和接续](../../docs/recipe-research/rsi-delivery.md#保存和下一轮)。

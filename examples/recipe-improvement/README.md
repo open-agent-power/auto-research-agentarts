@@ -1,5 +1,7 @@
 # 配方与RSI开发示例
 
+收到[A64离线材料包](../../docs/recipe-research/a64-rsi-handoff.md)但没有原项目数据库时，使用`saved-export --evidence-root <解包目录> --spec <实际spec.json> --output <独立目录> --round-id <ID>`，不要伪造SQLite或将原件当构造夹具。按原反馈填写spec的行动ID；A64的目标对为`research.source-selection/source-extraction-only-not-scientific-approval`。`next-input --output <同目录> --round-id <ID>`读取有效版本，等待新反馈，不启动新研究轮。离线结果不替代在线项目采用，详见[补充运行方式](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)。
+
 这些示例随源码交接，配方读取与改进外环的开发范围见[任务书](../../docs/recipe-research/team-module-handoff.md)及[接口约定](../../docs/recipe-research/team-module-interface.md)。
 
 [方法卡示例](../research-method-cards/feedback-driven.example.json)已可通过下面的入口读取并关联宿主候选；[改进轮次示例](round.example.json)保留为早期对象草案，不作为当前运行格式。当前单轮RSI与保存版本用法见[交付说明](../../docs/recipe-research/rsi-delivery.md)。方法卡只读知识，采用状态由外环明确记录，不据此批准科学结论。

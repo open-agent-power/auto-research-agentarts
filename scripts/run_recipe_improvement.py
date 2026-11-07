@@ -9,7 +9,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from autoresearch.contracts import ResearchError
 from autoresearch.host_model_selection import HostModelSelection
-from autoresearch.recipe_improvement import read_json, read_improvement_snapshot, run_improvement_round
+from autoresearch.recipe_improvement import (
+    load_saved_export, read_improvement_round, read_improvement_snapshot, read_json, run_improvement_round,
+)
 from autoresearch.recipe_improvement_adapter import read_recipe_validation
 
 
@@ -49,12 +51,26 @@ def main():
     host.add_argument("--request-id", required=True)
     host.add_argument("--spec", required=True)
     host.add_argument("--resume", action="store_true", help="Append saved evidence to the same pending round without dispatch.")
-    for command in (fixture, host):
+    exported = modes.add_parser("saved-export", help="Read supplied offline originals without a project database.")
+    exported.add_argument("--evidence-root", required=True)
+    exported.add_argument("--spec", required=True)
+    next_input = modes.add_parser("next-input", help="Read an effective version for the next round; dispatch nothing.")
+    next_input.add_argument("--output", required=True)
+    next_input.add_argument("--round-id", required=True)
+    for command in (fixture, host, exported):
         command.add_argument("--output", required=True, help="Outer-loop receipt directory, not project storage.")
         command.add_argument("--round-id", required=True)
         command.add_argument("--previous-round-id")
     args = parser.parse_args()
     try:
+        if args.mode == "next-input":
+            previous = read_improvement_round(args.output, args.round_id)
+            if previous["status"] != "completed":
+                raise ResearchError("IMPROVEMENT_PENDING", "Reconcile the original request before continuing.")
+            print(json.dumps({"ok": True, "status": "awaiting_next_feedback", "previous_result": previous,
+                              "current_version": previous["effective_recipe"],
+                              "next_question": previous["next_question"], "scientific_validation": False}, ensure_ascii=False))
+            return 0
         if args.mode == "fixture":
             inputs = read_json(args.input)
             expected = {"current_version", "trace", "goal", "proposal_result", "validation_result",
@@ -62,9 +78,15 @@ def main():
             if type(inputs) is not dict or set(inputs) != expected:
                 raise ResearchError("INVALID_IMPROVEMENT_ROUND", "Use the complete synthetic fixture input.")
             kind = "synthetic_engineering_fixture"
-        else:
+        elif args.mode == "saved-host":
             inputs = saved_host_inputs(args.workspace, args.request_id, read_json(args.spec))
             kind = "saved_host_validation"
+        else:
+            spec = read_json(args.spec)
+            if type(spec) is not dict or set(spec) != {"issue", "acceptance", "next_question"}:
+                raise ResearchError("INVALID_IMPROVEMENT_ROUND", "Spec requires issue, acceptance and next_question.")
+            inputs = {**load_saved_export(args.evidence_root), **spec}
+            kind = "saved_export_validation"
         run_improvement_round(**inputs, directory=args.output, round_id=args.round_id,
             previous_round_id=args.previous_round_id, evidence_kind=kind,
             resume=args.mode == "saved-host" and args.resume)

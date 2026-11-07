@@ -3,6 +3,7 @@
 import copy
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -328,6 +329,86 @@ class RecipeImprovementTests(unittest.TestCase):
             with self.assertRaises(ResearchError) as caught:
                 improvement.read_json(path)
         self.assertEqual(caught.exception.code, "UNSAFE_PATH")
+
+    def test_offline_export_binds_originals_sources_and_next_input_without_database(self):
+        import test_local_evidence as evidence_fixtures
+        import test_recipe_improvement_adapter as adapter_fixtures
+        from autoresearch import recipe_improvement_adapter as adapter
+        from autoresearch.host_model_selection import HostModelSelection
+
+        fixture = adapter_fixtures.RecipeImprovementAdapterTests()
+        self.addCleanup(fixture.doCleanups)
+        fixture.setUp()
+        registered = fixture.manager.register_evidence(evidence_fixtures.LocalEvidenceTests.body(fixture))
+        receipt = registered["registration"]["receipt_snapshot_sha256"]
+        candidate = fixture.propose(SOURCE["method_id"])
+        request_id = fixture.options["request_id"]
+        adapter.validate_recipe_change(candidate, fixture.original, fixture.goal, workspace=fixture.project.root,
+            request_id=request_id, allowed_methods=[SOURCE["method_id"]], allowed_receipts=[receipt])
+        journal = HostModelSelection(fixture.project.root)
+        record = journal.status(request_id=request_id)
+        exported = self.root / "offline-export"
+        shutil.copytree(fixture.project.root, exported / "project", ignore=shutil.ignore_patterns("*.sqlite*", "writer.lock"))
+        (exported / "derived").mkdir()
+        originals = {"current-recipe.json": fixture.original, "candidate-recipe.json": candidate["candidate"],
+                     "selection-context.json": fixture.trace["selection_context"],
+                     "proposal-result.json": adapter.propose_recipe_change(fixture.original, fixture.trace, fixture.goal,
+                                                                          **fixture.options)}
+        for name, value in originals.items():
+            (exported / "derived" / name).write_bytes(canonical(value).encode("utf-8"))
+        (exported / "handoff.json").write_bytes(canonical({"schema_version": "a64-rsi-evidence-handoff-v1",
+            "request_id": request_id, "project_id": fixture.trace["selection_context"]["project_id"]}).encode("utf-8"))
+        self.assertFalse(list(exported.rglob("*.sqlite*")))
+        snapshot = {path: path.read_bytes() for path in exported.rglob("*") if path.is_file()}
+        spec = {"issue": {"summary": "Saved quality feedback lacks a source follow-up.",
+                          "feedback_action_ids": candidate["feedback_action_ids"]},
+                "acceptance": SOURCE, "next_question": "Check the actual source result before revising again."}
+        spec_path = self.root / "export-spec.json"
+        spec_path.write_bytes(canonical(spec).encode("utf-8"))
+        command = [sys.executable, "-B", str(ROOT / "scripts/run_recipe_improvement.py"), "saved-export",
+                   "--evidence-root", str(exported), "--spec", str(spec_path),
+                   "--output", str(self.directory), "--round-id", "offline"]
+        result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertEqual(json.loads(result.stdout)["decision"], "keep")
+        next_result = subprocess.run([sys.executable, "-B", str(ROOT / "scripts/run_recipe_improvement.py"),
+            "next-input", "--output", str(self.directory), "--round-id", "offline"],
+            capture_output=True, text=True, encoding="utf-8", timeout=30)
+        self.assertEqual(next_result.returncode, 0, next_result.stderr + next_result.stdout)
+        next_value = json.loads(next_result.stdout)
+        self.assertEqual(next_value["current_version"], candidate["candidate"])
+        self.assertEqual(next_value["status"], "awaiting_next_feedback")
+        from autoresearch.project_recipe import preview_recipe_round
+        with self.assertRaises(ResearchError) as caught:
+            preview_recipe_round(fixture.project, improvement.read_json(self.directory / "offline/input.json"))
+        self.assertEqual(caught.exception.code, "INVALID_IMPROVEMENT_ROUND")
+        self.assertEqual({path: path.read_bytes() for path in snapshot}, snapshot)
+        mutations = [exported / "project/host-model-selections" / record["response_file"],
+                     exported / "derived/current-recipe.json",
+                     next((exported / "project/evidence-inputs" / receipt).glob("*.bin"))]
+        # Raw response, derived view, and original source bytes each remain bound.
+        for path in mutations:
+            raw = path.read_bytes()
+            path.write_bytes(raw + b" ")
+            try:
+                if path.suffix == ".json":
+                    changed = json.loads(raw)
+                    changed["version"] += 1
+                    path.write_bytes(canonical(changed).encode("utf-8"))
+                with self.assertRaises(ResearchError):
+                    improvement.load_saved_export(exported)
+            finally:
+                path.write_bytes(raw)
+        host_path = exported / "project/host-model-selections/state.json"
+        host_raw = host_path.read_bytes()
+        changed = json.loads(host_raw)
+        changed["requests"][request_id]["response_file"] = "../outside.bin"
+        host_path.write_bytes(canonical(changed).encode("utf-8"))
+        try:
+            with self.assertRaises(ResearchError):
+                improvement.load_saved_export(exported)
+        finally:
+            host_path.write_bytes(host_raw)
 
 
 if __name__ == "__main__":
