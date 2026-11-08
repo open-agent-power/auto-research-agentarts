@@ -163,6 +163,25 @@ function resultTable(caption: string, headings: string[], values: string[][]): H
   table.append(body); wrap.append(table); return wrap;
 }
 
+function qualityRecordLocations(examples: Obj[]): HTMLElement {
+  const wrap = el("div");
+  if (!examples.length) {
+    wrap.append(el("p", "detail-note", "此结果未保存代表定位，请结合上方计数与原始详情核对。"));
+    return wrap;
+  }
+  const kinds: Record<string, string> = { empty: "空字符串", declared_missing: "声明缺失", invalid_numeric: "非法数值",
+    nonfinite: "非有限数值", exact_duplicate_row: "完整重复行" };
+  const table = resultTable("原记录定位 · 仅列已保存的代表项",
+    ["字段", "标记类型", "保存的原值", "数据记录号", "文件结束行"], examples.map(item => {
+      const token = typeof item.token === "string" ? item.token === "" ? '空字符串（""）' : JSON.stringify(item.token) : "未记录";
+      return [string(item.column, item.kind === "exact_duplicate_row" ? "整行" : "未记录"), kinds[string(item.kind)] ?? string(item.kind),
+        token + (item.token_truncated === true ? "（保存时已截断）" : ""), numeric(item.logical_record), numeric(item.physical_line_end)];
+    }));
+  for (const cell of table.querySelectorAll<HTMLTableCellElement>("tbody td:nth-child(3)")) cell.style.whiteSpace = "pre-wrap";
+  wrap.append(table, el("p", "", "数据记录号从1起且不含表头；文件结束行包含表头，跨行字段以记录结束所在行定位。原值加引号显示，制表符和换行以转义形式保留。"));
+  return wrap;
+}
+
 function associationReason(value: unknown): string {
   const reasons: Record<string, string> = { insufficient_pairs: "成对有效记录不足", constant_target: "目标字段为常量",
     constant_predictor: "预测字段为常量", constant_both: "两个字段均为常量" };
@@ -219,7 +238,7 @@ function comparison(action: Obj, project: Obj): HTMLElement {
         const counts = object(column.counts);
         return [string(column.name), measured(counts.finite), measured(counts.zero), measured(counts.empty), measured(counts.declared_missing),
           measured(counts.invalid_numeric), measured(counts.nonfinite), typeof column.min === "number" && typeof column.max === "number" ? numeric(column.min) + " ～ " + numeric(column.max) : "未计算"];
-      })), details("标记项、原始坐标与分组统计", { flags: profile.flags, examples: profile.examples, record_coordinates: profile.record_coordinates,
+      })), qualityRecordLocations(objects(profile.examples)), details("标记项、原始坐标与分组统计", { flags: profile.flags, examples: profile.examples, record_coordinates: profile.record_coordinates,
         group_columns: groups, key_columns: keys, scope: object(action.method_instance).scope }));
     const duplicates = objects(profile.examples).filter(item => item.kind === "exact_duplicate_row");
     if (duplicates.length) wrap.append(el("p", "detail-note", "完整重复代表定位（不含表头的数据记录）：" + duplicates.map(item =>
