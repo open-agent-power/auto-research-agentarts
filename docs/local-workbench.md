@@ -1,5 +1,32 @@
 # 本地研究工作台
 
+产品默认入口是[18799完整工作台](http://127.0.0.1:18799/#/overview)：同一manager管理项目，保留五页导航、X6画布、研究操作与报告。独立项目只读页用于查看既有快照，不作为产品推进入口。已有独立项目可按下面的原生接入方式保留原账本。
+
+## 将已有独立项目接入工作台
+
+[原生接入CLI](../scripts/import_local_project.py)把已有ResearchProject整个目录移入已有manager，包括原SQLite、Host日志、来源、知识及工件。先停止能写入源项目的服务或脚本。源目录与manager必须互不包含且位于同一文件系统；使用整目录`rename`，不复制第二份可写账本，也不重新创建研究项目。
+
+在产品根运行，替换为自己的已有目录、固定接入ID及保存的控制台摘录文件。`--platform-run`可省略；它只记录操作者提供的平台调用信息，不是调用云端的命令。
+
+```powershell
+$managerRoot = 'runs/<已有manager目录>'
+$sourceProject = 'runs/<已有独立项目目录>'
+$importId = 'import-platform-plan-1'
+.venv/Scripts/python.exe -B scripts/import_local_project.py --root $managerRoot --workspace $sourceProject --request-id $importId --platform-run 'runs/<保存的控制台摘录>.json'
+# 只读核对原接入回执；--status不带--workspace或--platform-run
+.venv/Scripts/python.exe -B scripts/import_local_project.py --root $managerRoot --request-id $importId --status
+```
+
+接入保留原项目ID、state、计划版本、已用与剩余预算、失败记录及Host累计名额，不执行兼容升级、研究方法或模型。未收口工具、控制器、来源或原生模型请求，以及尚在prepared／sending／unknown／received／proposed等状态的Host请求会阻止接入，先沿原ID处理。失败等终态保留，不改写为成功。
+
+回执不明时，先用`--status`读原记录，再以同一接入ID、原源路径和原平台JSON内容恢复。目录已迁走也保留原`--workspace`参数，不换成目标路径；若源和目标同时存在，保留现场核对，不手工复制或拼接。接入默认不切换active，完成后在工作台“切换项目或创建课题”选择该原项目。接入不自动挂载或生成报告，进入成果页按当前快照明确生成。
+
+平台摘录JSON的字段为`host_request_id/provider/model/started_at/ended_at/input_tokens/output_tokens/total_tokens/record_source/verification`。固定声明`provider=AgentArts`、`record_source=console_excerpt`、`verification=operator_supplied`，关联原已收口的delegated Host回答；时间为ISO8601或null，Token为实际非负整数或null，未知不填0。全部Token已知时须与总数一致。
+
+`GET /api/local-workbench/model`的`platform_runs`只读返回当前项目接入时保存的摘录。研究推进中的原计划记录显示模型、运行时间、Token及关联Host ID，标为“操作者提供，未自动核验”；空值显示“未取得”。这不修改Host日志、自动核验平台或结清费用。已applied计划不能再次采用，后续proposed仍走原明确采用／拒绝入口。
+
+2026-11-08，A100原项目已实际迁入，完整项目及Host状态、7份原件字节保持，同ID重放通过。完整工作台已逐页打开同一A100项目的五页与X6画布，计划v1、applied请求卡、原4571 Tokens、Host JSON和独立平台JSON均可读；Enter展开通过，没有再次采用按钮。桌面1440×900与手机390×844分段看图完成，未见页面横向溢出。管理记录17→21，仅新增接入1条、A79当前报告导出1条及正常项目切换2条，原记录保留，最终已切回A79。A79 state28报告可下载；本轮没有新科研或模型调用，A100的必要行动、报告与平台真实视频继续单独推进。
+
 ## 从具体问题取得分析结果
 
 表格项目已可在保存质量检查后，选择“查看数值字段与目标的关联”。在输入声明中指定数值目标和至少一个其他数值字段，可选分组；候选只在真实条件与剩余额度允许时出现。填写本次理由，再明确执行一次，沿用原控制器、前序结果与本地工具账本。
@@ -78,10 +105,10 @@ empty、stalecontext、unknown、exhausted和multiple五类客户端展示夹具
 
 ```powershell
 Set-Location 'D:/XiangMuLuoDi/Development/ICT/track2/auto-research'
-.venv/Scripts/python.exe scripts/serve_local_workbench.py --root runs/my-local-workbench --enable-local-actions --port 18791
+.venv/Scripts/python.exe scripts/serve_local_workbench.py --root runs/my-local-workbench --enable-local-actions --port 18799
 ```
 
-打开[项目总览](http://127.0.0.1:18791/#/overview)。`--enable-local-actions`显式启用本地命令；省略时不接受本地写操作。左侧五页导航贯穿当前项目，沿用毛玻璃外壳、实色内容卡与X6。总览另有[原P02研究工作区](http://127.0.0.1:18785/#/overview)入口，其原课题和封存记录独立保留；该服务需按[原项目用法](project-slice.md)启动。
+打开[项目总览](http://127.0.0.1:18799/#/overview)。`--root`沿用实际manager目录，已有服务不要另建目录代替。`--enable-local-actions`显式启用本地命令；省略时不接受本地写操作。左侧五页导航贯穿当前项目，沿用毛玻璃外壳、实色内容卡与X6。总览另有[原P02研究工作区](http://127.0.0.1:18785/#/overview)入口，其原课题和封存记录独立保留；该服务需按[原项目用法](project-slice.md)启动。
 
 | 页面 | 入口与操作 |
 |---|---|
@@ -289,7 +316,7 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 | POST `/api/local-workbench/evidence` | 当前project/version/task_ref、未核验contributor、原文件Base64、明确选区及remaining_questions；只登记 |
 | POST `/api/local-workbench/continue` | 冻结计划方式、执行方式、行动上限、方法及确切来源收据；同ID跨计划采用门接回原批次 |
 | POST `/api/local-workbench/batch` | 明确冻结方法、确切来源收据、行动数与理由；受原条件、预算和恢复门禁约束 |
-| GET `/api/local-workbench/model` | 只读当前项目模型启用状态、宿主用量及原请求记录；不派发或恢复 |
+| GET `/api/local-workbench/model` | 只读当前项目模型启用状态、宿主用量、原请求及`platform_runs`操作者控制台摘录；不派发、恢复或核验平台 |
 | POST `/api/local-workbench/model-advance` | 当前project/version、累计决策限额/CLI配置阈值及理由；沿启动时固定的CLI选择并至多执行一步 |
 | POST `/api/local-workbench/model-plan-advance` | 与`model-advance`相同的六字段，按`purpose=plan`取得回答并保存待处理建议 |
 | POST `/api/local-workbench/model-plan-adopt` | 原`request_id/project_id`，明确采用已保存建议并保存计划修订 |

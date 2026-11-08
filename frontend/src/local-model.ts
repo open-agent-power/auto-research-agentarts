@@ -26,6 +26,22 @@ function field(label: string, control: HTMLElement): HTMLElement {
   const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap;
 }
 
+function platformRunRecord(run: Obj): HTMLElement {
+  const tokens = (value: unknown): string => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString("zh-CN") : "未取得";
+  const time = (value: unknown): string => {
+    if (typeof value !== "string" || !value) return "未取得";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleString("zh-CN", { hour12: false });
+  };
+  const saved = el("div");
+  saved.append(el("p", "", "平台调用 · " + text(run.provider, "未取得") + " · " + text(run.model, "未取得")),
+    el("p", "", "开始 · " + time(run.started_at) + "；结束 · " + time(run.ended_at)),
+    el("p", "", `Token · 输入${tokens(run.input_tokens)}，输出${tokens(run.output_tokens)}，合计${tokens(run.total_tokens)}`),
+    el("p", "", "关联Host请求 · " + text(run.host_request_id, "未取得")),
+    el("p", "", "控制台摘录 · 操作者提供，未自动核验；现金结算未核对。"));
+  return saved;
+}
+
 export function createLocalModelPanel(host: Host): {
   element: HTMLElement; planElement: HTMLElement; improvementElement: HTMLElement;
   refresh(projectId: string, project: Obj, context: Obj | null): Promise<void>;
@@ -35,7 +51,7 @@ export function createLocalModelPanel(host: Host): {
 } {
   const section = el("section", "local-panel local-model content-section");
   section.append(el("h2", "section-title", "模型建议与行动"),
-    el("p", "detail-note", "模型可根据当前计划与实际反馈提出研究计划，或选择下一步行动。使用本机已有 Claude CLI 和当前请求额度。"));
+    el("p", "detail-note", "查看已保存的计划与行动建议。这里的新模型请求使用本机已有 Claude CLI 和当前请求额度。"));
   const status = el("p", "notice", "正在读取模型请求记录…"); status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
   const usage = el("div", "local-model-usage");
   const form = el("form", "local-model-form local-batch-form"), fields = el("fieldset", "local-fieldset");
@@ -137,10 +153,10 @@ export function createLocalModelPanel(host: Host): {
             : record.status === "invalid" ? "回答无效，费用尚未核对" : "费用尚未核对"));
       usage.append(el("p", "notice error", "已停止新发送：" + ([...reasons].join("；") || "有CLI费用未取得可核对报告") + "。未知费用不能按0计算，保留原ID核对。"));
     }
-    usage.append(el("p", "detail-note", "原生计数不包含外部CLI或子代理；CLI路由和金额以原回执自报为准，报告估值不等于现金结算。"));
+    usage.append(el("p", "detail-note", "原生计数不包含外部CLI或原回答导入；CLI路由和金额以原回执自报为准，报告估值不等于现金结算。"));
     if (counts.prior_external_usage === "unknown_not_zero") usage.append(el("p", "detail-note", "还有未关联到本日志的历史外部选择，用量未知，不计为零。"));
     if (typeof counts.delegated_outputs_received === "number" && counts.delegated_outputs_received > 0)
-      usage.append(el("p", "detail-note", `另有${counts.delegated_outputs_received}份子代理回答导入；内部推理次数、模型和费用未知。`));
+      usage.append(el("p", "detail-note", `另有${counts.delegated_outputs_received}份外部原回答导入；模型与用量的核验状态见对应记录，现金结算未知。`));
   }
   function download(record: Obj, suffix = ""): void {
     const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], { type: "application/json;charset=utf-8" }));
@@ -200,10 +216,12 @@ export function createLocalModelPanel(host: Host): {
       let label = states[text(record.status)] ?? text(record.status);
       if (isPlan && record.status === "applied") label = "计划建议已采用";
       if (isRecipe && record.status === "proposed") label = "配方建议已保存 · 验证与采用由外环处理";
-      card.append(el("summary", "", label + " · " + id));
+      const platformRuns = objects(view.platform_runs).filter(run => run.host_request_id === id);
+      card.append(el("summary", "", label + (platformRuns.length ? " · AgentArts控制台摘录" : "") + " · " + id));
       const arguments_ = object(record.arguments), outcome = object(record.outcome), error = object(record.error);
       const route = strings(record.reported_models).join("、");
-      card.append(el("p", "detail-note", "提供方记录 · " + (record.provider === "claude_cli" ? "Claude CLI；自报路由 " + (route || "未知") : "子代理原回答导入")));
+      card.append(el("p", "", "回答接入 · " + (record.provider === "claude_cli" ? "Claude CLI；自报路由 " + (route || "未知") : "外部原回答导入（delegated）")));
+      for (const run of platformRuns) card.append(platformRunRecord(run));
       if (!isPlan) card.append(el("p", "detail-note", "模型解释 · " + text(isRecipe ? arguments_.reason : arguments_.rationale, "尚无通过解析的模型解释。")));
       if (isRecipe && record.status === "proposed") {
         card.append(el("p", "detail-note", "候选配方 · " + text(object(arguments_.candidate).id) + " · 第" + number(object(arguments_.candidate).version) + "版"),
@@ -233,7 +251,9 @@ export function createLocalModelPanel(host: Host): {
       const save = el("button", "quiet-button", "下载原请求 JSON"); save.type = "button"; save.addEventListener("click", () => download(record)); actions.append(save);
       card.append(actions);
       const raw = el("details", "local-advanced"); raw.append(el("summary", "", "上下文、回答与完整记录"),
-        el("pre", "project-source-text", JSON.stringify(record, null, 2))); card.append(raw); (isPlan ? planHistory : history).append(card);
+        el("pre", "project-source-text", JSON.stringify(record, null, 2)));
+      if (platformRuns.length) raw.append(el("h4", "", "保存的平台控制台摘录"), el("pre", "project-source-text", JSON.stringify(platformRuns, null, 2)));
+      card.append(raw); (isPlan ? planHistory : history).append(card);
       if (isRecipe && improvement.hidden && Object.keys(object(record.proposal)).length) improvementSummary(record, card);
     }
   }
