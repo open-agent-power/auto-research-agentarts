@@ -1,0 +1,8 @@
+{
+  "schema_version": "recipe-improvement-sequence-v1",
+  "mode": "fixture",
+  "rounds": [
+    {"round_id": "round-1", "input": "fixture-input-1.json"},
+    {"round_id": "round-2", "input": "fixture-input-2.json"}
+  ]
+}

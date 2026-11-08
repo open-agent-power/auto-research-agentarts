@@ -1,5 +1,7 @@
 # 接口索引
 
+`run_recipe_improvement.py sequence --manifest --output [--max-rounds 1]`消费1至32项固定的同类保存输入，输出`recipe-improvement-sequence-result-v1`、有效版本、前轮结果、`next_entry`和不可变停点路径。模式为`fixture/saved-host/saved-export`，各项字段与四种停止原因见[队列合同](../../docs/recipe-research/rsi-delivery.md#有界保存证据队列2026-11-08)。不派发请求或在线采用，原单轮CLI不变。
+
 `recipe_improvement.load_saved_export`与CLI `saved-export --evidence-root --spec`只读核对A64完整导出，不需要SQLite；结果类别为`saved_export_validation`，不能绕过项目采用入口对`saved_host_validation`的要求。`next-input --output --round-id`读取最新有效版本／前轮结果／下一问题，明确等待新反馈，不派发任何请求。原`saved-host --resume`及`input_path`保持，见[离线补充](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)。
 
 `POST /api/local-workbench/continue`接收冻结的计划／行动范围，`GET /api/local-workbench/continue/<id>.json`与`describe.continuations`投影`phase/plan_ref/batch_ref/steps/stop`；采用后仍以首次版本和全部原body继续。新计划在服务启用CLI时取得建议，未启用时准备delegated，首次提供方／路径冻结。只对精确关联计划放行原model-resume/adopt/reject，模型行动沿原CLI批次及grant；含模型的网页接续使用420秒等待窗口。完整字段见[继续研究接口](../../docs/host-model-selection.md#继续研究的计划与行动阶段)。

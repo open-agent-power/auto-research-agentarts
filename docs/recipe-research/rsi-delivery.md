@@ -52,6 +52,48 @@
 
 `GET /api/local-workbench/recipes` 的 `effective_recipe` 返回最后一条项目修订，列表首先展示其配置，再按 id/version 去重补入正式配方。后续默认 `ProjectController.next/advance` 使用该有效版本和当前真实候选编译下一决定。旧请求重放使用原冻结版本，后轮外环输入继续绑定已保存的有效配方及前轮记录。网页保存回执不明时，先按原请求ID读取 `recipe_revisions`。
 
+### 有界保存证据队列（2026-11-08）
+
+本轮要改善：保存轮次已经可以逐个接续，但多个原请求仍须手工串接。`run_improvement_sequence(manifest, *, directory, base_directory=None, max_rounds=1)`与CLI `sequence --manifest --output --max-rounds`按固定顺序消费已有证据，遇到限额、未决或缺输入时保存接续位置。它不调用`propose/validate`，不创建Host请求、不采用到项目，也不代替工作台的内层“继续研究”。
+
+manifest严格为`recipe-improvement-sequence-v1`、`mode`和`rounds`三字段，1至32项，轮次ID唯一。整个队列只能使用同一种来源；各项精确字段如下。
+
+| mode | 每项字段 | 来源类别 |
+|---|---|---|
+| `fixture` | `round_id/input` | 明确构造输入 |
+| `saved-host` | `round_id/workspace/request_id/spec` | 原数据库、Host和控制器账本 |
+| `saved-export` | `round_id/evidence_root/spec` | 团队完整离线导出，仅包内一致性 |
+
+相对路径以manifest所在目录为基准，不以启动命令的目录为基准；Python调用可传`base_directory`。路径先按原安全守卫检查，再规范化保存。输出目录与原Host项目／离线包必须互不包含，不能把队列回执写进原件。`saved-host`中的原请求ID也须唯一。引用可指向尚未取得的未来输入，缺失时暂停，不预造候选或验证。
+
+输出在独立目录保存`sequence.json`（固定顺序及规范化引用）、`rounds/<round-id>/`（原单轮三件套和stage）与`checkpoints/<内容SHA>.json`（不可变停点）。清单一旦保存，修改顺序、ID、模式或引用会报冲突。每轮仍检查原版等于前轮有效版本、同项目、同证据类别及前轮结果SHA。完成轮次从自身不可变快照复用，不重读其可变外部原件；这些快照不独立认证外部模型或数据库。未决轮次才读取后续保存证据，并沿同ID执行已有阶段接续。损坏记录或身份冲突报错，不跳过继续。
+
+`--max-rounds`是本次调用最多评估的保存轮数（1至32，默认1），**不是模型、研究工具、费用或项目额度**。重启时已完成轮次不占本次评估名额；pending和终态回退也不重发原请求。停止结果明确区分：
+
+- `paused_round_limit / ROUND_LIMIT`：达到本次保存结果评估上限，`next_entry`保留下一项。
+- `pending_original_request / ROUND_PENDING`：先核对该原请求，后续轮次不处理。
+- `awaiting_input / SAVED_INPUT_UNAVAILABLE`：文件或原Host请求尚未取得，保留已有有效版本和具体缺口；不把缺失记为验证失败。
+- `queue_consumed / QUEUE_CONSUMED`：清单中的保存结果已消费完，**不表示研究目标达成或实际多轮研究完成**。
+
+结果还提供前轮决定、当前有效版本、下一问题、各轮最新`input_path`、停点路径及`evaluated_this_call`。该计数只表示本次保存结果评估次数，不写入停点内容；相同状态重放复用同一个内容SHA停点。调用者根据保存的`next_entry`补原件或明确再次调用，不自动轮询、重试或扩额度。
+
+可从[构造清单示例](../../examples/recipe-improvement/sequence.fixture.example.json)开始。以下实际入口在全新目录演示：首轮keep v2后达到单轮上限；再次调用复用首轮，第二轮候选v3失败并revert，仍有效v2；最后`next-input`读取v2并等待新反馈。
+
+```powershell
+.venv/Scripts/python.exe -B examples/recipe-improvement/demo_saved_sequence.py --output runs/recipe-rsi-sequence-demo
+# 手工重启同一队列；已完成轮次不再次评估
+.venv/Scripts/python.exe -B scripts/run_recipe_improvement.py sequence --manifest runs/recipe-rsi-sequence-demo/sequence.fixture.json --output runs/recipe-rsi-sequence-demo/queue --max-rounds 1
+.venv/Scripts/python.exe -B scripts/run_recipe_improvement.py next-input --output runs/recipe-rsi-sequence-demo/queue/rounds --round-id round-2
+```
+
+示例的反馈、模型声明、验证结果与工件引用全部构造，未调用真实模型或研究工具。2026-11-08最终实际演示保存于本机ignored `runs/recipe-rsi-sequence-20261108-final/`，两次队列调用及`next-input`均退出0。新增7项专项覆盖轮数限额、keep/revert、pending阶段接续、输入暂缺、固定清单与前轮身份、半写恢复、完成重放不新增文件、原Host项目全部文件不变及输出路径隔离；原离线导出专项也增加队列消费与原件不变核对。
+
+最终固定源码后运行`.venv/Scripts/python.exe -B -m unittest discover -s tests -p 'test_*recipe*.py' -v`，55项全部通过；现有前端format/lint/typecheck均退出0，34文件、修改0，无安装或升级。首次整组回归时源码仍在变动，一项已有同轮接续检查报`STALE_SELECTION_CONTEXT`；原代码身份包含本次模块。保留该失败，停止源码修改后，该项独立通过、最终55项整组通过，未改保护检查。测试中的本地工具仅作用于隔离构造项目，不能算作真实研究反馈或模型执行。
+
+主动提出下一项配方、取得新验证、按科研资源停止和真实研究中的多轮收益仍待接线。当前A79的研究计划v2及其Host用量，不等于A64配方v2或新的配方RSI请求。P1需提供实际任务的新反馈与对应原Host/验证记录，以及明确允许的方法、来源与资源范围；P2再围绕这项反馈扩充现有“补遗漏方法”以外的判据。
+
+`recipe_improvement.py`已属于原`ResearchProject.code_identity()`的哈希范围；本次增加函数也会改变当前代码身份。原项目若要在新代码下继续执行，仍需主开发走既有显式兼容登记和未决请求核对，不能静默升级。离线读取或构造队列通过，不表示历史项目已适配新执行身份。
+
 ## 实际运行
 
 在仓库根目录，使用已有环境，无需安装或升级依赖：

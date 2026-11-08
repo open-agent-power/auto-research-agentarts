@@ -4,6 +4,8 @@
 
 这些示例随源码交接，配方读取与改进外环的开发范围见[任务书](../../docs/recipe-research/team-module-handoff.md)及[接口约定](../../docs/recipe-research/team-module-interface.md)。
 
+多个保存结果可用[有界队列示例](demo_saved_sequence.py)及[固定清单](sequence.fixture.example.json)：`.venv/Scripts/python.exe -B examples/recipe-improvement/demo_saved_sequence.py --output runs/recipe-rsi-sequence-demo`。全新目录先keep v2并停在单轮上限，再沿同一清单读取后轮，候选v3失败后仍用v2。构造身份与旧双轮演示相同，不派发模型或工具。实际队列命令为`sequence --manifest <清单.json> --output <独立目录> --max-rounds 1`；支持`fixture/saved-host/saved-export`三种同类来源，清单路径相对其文件，pending或缺原件会保存停点；详细字段与边界见[保存证据队列](../../docs/recipe-research/rsi-delivery.md#有界保存证据队列2026-11-08)。
+
 [方法卡示例](../research-method-cards/feedback-driven.example.json)已可通过下面的入口读取并关联宿主候选；[改进轮次示例](round.example.json)保留为早期对象草案，不作为当前运行格式。当前单轮RSI与保存版本用法见[交付说明](../../docs/recipe-research/rsi-delivery.md)。方法卡只读知识，采用状态由外环明确记录，不据此批准科学结论。
 
 ```powershell

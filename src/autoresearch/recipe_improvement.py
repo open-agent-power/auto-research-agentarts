@@ -35,6 +35,33 @@ def read_json(path):
                       maximum=MAX_ROUND_BYTES, code="INVALID_IMPROVEMENT_ROUND")
 
 
+def saved_host_inputs(workspace, request_id, spec):
+    """Read the original ledger without dispatch; shared by single and queued rounds."""
+    from .host_model_selection import HostModelSelection
+    from .recipe_improvement_adapter import read_recipe_validation
+
+    _require(type(spec) is dict and set(spec) == {"issue", "acceptance", "next_question"},
+             "Spec requires issue, acceptance and next_question.")
+    journal = HostModelSelection(workspace)
+    record = journal.status(request_id=request_id)
+    view = read_recipe_validation(workspace, request_id)
+    if view["status"] == "invalid":
+        raise ResearchError(view["error"]["code"], view["error"]["message"])
+    _require(record == journal.status(request_id=request_id),
+             "Host record changed during read; inspect the original request.", "STALE_STATE")
+    context = record["context"]
+    folder = (journal.directory / record["directory"]).relative_to(journal.project.root).as_posix()
+    proposal = {"schema_version": "recipe-change-proposal-result-v1", "request_id": request_id,
+                "status": record["status"], "candidate": record.get("proposal"),
+                "context_ref": folder + "/context.json", "prompt_ref": folder + "/prompt.json",
+                "response_ref": journal.directory.name + "/" + record["response_file"]
+                    if record.get("response_file") else None, "scientific_validation": False}
+    validation = view["result"] if view["status"] in ("completed", "waiting", "failed") else None
+    return {"current_version": context["current_recipe"], "trace": context["research_context"],
+            "goal": context["improvement_goal"], "proposal_result": proposal, "validation_result": validation,
+            "request_id": request_id, **spec}
+
+
 def _round_id(value):
     identifier(value, "round_id")
     _require(value not in (".", "..") and ":" not in value, "Use a portable round directory identity.")
@@ -55,7 +82,7 @@ def _assess(value):
     _round_id(value["round_id"])
     identifier(value["request_id"])
     _require(value["evidence_kind"] in ("synthetic_engineering_fixture", "saved_host_validation", "saved_export_validation"),
-             "Declare fixture or saved Host evidence; neither establishes scientific benefit.")
+             "Declare fixture, saved Host or saved export evidence; none establishes scientific benefit.")
     context = {"schema_version": "recipe-change-context-v1", "current_recipe": value["current_recipe"],
                "research_context": value["trace"], "improvement_goal": value["goal"]}
     protocol._context(context)
@@ -279,6 +306,154 @@ def run_improvement_round(current_version, trace, goal, proposal_result, validat
         stage = folders[-1] if folders[-1] != latest else safe_path(folder / "stages" / f"{len(folders):04d}")
         _write_snapshot(stage, value, result)
         return result
+
+
+def _sequence_plan(manifest, base_directory):
+    _json_value(manifest, MAX_ROUND_BYTES, "INVALID_IMPROVEMENT_SEQUENCE")
+    _require(type(manifest) is dict and set(manifest) == {"schema_version", "mode", "rounds"}
+             and manifest["schema_version"] == "recipe-improvement-sequence-v1"
+             and type(manifest["mode"]) is str and manifest["mode"] in ("fixture", "saved-host", "saved-export")
+             and type(manifest["rounds"]) is list and 1 <= len(manifest["rounds"]) <= 32,
+             "Use a fixed sequence of 1 to 32 saved rounds.", "INVALID_IMPROVEMENT_SEQUENCE")
+    mode = manifest["mode"]
+    paths = {"fixture": {"input"}, "saved-host": {"workspace", "spec"},
+             "saved-export": {"evidence_root", "spec"}}[mode]
+    expected = paths | {"round_id"} | ({"request_id"} if mode == "saved-host" else set())
+    entries = []
+    for item in manifest["rounds"]:
+        _require(type(item) is dict and set(item) == expected, "Use exact saved-input references.",
+                 "INVALID_IMPROVEMENT_SEQUENCE")
+        entry = {"round_id": _round_id(item["round_id"])}
+        if mode == "saved-host":
+            entry["request_id"] = identifier(item["request_id"])
+        for key in paths:
+            _require(_text(item[key], 4000), "Use explicit local input paths.", "INVALID_IMPROVEMENT_SEQUENCE")
+            path = Path(item[key])
+            path = safe_path((Path(base_directory) / path).absolute())
+            entry[key] = str(safe_path(path.resolve()))
+        entries.append(entry)
+    _require(len({item["round_id"] for item in entries}) == len(entries)
+             and (mode != "saved-host" or len({item["request_id"] for item in entries}) == len(entries)),
+             "Each round and Host request must have a distinct identity.", "INVALID_IMPROVEMENT_SEQUENCE")
+    return {"schema_version": manifest["schema_version"], "mode": mode, "rounds": entries}
+
+
+def _sequence_inputs(mode, entry):
+    if mode == "fixture":
+        value = read_json(entry["input"])
+        fields = {"current_version", "trace", "goal", "proposal_result", "validation_result",
+                  "request_id", "issue", "acceptance", "next_question"}
+        _require(type(value) is dict and set(value) == fields, "Use the complete synthetic fixture input.")
+        return value
+    spec = read_json(entry["spec"])
+    _require(type(spec) is dict and set(spec) == {"issue", "acceptance", "next_question"},
+             "Spec requires issue, acceptance and next_question.")
+    if mode == "saved-host":
+        return saved_host_inputs(entry["workspace"], entry["request_id"], spec)
+    return {**load_saved_export(entry["evidence_root"]), **spec}
+
+
+def _sequence_chain(snapshot, previous, kind):
+    expected = None if previous is None else {"round_id": previous["round_id"],
+                "result_sha256": fingerprint(previous), "result": previous}
+    _require(snapshot["input"]["previous_round"] == expected
+             and snapshot["result"]["evidence_kind"] == kind,
+             "Saved rounds must follow the exact preceding effective result.", "EVIDENCE_CHANGED")
+
+
+def run_improvement_sequence(manifest, *, directory, base_directory=None, max_rounds=1):
+    """Consume a bounded queue of saved evidence; never propose, validate or adopt online.
+
+    The limit counts saved-round assessments in this invocation, not research
+    resources. Completed snapshots are reused, pending snapshots may append saved
+    stages, and missing future inputs do not fabricate a round or a failure.
+    """
+    _require(type(max_rounds) is int and 1 <= max_rounds <= 32,
+             "Saved-round limit must be an integer from 1 to 32.", "INVALID_IMPROVEMENT_SEQUENCE")
+    plan = _sequence_plan(manifest, base_directory or Path.cwd())
+    root = safe_path(Path(directory).absolute())
+    root = safe_path(root.resolve())
+    for entry in plan["rounds"]:
+        source = entry.get("workspace", entry.get("evidence_root"))
+        _require(source is None or not (root.is_relative_to(Path(source)) or Path(source).is_relative_to(root)),
+                 "Sequence output must be outside original projects and exports.", "UNSAFE_PATH")
+    kind = {"fixture": "synthetic_engineering_fixture", "saved-host": "saved_host_validation",
+            "saved-export": "saved_export_validation"}[plan["mode"]]
+    root.mkdir(parents=True, exist_ok=True)
+    rounds = safe_path(root / "rounds")
+    with ResearchProject(root)._writer():
+        plan_path = safe_path(root / "sequence.json")
+        if plan_path.exists():
+            _require(read_json(plan_path) == plan, "The saved queue and input references are fixed.", "IDEMPOTENCY_CONFLICT")
+        else:
+            _require(not rounds.exists() or not any(rounds.iterdir()),
+                     "Do not attach a new queue to unrelated saved rounds.", "EVIDENCE_CHANGED")
+            write_bytes_once(plan_path, canonical(plan).encode("utf-8"))
+        records, previous, latest, evaluated = [], None, None, 0
+        stop = {"reason": "QUEUE_CONSUMED", "round_id": None}
+        status = "queue_consumed"
+        next_entry = None
+        for entry in plan["rounds"]:
+            round_id = entry["round_id"]
+            input_path = safe_path(rounds / round_id / "input.json")
+            snapshot = None
+            if input_path.is_file():
+                try:
+                    snapshot = read_improvement_snapshot(rounds, round_id)
+                except ResearchError as error:
+                    if error.code != "IMPROVEMENT_ROUND_INCOMPLETE":
+                        raise
+            if snapshot is not None:
+                _sequence_chain(snapshot, previous, kind)
+                _require(plan["mode"] != "saved-host" or snapshot["result"]["request_id"] == entry["request_id"],
+                         "Saved snapshot belongs to a different queued Host request.", "EVIDENCE_CHANGED")
+            if snapshot is None or snapshot["result"]["status"] != "completed":
+                next_entry = entry
+                if evaluated == max_rounds:
+                    status, stop = "paused_round_limit", {"reason": "ROUND_LIMIT", "round_id": round_id}
+                    break
+                try:
+                    inputs = _sequence_inputs(plan["mode"], entry)
+                except (FileNotFoundError, ResearchError) as error:
+                    if isinstance(error, ResearchError) and error.code != "ARTIFACT_NOT_FOUND":
+                        raise
+                    status = "awaiting_input"
+                    stop = {"reason": "SAVED_INPUT_UNAVAILABLE", "round_id": round_id,
+                            "message": str(error), "code": getattr(error, "code", "FILE_NOT_FOUND")}
+                    if snapshot is not None:
+                        latest = snapshot["result"]
+                        records.append({"round_id": round_id, "request_id": latest["request_id"],
+                            "status": latest["status"], "decision": latest["decision"],
+                            "input_path": snapshot["input_path"], "result_sha256": fingerprint(latest)})
+                    break
+                _require(inputs["request_id"] not in {item["request_id"] for item in records},
+                         "Do not reuse one original request as another round.", "INVALID_IMPROVEMENT_SEQUENCE")
+                run_improvement_round(**inputs, directory=rounds, round_id=round_id, evidence_kind=kind,
+                    previous_round_id=previous["round_id"] if previous else None, resume=input_path.is_file())
+                evaluated += 1
+                snapshot = read_improvement_snapshot(rounds, round_id)
+                _sequence_chain(snapshot, previous, kind)
+            latest = snapshot["result"]
+            _require(latest["request_id"] not in {item["request_id"] for item in records},
+                     "Do not reuse one original request as another round.", "EVIDENCE_CHANGED")
+            records.append({"round_id": round_id, "request_id": latest["request_id"],
+                "status": latest["status"], "decision": latest["decision"],
+                "input_path": snapshot["input_path"], "result_sha256": fingerprint(latest)})
+            if latest["status"] != "completed":
+                status, stop = "pending_original_request", {"reason": "ROUND_PENDING", "round_id": round_id}
+                break
+            previous, next_entry = latest, None
+        result = {"schema_version": "recipe-improvement-sequence-result-v1", "plan_sha256": fingerprint(plan),
+            "status": status, "stop": stop, "evidence_kind": kind, "rounds_directory": str(rounds),
+            "rounds": records, "previous_result": previous,
+            "current_version": latest["effective_recipe"] if latest else None,
+            "next_question": latest["next_question"] if latest else None,
+            "next_entry": next_entry, "scientific_validation": False}
+        checkpoints = safe_path(root / "checkpoints")
+        checkpoints.mkdir(exist_ok=True)
+        checkpoint = safe_path(checkpoints / (fingerprint(result) + ".json"))
+        write_bytes_once(checkpoint, canonical(result).encode("utf-8"))
+        return {**result, "checkpoint_path": str(checkpoint), "evaluated_this_call": evaluated}
 
 
 def load_saved_export(directory):
