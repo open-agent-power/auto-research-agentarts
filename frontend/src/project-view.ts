@@ -114,6 +114,21 @@ function section(title: string, note?: string): HTMLElement {
   return panel;
 }
 
+function savedResearchPlan(project: Obj): HTMLElement | null {
+  const plan = object(project.research_plan), current = object(plan.current);
+  if (typeof current.version !== "number" || typeof current.question !== "string") return null;
+  const panel = section(`已采用研究计划 v${numeric(current.version)}`);
+  panel.classList.add("research-plan"); panel.id = "saved-research-plan";
+  const copy = el("div", "research-plan-copy"), route = el("div"), feedback = el("div");
+  route.append(el("h3", "", current.question), el("h4", "", "计划步骤"), el("p", "research-plan-steps", string(current.steps)));
+  if (current.basis) route.append(el("h4", "", "依据与材料"), el("p", "", string(current.basis)));
+  feedback.append(el("h4", "", "预期反馈与调整"), el("p", "", string(current.expected_feedback)),
+    el("h4", "", "本次修订依据"), el("p", "", string(current.reason)));
+  copy.append(route, feedback);
+  panel.append(copy, details("计划版本与修订原记录", plan));
+  return panel;
+}
+
 function badge(value: unknown, prefix: string): HTMLElement {
   return el("span", "status-badge project-status", prefix + state(value));
 }
@@ -527,7 +542,7 @@ function boundaries(project: Obj): HTMLElement {
     ["历史模型请求", budget.historical_request_counts === null || budget.historical_request_counts === undefined ? "未知，未导入；不按 0 处理" : pretty(budget.historical_request_counts)],
     ["历史现金", budget.historical_spend_cny === null || budget.historical_spend_cny === undefined ? "未知，结算状态未确认；不按 0 处理" : `${count(budget.historical_spend_cny)} 元`],
   ]) field(summary, label, value);
-  panel.append(summary, el("p", "detail-note", "CLI和子代理用量在“研究推进”中单独记录。历史预算引用只记录归属，不增加模型额度。原有现金上限与未知结算状态保留；AgentArts 产品接入仍暂缓。"),
+  panel.append(summary, el("p", "detail-note", "外部模型调用与费用按对应原请求记录核对。历史预算引用只记录归属，不增加模型额度；原有现金上限与未知结算状态保留。"),
     details("项目、预算归属与索引身份", { id: project.id, state_version: project.state_version,
       lineage_ref: budget.lineage_ref, cash_settlement: budget.cash_settlement,
       existing_cash_cap_cny: budget.existing_cash_cap_cny, domain_scope: project.domain_scope,
@@ -926,7 +941,8 @@ export async function renderProject(container: HTMLElement): Promise<void> {
     if (required.length) nextCard.append(el("p", "", "待取得：" + [...new Set(required.map(item => note(item, "原始条件或验证资料，见完整任务要求")))].join("；")));
     if (Object.keys(next).length) nextCard.append(details("固定规则的原始理由与反馈引用", next));
     intro.append(nextCard);
-    host.replaceChildren(intro, selections(value), executionRecords(value), excerpts(value), methods(value), search(value), reports(value), boundaries(value));
+    const plan = savedResearchPlan(value);
+    host.replaceChildren(intro, ...(plan ? [plan] : []), selections(value), executionRecords(value), excerpts(value), methods(value), search(value), reports(value), boundaries(value));
     const heading = intro.querySelector<HTMLElement>("h1");
     if (heading) { heading.tabIndex = -1; if (document.body.dataset.case === "project") requestAnimationFrame(() => heading.focus({ preventScroll: true })); }
   } catch (error) {
