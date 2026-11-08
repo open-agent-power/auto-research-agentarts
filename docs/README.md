@@ -5,6 +5,7 @@
 - [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，平台接入继续暂缓
 - [同一课题的本地回看讲稿](research/demo-walkthrough.md)：state21录像与当前state27入口分别说明，保留原字幕、依据及正式平台视频缺口
 - [state27只读评阅说明](research/review-handoff.md)：六份离线材料的阅读顺序、三个反馈问题及真人完整使用的后续条件
+- [初赛作品说明材料](research/submission-materials.md)：11月8日Word候选、研究主线与配方工程的讲述范围，保留团队材料及正式模板缺口
 - [本地研究工作台](local-workbench.md)与[项目使用说明](project-slice.md)
 - [队友长期负责：通用配方与RSI持续改进](teammate-recipe-task.md)；[持续任务、反馈与PR安排](recipe-research/team-module-handoff.md)与[接口约定](recipe-research/team-module-interface.md)
 - [随源码提供的配方与RSI示例](../examples/recipe-improvement/README.md)，包含接口草案和构造context
