@@ -71,6 +71,14 @@
 
 [NCSU原说明](https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html)与[scikit-learn数据说明](https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)支持BMI名称及target为基线一年后定量疾病进展指标的语义；两份说明指向同源LARS资料，不能视为独立验证。具体量尺、sex编码映射、抽样/独立性和原数据使用条件仍未确认。本次没有新增逐行数值核对，A79的raw版本与target对应关系仍保留为提交者声明；描述页的默认标准化说明不覆盖已声明的`scaled=False`投影。
 
+### 一手来源补充
+
+2026-11-08，沿同一研究计划v2，由工作台正常登记`a90-register-primary-provenance`，原控制器`next`按固定规则选择新收据，再由`advance`请求`a90-read-primary-provenance`完成来源行动`action-5b398a793d3160ffd07f972fd255cb2e`，项目至state27，没有模型选择。新收据为`5f931f94bf6eb8118cacf49f21be085936d6873ae14ac9c9a9067f991e0a8fdf`。
+
+本次读取两份原件的三处选区：[LARS论文原文](https://arxiv.org/pdf/math/0406456)第2页字符2587–3130的原示例段、第3页的公式1.1及Table1，以及[作者数据页](https://hastie.su.domains/Papers/LARS/)保存HTML的第19–41行；后者为原Stanford作者页重定向后的地址。论文示例支持442名糖尿病患者、10项基线变量及基线一年后的定量疾病进展响应，作者页区分raw、standardized和442×64派生版本。原件与两页截图已实际核对，但这些材料不证明当前CSV的逐行对应。原三项未决问题保持：sex编码含义；目标具体量尺、数值方向及数据使用条件；抽样独立性和新科研用途资格。
+
+来源累计3/8，本地工具2/2、Host决策2/2、CLI0、原生模型0、拟合0，原5元现金上限与历史费用unknown保持。本次只新增一次真实来源读取，不是新数值分析或配方RSI，不据此声称科学收益。state27的7页报告已明确生成，四类下载与该快照对应；PDF提供来源节选，完整JSON保留六处已读选区。原PDF、HTML及[运行证据](../runs/a90-primary-evidence-20261108/)仅保存在本机ignored目录，既有报告和state21录像材料保留为各自历史快照。
+
 ## 交给研究者实际使用
 
 请研究者在当前工作台的“实验中心”阅读本例已保存的442行结果，比较整体及两个原编码组的`n/excluded/pearson_r`，用自己的话回答原问题。随后打开本次关联行动的完整原记录，定位一项判断所依据的读数或CSV坐标；结合仍未确认的编码、目标量尺或独立性，提出下一步及理由。本次只阅读已有结果，不再执行方法或请求模型，不增加额度。
