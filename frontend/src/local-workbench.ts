@@ -364,7 +364,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
-    operations: [batchPanel.element, modelPanel.element, recipePanel.element, runSection, evidencePanel.element], reportButton, read, announce });
+    operations: [batchPanel.element, modelPanel.element, recipePanel.element, runSection, evidencePanel.element], reportButton, announce });
   function planContinuation(requestId = ""): Obj | undefined {
     return items(description.continuations).find(record => record.project_id === activeId() && record.record_status === "incomplete"
       && ["plan", "awaiting_adoption"].includes(text(record.phase, "")) && obj(record.plan_ref).kind === "host_plan"

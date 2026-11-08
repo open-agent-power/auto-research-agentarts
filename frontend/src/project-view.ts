@@ -543,6 +543,41 @@ function reports(project: Obj): HTMLElement {
   panel.append(actions); return panel;
 }
 
+function savedFindings(project: Obj): HTMLElement {
+  const panel = section("已保存的研究结果");
+  const completed = objects(project.actions).filter(action => action.status === "completed" && objects(action.observations).length);
+  const latest = completed.at(-1);
+  if (latest) {
+    panel.append(el("h3", "", "最近完成：" + method(latest.command)));
+    const association = objects(latest.observations).find(item => item.kind === "numeric_association");
+    if (association) {
+      for (const pair of objects(association.overall)) panel.append(el("p", "project-progress-copy", "全样本中，" + associationSummary(pair, association.target_column)));
+      for (const [index, group] of objects(association.groups).entries())
+        for (const pair of objects(group.associations)) panel.append(el("p", "project-progress-copy", `原记录分组 ${index + 1} 中，` + associationSummary(pair, association.target_column)));
+      const incomplete = object(association.incomplete_group);
+      if (typeof incomplete.rows === "number" && incomplete.rows > 0)
+        for (const pair of objects(incomplete.associations)) panel.append(el("p", "project-progress-copy", "分组字段不完整的记录中，" + associationSummary(pair, association.target_column)));
+      panel.append(el("p", "detail-note", "这里只描述保存记录的线性关联，不据此确认因果、组间显著差异或临床意义；分组名称和字段含义仍以原资料核对。"));
+    } else panel.append(el("p", "project-progress-copy", progressFeedback(latest, false)));
+    const full = el("details"); full.append(el("summary", "", "展开完整指标、前序与计算依据"), comparison(latest, project)); panel.append(full);
+    const original = download(latest); if (original) { original.textContent = "下载本次分析的完整记录 JSON ↓"; panel.append(original); }
+  } else panel.append(el("p", "empty-state", "尚无完成的分析观察。未执行、失败或未知的行动不作为已得到的结论。"));
+  const source = objects(project.evidence_actions).filter(action => action.status === "completed").at(-1), next = object(project.next_decision);
+  const questions = [...new Set([...words(object(source?.next_decision).remaining_questions), ...words(next.remaining_questions),
+    ...words(next.retained_unresolved_requirements)].map(sourceQuestionText))];
+  panel.append(el("h3", "project-progress-follow-up", "仍待核实的问题"));
+  if (questions.length) {
+    const list = el("ul", "project-questions"); for (const question of questions) list.append(el("li", "", question)); panel.append(list);
+  } else panel.append(el("p", "detail-note", source ? "当前记录未列出具体未决问题。" : "尚未保存完成的来源核对，可先查看已有资料与出处。"));
+  const sourceRecord = source && download(source);
+  if (sourceRecord) { sourceRecord.textContent = "下载最近来源核对的完整记录 JSON ↓"; panel.append(sourceRecord); }
+  const links = el("div", "project-progress-actions");
+  for (const [href, label] of [["#/experiments", "查看全部实验与原记录"], ["#/knowledge", "查看来源原文与定位"], ["#/research?focus=plan", "查看计划与后续条件"]]) {
+    const link = el("a", "text-button", label); link.href = href; links.append(link);
+  }
+  panel.append(links); return panel;
+}
+
 function choiceTitle(project: Obj, action: Obj): string {
   if (action.kind === "external_wait") return "本次选择等待";
   const parameters = object(action.parameters);
@@ -837,7 +872,7 @@ export function renderProjectPage(container: HTMLElement, value: Obj, page: Acti
       const link = el("a", "text-button", "核对完整回执与来源声明 JSON ↓"); link.href = "/api/project/evidence-receipt/" + hash + ".json"; row.append(link); registered.append(row);
     }
     container.replaceChildren(registered, excerpts(value), search(value));
-  } else container.replaceChildren(reports(value));
+  } else container.replaceChildren(savedFindings(value), reports(value));
 }
 
 export async function renderProject(container: HTMLElement): Promise<void> {
