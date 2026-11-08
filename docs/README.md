@@ -3,11 +3,11 @@
 - [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
 - [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，保留能力取舍及平台候选路径；当前接入安排以提交计划为准
 - [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，已恢复AgentArts试接
-- [AgentArts首次接通与验收](research/agentarts-first-connection.md)：一次真实模型回答已导入、采用为计划v1并在只读页展示，必要行动、报告和平台视频的后续安排
-- [同一课题的本地回看讲稿](research/demo-walkthrough.md)：state21录像与当前state27入口分别说明，保留原字幕、依据及正式平台视频缺口
+- [AgentArts首次接通与验收](research/agentarts-first-connection.md)：唯一真实回答已采用为计划v1，原项目迁入完整manager且五页、画布与记录已核对，接续必要行动、报告和平台视频
+- [同一课题的本地回看讲稿](research/demo-walkthrough.md)：state21录像与state27材料分别保留，当前原项目state28，正式平台视频仍待完成
 - [state27只读评阅说明](research/review-handoff.md)：六份离线材料的阅读顺序、三个反馈问题及真人完整使用的后续条件
 - [初赛作品说明材料](research/submission-materials.md)：11月8日Word候选、研究主线与配方工程的讲述范围，保留团队材料及正式模板缺口
-- [本地研究工作台](local-workbench.md)与[项目使用说明](project-slice.md)
+- [本地研究工作台](local-workbench.md)：18799完整五页、X6与原生项目接入；[项目使用说明](project-slice.md)
 - [队友长期负责：通用配方与RSI持续改进](teammate-recipe-task.md)；[持续任务、反馈与PR安排](recipe-research/team-module-handoff.md)与[接口约定](recipe-research/team-module-interface.md)
 - [随源码提供的配方与RSI示例](../examples/recipe-improvement/README.md)，包含接口草案和构造context
 - [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)

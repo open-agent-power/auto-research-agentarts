@@ -4,6 +4,7 @@ import base64
 import binascii
 import copy
 from contextlib import contextmanager
+from datetime import datetime
 import hashlib
 from pathlib import Path
 import re
@@ -53,6 +54,53 @@ def _decode(value, limit):
         raise ResearchError("INVALID_REQUEST", "Strict base64 original bytes required.") from None
     _require(0 < len(raw) <= limit, "SOURCE_TOO_LARGE", "Original bytes are empty or exceed the input limit.")
     return raw
+
+
+def _platform_run(value):
+    if value is None:
+        return None
+    fields = {"host_request_id", "provider", "model", "started_at", "ended_at", "input_tokens", "output_tokens",
+              "total_tokens", "record_source", "verification"}
+    _require(type(value) is dict and set(value) == fields, "INVALID_REQUEST", "Use the exact console excerpt fields.")
+    identifier(value["host_request_id"], "host_request_id")
+    _require(value["provider"] == "AgentArts" and value["record_source"] == "console_excerpt"
+             and value["verification"] == "operator_supplied" and _text(value["model"], 200),
+             "INVALID_REQUEST", "A bounded operator-supplied AgentArts console excerpt is required.")
+    for key in ("started_at", "ended_at"):
+        if value[key] is not None:
+            _require(_text(value[key], 64), "INVALID_REQUEST", "Console times must be ISO8601 text or null.")
+            try:
+                datetime.fromisoformat(value[key].replace("Z", "+00:00"))
+            except ValueError:
+                raise ResearchError("INVALID_REQUEST", "Console times must be ISO8601 text or null.") from None
+    counts = [value[key] for key in ("input_tokens", "output_tokens", "total_tokens")]
+    _require(all(item is None or type(item) is int and item >= 0 for item in counts),
+             "INVALID_REQUEST", "Console token counts must be nonnegative integers or null, never estimates.")
+    _require(any(item is None for item in counts) or counts[0] + counts[1] == counts[2],
+             "INVALID_REQUEST", "Known console token counts must sum to the reported total.")
+    return copy.deepcopy(value)
+
+
+def _import_snapshot(project, platform_run):
+    state = project.status()
+    _require(all(item["status"] in ("completed", "failed") for item in state["actions"] + state["evidence_actions"])
+             and state["execution_status"] not in ("pending", "running", "unknown")
+             and not any(item["status"] in ("prepared", "running", "unknown") for item in state.get("controller_requests", []))
+             and not any(item["status"] in ("sending", "unknown") for item in state.get("source_requests", []))
+             and not any(item["status"] == "reserved" for item in state.get("local_model_requests", []))
+             and not state["budget"].get("model_requests_reserved", 0),
+             "PROJECT_BUSY", "Complete the original project requests before moving this project.")
+    project._source(state)
+    journal = HostModelSelection(project.root)
+    host = journal.status()
+    closed = {"applied", "rejected", "invalid", "stale", "failed"}
+    _require(all(item["status"] in closed for item in host["requests"]),
+             "HOST_SELECTION_PENDING", "Close the original Host requests before moving this project.")
+    if platform_run is not None:
+        record = journal.status(request_id=platform_run["host_request_id"])
+        _require(record["status"] in closed and record["provider"] == "delegated" and record.get("response_file"),
+                 "INVALID_REQUEST", "Bind the console excerpt to a closed imported Host response.")
+    return state, host
 
 
 class LocalWorkbench:
@@ -139,7 +187,7 @@ class LocalWorkbench:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]
             active = self._active(con)
             pending = []
-            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','export','evidence','batch','continue') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue') ORDER BY rowid DESC"):
                 record = tabular._parse(row["record"].encode("utf-8"))
                 if record["status"] != "completed":
                     pending.append({"request_id": row["id"], "command": row["command"], "status": record["status"],
@@ -174,6 +222,83 @@ class LocalWorkbench:
         _require(report is None or re.fullmatch(r"[a-f0-9]{64}", report), "WORKBENCH_CHANGED", "Managed report identity changed.")
         return project, safe_path(self.root / "reports" / report) if report else None
 
+    def import_project(self, *, request_id, workspace, platform_run=None):
+        """Explicit native-host move; never create a research project or select it implicitly."""
+        source = safe_path(Path(workspace).absolute()).resolve()
+        manager_root = self.root.resolve()
+        _require(not source.is_relative_to(manager_root) and not manager_root.is_relative_to(source),
+                 "WORKBENCH_OVERLAP", "Import requires separate source-project and manager directories.")
+        body = {"request_id": request_id, "workspace": str(source), "platform_run": _platform_run(platform_run)}
+        digest = _body(body, ("request_id", "workspace", "platform_run"))
+        target = safe_path(manager_root / "projects" / digest)
+        with self._writer():
+            with self._connect() as con:
+                record = self._old(con, body, digest)
+                replayed = record is not None
+                if record is not None and record["status"] == "completed":
+                    response = self._completed(record)
+                    row, _ = self._project(con, response["project_id"])
+                    _require(row["slot"] == digest, "WORKBENCH_CHANGED", "Imported project binding changed.")
+                    return response
+                if record is None:
+                    _require(source.is_dir() and not target.exists(), "PROJECT_NOT_FOUND", "Use the existing separate source project.")
+                    _require(source.stat().st_dev == self.root.stat().st_dev,
+                             "IMPORT_FILESYSTEM", "Project import requires a same-filesystem rename; no copying is performed.")
+                    project = ResearchProject(source)
+                    with project._writer():
+                        state, host = _import_snapshot(project, body["platform_run"])
+                    _require(con.execute("SELECT 1 FROM projects WHERE id=?", (state["id"],)).fetchone() is None,
+                             "PROJECT_EXISTS", "This project identifier is already managed.")
+                    _require(con.execute("SELECT COUNT(*) FROM requests WHERE command IN ('create','import')").fetchone()[0] < MAX_PROJECTS,
+                             "PROJECT_LIMIT", "At most 32 project intake intents are allowed in this workbench.")
+                    for row in con.execute("SELECT record FROM requests WHERE command='import'"):
+                        other = tabular._parse(row[0].encode("utf-8"))
+                        _require(other["intent"]["project_id"] != state["id"],
+                                 "PROJECT_EXISTS", "Resume the original import ID for this project.")
+                    intent = {"slot": digest, "workspace": str(source), "target_workspace": str(target), "project_id": state["id"],
+                              "goal": state["registration"]["goal"], "snapshot_ref": state["snapshot_ref"],
+                              "host": host, "platform_run": body["platform_run"]}
+                    record = self._accept(con, body, digest, "import", intent)
+            try:
+                intent = record["intent"]
+                _require(not (source.exists() and target.exists()), "IMPORT_CONFLICT", "Both import paths exist; preserve them for inspection.")
+                if source.exists():
+                    project = ResearchProject(source)
+                    with project._writer():
+                        state, host = _import_snapshot(project, intent["platform_run"])
+                        _require(state["snapshot_ref"] == intent["snapshot_ref"] and host == intent["host"],
+                                 "EVIDENCE_CHANGED", "Original project or Host changed after import was accepted.")
+                    safe_path(target.parent).mkdir(exist_ok=True)
+                    source.rename(target)
+                _require(target.is_dir(), "OPERATION_INCOMPLETE", "The original import has no source or target; inspect its saved intent.")
+                project = ResearchProject(target)
+                with project._writer():
+                    state, host = _import_snapshot(project, intent["platform_run"])
+                    _require(state["snapshot_ref"] == intent["snapshot_ref"] and host == intent["host"],
+                             "EVIDENCE_CHANGED", "Moved project or Host differs from the accepted import.")
+                    response = self._response("import", request_id, state["id"], status="imported", workspace=str(target),
+                                              state_version=state["state_version"])
+                    record.update(status="completed", result=response)
+                    record.pop("failure", None)
+                    with self._connect() as con:
+                        existing = con.execute("SELECT slot FROM projects WHERE id=?", (state["id"],)).fetchone()
+                        _require(existing is None or existing[0] == digest, "PROJECT_EXISTS", "This project identifier is already managed.")
+                        con.execute("INSERT OR IGNORE INTO projects VALUES(?,?,?,NULL)", (state["id"], intent["goal"], digest))
+                        self._save(con, request_id, record)
+                return dict(response, replayed=replayed)
+            except Exception as error:
+                self._incomplete(request_id, record, error)
+                if isinstance(error, ResearchError):
+                    raise
+                raise ResearchError("WORKBENCH_OPERATION_FAILED", "Project import stopped; resume the same request ID and original paths.") from None
+
+    def import_record(self, request_id):
+        identifier(request_id)
+        with self._connect(readonly=True) as con:
+            row = con.execute("SELECT record FROM requests WHERE id=? AND command='import'", (request_id,)).fetchone()
+        _require(row is not None, "ARTIFACT_NOT_FOUND", "No native project import matches this ID.")
+        return {"request_id": request_id, **tabular._parse(row[0].encode("utf-8"))}
+
     def create(self, body):
         digest = _body(body, ("request_id", "goal", "budget_ref", "max_tool_calls", "input"))
         _require(_text(body["goal"], 4000) and _text(body["budget_ref"], 500) and type(body["max_tool_calls"]) is int
@@ -202,8 +327,8 @@ class LocalWorkbench:
                         _require(hashlib.sha256(original).hexdigest() == old["intent"][identity],
                                  "EVIDENCE_CHANGED", "Preserved uploaded original bytes changed.")
                     return response
-                _require(con.execute("SELECT COUNT(*) FROM requests WHERE command='create'").fetchone()[0] < MAX_PROJECTS,
-                         "PROJECT_LIMIT", "At most 32 project creation intents are allowed in this workbench.")
+                _require(con.execute("SELECT COUNT(*) FROM requests WHERE command IN ('create','import')").fetchone()[0] < MAX_PROJECTS,
+                         "PROJECT_LIMIT", "At most 32 project intake intents are allowed in this workbench.")
                 intent = {"slot": digest, "goal": body["goal"], "budget_ref": body["budget_ref"], "max_tool_calls": body["max_tool_calls"],
                           "file_name": file_name, "csv_sha256": hashlib.sha256(csv_raw).hexdigest(), "spec_sha256": hashlib.sha256(spec_raw).hexdigest()}
                 record = self._accept(con, body, digest, "create", intent)
@@ -382,13 +507,19 @@ class LocalWorkbench:
             active = self._active(con)
             project = self._project(con, active)[1] if active is not None else None
         view = {"schema_version": "local-host-model-view-v1", "enabled": enabled,
-                "project_id": active, "journal": None, "records": [], "recipe_validations": []}
+                "project_id": active, "journal": None, "records": [], "recipe_validations": [], "platform_runs": []}
         if project is not None:
             journal = HostModelSelection(project.root)
             view["journal"] = journal.status()
             view["records"] = [journal.status(request_id=item["request_id"]) for item in view["journal"]["requests"]]
             view["recipe_validations"] = [read_recipe_validation(project.root, record["request_id"])
                                           for record in view["records"] if record.get("purpose") == "recipe"]
+            with self._connect(readonly=True) as con:
+                for row in con.execute("SELECT record FROM requests WHERE command='import' ORDER BY rowid"):
+                    imported = tabular._parse(row[0].encode("utf-8"))
+                    if (imported["status"] == "completed" and imported["result"]["project_id"] == active
+                            and imported["intent"]["platform_run"] is not None):
+                        view["platform_runs"].append(copy.deepcopy(imported["intent"]["platform_run"]))
         return view
 
     def model_advance(self, body, *, executable):
