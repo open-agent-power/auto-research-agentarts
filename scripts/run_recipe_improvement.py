@@ -8,36 +8,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from autoresearch.contracts import ResearchError
-from autoresearch.host_model_selection import HostModelSelection
 from autoresearch.recipe_improvement import (
     load_saved_export, read_improvement_round, read_improvement_snapshot, read_json, run_improvement_round,
+    run_improvement_sequence, saved_host_inputs,
 )
-from autoresearch.recipe_improvement_adapter import read_recipe_validation
-
-
-def saved_host_inputs(workspace, request_id, spec):
-    """Use the existing ledger reader, not unverified detached validation JSON."""
-    if type(spec) is not dict or set(spec) != {"issue", "acceptance", "next_question"}:
-        raise ResearchError("INVALID_IMPROVEMENT_ROUND", "Spec requires issue, acceptance and next_question.")
-    journal = HostModelSelection(workspace)
-    record = journal.status(request_id=request_id)
-    view = read_recipe_validation(workspace, request_id)
-    if view["status"] == "invalid":
-        raise ResearchError(view["error"]["code"], view["error"]["message"])
-    if record != journal.status(request_id=request_id):
-        raise ResearchError("STALE_STATE", "Host record changed during read; inspect the original request.")
-    context = record["context"]
-    folder = (journal.directory / record["directory"]).relative_to(journal.project.root).as_posix()
-    proposal = {"schema_version": "recipe-change-proposal-result-v1", "request_id": request_id,
-                "status": record["status"], "candidate": record.get("proposal"),
-                "context_ref": folder + "/context.json", "prompt_ref": folder + "/prompt.json",
-                "response_ref": journal.directory.name + "/" + record["response_file"]
-                    if record.get("response_file") else None, "scientific_validation": False}
-    # Incomplete/unknown sidecars must not be presented as verified terminal results.
-    validation = view["result"] if view["status"] in ("completed", "waiting", "failed") else None
-    return {"current_version": context["current_recipe"], "trace": context["research_context"],
-            "goal": context["improvement_goal"], "proposal_result": proposal, "validation_result": validation,
-            "request_id": request_id, **spec}
 
 
 def main():
@@ -57,12 +31,21 @@ def main():
     next_input = modes.add_parser("next-input", help="Read an effective version for the next round; dispatch nothing.")
     next_input.add_argument("--output", required=True)
     next_input.add_argument("--round-id", required=True)
+    sequence = modes.add_parser("sequence", help="Consume a bounded queue of saved evidence; dispatch nothing.")
+    sequence.add_argument("--manifest", required=True)
+    sequence.add_argument("--output", required=True)
+    sequence.add_argument("--max-rounds", type=int, default=1, help="Saved assessments per invocation, not research budget.")
     for command in (fixture, host, exported):
         command.add_argument("--output", required=True, help="Outer-loop receipt directory, not project storage.")
         command.add_argument("--round-id", required=True)
         command.add_argument("--previous-round-id")
     args = parser.parse_args()
     try:
+        if args.mode == "sequence":
+            result = run_improvement_sequence(read_json(args.manifest), directory=args.output,
+                base_directory=Path(args.manifest).absolute().parent, max_rounds=args.max_rounds)
+            print(json.dumps({"ok": True, **result}, ensure_ascii=False))
+            return 0
         if args.mode == "next-input":
             previous = read_improvement_round(args.output, args.round_id)
             if previous["status"] != "completed":

@@ -26,7 +26,7 @@
 
 已有配方读取、编译和原控制器接线继续复用，范围见[接入记录](integration.md)。源码中的[方法卡和context](../../examples/recipe-improvement/README.md)用于开发新接口。首轮实际执行轨迹、模型调用和工具执行已由主开发接入，后续沿原记录和资源范围继续。
 
-队列第1、3项已交付，第4项中的有效版本、后轮读取和同轮保存阶段接续已接通，第5项已有四行工程样例的实际工具接续。第2项的条件解释仍需真实问题检验，第4项的外环多轮编排、第5项的真实研究联合闭环继续推进。
+队列第1、3项已交付，第4项中的有效版本、后轮读取、同轮保存阶段接续及有界保存证据队列已接通，第5项已有四行工程样例的实际工具接续。保存证据队列可在轮数限额、pending或输入暂缺时停住并接续，但不自动生成或验证新配方。第2项的条件解释仍需真实问题检验，第4项的主动多轮研究外环、第5项的真实研究联合闭环继续推进。
 
 ## 按依赖推进的任务队列
 
@@ -97,8 +97,8 @@
 | 队友维护 | 主要内容 |
 |---|---|
 | `src/autoresearch/research_recipe.py` | 复用既有读取和编译，补方法卡及候选关联 |
-| `src/autoresearch/recipe_improvement.py` | 单轮保存结果评估、有效版本、采用回退、前轮消费及同轮阶段接续已交付；继续维护新反馈下的多轮外环和验收类型 |
-| `scripts/run_recipe_improvement.py` | 已有`fixture`、`saved-host --resume`、`saved-export`和`next-input`入口，沿保存原件评估／读取，不派发模型或工具 |
+| `src/autoresearch/recipe_improvement.py` | 单轮结果评估、有效版本、采用回退、前轮消费、同轮阶段接续及有界保存证据队列；继续维护新反馈下的主动外环和验收类型 |
+| `scripts/run_recipe_improvement.py` | 已有`fixture`、`saved-host --resume`、`saved-export`、`next-input`及`sequence`入口，沿保存原件评估／读取，不派发模型或工具 |
 | `examples/research-method-cards/`、`examples/recipe-improvement/`及相关配方示例 | 方法卡、开发输入及调用范例 |
 | `docs/recipe-research/recipe-design.md`、`docs/recipe-research/rsi-delivery.md` | 按实际实现维护方法设计、调用、已验证范围和接续位置 |
 | `tests/test_research_recipe.py`及新增模块的相关检查 | 针对已改变行为的必要验证 |

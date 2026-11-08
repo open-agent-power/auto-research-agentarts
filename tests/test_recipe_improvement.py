@@ -378,6 +378,11 @@ class RecipeImprovementTests(unittest.TestCase):
         next_value = json.loads(next_result.stdout)
         self.assertEqual(next_value["current_version"], candidate["candidate"])
         self.assertEqual(next_value["status"], "awaiting_next_feedback")
+        sequence = improvement.run_improvement_sequence({"schema_version": "recipe-improvement-sequence-v1",
+            "mode": "saved-export", "rounds": [{"round_id": "offline", "evidence_root": str(exported),
+                                                  "spec": str(spec_path)}]}, directory=self.root / "export-sequence")
+        self.assertEqual((sequence["status"], sequence["evidence_kind"]), ("queue_consumed", "saved_export_validation"))
+        self.assertEqual(sequence["current_version"], candidate["candidate"])
         from autoresearch.project_recipe import preview_recipe_round
         with self.assertRaises(ResearchError) as caught:
             preview_recipe_round(fixture.project, improvement.read_json(self.directory / "offline/input.json"))
