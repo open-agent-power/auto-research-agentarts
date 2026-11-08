@@ -1,16 +1,65 @@
 """One display-only check for latest completed source claims and preserved originals."""
 import copy
+from io import BytesIO
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+
+from pypdf import PdfReader
 
 import test_local_workbench as fixtures
-from autoresearch.contracts import canonical
+import test_numeric_association as numeric_fixtures
+from autoresearch import numeric_association_adapter as numeric, tabular_quality_adapter as tabular
+from autoresearch.contracts import ResearchError, canonical
 from autoresearch.local_workbench import LocalWorkbench
 from autoresearch.project_report import _association_rows, _latest_source_review_lines, _markdown, _pdf, _source_notes, collect_report
+from autoresearch.research_project import ResearchProject
 
 
 class ProjectReportCurrentSourcesTests(unittest.TestCase):
+    def test_saved_numeric_association_changes_markdown_and_pdf_title_only_when_completed(self):
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        payload = numeric_fixtures.NumericAssociationTests.payload(
+            self, "group,x,outcome\na,1,2\na,2,4\na,3,6\nb,4,8\nb,5,10\nb,6,12\n")
+        source = root / "captured" / "source.json"
+        source.parent.mkdir()
+        source.write_text(canonical(payload), encoding="utf-8")
+        for completed in (False, True):
+            with self.subTest(completed=completed):
+                project = ResearchProject(root / ("completed" if completed else "failed"))
+                project.create(source=source, goal="Describe fixture numeric association", budget_ref="fixture:report-title",
+                               max_tool_calls=2, method_id=tabular.TOOL_ID)
+                project.step(request_id="quality")
+                quality_state = project.status()
+                report = collect_report(project.root)
+                self.assertEqual(report["title"], "表格质量与分组核对报告")
+                self.assertTrue(_markdown(report).startswith("# " + report["title"] + "\n"))
+                quality = quality_state["actions"][0]
+                parameters = {"based_on_action_id": quality["id"], "based_on_result_sha256": quality["result_sha256"]}
+                if completed:
+                    project.step(request_id="association", method_id=numeric.TOOL_ID, parameters=parameters,
+                                 expected_state_version=quality_state["state_version"])
+                else:
+                    with patch.object(numeric, "execute", side_effect=ResearchError("FIXTURE_FAILED", "Saved fixture failure")):
+                        with self.assertRaises(ResearchError) as caught:
+                            project.step(request_id="association", method_id=numeric.TOOL_ID, parameters=parameters,
+                                         expected_state_version=quality_state["state_version"])
+                    self.assertEqual(caught.exception.code, "FIXTURE_FAILED")
+                saved = project.status()
+                report = collect_report(project.root)
+                association = report["action_results"][-1]
+                self.assertEqual(association["command"], numeric.TOOL_ID)
+                self.assertEqual(association["status"], "completed" if completed else "failed")
+                self.assertEqual(association["tool_result"] is not None, completed)
+                title = "表格质量与数值关联报告" if completed else "表格质量与分组核对报告"
+                self.assertEqual(report["title"], title)
+                self.assertTrue(_markdown(report).startswith("# " + title + "\n"))
+                pdf = PdfReader(BytesIO(_pdf(report)))
+                self.assertEqual(pdf.metadata.title, title)
+                self.assertIn(title, pdf.pages[0].extract_text())
+                self.assertEqual(project.status(), saved)
+
     def test_numeric_association_report_shows_sample_scope_and_null_reason(self):
         root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         manager = LocalWorkbench(root / "manager")
