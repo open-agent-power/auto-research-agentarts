@@ -1,6 +1,6 @@
 /** Explicit local commands above the existing saved-result reader; no automatic research. */
 import { $, el } from "./dom";
-import { createProjectPages } from "./project-pages";
+import { createProjectPages, type ProjectOperation } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel, continuationStopReason } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
@@ -324,7 +324,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   form.id = "local-create-form"; createToggle.setAttribute("aria-controls", form.id); createToggle.setAttribute("aria-expanded", "true");
   form.append(createFields, createButton); createSection.append(createToggle, form);
 
-  const runSection = panel("2 · 选择一次行动", "候选来自当前项目的真实条件和预算。选择一个候选并填写理由，或明确保存等待。");
+  const runSection = panel("选择下一步行动", "候选来自当前项目的真实条件和预算。选择一个候选并填写理由，或明确保存等待。");
   const contextStatus = el("p", "detail-note", "创建或选择项目后读取候选。"); contextStatus.setAttribute("aria-live", "polite");
   const candidateList = el("div", "local-candidates"), citationList = el("div", "local-citations");
   const rationale = el("textarea"); rationale.rows = 3; rationale.maxLength = 4000; rationale.placeholder = "说明为何现在执行这个检查，或为何等待。";
@@ -364,7 +364,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
-    operations: [batchPanel.element, modelPanel.element, recipePanel.element, runSection, evidencePanel.element], reportButton, announce });
+    operations: { action: runSection, evidence: evidencePanel.element, continuation: batchPanel.element, model: modelPanel.element, recipe: recipePanel.element }, reportButton, announce });
   function planContinuation(requestId = ""): Obj | undefined {
     return items(description.continuations).find(record => record.project_id === activeId() && record.record_status === "incomplete"
       && ["plan", "awaiting_adoption"].includes(text(record.phase, "")) && obj(record.plan_ref).kind === "host_plan"
@@ -433,6 +433,34 @@ export async function mountLocalWorkbench(): Promise<void> {
     for (const pending of evidencePending.values()) if (pending.uncertain && !records.some(record => record.request_id === pending.requestId)) pendingNotice.append(el("p", "detail-note", "evidence · 原ID " + pending.requestId + " · 结果待核对 · 项目 " + requestProject(pending)));
     if (batchUncertain && !records.some(record => record.request_id === batchUncertain?.requestId)) pendingNotice.append(el("p", "detail-note", "batch · 原ID " + batchUncertain.requestId + " · 结果待核对；可切回原项目，新提交保持锁定。"));
     if (remembered.request_id && !records.some(record => record.request_id === remembered.request_id)) pendingNotice.append(el("p", "detail-note", text(remembered.command) + " · 原ID " + text(remembered.request_id)));
+  }
+  function revealPendingOperations(): void {
+    const projectId = activeId(); if (!projectId || current.id !== projectId) return;
+    const resolved = new Set(items(obj(current.selection_history).records).filter(record => ["completed", "waiting", "failed", "rejected"].includes(text(record.status, ""))).map(record => record.request_id));
+    for (const record of [...items(description.batches), ...items(description.continuations)]) if (record.record_status === "completed" && record.project_id === projectId) resolved.add(record.request_id);
+    for (const record of items(current.recipe_revisions)) resolved.add(record.request_id);
+    const reveal = (name: string, id: string, owner = projectId, phase = ""): void => {
+      if (!id || owner !== projectId || resolved.has(id)) return;
+      const operation: ProjectOperation | undefined = name === "advance" ? "action" : name === "evidence" ? "evidence"
+        : ["batch", "continue"].includes(name) ? "continuation" : MODEL_COMMANDS.has(name) ? "model"
+          : ["advance-recipe", "recipe-adopt"].includes(name) ? "recipe" : undefined;
+      if (operation) workspacePages.revealOperation(operation, projectId + ":" + id + ":" + phase);
+    };
+    for (const record of items(description.pending_requests)) if (record.status !== "completed") reveal(text(record.command, ""), text(record.request_id, ""), text(record.project_id, ""));
+    for (const record of items(description.batches)) if (["preparing", "incomplete"].includes(text(record.record_status, ""))) reveal("batch", text(record.request_id, ""), text(record.project_id, ""));
+    for (const record of items(description.continuations)) if (record.record_status === "incomplete" && record.project_id === projectId) {
+      reveal("continue", text(record.request_id, ""), projectId, text(record.phase, ""));
+      if (["plan", "awaiting_adoption"].includes(text(record.phase, "")) && obj(record.plan_ref).kind === "host_plan")
+        reveal("model-resume", text(obj(record.plan_ref).request_id, ""));
+    }
+    for (const pending of [lastRequest, batchUncertain, evidencePending.get(projectId)]) if (pending?.uncertain)
+      reveal(pending.command, pending.requestId, requestProject(pending));
+    try {
+      const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
+      reveal(text(remembered.command, ""), text(remembered.request_id, ""));
+    } catch { /* Browser storage is optional; saved requests remain authoritative. */ }
+    if (modelPanel.pending()) for (const record of modelPanel.savedRecords(projectId))
+      if (["prepared", "sending", "unknown", "received"].includes(text(record.status, ""))) reveal("model-resume", text(record.request_id, ""));
   }
   function renderRoles(useImported = false): void {
     if (!csv) return;
@@ -627,6 +655,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (modelPanel.decisionResolved(text(remembered.command, ""), text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
       } catch { /* Saved model records remain authoritative. */ }
       showPending();
+      revealPendingOperations();
     } else { planPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}, null); }
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();

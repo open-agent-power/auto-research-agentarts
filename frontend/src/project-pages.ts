@@ -9,12 +9,13 @@ const subtitles: Record<ActiveProjectPage, string> = {
   overview: "当前课题、真实进展和下一步。", research: "在无限画布中追溯实际记录；操作须另行明确提交。",
   experiments: "当前项目的真实检查、指标、失败与反馈。", knowledge: "已登记原件、已读片段和可核对的出处。", outputs: "阅读已保存结果、核对依据与未决问题，下载当前报告。",
 };
+export type ProjectOperation = "action" | "evidence" | "continuation" | "model" | "recipe";
 
 export function createProjectPages(host: HTMLElement, options: {
-  shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[]; planning: HTMLElement[];
+  shared: HTMLElement[]; management: HTMLElement[]; operations: Record<ProjectOperation, HTMLElement>; planning: HTMLElement[];
   feedback: HTMLElement; reportButton: HTMLButtonElement;
   announce(message: string, error?: boolean): void;
-}): { update(project: Obj, context: Obj | null): Promise<void> } {
+}): { update(project: Obj, context: Obj | null): Promise<void>; revealOperation(name: ProjectOperation, recoveryKey: string): void } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
   const panes = new Map<ActiveProjectPage, HTMLElement>(), content = new Map<ActiveProjectPage, HTMLElement>();
   for (const page of Object.keys(labels) as ActiveProjectPage[]) {
@@ -28,7 +29,19 @@ export function createProjectPages(host: HTMLElement, options: {
   const originalLink = el("a", "text-button", "进入 P02 研究工作区 ↗"); originalLink.href = "http://127.0.0.1:18785/#/overview"; originalLink.target = "_blank"; originalLink.rel = "noopener";
   original.append(el("h2", "section-title", "原研究工作区"), el("p", "", "P02 · ChemoTopoChip：细胞与材料表面研究。该入口保留原课题五页与记录，与当前CSV项目分别阅读。"), originalLink); panes.get("overview")?.append(original);
   const flow = createProjectFlow(options.announce), operation = el("details", "project-operations content-section");
-  operation.append(el("summary", "", "开展下一步 · 方法选择、资料登记与连续批次"), el("p", "detail-note", "展开只显示已有操作草稿，不会执行方法。所有操作仍需明确提交；切页保留原请求、输入与未确认状态。"), ...options.operations);
+  operation.append(el("summary", "", "开展下一步 · 方法选择、资料登记与连续批次"), el("p", "detail-note", "展开只显示已有操作草稿，不会执行方法。所有操作仍需明确提交；切页保留原请求、输入与未确认状态。"), options.operations.action);
+  const operationGroups = new Map<ProjectOperation, HTMLDetailsElement>(), revealed = new Set<string>();
+  for (const [name, title] of [["evidence", "补充资料与选区"], ["continuation", "按授权连续推进"],
+    ["model", "模型建议与原请求"], ["recipe", "配方选择与采用结果"]] as const) {
+    const group = el("details", "local-advanced project-operation-group");
+    group.append(el("summary", "", title), options.operations[name]); operationGroups.set(name, group); operation.append(group);
+  }
+  function revealOperation(name: ProjectOperation, recoveryKey: string): void {
+    const key = name + ":" + recoveryKey;
+    if (revealed.has(key)) return;
+    revealed.add(key); operation.open = true;
+    const group = operationGroups.get(name); if (group) group.open = true;
+  }
   const research = panes.get("research")!; research.insertBefore(flow.element, content.get("research")!); research.insertBefore(operation, content.get("research")!);
   flow.element.before(...options.planning);
   const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback };
@@ -83,5 +96,5 @@ export function createProjectPages(host: HTMLElement, options: {
     flow.update(project); if (activePage === "research") flow.activate();
     requestAnimationFrame(focusRoute);
   }
-  return { update };
+  return { update, revealOperation };
 }
