@@ -19,6 +19,14 @@ TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存
           "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告"}
 
 
+def _report_title(kind, results):
+    if kind == "tabular" and any(entry["command"] == "data.numeric-association"
+                                 and entry["status"] == "completed" and entry["tool_result"] is not None
+                                 for entry in results):
+        return "表格质量与数值关联报告"
+    return TITLES[kind]
+
+
 def _require(condition, code, message):
     if not condition:
         raise ResearchError(code, message)
@@ -197,7 +205,7 @@ def collect_report(workspace) -> dict:
     _require(host_model_report.host_model_snapshot_sha256(project.root) == host_models["snapshot_sha256"],
              "PROJECT_CHANGED", "Host model evidence changed while collecting this report.")
     kind = KINDS[method_id]
-    report = {"schema_version": "research-project-report-v1", "kind": kind, "title": TITLES[kind],
+    report = {"schema_version": "research-project-report-v1", "kind": kind, "title": _report_title(kind, results),
               "project_id": before["id"], "project_snapshot_ref": before["snapshot_ref"], "project": before,
               "action_results": results, "summary": _summary(kind, before, results),
               "source_selections": source_selections, "source_manifest": source_manifest, "registered_inputs": receipt_states,
