@@ -178,7 +178,7 @@ export function createLocalModelPanel(host: Host): {
     improvement.append(details, el("p", "detail-note", "采用决定与后续轮次由配方模块记录。"));
     const actions = el("div", "local-actions"), source = el("button", "quiet-button", "查看原模型记录"); source.type = "button";
     source.addEventListener("click", () => {
-      const operations = section.closest("details"); if (operations) operations.open = true;
+      for (let parent = section.parentElement; parent; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
       originalCard.open = true; originalCard.querySelector("summary")?.focus({ preventScroll: true }); originalCard.scrollIntoView({ block: "center" });
     });
     actions.append(source);
