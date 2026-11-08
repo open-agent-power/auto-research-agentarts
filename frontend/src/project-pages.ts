@@ -4,18 +4,16 @@ import { renderProjectPage, type ActiveProjectPage } from "./project-view";
 import { createProjectFlow } from "./project-flow";
 
 type Obj = Record<string, unknown>;
-const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
-const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
 const labels: Record<ActiveProjectPage, string> = { overview: "项目总览", research: "研究推进", experiments: "实验中心", knowledge: "知识空间", outputs: "成果与复现" };
 const subtitles: Record<ActiveProjectPage, string> = {
   overview: "当前课题、真实进展和下一步。", research: "在无限画布中追溯实际记录；操作须另行明确提交。",
-  experiments: "当前项目的真实检查、指标、失败与反馈。", knowledge: "已登记原件、已读片段和可核对的出处。", outputs: "阅读与当前快照匹配的报告，下载原记录及复现输入。",
+  experiments: "当前项目的真实检查、指标、失败与反馈。", knowledge: "已登记原件、已读片段和可核对的出处。", outputs: "阅读已保存结果、核对依据与未决问题，下载当前报告。",
 };
 
 export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: HTMLElement[]; planning: HTMLElement[];
   feedback: HTMLElement; reportButton: HTMLButtonElement;
-  read(path: string): Promise<Obj>; announce(message: string, error?: boolean): void;
+  announce(message: string, error?: boolean): void;
 }): { update(project: Obj, context: Obj | null): Promise<void> } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
   const panes = new Map<ActiveProjectPage, HTMLElement>(), content = new Map<ActiveProjectPage, HTMLElement>();
@@ -43,7 +41,7 @@ export function createProjectPages(host: HTMLElement, options: {
     link.append(el("span", "nav-icon", icons[page]), el("span", "", labels[page])); nav.append(link);
   }
   const brand = document.querySelector<HTMLAnchorElement>(".brand"); if (brand) brand.href = "#/overview";
-  let current: Obj = {}, reportToken = 0, requestedReportToken = -1, activePage: ActiveProjectPage | null = null, focusPending = true;
+  let current: Obj = {}, activePage: ActiveProjectPage | null = null, focusPending = true;
   const bookmarks = new Map<ActiveProjectPage, number>();
   function route(): void {
     focusPending = true;
@@ -57,7 +55,6 @@ export function createProjectPages(host: HTMLElement, options: {
     }
     activePage = page; document.title = labels[page] + " · 空间研究";
     if (page === "research") flow.activate();
-    if (page === "outputs") void report(current, reportToken);
     requestAnimationFrame(() => {
       if (!focusRoute()) window.scrollTo({ top: bookmarks.get(page) ?? 0, behavior: "instant" });
     });
@@ -75,27 +72,8 @@ export function createProjectPages(host: HTMLElement, options: {
     target.scrollIntoView({ block: "start", behavior: "instant" }); return true;
   }
   window.addEventListener("hashchange", route); route();
-  async function report(project: Obj, token: number): Promise<void> {
-    const target = content.get("outputs")!, capability = object(project.report);
-    if (capability.available !== true || capability.stale === true || requestedReportToken === token) return;
-    requestedReportToken = token;
-    const reader = el("article", "project-report-reader content-section"); reader.append(el("p", "notice", "正在读取当前报告正文…")); target.prepend(reader);
-    try {
-      const value = await options.read("/api/project/report.json");
-      if (token !== reportToken || current.id !== project.id) return;
-      if (value.project_id !== project.id || value.project_snapshot_ref !== project.snapshot_ref) throw Error("报告快照与当前项目不一致，请重新生成当前报告。");
-      const summary = object(value.summary); reader.replaceChildren(el("h2", "section-title", text(value.title, "当前项目报告")), el("p", "", text(summary.method)));
-      if (Array.isArray(summary.headers) && Array.isArray(summary.rows)) {
-        const viewport = el("div", "project-table-scroll"), table = el("table", "data-table"), head = el("tr"), body = el("tbody");
-        for (const value of summary.headers) head.append(el("th", "", String(value))); const thead = el("thead"); thead.append(head); table.append(thead);
-        for (const row of summary.rows.slice(0, 16)) if (Array.isArray(row)) { const tr = el("tr"); for (const value of row) tr.append(el("td", "", String(value ?? "未知"))); body.append(tr); }
-        table.append(body); viewport.append(table); reader.append(viewport);
-      }
-      reader.append(el("p", "detail-note", text(summary.result_notice)), el("p", "detail-note", "完整指标、原文选区和输入身份保留在当前报告JSON/Markdown及完整输入中。此处只读摘要，不重新执行或生成图表。"));
-    } catch (error) { if (token === reportToken) reader.replaceChildren(el("p", "notice", error instanceof Error ? error.message : "报告正文暂不可读取，原下载入口仍按当前状态核验。")); }
-  }
   async function update(project: Obj, context: Obj | null): Promise<void> {
-    current = project; const token = ++reportToken;
+    current = project;
     for (const [page, target] of content) {
       if (project.id) renderProjectPage(target, project, page, context);
       else target.replaceChildren(el("p", "empty-state", page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
@@ -103,7 +81,6 @@ export function createProjectPages(host: HTMLElement, options: {
     }
     manage.open = !project.id;
     flow.update(project); if (activePage === "research") flow.activate();
-    if (activePage === "outputs") await report(project, token);
     requestAnimationFrame(focusRoute);
   }
   return { update };
