@@ -1,9 +1,9 @@
 # 产品文档入口
 
 - [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
-- [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，明确能力引进、优化顺序及AgentArts首接路径
-- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：交付程度、主演示、倒排安排、完成标准及材料准备
-- [同一课题的本地回看讲稿](research/demo-walkthrough.md)：七段展示动作、字幕、原记录依据，以及本地候选与正式平台视频的区别
+- [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，保留能力取舍及平台候选路径；当前接入安排以提交计划为准
+- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，平台接入继续暂缓
+- [同一课题的本地回看讲稿](research/demo-walkthrough.md)：state21录像与当前state27入口分别说明，保留原字幕、依据及正式平台视频缺口
 - [本地研究工作台](local-workbench.md)与[项目使用说明](project-slice.md)
 - [队友长期负责：通用配方与RSI持续改进](teammate-recipe-task.md)；[持续任务、反馈与PR安排](recipe-research/team-module-handoff.md)与[接口约定](recipe-research/team-module-interface.md)
 - [随源码提供的配方与RSI示例](../examples/recipe-improvement/README.md)，包含接口草案和构造context
