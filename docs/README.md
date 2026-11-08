@@ -2,7 +2,8 @@
 
 - [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
 - [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，保留能力取舍及平台候选路径；当前接入安排以提交计划为准
-- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，平台接入继续暂缓
+- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，已恢复AgentArts试接
+- [AgentArts首次接通与验收](research/agentarts-first-connection.md)：一次真实模型回答已导入并采用为计划v1，页面展示、必要行动、报告和平台视频的后续安排
 - [同一课题的本地回看讲稿](research/demo-walkthrough.md)：state21录像与当前state27入口分别说明，保留原字幕、依据及正式平台视频缺口
 - [state27只读评阅说明](research/review-handoff.md)：六份离线材料的阅读顺序、三个反馈问题及真人完整使用的后续条件
 - [初赛作品说明材料](research/submission-materials.md)：11月8日Word候选、研究主线与配方工程的讲述范围，保留团队材料及正式模板缺口
@@ -11,7 +12,7 @@
 - [随源码提供的配方与RSI示例](../examples/recipe-improvement/README.md)，包含接口草案和构造context
 - [科研配方：主控制器用法与固定版本迁入](recipe-research/integration.md)，[研究问题与依据](recipe-research/README.md)
 - [方法卡读取、条件说明与候选关联](recipe-research/recipe-design.md)：纯函数、实际CLI演示、必要验证与下一轮RSI接续
-- [单轮RSI保存结果与后轮使用](recipe-research/rsi-delivery.md)：已有反馈和验证、采用／回退理由、有效配方、构造双轮演示与原Host只读入口
+- [RSI保存结果与有界队列](recipe-research/rsi-delivery.md)：已有反馈和验证、采用／回退理由、有效配方、同轮接续及固定清单的保存证据消费
 - [A64冻结材料与已完成接续](recipe-research/a64-rsi-handoff.md)，包含只读包内容、输入映射、采用后的实际行动和后续开发范围
 - [架构基线](architecture/foundation.md)与[开发地图](development.md)
 - [知识服务](knowledge.md)与[条件记忆](research-memory.md)
