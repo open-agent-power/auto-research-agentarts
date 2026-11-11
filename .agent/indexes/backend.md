@@ -1,5 +1,9 @@
 # 后端索引
 
+[计划执行条件](../../docs/host-model-selection.md#计划执行条件)由`plan_readiness`从Host冻结context纯只读派生，供新请求prompt、工作台与报告共用。扣除预留后的余量、真实候选和方法缺口分别保留；不修改原Host记录，不判读自由文本或自动批准科研解释。
+
+[研究设计](../../docs/research-design.md)将保存预测的公平基线、分组与敏感性检查接入原控制器。`project_design`保存明确字段绑定及不可变资源版本，`research_design`提供资源目录与反馈候选。实际行动共享原项目预算和请求恢复。
+
 [有界保存证据队列](../../docs/recipe-research/rsi-delivery.md#有界保存证据队列2026-11-08)由`recipe_improvement.run_improvement_sequence`复用原单轮和阶段读取；固定清单，轮数限额／pending／缺原件时保存不可变停点，重启复用完成轮次并核对有效版本链。只是读取已有证据，不是主动科研调度或新的预算来源。
 
 [A64离线导出补充](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)核对保存Host、回答SHA、提案、验证、行动和来源资产，形成独立外环结果；不构造数据库、不升级历史代码、不更改原项目或预算。`next-input`只读最新完整stage的有效配方，保留已有在线采用和阶段接续的职责边界。
@@ -81,3 +85,6 @@ A29 [research_recipe](../../src/autoresearch/research_recipe.py)把明确的 `or
 - A30 [LocalWorkbench.recipes/advance_recipe](../../src/autoresearch/local_workbench.py)将两份固定配方接回原本地会话；GET用真实context编译且复核快照，POST复用原writer/活动项目/pending及A29控制器，不另建预算或执行账本。新HTTP路径见[接口](interfaces.md)。
 
 - [ResearchProject.save_plan](../../src/autoresearch/research_project.py)将使用者编写的计划与修订理由保存到原项目`plan_revisions`，递增项目版本，沿原锁、事务、代码身份、未决执行和原ID重放机制。当前版本进入`ProjectController.selection_context`及现有宿主模型提示，页面读取和保存见[研究计划](../../docs/local-workbench.md#保存与修订研究计划)。
+
+
+- 原始数据设计复用原step/controller，固定Ridge随机/分组CV适配器为`ridge_validation_adapter.py`，完整样本过滤统一，训练折独立预处理；`prediction_controls.py`仅消费保存OOF预测做折内重排。项目逐次保存Scaler/Ridge started/completed/failed，累计拟合预算与unknown预留不因改绑清零。见[研究设计](../../docs/research-design.md)。

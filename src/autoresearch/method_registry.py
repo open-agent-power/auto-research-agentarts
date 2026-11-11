@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 
 from . import saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter
+from . import prediction_adapter, ridge_validation_adapter
 from .contracts import ResearchError
 
 SOURCE = "research.source-selection"
@@ -10,7 +11,10 @@ LEGACY_SOURCE = "p02.source-mapping-check"
 PRIMARY = {module.TOOL_ID: module for module in (saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter)}
 WORKBOOK = workbook_projection_adapter.TOOL_ID
 NUMERIC = numeric_association_adapter.TOOL_ID
-FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter)}
+PREDICTIONS = {module.TOOL_ID: module for module in prediction_adapter.ADAPTERS}
+RIDGE = {module.TOOL_ID: module for module in ridge_validation_adapter.ADAPTERS}
+DESIGN_METHODS = PREDICTIONS | RIDGE
+FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter)} | DESIGN_METHODS
 
 
 def primary_id(project):
@@ -33,7 +37,7 @@ def get_analysis(method_id):
 
 def followup_ids(primary_method_id):
     get(primary_method_id)
-    return [grouped_quality_adapter.TOOL_ID, WORKBOOK, NUMERIC] if primary_method_id == tabular_quality_adapter.TOOL_ID else []
+    return [*DESIGN_METHODS, grouped_quality_adapter.TOOL_ID, WORKBOOK, NUMERIC] if primary_method_id == tabular_quality_adapter.TOOL_ID else []
 
 
 def source_id(project):
@@ -46,6 +50,10 @@ def is_source(method_id):
 
 def evaluation_ref(method_id):
     get_analysis(method_id)
+    if method_id in PREDICTIONS:
+        return "prediction-check-" + PREDICTIONS[method_id].check + "-v1"
+    if method_id in RIDGE:
+        return "ridge-validation-" + RIDGE[method_id].check + "-v1"
     return {saved_oof_adapter.TOOL_ID: "P02-frozen-within-policy-OOF",
             steel_audit_adapter.TOOL_ID: "materials-composition-holdout-v1",
             source_integrity_adapter.TOOL_ID: "file-capture-consistency-v1",

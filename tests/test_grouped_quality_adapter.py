@@ -85,7 +85,9 @@ class GroupedQualityAdapterTests(unittest.TestCase):
             registry.get(grouped.TOOL_ID)
         self.assertEqual(caught.exception.code, "METHOD_NOT_SUPPORTED")
         self.assertIs(registry.get_analysis(grouped.TOOL_ID), grouped)
-        self.assertEqual(registry.followup_ids(tabular.TOOL_ID), [grouped.TOOL_ID])
+        followups = registry.followup_ids(tabular.TOOL_ID)
+        self.assertEqual(set(followups), {grouped.TOOL_ID, registry.WORKBOOK, registry.NUMERIC, *registry.DESIGN_METHODS})
+        self.assertEqual(len(followups), len(set(followups)))
         self.assertEqual(registry.followup_ids("p02.saved-oof-residuals"), [])
         self.assertEqual(registry.evaluation_ref(grouped.TOOL_ID), "grouped-quality-profile-v1")
 

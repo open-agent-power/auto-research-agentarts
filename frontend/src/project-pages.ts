@@ -13,7 +13,7 @@ export type ProjectOperation = "action" | "evidence" | "continuation" | "model" 
 
 export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: Record<ProjectOperation, HTMLElement>; planning: HTMLElement[];
-  feedback: HTMLElement; reportButton: HTMLButtonElement;
+  feedback: HTMLElement; design: HTMLElement; designLibrary: HTMLElement; reportButton: HTMLButtonElement;
   announce(message: string, error?: boolean): void;
 }): { update(project: Obj, context: Obj | null): Promise<void>; revealOperation(name: ProjectOperation, recoveryKey: string): void } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
@@ -43,8 +43,9 @@ export function createProjectPages(host: HTMLElement, options: {
     const group = operationGroups.get(name); if (group) group.open = true;
   }
   const research = panes.get("research")!; research.insertBefore(flow.element, content.get("research")!); research.insertBefore(operation, content.get("research")!);
-  flow.element.before(...options.planning);
-  const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback };
+  flow.element.before(options.design, ...options.planning);
+  panes.get("knowledge")?.insertBefore(options.designLibrary, content.get("knowledge")!);
+  const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback, design: options.design };
   for (const target of Object.values(focusTargets)) { target.classList.add("project-route-target"); target.tabIndex = -1; }
   host.replaceChildren(common, ...panes.values());
   const nav = $("sections"); nav.replaceChildren();
@@ -74,7 +75,7 @@ export function createProjectPages(host: HTMLElement, options: {
   }
   function focusRoute(): boolean {
     const key = new URLSearchParams(location.hash.split("?")[1] ?? "").get("focus");
-    if (!focusPending || !current.id || activePage !== "research" || key !== "operations" && key !== "plan" && key !== "feedback") return false;
+    if (!focusPending || !current.id || activePage !== "research" || key !== "operations" && key !== "plan" && key !== "feedback" && key !== "design") return false;
     const target = focusTargets[key];
     if (target.hidden) return false;
     focusPending = false;

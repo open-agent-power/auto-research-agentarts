@@ -25,6 +25,12 @@ const methodNames: Record<string, string> = {
   "data.tabular-quality-audit": "表格质量与分组核对",
   "data.grouped-quality-profile": "分组质量画像",
   "data.numeric-association": "数值关联分析",
+  "data.prediction-baseline": "保存预测与公平基线比较",
+  "data.prediction-grouped": "保存预测的分组验证",
+  "data.prediction-sensitivity": "保存预测的敏感性检查",
+  "data.ridge-random-validation": "训练折内拟合与随机五折验证",
+  "data.ridge-group-validation": "按声明组拆分训练验证",
+  "data.prediction-negative-control": "预测误差的折内负对照",
   "data.workbook-projection-check": "CSV与工作簿保存值核对",
   "research.source-selection": "补充来源与条件证据",
 };
@@ -539,6 +545,8 @@ function boundaries(project: Obj): HTMLElement {
     ["原生模型请求", `${count(budget.new_model_requests)} 次；本切片允许 ${count(budget.model_requests_allowed)} 次`],
     ["原生模型请求预留", count(budget.model_requests_reserved)],
     ["新增拟合", count(budget.new_fits)],
+    ...(typeof budget.fit_attempts_used === "number" ? [["累计 fit 尝试", `${count(budget.fit_attempts_used)} 次已用 / ${count(budget.fit_limit)} 次上限；预留 ${count(budget.fits_reserved)}`]] : []),
+    ...(typeof budget.preprocessing_fits === "number" ? [["预处理拟合", count(budget.preprocessing_fits)]] : []),
     ["历史模型请求", budget.historical_request_counts === null || budget.historical_request_counts === undefined ? "未知，未导入；不按 0 处理" : pretty(budget.historical_request_counts)],
     ["历史现金", budget.historical_spend_cny === null || budget.historical_spend_cny === undefined ? "未知，结算状态未确认；不按 0 处理" : `${count(budget.historical_spend_cny)} 元`],
   ]) field(summary, label, value);

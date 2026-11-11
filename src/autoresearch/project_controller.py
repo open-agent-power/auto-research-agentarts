@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 
 from . import method_registry as registry, project_knowledge, research_methods, project_selection, research_recipe
+from . import project_design
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .project_recipe import current_recipe
 from .research_project import ResearchProject, code_identity as project_code_identity, require
@@ -82,6 +83,9 @@ class ProjectController:
                 blockers.append({"code": "PROJECT_WAITING", "reason": "Resolve the recorded project wait before another primary action."})
             if len(project["actions"]) >= project["budget"]["local_tool_call_limit"]:
                 blockers.append({"code": "BUDGET_EXHAUSTED", "reason": "The cumulative primary-tool allowance is exhausted."})
+            if method_id in registry.RIDGE and (project["budget"].get("fit_attempts_used", 0) + project["budget"].get("fits_reserved", 0)
+                                               + self.project._fit_attempts_needed(project, method_id) > project["budget"].get("fit_limit", 0)):
+                blockers.append({"code": "FIT_BUDGET_EXHAUSTED", "reason": "The cumulative estimator allowance cannot cover this validation design."})
         elif executable and method_id == registry.source_id(project):
             receipt = parameters.get("receipt_snapshot_sha256")
             if not any(item["receipt_snapshot_sha256"] == receipt for item in project.get("evidence_sources", [])):
@@ -114,7 +118,7 @@ class ProjectController:
 
     def _plan(self, project, need, *, include_knowledge=False):
         plan = self._base_plan(project, need, include_knowledge=True)
-        if current_recipe(project) is not None:
+        if current_recipe(project) is not None and project_design.current(project) is None:
             context = self._selection_context(project, need, base_plan=plan)
             plan.update(self._recipe_plan(project, need, context))
         if not include_knowledge:
@@ -134,7 +138,7 @@ class ProjectController:
         # Budget/wait blockers above apply to the default choice. Recheck each
         # candidate independently so an unread source can remain eligible.
         blockers = [copy.deepcopy(item) for item in plan["blockers"]
-                    if item["code"] not in ("BUDGET_EXHAUSTED", "PROJECT_WAITING")]
+                    if item["code"] not in ("BUDGET_EXHAUSTED", "FIT_BUDGET_EXHAUSTED", "PROJECT_WAITING")]
         candidates, conditions = [], []
         primary = registry.primary_id(project)
         finished = {item.get("receipt_snapshot_sha256") for item in project["evidence_actions"]
@@ -153,6 +157,9 @@ class ProjectController:
                     reasons.append("PROJECT_WAITING")
                 if len(project["actions"]) >= project["budget"]["local_tool_call_limit"]:
                     reasons.append("BUDGET_EXHAUSTED")
+                if method_id in registry.RIDGE and (project["budget"].get("fit_attempts_used", 0) + project["budget"].get("fits_reserved", 0)
+                                                   + self.project._fit_attempts_needed(project, method_id) > project["budget"].get("fit_limit", 0)):
+                    reasons.append("FIT_BUDGET_EXHAUSTED")
                 parameters = ([{"dimension": value} for value in option.get("remaining_dimensions", [])]
                               if method_id == research_methods.OOF else [copy.deepcopy(option.get("parameters", {}))])
             elif method_id == registry.source_id(project):
@@ -195,7 +202,7 @@ class ProjectController:
             context["research_plan"] = copy.deepcopy(project["plan_revisions"][-1])
         if project.get("researcher_feedback"):
             context["researcher_feedback"] = copy.deepcopy(project["researcher_feedback"])
-        if current_recipe(project) is not None:
+        if current_recipe(project) is not None and project_design.current(project) is None:
             selected = self._recipe_plan(project, need, project_selection.seal_context(context))
             # A context cannot contain a selection reference to its own final hash.
             selected["decision"].pop("selection_ref", None)
@@ -350,7 +357,7 @@ class ProjectController:
         if old is not None and "effective_recipe_revision" in old:
             recipe = old["request"]["recipe_decision"]["recipe"]
             revision = old["effective_recipe_revision"]
-        elif old is None and current_recipe(state) is not None:
+        elif old is None and current_recipe(state) is not None and project_design.current(state) is None:
             recipe = current_recipe(state)
             revision = state["recipe_revisions"][-1]["revision"]
         else:

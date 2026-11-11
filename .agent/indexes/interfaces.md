@@ -1,5 +1,9 @@
 # 接口索引
 
+`LocalWorkbench.model_view`新增独立`plan_reviews=[{request_id,assessment}]`；报告JSON提供同名字段，Markdown/PDF显示冻结条件。`assessment`为`plan-readiness-v1`，含项目/版本/快照/context身份、`execution_status`、三类`remaining_budget`、`available_actions`、`blocked_methods`与`blockers`，科学解释固定需审阅。新plan提示附带同一`execution_conditions`，原计划回答字段及采用/拒绝协议不变，见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。
+
+[研究设计与保存预测核验](../../docs/research-design.md)通过`GET /api/local-workbench/designs`读取目录与实际验证，`design-bind`冻结项目/资源/预测列，`design-improve`从反馈生成版本，`design-import`导入已知检查协议。执行复用原`advance`，JSON/Markdown/PDF报告包含原设计和实际计算。
+
 `run_recipe_improvement.py sequence --manifest --output [--max-rounds 1]`消费1至32项固定的同类保存输入，输出`recipe-improvement-sequence-result-v1`、有效版本、前轮结果、`next_entry`和不可变停点路径。模式为`fixture/saved-host/saved-export`，各项字段与四种停止原因见[队列合同](../../docs/recipe-research/rsi-delivery.md#有界保存证据队列2026-11-08)。不派发请求或在线采用，原单轮CLI不变。
 
 `recipe_improvement.load_saved_export`与CLI `saved-export --evidence-root --spec`只读核对A64完整导出，不需要SQLite；结果类别为`saved_export_validation`，不能绕过项目采用入口对`saved_host_validation`的要求。`next-input --output --round-id`读取最新有效版本／前轮结果／下一问题，明确等待新反馈，不派发任何请求。原`saved-host --resume`及`input_path`保持，见[离线补充](../../docs/recipe-research/rsi-delivery.md#队友收到离线包后的补充2026-11-07)。
@@ -115,3 +119,6 @@ A64已在已有构造项目通过一次实际子代理候选v2和一次允许来
 - A30 `GET /api/local-workbench/recipes`返回固定两配方的真实只读预览（`local-research-recipes-v1`，project_id/state_version/context_sha256/recipes[{recipe,decision}]）；无项目null/[]。`POST /api/local-workbench/advance-recipe` exact4字段request_id/project_id/expected_state_version/recipe，need固定next_check，沿原本地写开关/会话/活动项目/pending守卫调用A29。配置全文随原请求保存，重放不用新context。操作与草稿规则见[本地工作台](../../docs/local-workbench.md#按配方推进一步)。
 
 - `POST /api/local-workbench/plan`精确接收`request_id/project_id/expected_state_version/plan/reason`。plan包含`question/basis/steps/expected_feedback`正文，返回原命令信封和本次`research_plan`版本。`GET /api/project`增加`research_plan.current/revisions`，保存后的当前版本进入`selection-context`的可选`research_plan`字段。使用与修订见[研究计划](../../docs/local-workbench.md#保存与修订研究计划)。
+
+
+- 原始训练设计继续`POST /api/local-workbench/design-bind`，`prediction_column:null`，新增`training:{feature_columns,split_group_columns,fit_limit}`。GET designs提供numeric_columns/group_columns/budget；三种原方法为data.ridge-random-validation、data.ridge-group-validation、data.prediction-negative-control，仍沿原advance。目录completed_requests包含导入、改版与绑定的原ID，支持响应丢失后只读核对。详见[研究设计](../../docs/research-design.md)。

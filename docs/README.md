@@ -1,9 +1,13 @@
 # 产品文档入口
 
+- [研究设计与验证](research-design.md)涵盖原始数据的划分对照、拟合预算、负对照，以及保存预测核验、反馈版本与跨项目资源复用
+- [真人使用与同项目交接](human-use-runbook.md)：两位真实参与者的顺序操作、判断反馈和交接记录
+- [模型计划的执行条件](host-model-selection.md#计划执行条件)：冻结预算余量、合资格候选、缺口与科学审阅边界
+
 - [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
 - [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，保留能力取舍及平台候选路径；当前接入安排以提交计划为准
-- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，已恢复AgentArts试接
-- [AgentArts首次接通与验收](research/agentarts-first-connection.md)：唯一真实回答已采用为计划v1，原项目迁入完整manager且五页、画布与记录已核对，接续必要行动、报告和平台视频
+- [11月30日提交目标与阶段验收](research/submission-plan-20261130.md)：已有证据、剩余验收、主演示、倒排安排及材料准备，包含11月8日AgentArts首次试接证据
+- [AgentArts首次接通与验收](research/agentarts-first-connection.md)：原计划v1已沿原额度完成必要质量行动与state6报告，原Host和源保持，平台完整视频待录制
 - [同一课题的本地回看讲稿](research/demo-walkthrough.md)：state21录像与state27材料分别保留，当前原项目state28，正式平台视频仍待完成
 - [state27只读评阅说明](research/review-handoff.md)：六份离线材料的阅读顺序、三个反馈问题及真人完整使用的后续条件
 - [初赛作品说明材料](research/submission-materials.md)：11月8日Word候选、研究主线与配方工程的讲述范围，保留团队材料及正式模板缺口

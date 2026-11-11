@@ -10,13 +10,14 @@ from pathlib import Path
 import re
 import sqlite3
 
-from . import source_evidence_adapter as reader, tabular_quality_adapter as tabular, method_registry as registry, project_controller
+from . import source_evidence_adapter as reader, tabular_quality_adapter as tabular, method_registry as registry, project_controller, research_design
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .project_controller import ProjectController
 from .host_model_selection import HostModelSelection, PENDING
 from .host_model_batch import HostModelBatch
 from .recipe_improvement_adapter import read_recipe_validation
 from .host_model_report import host_model_report_current
+from .plan_readiness import review_plan_requests
 from .research_project import ResearchProject, safe_path, write_bytes_once
 from .research_recipe import MAX_RECIPE_BYTES, compile_recipe, parse_json
 
@@ -187,9 +188,9 @@ class LocalWorkbench:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]
             active = self._active(con)
             pending = []
-            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind') ORDER BY rowid DESC"):
                 record = tabular._parse(row["record"].encode("utf-8"))
-                if record["status"] != "completed":
+                if record["status"] not in ("completed", "rejected"):
                     pending.append({"request_id": row["id"], "command": row["command"], "status": record["status"],
                                     "project_id": (record.get("result") or {}).get("project_id", record["intent"].get("project_id"))})
                     if len(pending) == 8:
@@ -302,7 +303,7 @@ class LocalWorkbench:
     def create(self, body):
         digest = _body(body, ("request_id", "goal", "budget_ref", "max_tool_calls", "input"))
         _require(_text(body["goal"], 4000) and _text(body["budget_ref"], 500) and type(body["max_tool_calls"]) is int
-                 and body["max_tool_calls"] in (1, 2), "INVALID_REQUEST", "Bounded goal, budget lineage and one or two local calls required.")
+                 and 1 <= body["max_tool_calls"] <= 8, "INVALID_REQUEST", "Bounded goal, budget lineage and 1..8 local calls required.")
         submitted = body["input"]
         _require(type(submitted) is dict and set(submitted) == {"file_name", "csv_base64", "spec_base64"},
                  "INVALID_REQUEST", "Upload original CSV and spec bytes only.")
@@ -456,6 +457,18 @@ class LocalWorkbench:
                     context_sha256=context["context_sha256"], effective_recipe=copy.deepcopy(effective))
         return view
 
+    def designs(self):
+        return research_design.view(self)
+
+    def bind_design(self, body):
+        return research_design.bind(self, body)
+
+    def improve_design(self, body):
+        return research_design.improve(self, body)
+
+    def import_design(self, body):
+        return research_design.import_resource(self, body)
+
     def preview_recipe_round(self, body):
         _require(type(body) is dict and set(body) == {"project_id", "input"},
                  "INVALID_REQUEST", "Provide the project and complete saved round input.")
@@ -507,11 +520,12 @@ class LocalWorkbench:
             active = self._active(con)
             project = self._project(con, active)[1] if active is not None else None
         view = {"schema_version": "local-host-model-view-v1", "enabled": enabled,
-                "project_id": active, "journal": None, "records": [], "recipe_validations": [], "platform_runs": []}
+                "project_id": active, "journal": None, "records": [], "recipe_validations": [], "platform_runs": [], "plan_reviews": []}
         if project is not None:
             journal = HostModelSelection(project.root)
             view["journal"] = journal.status()
             view["records"] = [journal.status(request_id=item["request_id"]) for item in view["journal"]["requests"]]
+            view["plan_reviews"] = review_plan_requests(view["records"])
             view["recipe_validations"] = [read_recipe_validation(project.root, record["request_id"])
                                           for record in view["records"] if record.get("purpose") == "recipe"]
             with self._connect(readonly=True) as con:
@@ -721,7 +735,7 @@ class LocalWorkbench:
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "max_actions", "allowed_methods", "source_receipt_sha256s", "reason"))
         _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
                  and type(body["max_actions"]) is int and 1 <= body["max_actions"] <= 8 and _text(body["reason"], 4000)
-                 and type(body["allowed_methods"]) is list and 1 <= len(body["allowed_methods"]) <= 8
+                 and type(body["allowed_methods"]) is list and bool(body["allowed_methods"])
                  and all(type(item) is str for item in body["allowed_methods"])
                  and len(set(body["allowed_methods"])) == len(body["allowed_methods"])
                  and type(body["source_receipt_sha256s"]) is list and len(body["source_receipt_sha256s"]) <= 16
@@ -1051,7 +1065,7 @@ class LocalWorkbench:
                  and type(body["execution_mode"]) is str and body["execution_mode"] in {"rules", "model"}
                  and type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
                  and type(body["max_actions"]) is int and 1 <= body["max_actions"] <= (8 if body["execution_mode"] == "rules" else 2)
-                 and _text(body["reason"], 4000) and type(body["allowed_methods"]) is list and 1 <= len(body["allowed_methods"]) <= 8
+                 and _text(body["reason"], 4000) and type(body["allowed_methods"]) is list and bool(body["allowed_methods"])
                  and all(type(item) is str for item in body["allowed_methods"]) and len(set(body["allowed_methods"])) == len(body["allowed_methods"])
                  and type(body["source_receipt_sha256s"]) is list and len(body["source_receipt_sha256s"]) <= 16
                  and all(type(item) is str and re.fullmatch(r"[a-f0-9]{64}", item) for item in body["source_receipt_sha256s"])

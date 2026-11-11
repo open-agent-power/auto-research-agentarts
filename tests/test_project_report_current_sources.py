@@ -10,14 +10,42 @@ from pypdf import PdfReader
 
 import test_local_workbench as fixtures
 import test_numeric_association as numeric_fixtures
+import test_project_prediction_design as design_fixtures
 from autoresearch import numeric_association_adapter as numeric, tabular_quality_adapter as tabular
 from autoresearch.contracts import ResearchError, canonical
 from autoresearch.local_workbench import LocalWorkbench
 from autoresearch.project_report import _association_rows, _latest_source_review_lines, _markdown, _pdf, _source_notes, collect_report
 from autoresearch.research_project import ResearchProject
+from autoresearch.project_controller import ProjectController
+from autoresearch.project_design import bind
 
 
 class ProjectReportCurrentSourcesTests(unittest.TestCase):
+    def test_saved_prediction_report_keeps_design_versions_metrics_and_sensitivity(self):
+        project = design_fixtures.ProjectPredictionDesignTests.project(
+            self, "group,observed,prediction,other\na,0,3,0\na,1,4,0\nb,2,5,0\nb,3,6,0\nc,20,20,0\nc,21,21,0\n")
+        resource = design_fixtures.ProjectPredictionDesignTests.resource(self)
+        project.extend_local_budget(request_id="four-checks", expected_limit=2, new_limit=4, reason="Report fixture checks")
+        revision = bind(project, request_id="design", expected_state_version=project.status()["state_version"],
+                        resource=resource, prediction_column="prediction", reason="Check report evidence")
+        controller = ProjectController(project.root)
+        for request_id in ("quality", "baseline", "grouped", "sensitivity"):
+            self.assertEqual(controller.advance(request_id=request_id)["status"], "completed")
+        saved = project.status()
+        report = collect_report(project.root)
+        self.assertEqual(report["title"], "保存预测验证与研究设计报告")
+        self.assertEqual(report["input"]["design_revisions"], [revision])
+        self.assertTrue(report["action_results"][-1]["tool_result"]["result"]["analysis"]["details"]["removals"])
+        markdown = _markdown(report)
+        for content in (resource["title"], resource["id"], "绑定v1", "预测MAE", "相对改善", "删除单位后结论反转",
+                        "影响最大的删除单位", "剩余预测MAE 3", "参考MAE 2", "-50%"):
+            self.assertIn(content, markdown)
+        pdf = PdfReader(BytesIO(_pdf(report)))
+        text = "\n".join(page.extract_text() for page in pdf.pages)
+        for content in ("保存预测验证与研究设计报告", "预测MAE", "参考MAE", "删除单位后结论反转", "-50%"):
+            self.assertIn(content, text)
+        self.assertEqual(project.status(), saved)
+
     def test_saved_numeric_association_changes_markdown_and_pdf_title_only_when_completed(self):
         root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         payload = numeric_fixtures.NumericAssociationTests.payload(

@@ -26,10 +26,12 @@ def _source_metadata(receipt):
 def code_identity():
     from . import project_recipe, recipe_improvement
     from . import project_model_protocol
+    from . import project_design
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
                         "recipe_improvement": hashlib.sha256(Path(recipe_improvement.__file__).read_bytes()).hexdigest(),
+                        "project_design": hashlib.sha256(Path(project_design.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})
@@ -132,8 +134,8 @@ class ResearchProject:
                 "INVALID_REQUEST", "A bounded research goal is required.")
         require(isinstance(budget_ref, str) and 0 < len(budget_ref.strip()) <= 500,
                 "INVALID_REQUEST", "An existing budget lineage reference is required.")
-        require(type(max_tool_calls) is int and 1 <= max_tool_calls <= 2,
-                "INVALID_REQUEST", "Local verification allowance must be 1 or 2 calls.")
+        require(type(max_tool_calls) is int and 1 <= max_tool_calls <= 8,
+                "INVALID_REQUEST", "Local verification allowance must be 1..8 calls.")
         origin = safe_path(Path(source).absolute())
         require(origin.is_file(), "MISSING_SOURCE", "Obtain the sealed source package first.")
         require(not self.root.is_relative_to(origin.parent) and not origin.is_relative_to(self.root),
@@ -208,6 +210,15 @@ class ResearchProject:
                                  local_tool_dispatches=len(numerical),
                                  evidence_reads_used=sum(a["status"] in ("completed", "failed") for a in sources),
                                  evidence_reads_reserved=sum(a["status"] in ("running", "unknown") for a in sources))
+        events = [event for action in numerical for event in action.get("fit_events", [])]
+        project["budget"].update(fit_limit=project["budget"].get("fit_limit", 0), fit_attempts_used=len(events),
+            fits_reserved=sum(max(0, action.get("fit_reservation", 0) - len(action.get("fit_events", [])))
+                              for action in numerical if action["status"] in ("running", "unknown")),
+            new_fits=sum(event["estimator"] == "ridge" for event in events),
+            preprocessing_fits=sum(event["estimator"] == "scaler" for event in events),
+            fits_completed=sum(event["status"] == "completed" for event in events),
+            ridge_fits_completed=sum(event["estimator"] == "ridge" and event["status"] == "completed" for event in events),
+            preprocessing_fits_completed=sum(event["estimator"] == "scaler" and event["status"] == "completed" for event in events))
         project["snapshot_ref"] = fingerprint(project)
         return project
 
@@ -230,7 +241,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
@@ -347,6 +358,13 @@ class ResearchProject:
                 "EVIDENCE_CHANGED", "Saved result identity differs from the accepted execution.")
         result = envelope["tool_result"]
         require(result.get("status") == "completed", "INVALID_RESULT", "Adapter did not complete.")
+        if action["command"] in registry.RIDGE:
+            usage = result["result"]["analysis"]["usage"]
+            events = action.get("fit_events", [])
+            require(len(events) == usage["fit_attempts"] and all(event["status"] == "completed" for event in events)
+                    and sum(event["estimator"] == "ridge" for event in events) == usage["ridge_fit_attempts"]
+                    and sum(event["estimator"] == "scaler" for event in events) == usage["preprocessing_fit_attempts"],
+                    "EVIDENCE_CHANGED", "The saved Ridge result differs from its durable estimator attempts.")
         observations = result["observations"]
         refs = [action["id"] + ":observation:" + str(i) for i in range(len(observations))]
         action.update(status="completed", result_sha256=envelope["sha256"],
@@ -422,6 +440,44 @@ class ResearchProject:
                 self._save(con, project)
         return dict(action, automatic_retry=False)
 
+    @staticmethod
+    def _fit_attempts_needed(state, method_id):
+        from . import project_design
+        binding = project_design.current(state)
+        return binding.get("fit_requirements", {}).get(registry.RIDGE[method_id].check, 0) if binding else 0
+
+    def _record_fit_event(self, action, event):
+        require(type(event) is dict and set(event) == {"index", "estimator", "fold", "status"}
+                and type(event["index"]) is int and 1 <= event["index"] <= action["fit_reservation"]
+                and event["estimator"] in ("scaler", "ridge") and type(event["fold"]) is int and 1 <= event["fold"] <= 5
+                and event["status"] in ("started", "completed", "failed"),
+                "INVALID_FIT_EVENT", "A bounded estimator event is required.")
+        events = action["fit_events"]
+        if event["status"] == "started":
+            require(event["index"] == len(events) + 1 and (not events or events[-1]["status"] == "completed"),
+                    "INVALID_FIT_EVENT", "Estimator attempts must start once in their frozen sequence.")
+            events.append(dict(event))
+        else:
+            require(event["index"] == len(events) and events[-1]["status"] == "started"
+                    and all(events[-1][key] == event[key] for key in ("index", "estimator", "fold")),
+                    "INVALID_FIT_EVENT", "A terminal estimator event must match its started attempt.")
+            events[-1]["status"] = event["status"]
+        with self._connect() as con:
+            con.execute("UPDATE actions SET record=? WHERE request_id=?", (canonical(action), action["request_id"]))
+
+    def _generated_prediction_input(self, state, reference, binding):
+        producer = next((action for action in state["actions"] if action["id"] == reference["action_id"]), None)
+        require(producer is not None and producer["command"] in registry.RIDGE and producer["status"] == "completed"
+                and producer["result_sha256"] == reference["result_sha256"] and producer.get("design_binding") == binding
+                and producer["source_snapshot_sha256"] == state["source_snapshot_sha256"],
+                "EVIDENCE_CHANGED", "The saved OOF producer differs from the frozen prediction reference.")
+        self._recover(producer)
+        analysis = json.loads(self._artifact(producer).read_bytes())["tool_result"]["result"]["analysis"]
+        require(analysis["schema_version"] == "ridge-validation-v1"
+                and analysis["source_snapshot_sha256"] == state["source_snapshot_sha256"],
+                "EVIDENCE_CHANGED", "The generated prediction result has a different source.")
+        return {**reference, "analysis": analysis}
+
     def step(self, *, request_id, dimension=None, expected_state_version=None, method_id=None, parameters=None):
         identifier(request_id)
         with self._writer():
@@ -459,6 +515,21 @@ class ResearchProject:
                            "source_snapshot_sha256": project["source_snapshot_sha256"]}
                 if followup:
                     request.update(parameters=dict(parameters), evaluation_ref=registry.evaluation_ref(method_id))
+                if method_id in registry.DESIGN_METHODS:
+                    from . import project_design
+                    previous = self._action(con, request_id)
+                    binding = previous.get("design_binding") if previous else project_design.current(project)
+                    require(binding is not None, "CONDITION_NOT_SATISFIED", "Bind a saved-prediction research design first.")
+                    request["design_binding"] = binding
+                    if method_id == "data.prediction-negative-control":
+                        if previous:
+                            reference = previous["generated_prediction_ref"]
+                        else:
+                            saved = self.status()
+                            producer = project_design.action_for_check(saved, "group_cv") or project_design.action_for_check(saved, "random_cv")
+                            require(producer is not None, "CONDITION_NOT_SATISFIED", "Complete an OOF producer before its negative control.")
+                            reference = {"action_id": producer["id"], "result_sha256": producer["result_sha256"]}
+                        request["generated_prediction_ref"] = reference
                 digest = fingerprint(request)
                 old = self._action(con, request_id)
             if old:
@@ -494,6 +565,11 @@ class ResearchProject:
                 if method_id == registry.NUMERIC:
                     require(methods.numeric_feedback_eligible(original["result"]["scope"]),
                             "CONDITION_NOT_SATISFIED", "The verified original result does not qualify numeric association.")
+                elif method_id in registry.DESIGN_METHODS:
+                    require(binding == project_design.current(project)
+                            and binding["source_snapshot_sha256"] == project["source_snapshot_sha256"]
+                            and project_design.check_eligible(current, registry.DESIGN_METHODS[method_id].check),
+                            "CONDITION_NOT_SATISFIED", "The original input and current design do not qualify this prediction check.")
                 elif method_id != registry.WORKBOOK:
                     require(methods.grouped_feedback_eligible(original["result"]["profile"], original["result"]["scope"]),
                             "CONDITION_NOT_SATISFIED", "The verified original result does not qualify this follow-up.")
@@ -503,6 +579,18 @@ class ResearchProject:
                     "BUDGET_EXHAUSTED", "Cumulative local verification allowance is exhausted.")
             if method_id == registry.WORKBOOK:
                 payload = self._workbook_projection_input(project, payload, parameters)
+            if method_id in registry.DESIGN_METHODS:
+                payload = {**payload, "design_binding": binding}
+            if method_id == "data.prediction-negative-control":
+                payload["generated_prediction"] = self._generated_prediction_input(current, reference, binding)
+            fit_reservation = 0
+            if method_id in registry.RIDGE:
+                fit_reservation = primary.required_fit_attempts(payload)
+                require(fit_reservation > 0 and fit_reservation == self._fit_attempts_needed(current, method_id),
+                        "CONDITION_NOT_SATISFIED", "The original rows no longer match the frozen fitting requirements.")
+                budget = current["budget"]
+                require(budget["fit_attempts_used"] + budget["fits_reserved"] + fit_reservation <= budget["fit_limit"],
+                        "FIT_BUDGET_EXHAUSTED", "The cumulative estimator allowance cannot cover this validation design.")
             action = {**request, "id": "action-" + fingerprint({"request_id": request_id, **request})[:32],
                       "request_id": request_id, "request_sha256": digest, "status": "running",
                       "run_id": project["run_id"], "code_identity": project["code_identity"], "failure": None,
@@ -513,12 +601,25 @@ class ResearchProject:
                                           "scope": project["source_scope"]}}
             if followup:
                 action["method_instance"]["input_bindings"].update(parameters)
+            if method_id in registry.DESIGN_METHODS:
+                action["method_instance"]["input_bindings"].update(
+                    design_revision=binding["version"], resource_id=binding["resource"]["id"],
+                    resource_version=binding["resource"]["version"], prediction_column=binding["prediction_column"])
+                if binding.get("training") is not None:
+                    action["method_instance"]["input_bindings"]["training"] = binding["training"]
+            if method_id == "data.prediction-negative-control":
+                action["method_instance"]["input_bindings"]["generated_prediction_ref"] = reference
+            if method_id in registry.RIDGE:
+                action.update(fit_reservation=fit_reservation, fit_events=[])
             with self._connect() as con:
                 con.execute("INSERT INTO actions VALUES(?,?,?)", (request_id, digest, canonical(action)))
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
             try:
-                result = primary.execute(payload, parameters) if followup else primary.execute(payload, dimension)
+                if method_id in registry.RIDGE:
+                    result = primary.execute(payload, parameters, fit_observer=lambda event: self._record_fit_event(action, event))
+                else:
+                    result = primary.execute(payload, parameters) if followup else primary.execute(payload, dimension)
             except Exception as exc:
                 action.update(status="failed", failure={"code": getattr(exc, "code", "TOOL_FAILED"),
                               "type": type(exc).__name__, "message": str(exc), "phase": "tool", "automatic_retry": False})

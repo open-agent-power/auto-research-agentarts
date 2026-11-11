@@ -4,6 +4,7 @@ import copy
 
 from .contracts import ResearchError
 from . import method_registry as registry
+from . import project_design
 
 
 OOF = "p02.saved-oof-residuals"
@@ -225,8 +226,14 @@ def _domain_methods(project, need):
             eligible = numeric_feedback_eligible(project.get("source_scope", {}))
             reason = "Describe pairwise finite numeric associations after saved quality feedback; target and grouping declarations remain unverified."
             missing = ["completed quality feedback, a declared numeric target and at least one other numeric column"]
+        elif method_id in registry.DESIGN_METHODS:
+            check = registry.DESIGN_METHODS[method_id].check
+            eligible = project_design.check_eligible(project, check) and profile.get("rows", 0) <= 512
+            reason = "Use the bound design's saved-prediction check after quality feedback; retain adverse results and original group definitions."
+            missing = ["a bound saved-prediction design, completed quality feedback for at most 512 rows and any required preceding comparison or groups"]
         done = [item for item in project.get("actions", []) if item["command"] == method_id
-                and item["status"] == "completed" and item["method_instance"]["parameters"] == parameters]
+                and item["status"] == "completed" and item["method_instance"]["parameters"] == parameters
+                and (method_id not in registry.DESIGN_METHODS or item.get("design_binding") == project_design.current(project))]
         options.append({"method_id": method_id,
                         "condition": "uncertain" if unresolved or not predecessor else "satisfied" if eligible and condition != "not_applicable" else "not_applicable",
                         "parameters": parameters, "completed": bool(done),
@@ -256,12 +263,17 @@ def _domain_choice(project, options, knowledge):
     if not by_id[primary]["completed"] and by_id[primary]["condition"] == "satisfied":
         return {**base, "project_status": "active", "next_action": {"method_id": primary, "parameters": {},
                 "kind": "conditional_proposal", "execution_status": "not_executed"}, "reason": "Execute the qualified domain check with its original endpoint and evaluation."}
-    for method_id in registry.followup_ids(primary):
+    design = project_design.current(project)
+    followups = ([project_design.CHECK_METHODS[check] for check in project_design.preferred_checks(project)]
+                 if design is not None else registry.followup_ids(primary))
+    for method_id in followups:
         option = by_id[method_id]
         if option["condition"] == "satisfied" and not option["completed"]:
             return {**base, "project_status": "active", "next_action": {"method_id": method_id,
                     "parameters": copy.deepcopy(option["parameters"]), "kind": "conditional_proposal", "execution_status": "not_executed"},
-                    "reason": ("Saved quality feedback and the captured declared origin qualify a workbook candidate projection check; conversion and scientific questions remain unresolved."
+                    "reason": (project_design.choice_reason(project, registry.DESIGN_METHODS[method_id].check)
+                               if method_id in registry.DESIGN_METHODS else
+                               "Saved quality feedback and the captured declared origin qualify a workbook candidate projection check; conversion and scientific questions remain unresolved."
                                if method_id == registry.WORKBOOK else
                                "Saved quality feedback and declared numeric fields qualify descriptive Pearson associations; no causal or clinical conclusion is implied."
                                if method_id == registry.NUMERIC else
@@ -280,5 +292,6 @@ def _domain_choice(project, options, knowledge):
             saved = {"method_id": registry.SOURCE, "kind": "evidence_task", "required_evidence": ["independent sources for the recorded domain limitations"]}
     saved["execution_status"] = "not_executed"
     return {**base, "project_status": "waiting", "next_action": saved,
-            "reason": f"Read {source['source_readable']} domain source selections; {len((knowledge or {}).get('evidence', []))} host-indexed excerpts informed this record. "
-                      "Keep the actual technical feedback and unresolved domain conditions; reading does not establish scientific or user-value approval."}
+            "reason": (project_design.raw_comparison_reason(project) if design is not None and project_design.family(design["resource"]) == "raw" else
+                       f"Read {source['source_readable']} domain source selections; {len((knowledge or {}).get('evidence', []))} host-indexed excerpts informed this record. "
+                       "Keep the actual technical feedback and unresolved domain conditions; reading does not establish scientific or user-value approval.")}

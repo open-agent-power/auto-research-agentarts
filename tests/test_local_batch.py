@@ -78,6 +78,24 @@ class LocalBatchTests(unittest.TestCase):
             self.assertNotIn(str(self.root), json.dumps(downloaded))
             self.assert_code("IDEMPOTENCY_CONFLICT", self.manager.batch, {**body, "reason": "Changed grant"})
 
+    def test_all_registered_methods_can_be_authorized_without_expanding_action_limit(self):
+        project = self.project()
+        methods = [item["method_id"] for item in ProjectController(project.root).selection_context()["conditions"]]
+        self.assertGreater(len(methods), 8)
+        body = self.body(project, "full-method-scope", methods=methods, maximum=1)
+        before = project.status()
+        self.assert_code("METHOD_NOT_SUPPORTED", self.manager.batch,
+                         {**body, "request_id": "unknown-method", "allowed_methods": methods + ["unregistered.method"]})
+        self.assert_code("INVALID_REQUEST", self.manager.batch, {**body, "request_id": "too-many-actions", "max_actions": 9})
+        self.assertEqual(project.status(), before)
+        result = self.manager.batch(body)
+        self.assertEqual(self.manager.batch_record(body["request_id"])["body"]["allowed_methods"], methods)
+        self.assertEqual(len(result["batch"]["steps"]), 1)
+        self.assertEqual(len(project.status()["actions"]), 1)
+        committed = project.status()
+        self.assertTrue(self.manager.batch(body)["replayed"])
+        self.assertEqual(project.status(), committed)
+
     def test_method_exact_receipt_and_cumulative_budget_authorization(self):
         identity_project = self.project()
         identity_body = self.body(identity_project, "orchestrator-identity")

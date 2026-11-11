@@ -5,6 +5,7 @@ import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalBatchPanel, continuationStopReason } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
 import { createLocalRecipePanel } from "./local-recipe";
+import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
@@ -19,6 +20,12 @@ const methodNames: Record<string, string> = {
   "data.tabular-quality-audit": "核对表格质量、重复与声明分组",
   "data.grouped-quality-profile": "查看零值与缺失集中于哪些组",
   "data.numeric-association": "查看数值字段与目标的关联",
+  "data.prediction-baseline": "比较保存预测与公平基线",
+  "data.prediction-grouped": "核对各组的保存预测误差",
+  "data.prediction-sensitivity": "核对移除样本或组后的比较变化",
+  "data.ridge-random-validation": "在训练折内拟合并进行随机五折验证",
+  "data.ridge-group-validation": "按声明组拆分并训练验证",
+  "data.prediction-negative-control": "核对实际折内负对照结果",
   "research.source-selection": "读取已登记的来源选区",
   "p02.source-mapping-check": "读取已登记的来源选区",
 };
@@ -307,7 +314,8 @@ export async function mountLocalWorkbench(): Promise<void> {
   const roles = el("div", "local-roles");
   const toolLimit = el("select"); toolLimit.required = true;
   const emptyLimit = el("option", "", "明确选择本地调用上限"); emptyLimit.value = ""; toolLimit.append(emptyLimit);
-  for (const value of [1, 2]) { const option = el("option", "", value + "次本地工具调用"); option.value = String(value); toolLimit.append(option); }
+  for (const value of [1, 2, 3, 4, 5, 6, 7, 8]) { const option = el("option", "", value + "次本地工具调用"); option.value = String(value); toolLimit.append(option); }
+  toolLimit.value = "2";
   const budget = input("shared-historical:existing-cap5CNY;cash-settlement-unknown;native-model0;host-usage-separate", 500); budget.required = true;
   const importFile = el("input"); importFile.type = "file"; importFile.accept = ".json,application/json";
   const importNote = el("p", "detail-note", "可导入已有spec.json填充声明；表单修改会生成本次spec，原导入文件不会被改写。");
@@ -317,7 +325,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     field("分隔符", delimiter), roles);
   const declarations = el("div", "local-form-grid"); declarations.append(field("数据集标签", dataset), field("每行代表什么", sample),
     field("来源URL或本地派生标识", url), field("许可与待核对范围", license), field("目标字段（可选）", target), field("目标单位（声明）", unit),
-    field("本地调用上限", toolLimit, "只允许本次明确选定的1或2次；模型、拟合和来源额度不会因此增加。"));
+    field("本地累计调用上限", toolLimit, "本项目累计允许1至8次，默认2次。质量核对加完整三项设计验证需至少4次；模型、拟合和来源额度分别记账。"));
   createFields.append(declarations, advanced);
   const createButton = el("button", "action-button primary", "创建项目，不执行方法"); createButton.type = "submit";
   const createToggle = el("button", "quiet-button", "收起新课题输入"); createToggle.type = "button";
@@ -360,11 +368,13 @@ export async function mountLocalWorkbench(): Promise<void> {
     : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
   const recipePanel = createLocalRecipePanel({ read, preview: previewRecipe,
     submit: (name, body) => submit(command(name, body)), announce });
+  const designPanel = createResearchDesignPanel({ read, submit: (name, body) => submit(command(name, body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
-    operations: { action: runSection, evidence: evidencePanel.element, continuation: batchPanel.element, model: modelPanel.element, recipe: recipePanel.element }, reportButton, announce });
+    operations: { action: runSection, evidence: evidencePanel.element, continuation: batchPanel.element, model: modelPanel.element, recipe: recipePanel.element },
+    design: designPanel.element, designLibrary: designPanel.libraryElement, reportButton, announce });
   function planContinuation(requestId = ""): Obj | undefined {
     return items(description.continuations).find(record => record.project_id === activeId() && record.record_status === "incomplete"
       && ["plan", "awaiting_adoption"].includes(text(record.phase, "")) && obj(record.plan_ref).kind === "host_plan"
@@ -414,6 +424,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     modelPanel.setLocked(busy || description.enabled !== true || otherModelBlockers(),
       !busy && description.enabled === true && !otherModelBlockers(planId) ? planId : "");
     recipePanel.setLocked(locked || current.id !== activeId());
+    designPanel.setLocked(locked || current.id !== activeId(), globalLocked);
     planPanel.setLocked(locked || current.id !== activeId());
     feedbackPanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
@@ -604,6 +615,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     feedbackPanel.setLocked(true);
     modelPanel.setLocked(true);
     recipePanel.invalidate(); recipePanel.setLocked(true);
+    designPanel.invalidate(); designPanel.setLocked(true);
     batchPanel.setLocked(true);
     await evidencePanel.refresh("", {});
     description = await read("/api/local-workbench");
@@ -648,7 +660,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
       planPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
-      await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await workspacePages.update(current, context);
+      await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await designPanel.update(current); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
       try {
         const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
@@ -656,7 +668,13 @@ export async function mountLocalWorkbench(): Promise<void> {
       } catch { /* Saved model records remain authoritative. */ }
       showPending();
       revealPendingOperations();
-    } else { planPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await workspacePages.update({}, null); }
+    } else { planPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await designPanel.update({}); await workspacePages.update({}, null); }
+    if (lastRequest && designPanel.resolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
+    try {
+      const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
+      if (designPanel.resolved(text(remembered.command, ""), text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
+    } catch { /* Saved design receipts remain authoritative. */ }
+    showPending();
     if (description.enabled !== true) announce("当前服务没有启用写入模式，不能提交本地命令。", true);
     downloads(); controls();
   }
@@ -669,7 +687,8 @@ export async function mountLocalWorkbench(): Promise<void> {
     const recoverModel = pending.recoverModel === true && canRecoverModel(obj(JSON.parse(pending.body)));
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
-    const blocked = switching ? navigationBlocked() : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
+    const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
+      : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
     if (!recoverBatch && !recoverModel && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
     const modelCommand = MODEL_COMMANDS.has(pending.command);
     const continuation = pending.command === "continue" ? obj(JSON.parse(pending.body)) : {};
@@ -687,6 +706,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         const reasons: Record<string, string> = { INVALID_SPEC: "字段声明与CSV需要逐项核对", INVALID_CSV: "CSV编码、表头或行宽不满足范围", INVALID_BUNDLE: "来源文件或选区声明需要核对", INVALID_LOCATOR: "选区坐标不满足当前读取范围", TASK_MISMATCH: "资料与当前取证任务不匹配", STALE_SELECTION_CONTEXT: "项目已变化，请重新读取候选后决定", STALE_STATE: "项目版本或当前选择已变化", IDEMPOTENCY_CONFLICT: "原请求ID已经绑定其他内容", BUDGET_EXHAUSTED: "本地调用额度已用完，已有用量保留", OPERATION_INCOMPLETE: "原操作未完成，需要保留并核对" };
         Object.assign(reasons, { MODEL_DISABLED: "服务尚未启用Claude CLI，请按使用说明启动", HOST_DECISION_LIMIT: "本项目模型决策名额已用尽", HOST_GRANT_CHANGED: "原累计额度和理由已冻结，不能替换", HOST_SELECTION_PENDING: "请核对原模型请求", HOST_USAGE_UNKNOWN: "原模型费用未知，不能按零计后继续发送" });
         reasons.CODE_CHANGED = "当前项目需按使用说明明确升级到本次代码版本";
+        reasons.RESOURCE_CONFLICT = "目录已有同ID同版本且内容不同的资源，请核对版本；原资源保留";
         const code = text(result.code, String(response.status));
         failed = true; outcomeMessage = "提交未完成：" + (reasons[code] ?? "请核对当前条件与输入") + "（" + code + "）。输入已保留；" + (pending.uncertain ? "结果仍需核对，不自动重发。" : "可以用原ID和原内容显式重试，或核对后修正输入。");
       } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))) {
@@ -718,6 +738,9 @@ export async function mountLocalWorkbench(): Promise<void> {
         }
         if (pending.command === "plan") outcomeMessage = "研究计划已保存。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
         if (pending.command === "recipe-adopt") outcomeMessage = "外环决定已写入项目，后续配方决策将读取当前有效版本。";
+        if (pending.command === "design-bind") outcomeMessage = "研究设计与输入声明已保存。请核对检查计划，再明确执行下一项验证。";
+        if (pending.command === "design-improve") outcomeMessage = "已根据实际反馈保存候选新版，可在知识空间查看，并明确选择采用。";
+        if (pending.command === "design-import") outcomeMessage = "研究设计资源已保存到知识目录，可查看并选择用于项目。";
         if (modelCommand) {
           const record = obj(result.model_record), outcome = obj(record.outcome), state = text(record.status, ""), actual = text(outcome.status, "尚未提交行动");
           const labels: Record<string, string> = { completed: "已完成", waiting: "已保存等待", failed: "失败，原记录保留", unknown: "未知，保留原请求核对" };
@@ -775,6 +798,11 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (modelPanel.decisionResolved(pending.command, pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
       outcomeMessage = pending.command === "model-plan-adopt" ? "已从原模型请求确认计划采用，当前版本可继续使用。" : "已从原模型请求确认拒绝结果与理由。";
+    }
+    if (designPanel.resolved(pending.command, pending.requestId)) {
+      pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
+      outcomeMessage = pending.command === "design-bind" ? "已从保存记录确认研究设计与输入声明，可明确执行下一项验证。"
+        : pending.command === "design-import" ? "已从保存记录确认资源导入，可在知识目录查看并选择。" : "已从保存记录确认候选新版，可在知识空间查看并选择。";
     }
     busy = false; candidates(); downloads(); controls(); showPending(); announce(outcomeMessage, failed);
     return accepted;

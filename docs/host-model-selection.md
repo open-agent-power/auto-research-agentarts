@@ -10,6 +10,16 @@
 
 模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
 
+### 计划执行条件
+
+新的计划请求在原冻结context之外附带`execution_conditions`：本地工具、来源读取与估计器拟合的剩余额度（扣除预留），当前合资格候选，各方法缺条件与整体阻塞。余额不等于方法资格；没有待选来源时，即使来源读取额度尚余也不能读取。拟合预留及未知执行继续占用原额度，缺失或未知预算显示为未知。
+
+模型提示要求区分现在可执行的行动与补齐条件后的后续工作，立即行动注明原候选身份；无候选时可以等待、索取具体材料或复核已有结果。来源确认不补回工具额度，工程夹具仍按工程夹具解释；划分差异、训练量变化和负对照需要保留竞争解释与协议边界。
+
+`LocalWorkbench.model_view`的独立`plan_reviews`数组与报告JSON同名字段均由`plan_readiness.review_plan_requests`从原请求context只读派生。每项含`request_id`和`assessment`，后者保留`project_id/state_version/snapshot_ref/context_sha256`及`plan-readiness-v1`。工作台模型计划卡、Markdown和PDF显示**请求准备时**的条件；历史条件不会随当前项目变化，也不写回Host原记录或改写旧prompt。prepared/unknown/invalid请求同样可显示其准备条件，不表示回答已经审阅。
+
+此投影不解析计划正文、不自动判定科学解释或拒绝自由文本计划。`scientific_review=required`与`scientific_validation=false`始终保留；等待或补材料的计划仍可明确采用。计划文本协议及原采用、拒绝、过期和同ID恢复门保持，实际执行继续由原控制器重新核对条件和累计预算。
+
 ### 研究者意见进入后续context
 
 sealed selection context以可选`researcher_feedback`保存原项目意见，每条共9个字段，为`id/request_id/based_on_state_version/plan_version/author/comment/next_step/action_id/content_trust`。意见与原请求、提交依据版本、当时计划版本及可选既有行动关联，`plan_version`可为空，信任标记为`unverified_researcher_statement`。原Host context保留封存内容，新意见随后续新context提供。

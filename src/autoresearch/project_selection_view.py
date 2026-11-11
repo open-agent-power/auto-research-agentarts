@@ -87,6 +87,27 @@ def _verify(state, parent):
                                  and child["method_instance"]["evaluation_ref"] == candidate["evaluation_ref"]
                                  and all(child["method_instance"]["input_bindings"].get(key) == value
                                          for key, value in params.items()))
+                    if candidate["method_id"] in method_registry.DESIGN_METHODS:
+                        binding = child["design_binding"]
+                        inputs = child["method_instance"]["input_bindings"]
+                        _require(binding in state.get("design_revisions", [])
+                                 and binding["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                                 and inputs.get("design_revision") == binding["version"]
+                                 and inputs.get("resource_id") == binding["resource"]["id"]
+                                 and inputs.get("resource_version") == binding["resource"]["version"]
+                                 and inputs.get("prediction_column") == binding["prediction_column"])
+                        child_request["design_binding"] = binding
+                        if binding.get("training") is not None:
+                            _require(inputs.get("training") == binding["training"])
+                        if candidate["method_id"] == "data.prediction-negative-control":
+                            reference = child["generated_prediction_ref"]
+                            producer = next((item for item in state["actions"] if item["id"] == reference["action_id"]), None)
+                            _require(producer is not None and producer["status"] == "completed"
+                                     and producer["command"] in method_registry.RIDGE
+                                     and producer["result_sha256"] == reference["result_sha256"]
+                                     and producer.get("design_binding") == binding
+                                     and inputs.get("generated_prediction_ref") == reference)
+                            child_request["generated_prediction_ref"] = reference
                 _require(child["project_id"] == state["id"] and child["run_id"] == state["run_id"]
                          and child["code_identity"] == parent["code_identity"]
                          and child["command"] == child["method_instance"]["definition_ref"]["id"] == candidate["method_id"]

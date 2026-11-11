@@ -90,6 +90,19 @@ class LocalWorkbenchHTTPTests(unittest.TestCase):
         self.assertEqual(workspace.calls, [{}])
         self.assertEqual(self.request(server, "/api/local-workbench/create", "PUT", b'{}', valid)[0], 405)
 
+    def test_large_framed_origin_and_csrf_denials_return_json_without_dispatch(self):
+        workspace = FakeWorkspace()
+        server = self.serve(local_workspace=workspace, allow_local_actions=True)
+        valid = self.session(server)
+        raw = b'{"padding":"' + b'x' * (1024 * 1024) + b'"}'
+        for headers in ({**valid, "X-AutoResearch-CSRF": "invalid"},
+                        {**valid, "Origin": "http://external.invalid"}):
+            for attempt in range(4):
+                with self.subTest(origin=headers["Origin"], attempt=attempt):
+                    status, response = self.request(server, "/api/local-workbench/create", "POST", raw, headers)
+                    self.assertEqual((status, response["code"]), (403, "LOCAL_ORIGIN_REQUIRED"))
+        self.assertEqual(workspace.calls, [])
+
     def test_valid_intake_and_explicit_choice_use_original_project_ledger(self):
         root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         server = self.serve(local_workspace=LocalWorkbench(root / "managed"), allow_local_actions=True)

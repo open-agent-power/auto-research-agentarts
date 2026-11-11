@@ -21,6 +21,14 @@ const states: Record<string, string> = {
   applied: "已提交控制器", proposed: "计划建议待采用", rejected: "计划建议已拒绝", invalid: "回答无效", stale: "上下文已过期", failed: "调用失败",
 };
 const outcomes: Record<string, string> = { completed: "行动已完成", waiting: "已保存等待", failed: "行动失败", unknown: "行动结果未知" };
+const readinessReasons: Record<string, string> = {
+  NO_UNREAD_SOURCE: "没有已登记且带选区的未读来源", BUDGET_EXHAUSTED: "相应执行额度已用尽",
+  FIT_BUDGET_EXHAUSTED: "剩余拟合额度不足以执行该设计", CONDITION_NOT_SATISFIED: "方法前提尚未满足",
+  ALREADY_COMPLETED: "该方法已完成", EXECUTION_UNKNOWN: "原执行结果待核对，需沿原请求处理",
+  PROJECT_BUSY: "已有未完成请求，需先接续", CODE_CHANGED: "代码版本已变化，需显式登记兼容版本",
+  PROJECT_WAITING: "项目仍有待核对条件", MISSING_SOURCE: "尚未登记匹配来源",
+  METHOD_NOT_SUPPORTED: "该方法尚未接入执行器", EVIDENCE_CHANGED: "来源原件已变化，需先核对",
+};
 
 function field(label: string, control: HTMLElement): HTMLElement {
   const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap;
@@ -109,8 +117,45 @@ export function createLocalModelPanel(host: Host): {
     }
   }
 
+  function planExecutionConditions(record: Obj, card: HTMLElement): void {
+    const frozen = object(object(record.context).selection_context);
+    const review = objects(view.plan_reviews).find(item => item.request_id === record.request_id);
+    const assessment = object(review?.assessment);
+    if (assessment.schema_version !== "plan-readiness-v1" || typeof frozen.context_sha256 !== "string"
+      || assessment.context_sha256 !== frozen.context_sha256 || assessment.project_id !== frozen.project_id
+      || assessment.snapshot_ref !== frozen.snapshot_ref || !["available", "blocked"].includes(text(assessment.execution_status, ""))) return;
+    const budget = object(assessment.remaining_budget), candidates = objects(assessment.available_actions);
+    card.append(el("h3", "", "计划执行条件"),
+      el("p", "", `请求准备时 · 项目版本${number(frozen.state_version)}。以下为该请求的冻结条件。`),
+      el("p", "", `剩余可用额度（已扣除预留） · 本地工具${number(budget.local_tool_calls)}次；来源读取${number(budget.evidence_reads)}次；估计器拟合${number(budget.estimator_fits)}次。`),
+      el("p", "", assessment.execution_status === "available"
+        ? "当时可执行的候选 · " + [...new Set(candidates.map(item => host.methodTitle(text(item.method_id))))].join("、")
+        : "当时没有可执行候选；后续行动需先补条件。"));
+    const methods = objects(assessment.blocked_methods), blockers = objects(assessment.blockers);
+    if (methods.length || blockers.length) {
+      const gaps = el("details", "local-advanced"); gaps.append(el("summary", "", "查看方法条件与缺口"));
+      for (const blocker of blockers) {
+        const code = text(blocker.code);
+        gaps.append(el("p", "", readinessReasons[code] ?? code));
+      }
+      if (methods.length) {
+        const list = el("ul");
+        for (const method of methods) {
+          const reasons = strings(method.execution_blockers).map(code => readinessReasons[code] ?? code);
+          const missing = strings(method.missing_information), item = el("li"), description = el("p");
+          description.append(el("strong", "", host.methodTitle(text(method.method_id))), document.createTextNode(" · "
+            + (reasons.join("；") || "受上述项目条件限制") + (missing.length ? "。待补信息：" + missing.join("；") : "")));
+          item.append(description); list.append(item);
+        }
+        gaps.append(list);
+      }
+      card.append(gaps);
+    }
+    card.append(el("p", "", "科学解释仍需审阅；此处核对执行条件。"));
+  }
   function planSuggestion(record: Obj, card: HTMLElement, actions: HTMLElement): void {
     const proposal = object(record.proposal), plan = object(proposal.plan), id = text(record.request_id, "");
+    planExecutionConditions(record, card);
     if (Object.keys(plan).length) {
       card.append(el("h3", "", text(plan.question)), el("h4", "", "建议的步骤"), el("p", "", text(plan.steps)),
         el("h4", "", "预期反馈与调整"), el("p", "", text(plan.expected_feedback)),

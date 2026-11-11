@@ -325,9 +325,26 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                            "application/json; charset=utf-8", filename)
 
         def project_error(self, status, code, message):
+            # Closing with unread, bounded POST bytes can reset the connection on Windows.
+            lengths = self.headers.get_all("Content-Length", [])
+            framed = (self.command == "POST" and not getattr(self, "_post_body_read", False)
+                      and self.headers.get_all("Transfer-Encoding", []) == []
+                      and self.headers.get_all("Content-Encoding", []) == []
+                      and len(lengths) == 1 and re.fullmatch(r"[0-9]{1,9}", lengths[0]) is not None)
+            if framed:
+                length = int(lengths[0])
+                limit = MAX_LOCAL_EVIDENCE_REQUEST_BYTES if urlsplit(self.path).path == "/api/local-workbench/evidence" else MAX_LOCAL_REQUEST_BYTES
+                if 0 < length <= limit:
+                    self._post_body_read = True
+                    self.connection.settimeout(10)
+                    try:
+                        self.rfile.read(length)
+                    except OSError:
+                        pass
             self.send_json(status, {"ok": False, "code": code, "message": message})
 
         def do_POST(self):
+            self._post_body_read = False
             if not self.host_ok():
                 self.close_connection = True
                 return self.project_error(403, "HOST_NOT_ALLOWED", "Only the bound local Host is accepted.")
@@ -343,6 +360,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                          "LOCAL_ORIGIN_REQUIRED", "Use the current local page and its session token.")
                 parsed = urlsplit(self.path)
                 commands = {"/api/local-workbench/create": "create", "/api/local-workbench/select": "select",
+                            "/api/local-workbench/design-bind": "bind_design",
+                            "/api/local-workbench/design-improve": "improve_design",
+                            "/api/local-workbench/design-import": "import_design",
                             "/api/local-workbench/plan": "save_plan",
                             "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
@@ -370,6 +390,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 limit = MAX_LOCAL_EVIDENCE_REQUEST_BYTES if parsed.path == "/api/local-workbench/evidence" else MAX_LOCAL_REQUEST_BYTES
                 _require(0 < length <= limit, "INPUT_TOO_LARGE", "Local request exceeds the input limit.")
                 self.connection.settimeout(10)
+                self._post_body_read = True
                 raw = self.rfile.read(length)
                 _require(len(raw) == length, "INVALID_REQUEST", "The complete request body was not received.")
                 body = _local_body(raw)
@@ -406,7 +427,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
-                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/project/knowledge"}:
+                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/project/knowledge"}:
                     _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
@@ -428,6 +449,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 if parsed.path == "/api/local-workbench/recipes" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Recipe previews do not accept a query.")
                     return self.send_json(200, local_workspace.recipes())
+                if parsed.path == "/api/local-workbench/designs" and local_workspace is not None:
+                    _require(not parsed.query, "INVALID_QUERY", "Research designs do not accept a query.")
+                    return self.send_json(200, local_workspace.designs())
                 if parsed.path.startswith("/api/local-workbench/batch/") and local_workspace is not None:
                     _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved batch JSON identifier.")
                     encoded = parsed.path.removeprefix("/api/local-workbench/batch/")[:-5]

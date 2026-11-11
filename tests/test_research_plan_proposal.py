@@ -2,6 +2,7 @@
 
 import base64
 import copy
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -55,6 +56,7 @@ class ResearchPlanProposalTests(unittest.TestCase):
         self.assertEqual(feedback["next_decision"], action["next_decision"])
         self.assertEqual(feedback["artifact_ref"], action["artifact"])
         self.assertIn(canonical(context), protocol.build_prompt(context)["prompt"])
+        self.assertEqual(json.loads(protocol.build_prompt(context)["prompt"].split("\n", 1)[1]), context)
         response = canonical(self.arguments(context)).encode("utf-8")
         parsed = protocol.parse_host_response(response, "delegated")
         proposal = protocol.build_proposal(context, parsed["arguments"], "Delegated fixture")

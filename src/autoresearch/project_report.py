@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report
+from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
 
@@ -20,6 +20,14 @@ TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存
 
 
 def _report_title(kind, results):
+    if kind == "tabular" and any(entry["status"] == "completed"
+                                 and entry["command"] in ("data.ridge-random-validation", "data.ridge-group-validation")
+                                 for entry in results):
+        return "原始数据划分对照与研究设计报告"
+    if kind == "tabular" and any(entry["status"] == "completed"
+                                 and (((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}).get("schema_version") == "prediction-check-v1"
+                                 for entry in results):
+        return "保存预测验证与研究设计报告"
     if kind == "tabular" and any(entry["command"] == "data.numeric-association"
                                  and entry["status"] == "completed" and entry["tool_result"] is not None
                                  for entry in results):
@@ -211,16 +219,19 @@ def collect_report(workspace) -> dict:
               "source_selections": source_selections, "source_manifest": source_manifest, "registered_inputs": receipt_states,
               "selection_history": selection_history,
               "host_models": {key: value for key, value in host_models.items() if key != "assets"},
+              "plan_reviews": plan_readiness.review_plan_requests(host_models["records"]),
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
                         "researcher_feedback": before.get("researcher_feedback", []),
+                        "design_revisions": before.get("design_revisions", []),
                         "recipe_selections": recipe_selections,
                         "host_models": {"snapshot_sha256": host_models["snapshot_sha256"], "status": host_models["status"],
                                         "asset_names": [asset["name"] for asset in host_models["assets"]]}},
               "exporter_code_identity": hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
                                                        + Path(project_selection_view.__file__).read_bytes()
-                                                       + Path(host_model_report.__file__).read_bytes()).hexdigest(),
+                                                       + Path(host_model_report.__file__).read_bytes()
+                                                       + Path(plan_readiness.__file__).read_bytes()).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
     report["snapshot_sha256"] = fingerprint(report)
@@ -274,7 +285,9 @@ def _budget_rows(report):
     budget = report["project"].get("budget", {})
     labels = [("lineage_ref", "原预算谱系"), ("new_model_requests", "原生本地模型请求已用"),
               ("model_requests_allowed", "原生本地模型请求上限"),
-              ("model_requests_reserved", "原生本地模型请求预留"), ("new_fits", "新增拟合"),
+              ("model_requests_reserved", "原生本地模型请求预留"), ("new_fits", "新增模型拟合尝试"),
+              ("preprocessing_fits", "预处理拟合尝试"), ("fit_limit", "累计拟合尝试上限"),
+              ("fit_attempts_used", "累计拟合尝试已用"), ("fits_reserved", "拟合尝试预留"),
               ("local_tool_call_limit", "本地工具上限"),
               ("local_tool_calls_used", "本地工具已用"), ("local_tool_calls_reserved", "本地工具预留"),
               ("evidence_reads_used", "来源读取已用"), ("evidence_reads_reserved", "来源读取预留"),
@@ -318,6 +331,29 @@ def _host_request_rows(report):
         cost = record.get("reported_cost_usd")
         rows.append([record["request_id"] + " / " + purpose + " / " + route, record["status"] + " / " + outcome,
                      "未知" if cost is None else format(cost, ".8g")])
+    return rows
+
+
+PLAN_REVIEW_NOTE = ("以下条件来自各请求准备时的冻结版本，仅核对执行条件，不判读建议正文。"
+                    "当前执行仍须重新检查项目；科学解释仍需审阅。摘要最多列最近3条，完整条件见report.json的plan_reviews。")
+
+
+def _plan_review_rows(report):
+    rows = []
+    for entry in report["plan_reviews"][-3:]:
+        review = entry["assessment"]
+        budget = review["remaining_budget"]
+        remaining = "；".join(label + " " + ("未知" if budget[key] is None else str(budget[key]))
+                             for key, label in (("local_tool_calls", "本地工具"), ("evidence_reads", "来源读取"),
+                                                ("estimator_fits", "估计器拟合")))
+        rows.extend([[entry["request_id"], "请求准备时版本 " + str(review["state_version"])],
+                     ["剩余额度（扣除预留）", remaining],
+                     ["当时可执行候选", "；".join(item["method_id"] for item in review["available_actions"]) or "无，后续行动需先补条件"]])
+        if review["blockers"]:
+            rows.append(["整体阻塞", "；".join(item["code"] for item in review["blockers"])])
+        for method in review["blocked_methods"]:
+            reasons = list(method["execution_blockers"]) + list(method.get("missing_information", []))
+            rows.append([method["method_id"], "；".join(reasons) or "受整体阻塞限制"])
     return rows
 
 
@@ -370,6 +406,122 @@ def _association_notes(report):
     return [{"action_id": entry["action_id"], "result": entry["tool_result"]["result"]}
             for entry in report["action_results"] if entry["status"] == "completed"
             and ((entry.get("tool_result") or {}).get("result") or {}).get("schema_version") == "numeric-association-v1"][-3:]
+
+
+_PREDICTION_LABELS = {"baseline": "基线比较", "grouped": "分组误差", "sensitivity": "删除敏感性",
+                      "random_cv": "随机划分验证", "group_cv": "未见组验证", "negative_control": "折内重排负对照"}
+_PREDICTION_HEADERS = ["检查", "有效/排除", "预测MAE", "参考MAE", "相对改善", "结论"]
+_PREDICTION_NOTICE = ("比较使用显式声明的已保存预测列。参考均值排除当前样本或整个组；"
+                      "预测训练、留出身份、组定义与目标量尺需依据原记录核实。完整删除单位、分组及计算明细保存在JSON。")
+
+
+def _prediction_notes(report):
+    notes = []
+    for entry in report["action_results"]:
+        analysis = ((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}
+        if entry["status"] == "completed" and analysis.get("schema_version") == "prediction-check-v1":
+            notes.append({"action_id": entry["action_id"], "analysis": analysis})
+    return notes[-6:]
+
+
+def _design_rows(state):
+    revisions = state.get("design_revisions", [])
+    if not revisions:
+        return []
+    binding = revisions[-1]
+    resource = binding["resource"]
+    fields = ([["观察目标", binding["target_column"]],
+               ["模型输入列", "、".join(binding["training"]["feature_columns"])],
+               ["划分分组列", "、".join(binding["training"]["split_group_columns"])]] if binding.get("training") else
+              [["实际值 / 保存预测列", binding["target_column"] + " / " + binding["prediction_column"]]])
+    return [["研究设计", resource["title"]], ["资源与项目绑定版本", f"{resource['id']} v{resource['version']} / 绑定v{binding['version']}"],
+            ["研究问题", resource["question"]], ["待检验判断", resource["claim"]],
+            ["可替代解释或方法", "；".join(resource["alternatives"])],
+            ["允许检查", "、".join(_PREDICTION_LABELS[check] for check in resource["checks"])],
+            *fields, ["采用理由", binding["reason"]], ["版本变更依据", resource["change_reason"]]]
+
+
+def _raw_validation_lines(report):
+    lines = []
+    values = {}
+    for entry in report["action_results"]:
+        analysis = ((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}
+        if entry["status"] != "completed" or analysis.get("check") not in ("random_cv", "group_cv", "negative_control"):
+            continue
+        check, summary = analysis["check"], analysis["summary"]
+        binding = analysis["design_binding"]
+        revision = binding["version"]
+        label = _PREDICTION_LABELS[check]
+        lines.append(label + "，项目绑定v" + str(revision) + "，资源 " + binding["resource"]["id"]
+                     + " v" + str(binding["resource"]["version"]) + "，行动 " + entry["action_id"] + "，有效/排除 "
+                     + str(summary["n"]) + "/" + str(summary["excluded"]) + "。")
+        if check == "negative_control":
+            protocol = analysis["protocol"]
+            lines.append("原预测MAE " + _number(summary["original_mae"]) + "，折内重排MAE中位数 "
+                + _number(summary["permutation_median"]) + "，5%—95%范围 " + _number(summary["permutation_p05"])
+                + "—" + _number(summary["permutation_p95"]) + "，条件秩 " + _number(summary["conditional_rank"])
+                + "，重排次数 " + str(protocol["repeats"]) + "，随机种子 " + str(protocol["seed"]) + "。")
+            lines.append("重排保持已保存评价折，仅诊断本批预测与样本对应；此条件秩不证明总体显著性或未见数据泛化。")
+        else:
+            values.setdefault(revision, {})[check] = summary
+            improvement = summary.get("improvement")
+            lines.append("预测MAE " + _number(summary["candidate_mae"]) + "，训练折均值参考MAE "
+                + _number(summary["reference_mae"]) + "，相对改善 "
+                + (_number(improvement * 100) + "%" if improvement is not None else "未知") + "。")
+            lines.append("每个训练折分别拟合StandardScaler与Ridge(alpha=1)，评价折不参与拟合；完整行号、折分配、模型系数保存在JSON。")
+            sizes = [len(fold["train_records"]) for fold in analysis.get("folds", [])]
+            if sizes:
+                lines.append("各折训练样本数 " + "、".join(map(str, sizes)) + "。两种划分的样本量与组分布可能同时变化，误差差异不能单独归因于分组。")
+            if check == "group_cv" and summary.get("group_count") == summary.get("n"):
+                lines.append("当前声明组均为单条记录，未检验组内重复跨折导致的偏差。")
+    for revision, checks in values.items():
+        random, grouped = checks.get("random_cv", {}), checks.get("group_cv", {})
+        if random.get("candidate_mae") and grouped.get("candidate_mae") is not None:
+            lines.append("项目绑定v" + str(revision) + "未见组/随机划分MAE比 " + _number(grouped["candidate_mae"] / random["candidate_mae"])
+                         + "；该比值依赖该绑定的声明字段和组含义，解释须结合研究问题。")
+    return lines
+
+
+def _prediction_rows(notes):
+    rows = []
+    for note in notes:
+        analysis = note["analysis"]
+        summary = analysis["summary"]
+        decision = summary["outperforms_reference"]
+        conclusion = "较参考降低MAE" if decision is True else "未低于参考MAE" if decision is False else "暂不可计算"
+        if analysis["check"] == "sensitivity" and analysis["details"].get("conclusion_reversed") is True:
+            conclusion = "删除单位后结论反转"
+        if analysis["check"] == "grouped" and any(group.get("outperforms_reference") is False
+                                                  for group in analysis["details"].get("groups", [])):
+            conclusion = "部分组未降低MAE"
+        improvement = summary["improvement"]
+        label = _PREDICTION_LABELS[analysis["check"]] + " · 绑定v" + str(analysis["design_binding"]["version"])
+        rows.append([label, f"{summary['n']} / {summary['excluded']}", _number(summary["candidate_mae"]),
+                     _number(summary["reference_mae"]), _number(improvement * 100) + "%" if improvement is not None else "未知", conclusion])
+    return rows
+
+
+def _prediction_detail_lines(note):
+    analysis = note["analysis"]
+    binding = analysis["design_binding"]
+    lines = ["行动 " + note["action_id"] + "，资源 " + binding["resource"]["id"] + " v" + str(binding["resource"]["version"])
+             + "，项目绑定v" + str(binding["version"]) + "，预测列 " + binding["prediction_column"] + "。"]
+    if analysis["check"] == "sensitivity":
+        reversal = analysis["details"].get("conclusion_reversed")
+        lines.append("删除后改善结论反转情况为" + ("已观察到反转" if reversal is True else "未观察到反转" if reversal is False else "尚不能计算") + "。")
+        most = analysis["details"].get("most_influential")
+        if most is not None:
+            change = most.get("improvement")
+            lines.append("影响最大的删除单位为 " + canonical(most["unit"]) + "，删除记录数 " + str(most["removed_n"])
+                         + "，剩余预测MAE " + _number(most["candidate_mae"]) + "，参考MAE " + _number(most["reference_mae"])
+                         + "，相对改善 " + (_number(change * 100) + "%" if change is not None else "未知") + "。")
+    if analysis["check"] == "grouped" and analysis["details"].get("worst_group"):
+        worst = analysis["details"]["worst_group"]
+        change = worst.get("improvement")
+        lines.append("保存预测误差最大的组为 " + canonical(worst["group"]) + "，预测MAE " + _number(worst["candidate_mae"])
+                     + "，参考MAE " + _number(worst["reference_mae"])
+                     + "，相对改善 " + (_number(change * 100) + "%" if change is not None else "未知") + "。")
+    return lines
 
 
 def _association_rows(result):
@@ -573,9 +725,22 @@ def _markdown(report):
         lines.extend(["## 研究者反馈", "", RESEARCHER_FEEDBACK_NOTE, ""])
         for label, content in feedback_rows:
             lines.extend(["### " + label, "", _text(content, 6000), ""])
+    design_rows = _design_rows(state)
+    if design_rows:
+        lines.extend(["## 当前采用的研究设计", "", _markdown_table(["设计项", "保存内容"], design_rows), ""])
     lines.extend(["## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
              "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
              ""])
+    prediction_notes = _prediction_notes(report)
+    if prediction_notes:
+        lines.extend(["## 保存预测验证", "", _markdown_table(_PREDICTION_HEADERS, _prediction_rows(prediction_notes)), ""])
+        for note in prediction_notes:
+            lines.extend(_prediction_detail_lines(note))
+            lines.append("")
+        lines.extend([_PREDICTION_NOTICE, ""])
+    raw_lines = _raw_validation_lines(report)
+    if raw_lines:
+        lines.extend(["## 原始数据划分对照", "", *[line + "\n" for line in raw_lines]])
     if summary.get("numeric_headers"):
         lines.extend(["## 数值字段计数", "", _markdown_table(summary["numeric_headers"], summary["numeric_rows"]),
                       "", "零包含在有限计数中；空串与声明缺失分别计数，最小/最大仅针对有限值。", "",
@@ -641,6 +806,9 @@ def _markdown(report):
                   _markdown_table(["请求 / CLI自报路由", "请求状态 / 实际控制器结果", "报告估值USD"], _host_request_rows(report))
                   if report["host_models"]["records"] else "尚无宿主模型请求；其他外部选择的未知用量按上表单列。", "", HOST_MODEL_NOTE,
                   "", "宿主模型证据快照：`" + report["host_models"]["snapshot_sha256"] + "`。", ""])
+    if report["plan_reviews"]:
+        lines.extend(["## 计划执行条件", "", PLAN_REVIEW_NOTE, "",
+                      _markdown_table(["记录项", "请求准备时的条件"], _plan_review_rows(report)), ""])
     incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
     lines.append(_markdown_table(["行动", "状态", "真实失败/未知"], [[entry["action_id"], entry["status"], canonical(entry["failure"])] for entry in incomplete]) if incomplete else "保存的行动均完成；这不等于研究问题解决或科学批准。")
     lines.extend(["", "恢复只使用原request_id和完整保存工件；unknown不自动重发，预算不通过新目录重置。数值复算、来源抽取和故障注入均按原范围解释。",
@@ -710,6 +878,10 @@ def _pdf(report):
         for label, content in feedback_rows:
             story.append(p(label, small))
             story.append(p(content, limit=6000))
+    design_rows = _design_rows(state)
+    if design_rows:
+        h("当前采用的研究设计")
+        table(["设计项", "保存内容"], design_rows, [.25, .75])
     h("二、方法与冻结评价")
     story.append(p(summary["method"], limit=500))
     h("三、实际结果")
@@ -720,13 +892,29 @@ def _pdf(report):
     else:
         story.append(p("没有已完成的主方法结果；失败与未知仍保留，不填造数值。"))
     story.append(p(summary["result_notice"], small, 600))
+    prediction_notes = _prediction_notes(report)
+    if prediction_notes:
+        h("保存预测验证")
+        table(_PREDICTION_HEADERS, _prediction_rows(prediction_notes), [.21, .13, .15, .15, .14, .22])
+        for note in prediction_notes:
+            for line in _prediction_detail_lines(note):
+                story.append(p(line, small, 450))
+        story.append(p(_PREDICTION_NOTICE, small, 600))
+    raw_lines = _raw_validation_lines(report)
+    if raw_lines:
+        h("原始数据划分对照")
+        for line in raw_lines:
+            story.append(p(line, small, 600))
     if summary.get("numeric_headers"):
         h("数值字段计数")
-        table(summary["numeric_headers"], summary["numeric_rows"], [.22, .10, .08, .08, .12, .08, .10, .11, .11])
-        story.append(p("零包含在有限计数中；空串与声明缺失分别计数；最小/最大仅针对有限值。单位与字段角色仍为声明。", small))
+        numeric_rows = [[*row[:-2], *[format(float(value), ".4g") if value != "未知" else value for value in row[-2:]]]
+                        for row in summary["numeric_rows"]]
+        table(summary["numeric_headers"], numeric_rows, [.22, .10, .08, .08, .12, .08, .10, .11, .11])
+        story.append(p("零包含在有限计数中；空串与声明缺失分别计数；最小/最大仅针对有限值，PDF显示4位有效数字，完整值见JSON。单位与字段角色仍为声明。", small))
         h("键与分组")
         table(summary["group_headers"], summary["group_rows"], [.62, .38])
-        story.append(p("机械标记（原值）：" + canonical(summary["quality_flags"]), small, 300))
+        if summary["quality_flags"]:
+            story.append(p("机械标记（原值）：" + canonical(summary["quality_flags"]), small, 300))
         duplicate_locations = _duplicate_locations(summary)
         if duplicate_locations:
             story.append(p(duplicate_locations, small, 700))
@@ -824,6 +1012,10 @@ def _pdf(report):
     else:
         story.append(p("尚无宿主模型请求；其他外部选择的未知用量按上表单列。", small))
     story.append(p(HOST_MODEL_NOTE, small))
+    if report["plan_reviews"]:
+        h("计划执行条件")
+        story.append(p(PLAN_REVIEW_NOTE, small))
+        table(["记录项", "请求准备时的条件"], _plan_review_rows(report), [.40, .60])
     h("代码与输入身份")
     for label, value in [("项目", report["project_id"]), ("项目快照", report["project_snapshot_ref"]),
                          ("核心代码", state["code_identity"]), ("导出器代码", report["exporter_code_identity"]),

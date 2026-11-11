@@ -9,6 +9,10 @@ const text = (value: unknown, fallback = "未记录"): string => typeof value ==
 const methodNames: Record<string, string> = {
   "data.tabular-quality-audit": "表格质量与分组核对", "data.grouped-quality-profile": "分组质量画像",
   "data.numeric-association": "数值关联分析",
+  "data.prediction-baseline": "保存预测与公平基线比较", "data.prediction-grouped": "保存预测的分组验证",
+  "data.prediction-sensitivity": "保存预测的敏感性检查",
+  "data.ridge-random-validation": "训练折内拟合与随机五折验证", "data.ridge-group-validation": "按声明组拆分训练验证",
+  "data.prediction-negative-control": "预测误差的折内负对照",
   "materials.saved-steel-audit": "保存钢材模型复核", "software.source-integrity-check": "文件完整性检查",
   "p02.saved-oof-residuals": "保存预测残差诊断", "research.source-selection": "读取来源选区", "p02.source-mapping-check": "读取来源选区",
 };
