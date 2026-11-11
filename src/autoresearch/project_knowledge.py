@@ -87,17 +87,23 @@ def build(root, action, tool_result):
     documents = []
     for selected in tool_result["result"]["selections"]:
         source = selected["source"]
-        documents.append({
+        extraction = selected["extraction"]
+        pdf = extraction.get("kind") == "pdf_page"
+        document = {
             "id": action["id"] + ":" + selected["id"], "title": selected["id"] + " source mapping",
             "kind": "reuse_note", "source_url": source["url"],
             "path": "sources/" + source["asset_sha256"], "sha256": source["sha256"],
-            "snapshot": action["receipt_snapshot_sha256"], "text": selected["extraction"]["text"],
-            "page": None, "review_status": "extracted_unreviewed",
+            "snapshot": action["receipt_snapshot_sha256"], "text": extraction["text"],
+            "page": extraction["page"] if pdf else None, "review_status": "extracted_unreviewed",
             "metadata": {"source_role": "project_source_selection", "locator": selected["locator"],
                          "license_note": source["license_note"], "action_id": action["id"],
                          "selection_id": selected["id"], "source_id": source["id"],
                          "original_source_sha256": source["sha256"], "endpoint_eligibility": "unknown"},
-        })
+        }
+        if pdf:
+            document["metadata"]["extraction"] = {key: extraction[key] for key in
+                ("kind", "page", "document_pages", "start_char", "end_char", "offset_basis", "page_text_sha256", "text_sha256")}
+        documents.append(document)
     # Incomplete builds remain separate; recovery can rebuild the index from a complete saved extraction.
     staging = destination.with_name(destination.name + ".pending-" + uuid.uuid4().hex)
     staging.mkdir(parents=True)

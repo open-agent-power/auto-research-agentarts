@@ -55,6 +55,13 @@ def main():
     extend.add_argument("--new-limit", type=int, required=True)
     extend.add_argument("--reason", required=True)
     extend.add_argument("--expected-version", type=int, dest="expected_state_version")
+    evidence_limit = commands.add_parser("limit-evidence-budget", help="Explicitly tighten the cumulative source-read allowance without resetting usage or changing other caps.")
+    evidence_limit.add_argument("--workspace", required=True)
+    evidence_limit.add_argument("--request-id", required=True)
+    evidence_limit.add_argument("--expected-limit", type=int, required=True)
+    evidence_limit.add_argument("--new-limit", type=int, required=True)
+    evidence_limit.add_argument("--expected-state-version", type=int, required=True)
+    evidence_limit.add_argument("--reason", required=True)
     for name, help_text in (("evidence-task", "Read a task-bound empty evidence manifest template."),
                             ("methods", "Read local method conditions without executing them.")):
         entry = commands.add_parser(name, help=help_text)
@@ -149,6 +156,10 @@ def main():
             value = project.extend_local_budget(request_id=args.request_id, expected_limit=args.expected_limit,
                                                 new_limit=args.new_limit, reason=args.reason,
                                                 expected_state_version=args.expected_state_version)
+        elif args.command == "limit-evidence-budget":
+            value = project.limit_evidence_budget(request_id=args.request_id, expected_limit=args.expected_limit,
+                                                  new_limit=args.new_limit, reason=args.reason,
+                                                  expected_state_version=args.expected_state_version)
         elif args.command == "evidence-task":
             value = project.evidence_task()
         elif args.command == "methods":

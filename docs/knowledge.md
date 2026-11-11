@@ -23,6 +23,8 @@ result = index.search('AgentArts Runtime SDK HTTP 运行时', kinds=['official_d
 
 每条结果含 `citation_id`、`source`、`location`、`quote`。Markdown 为行范围，PDF 为真实页码。相同文件最多返回两段；每次最多八段。没有依据时返回空 evidence。研究决策应保存本次完整结果并引用 citation_id，不能只保存模型转述。
 
+项目的`pdf_page`选区也保留真实PDF页码：新来源行动完成后，FTS命中的`location.page`来自实际提取页，`source.metadata.extraction`保留页内字符范围、偏移说明及整页/选区文本身份。字符范围描述整个已读选区，命中的`quote`可以只是其中一个chunk；不把它当作原PDF字节或视觉坐标。旧冻结索引和决定保持原记录，不自动重建；非PDF选区仍沿原定位和chunk行号返回。项目读取方式见[PDF选区](project-slice.md#读取已归档pdf原文选区)。
+
 ### 固定来源内检索与有界阅读
 
 现有索引无需重建。`catalogue(limit=8)`返回有上限的文档目录；`search(..., document_id=..., source_sha256=...)`在排序与全局截断之前限定精确来源。两个选择字段必须同时提供，不把标题、路径或另一份同名论文当成该来源。

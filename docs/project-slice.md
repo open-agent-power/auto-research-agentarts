@@ -103,6 +103,17 @@ $registration = .venv/Scripts/python.exe scripts/run_research_project.py registe
 
 真实选区进入现有 SQLite FTS5；四个决策点 clarification/design/preparation/interpretation 的请求与出处单独保留。命中和提取由宿主完成，不能称为模型已读或科学支持；来源状态始终保留 mapping unresolved、终点资格 unknown。
 
+### 收紧项目来源额度
+
+研究约定比默认来源上限更小时，先把同一项目的累计上限明确收紧；不要把默认余量当成研究授权。已有项目如需登记新实现，先按前面的兼容升级流程保存原身份与原额度，再执行：
+
+```powershell
+$status = .venv/Scripts/python.exe scripts/run_research_project.py status --workspace $projectPath | ConvertFrom-Json
+.venv/Scripts/python.exe scripts/run_research_project.py limit-evidence-budget --workspace $projectPath --request-id restrict-source-reads-1 --expected-limit $status.budget.evidence_read_limit --new-limit 2 --expected-state-version $status.state_version --reason 'Align the ledger with the existing two-read study limit'
+```
+
+该命令只允许降低来源累计上限，不能低于已用及预留次数；0表示不允许新的来源动作。原用量、原件、其他额度和未知费用保持，修订依据保存为不可变原件并使state加1。达到上限后控制器不提供新的来源候选，仍可只读检索已读资料。重放须保留同一ID、原expected版本、旧上限和理由；不能重新用当前状态拼成不同请求。它是core/CLI入口，没有新增工作台按钮或扩额功能。
+
 ### 取得公开DOI元数据并接回
 
 [公开来源接入](public-source-connector.md)提供可复制的`fetch → build-bundle → register-evidence → next → advance`命令：固定Europe PMC官方DOI公开GET先保存原HTTP实体字节和取得收据，再离线生成任务绑定包。包中raw、宿主projection、provenance分开保存；宿主投影保留原JSON pointer，不被标成论文原文或作者确认。register只登记，advance才从已登记身份读取选区并进入FTS，不重跑原primary。
@@ -112,6 +123,8 @@ $registration = .venv/Scripts/python.exe scripts/run_research_project.py registe
 ### 读取已归档PDF原文选区
 
 同一任务绑定manifest的`pdf_page`支持单页`N`或页内`N:start-end`。页码从1起，偏移为pypdf整页提取文本的0基Unicode码点、end排除，不是PDF字节或视觉坐标。原PDF被完整捕获；结果另保留整页`page_text_sha256`、选区`text_sha256`、parser版本/警告及30秒截止。越界、空白、NUL或60000 UTF-8字节上限失败均拒绝，不OCR或改写原文。接回仍用`register-evidence → next → advance`；格式与实际坐标见[PDF选区入口](tabular-evidence.md#统一项目的pdf选区入口)。
+
+新PDF选区进入项目FTS后，检索的`location.page`直接给出原PDF物理页，`source.metadata.extraction`保留该选区字符范围和文本身份；摘录可能是选区中的一个chunk。旧索引不重建、旧决定不改写。若原页含图像表格，文本提取不等于已读取表内数据；仍需查看原页并单独核对解释。
 
 ## 导出当前项目报告
 

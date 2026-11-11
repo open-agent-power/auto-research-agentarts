@@ -648,8 +648,8 @@ class ResearchProject:
     def upgrade(self, *, request_id, expected_code_identity, evidence_read_limit=8):
         """Explicit compatible upgrade; retain the project, completed evidence and all usage."""
         identifier(request_id)
-        require(type(evidence_read_limit) is int and 1 <= evidence_read_limit <= 16,
-                "INVALID_REQUEST", "Evidence allowance must be 1..16 local reads.")
+        require(type(evidence_read_limit) is int and 0 <= evidence_read_limit <= 16,
+                "INVALID_REQUEST", "Evidence allowance must be 0..16 local reads.")
         with self._writer():
             with self._connect() as con:
                 project = self._project(con)
@@ -728,7 +728,7 @@ class ResearchProject:
                 project = self._project(con)
                 old = next((item for item in project.get("budget_revisions", []) if item["request_id"] == request_id), None)
                 if old:
-                    require(old["request_sha256"] == fingerprint(request), "IDEMPOTENCY_CONFLICT", "Budget revision content changed.")
+                    require(old.get("request_sha256") == fingerprint(request), "IDEMPOTENCY_CONFLICT", "Budget revision content changed.")
                     return old
                 require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
                 self._require_unclaimed(project, request_id, except_collection="budget_revisions")
@@ -754,6 +754,53 @@ class ResearchProject:
                 write_once(path, snapshot)
             with self._connect() as con:
                 project["budget"]["local_tool_call_limit"] = new_limit
+                project.setdefault("budget_revisions", []).append(revision)
+                project["state_version"] += 1
+                self._save(con, project)
+            return revision
+
+    def limit_evidence_budget(self, *, request_id, expected_limit, new_limit, expected_state_version, reason):
+        """Explicitly tighten source-read allowance, preserving every previous use."""
+        identifier(request_id)
+        require(type(expected_limit) is int and type(new_limit) is int and 0 <= new_limit < expected_limit,
+                "INVALID_REQUEST", "The new cumulative source-read limit must be lower than the expected current limit.")
+        require(type(expected_state_version) is int and expected_state_version >= 0
+                and type(reason) is str and 0 < len(reason.strip()) <= 1000 and "\x00" not in reason,
+                "INVALID_REQUEST", "Bind the saved state version and record why the source allowance is tightened.")
+        request = {"command": "limit_evidence_budget", "request_id": request_id, "expected_limit": expected_limit,
+                   "new_limit": new_limit, "expected_state_version": expected_state_version, "reason": reason}
+        with self._writer():
+            with self._connect() as con:
+                project = self._project(con)
+                old = next((item for item in project.get("budget_revisions", []) if item["request_id"] == request_id), None)
+                if old:
+                    require(old.get("request_sha256") == fingerprint(request), "IDEMPOTENCY_CONFLICT", "Source budget revision content changed.")
+                    return old
+                require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
+                self._require_unclaimed(project, request_id, except_collection="budget_revisions")
+            current = self.status()
+            self._require_fresh(project, current, expected_state_version)
+            require(not any(item["status"] in ("prepared", "running") for item in project.get("controller_requests", [])),
+                    "PROJECT_BUSY", "Finish the frozen controller request before tightening its allowance.")
+            self._source(project)
+            require(project["budget"]["evidence_read_limit"] == expected_limit,
+                    "CONFIG_CHANGED", "Expected source-read limit differs; usage and other limits were not changed.")
+            used, reserved = current["budget"]["evidence_reads_used"], current["budget"]["evidence_reads_reserved"]
+            require(new_limit >= used + reserved, "BUDGET_EXHAUSTED", "The source-read limit must cover all completed, failed and reserved reads.")
+            revision = {"kind": "evidence_read_limit", "request_id": request_id, "request_sha256": fingerprint(request),
+                        "request": request, "project_id": project["id"], "run_id": project["run_id"],
+                        "source_snapshot_sha256": project["source_snapshot_sha256"], "code_identity": project["code_identity"],
+                        "state_version_before": project["state_version"], "old_limit": expected_limit, "new_limit": new_limit,
+                        "evidence_reads_preserved": used, "evidence_reservations_preserved": reserved,
+                        "notice": "Only the cumulative source-read limit was tightened; usage, originals and all other caps are preserved."}
+            path = safe_path(self.root / "artifacts" / ("evidence-budget-" + fingerprint(revision) + ".json"))
+            snapshot = {"revision": revision, "budget_before": project["budget"]}
+            if path.exists():
+                require(json.loads(path.read_bytes()) == snapshot, "EVIDENCE_CHANGED", "Source budget revision receipt differs.")
+            else:
+                write_once(path, snapshot)
+            with self._connect() as con:
+                project["budget"]["evidence_read_limit"] = new_limit
                 project.setdefault("budget_revisions", []).append(revision)
                 project["state_version"] += 1
                 self._save(con, project)

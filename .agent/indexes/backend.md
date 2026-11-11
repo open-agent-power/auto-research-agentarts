@@ -1,5 +1,7 @@
 # 后端索引
 
+`ResearchProject.limit_evidence_budget`及CLI `limit-evidence-budget`显式收紧累计来源上限，保留已用/预留和其他额度，保存不可变预算修订；达到上限后原控制器不再提供来源候选。仅支持降低，不扩额、不重置；见[用法](../../docs/project-slice.md#收紧项目来源额度)。
+
 `input_basis`提供唯一固定原尺度单列`[x,x²,x³]`展开，`project_design`冻结可选`training.input_basis`，Ridge适配器v2在训练折标准化前使用并保存三维参数。`fixed_input_basis`资源须明示父版，比较门仅允许这两项显式元数据差异；目录与报告的`saved_parent_mae`判断使用真实父版配对，不能用训练均值参考冒充。见[固定输入基对照](../../docs/research-design.md#固定输入基函数对照)。
 
 `feature_comparison`接收已捕获输入时，为严格匹配的父子OOF派生`input_profiles`：按候选输入优先、父版补列，≤16个数值逐值分组，否则按输入范围分5等宽区间。保留完整评价行、逻辑行号、MAE、预测减观测均值、负预测和逐行变化；只读派生，不取误差定边界、不训练，见[研究设计](../../docs/research-design.md)。
