@@ -6,7 +6,7 @@
 
 研究设计目录与报告JSON的`feature_comparisons`保留两侧资源/项目设计版本和行动引用。仅明确父子版本、同协议同评价集合输出差值与负预测计数；不可比较保留`reason_codes`且不输出指标。工作台显示实际配置的检查与已保存指标，不为仅`group_cv`补造随机或负控结果，详见[研究设计](../../docs/research-design.md)。
 
-资料登记接受`.html/.htm`与`text/html`，使用原始HTML的`text_lines`坐标，标签不执行、不渲染；原件下载保持`application/octet-stream`附件，详见[来源用法](../../docs/local-workbench.md#在同一项目登记资料再明确读取)。新计划context将来源决定的重复`knowledge_contexts`改为原action账本定位引用，保留观察与当前检索证据，详见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。
+资料登记接受`.html/.htm`与`text/html`，使用原始HTML的`text_lines`坐标，标签不执行、不渲染；原件下载保持`application/octet-stream`附件，详见[来源用法](../../docs/local-workbench.md#在同一项目登记资料再明确读取)。新计划context为v2，历史决定、来源全文与资源正文有明确原账本/工件引用，数值、协议、范围、用量及完整sealed selection context保持；另供应严格`saved_comparisons`，详见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。
 
 `LocalWorkbench.model_view`新增独立`plan_reviews=[{request_id,assessment}]`；报告JSON提供同名字段，Markdown/PDF显示冻结条件。`assessment`为`plan-readiness-v1`，含项目/版本/快照/context身份、`execution_status`、三类`remaining_budget`、`available_actions`、`blocked_methods`与`blockers`，科学解释固定需审阅。新plan提示附带同一`execution_conditions`，原计划回答字段及采用/拒绝协议不变，见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。
 
@@ -42,7 +42,7 @@ sealed selection context的可选`researcher_feedback`字段保留这些原记�
 
 ## 模型建议研究计划
 
-`GET /api/project/plan-context.json`只读返回`research-plan-context-v1`，含完整原`selection_context`与实际保存的行动反馈。`research_plan_proposal.py`提供`build_context/build_prompt/parse_host_response/build_proposal/validate_proposal`，`run_host_selection.py prepare/advance --purpose plan`使用同一Host累计grant。
+`GET /api/project/plan-context.json`只读返回`research-plan-context-v2`，含完整原`selection_context`、保留精确原件定位的行动反馈投影与严格`saved_comparisons`。旧v1封存记录不重写；`research_plan_proposal.py`提供`build_context/build_prompt/parse_host_response/build_proposal/validate_proposal`，`run_host_selection.py prepare/advance --purpose plan`使用同一Host累计grant。
 
 工作台接口沿原本地写入、会话和活动项目检查处理，命令采用既有信封。
 

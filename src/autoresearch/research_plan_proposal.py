@@ -7,6 +7,7 @@ from .contracts import ResearchError, canonical
 from .project_controller import ProjectController
 from .project_selection import MAX_PROPOSAL_BYTES, _json_value
 from .plan_readiness import assess_plan_readiness
+from .plan_feedback import decision_reference, project_observations, projection_notice
 
 
 MAX_CONTEXT_BYTES = host_protocol.MAX_CONTEXT_BYTES
@@ -24,9 +25,20 @@ def _require(condition, code, message):
 def _context(context):
     code = "INVALID_PLAN_CONTEXT"
     _json_value(context, MAX_CONTEXT_BYTES, code)
-    _require(type(context) is dict and set(context) == {"schema_version", "selection_context", "feedback"}
-             and context["schema_version"] == "research-plan-context-v1",
+    _require(type(context) is dict and context.get("schema_version") in
+             ("research-plan-context-v1", "research-plan-context-v2"),
              code, "Use the complete frozen research plan context.")
+    fields = {"schema_version", "selection_context", "feedback"}
+    if context["schema_version"] == "research-plan-context-v2":
+        fields.update(("saved_comparisons", "remaining_questions"))
+        _require(type(context.get("saved_comparisons")) is list
+                 and all(type(item) is dict and item.get("scientific_validation") is False
+                         for item in context["saved_comparisons"]),
+                 code, "Use the saved comparisons without scientific approval.")
+        _require(type(context.get("remaining_questions")) is list
+                 and all(type(item) is str for item in context["remaining_questions"]),
+                 code, "Retain the current recorded unresolved questions.")
+    _require(set(context) == fields, code, "Use the exact frozen research plan context fields.")
     host_protocol._context(context["selection_context"])
     feedback = context["feedback"]
     _require(type(feedback) is list, code, "Feedback must contain saved action records.")
@@ -51,25 +63,23 @@ def build_context(project, need="next_check"):
     selection = ProjectController(project.root).selection_context(need=need)
     feedback = [{"action_id": action["id"], "request_id": action["request_id"],
                  "method_id": action["command"], "status": action["status"],
-                 "observations": copy.deepcopy(action.get("observations", [])),
-                 "next_decision": copy.deepcopy(action.get("next_decision")),
+                 "observations": project_observations(action.get("observations", []), action.get("artifact")),
+                 "next_decision": decision_reference(before["id"], action),
                  "failure": copy.deepcopy(action.get("failure")), "artifact_ref": action.get("artifact")}
                 for action in before["actions"] + before["evidence_actions"]]
+    from .research_design import _records
+    from .feature_comparison import compare_feature_checks
+    records = [record for revision in before.get("design_revisions", []) for record in _records(project, before, revision)]
+    comparisons = [{key: copy.deepcopy(item[key]) for key in
+                    ("schema_version", "status", "reason_codes", "check", "comparison_kind", "changed_protocol_fields",
+                     "baseline_ref", "candidate_ref", "matched_rows", "metrics", "scientific_validation") if key in item}
+                   for item in compare_feature_checks(records)]
     _require(selection["snapshot_ref"] == before["snapshot_ref"]
              and project.status()["snapshot_ref"] == before["snapshot_ref"],
              "STALE_STATE", "Project changed while preparing the plan feedback context.")
-    context = {"schema_version": "research-plan-context-v1", "selection_context": selection, "feedback": feedback}
-    # Source decisions repeat four derived retrieval contexts. The full
-    # decision is in the saved action record, not the earlier tool artifact.
-    for item in feedback:
-        decision = item["next_decision"]
-        if decision is not None and "knowledge_contexts" in decision:
-            contexts = decision.pop("knowledge_contexts")
-            decision["knowledge_contexts_ref"] = {
-                "kind": "saved_action_record", "project_id": before["id"],
-                "action_id": item["action_id"], "request_id": item["request_id"],
-                "field": "next_decision.knowledge_contexts", "context_count": len(contexts),
-            }
+    context = {"schema_version": "research-plan-context-v2", "selection_context": selection,
+               "feedback": feedback, "saved_comparisons": comparisons,
+               "remaining_questions": copy.deepcopy((before.get("next_decision") or {}).get("remaining_questions", []))}
     return _context(context)
 
 
@@ -95,7 +105,7 @@ def _arguments(value):
 
 def build_prompt(context):
     _context(context)
-    return {"system": "Propose one concrete research plan revision using the current plan, project goal and saved feedback. "
+    prompt = {"system": "Propose one concrete research plan revision using the current plan, project goal and saved feedback. "
             "When no current plan exists, propose an initial plan. Return only a JSON object with exactly plan, reason, "
             "feedback_action_ids and expected_improvement. Plan has exactly question, basis, steps and expected_feedback, "
             "all plain text. Question, steps, expected_feedback, reason and expected_improvement must be nonempty. "
@@ -125,6 +135,8 @@ def build_prompt(context):
             "prompt": "Execution conditions derived from the frozen context below: "
             + canonical({"execution_conditions": assess_plan_readiness(context)})
             + " Propose a plan from this complete frozen project context:\n" + canonical(context)}
+    prompt["system"] += projection_notice(context)
+    return prompt
 
 
 def parse_host_response(raw: bytes, provider: str):

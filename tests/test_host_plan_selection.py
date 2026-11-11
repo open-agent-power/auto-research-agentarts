@@ -1,6 +1,7 @@
 """Plan host requests use real fixture feedback and explicit adoption without model transport."""
 
 from pathlib import Path
+import copy
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -11,6 +12,7 @@ from autoresearch.host_model_report import capture_host_models
 from autoresearch.host_model_selection import HostModelSelection
 from autoresearch.local_workbench import LocalWorkbench
 from autoresearch.project_controller import ProjectController
+from autoresearch import research_plan_proposal as plan_protocol
 
 
 class HostPlanSelectionTests(unittest.TestCase):
@@ -106,6 +108,39 @@ class HostPlanSelectionTests(unittest.TestCase):
             self.journal.prepare(**self.specification("after-exhaustion"))
         self.assertEqual(caught.exception.code, "HOST_DECISION_LIMIT")
         self.assertEqual(self.project.status(), manual)
+
+    def test_legacy_proposed_context_is_not_rewritten_or_adopted_as_a_new_projection(self):
+        current_builder = plan_protocol.build_context
+
+        def legacy_context(project, need="next_check"):
+            current = current_builder(project, need)
+            state = project.status()
+            return {"schema_version": "research-plan-context-v1", "selection_context": current["selection_context"],
+                    "feedback": [{"action_id": action["id"], "request_id": action["request_id"],
+                        "method_id": action["command"], "status": action["status"],
+                        "observations": copy.deepcopy(action.get("observations", [])),
+                        "next_decision": copy.deepcopy(action.get("next_decision")),
+                        "failure": copy.deepcopy(action.get("failure")), "artifact_ref": action.get("artifact")}
+                        for action in state["actions"] + state["evidence_actions"]]}
+
+        before = self.project.status()
+        specification = self.specification()
+        with patch.object(plan_protocol, "build_context", side_effect=legacy_context):
+            proposed = self.propose(specification)
+        self.assertEqual(proposed["context"]["schema_version"], "research-plan-context-v1")
+        folder = self.journal.directory / proposed["directory"]
+        frozen = {name: (folder / name).read_bytes() for name in ("context.json", "prompt.json", "proposal.json")}
+        stale = self.journal.adopt_plan(request_id=proposed["request_id"])
+        self.assertEqual(stale["status"], "stale")
+        self.assertEqual(stale["error"]["code"], "STALE_SELECTION_CONTEXT")
+        self.assertEqual(stale["context"], proposed["context"])
+        self.assertEqual(self.project.status(), before)
+        self.assertEqual(frozen, {name: (folder / name).read_bytes() for name in frozen})
+        self.assertEqual(self.journal.prepare(**specification), stale)
+        with self.assertRaises(ResearchError) as caught:
+            self.journal.consume(request_id=proposed["request_id"])
+        self.assertEqual(caught.exception.code, "HOST_RESPONSE_NOT_READY")
+        self.assertEqual(self.journal.status(request_id=proposed["request_id"]), stale)
 
 
 if __name__ == "__main__":

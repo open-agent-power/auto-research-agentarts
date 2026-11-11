@@ -7,12 +7,15 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from autoresearch import research_plan_proposal as protocol
 from autoresearch import host_selection_protocol, recipe_change_proposal, research_recipe
 from autoresearch.contracts import ResearchError, canonical
+from autoresearch.feature_comparison import compare_feature_checks
 from autoresearch.host_model_selection import HostModelSelection
 from autoresearch.local_workbench import LocalWorkbench
+from autoresearch.plan_feedback import project_observations
 from autoresearch.project_controller import ProjectController
 from autoresearch.project_selection import seal_context, validate_proposal
 
@@ -34,23 +37,92 @@ class ResearchPlanProposalTests(unittest.TestCase):
                                   "spec_base64": base64.b64encode(canonical(spec).encode("utf-8")).decode("ascii")}})
         self.project, _ = manager.binding()
 
-    def source_feedback(self, line_count=28):
+    def source_feedback(self, line_count=28, selection_count=1):
         self.project.step(request_id="quality-for-source-plan")
         folder = self.project.root.parent / "source-plan-bundle"
         (folder / "sources").mkdir(parents=True)
         line = ("dataset columns target unit group key independence duplicates numeric_columns missing_tokens "
-                "group_columns reading batch original source definitions remain unverified.\n")
-        raw = (line * line_count).encode("utf-8")
+                "group_columns reading batch original source definitions remain unverified. 研究资料 μ.\n")
+        raw = (line * line_count * selection_count).encode("utf-8")
         (folder / "sources/source.txt").write_bytes(raw)
         document = {"schema_version": "project-evidence-bundle-v1", "task_ref": self.project.evidence_task()["task_ref"],
                     "contributor": {"role": "operator_assistant", "label": "Plan context fixture"},
                     "sources": [{"id": "fixture", "path": "sources/source.txt", "sha256": hashlib.sha256(raw).hexdigest(),
                                  "url": "urn:test:plan-source-context", "media_type": "text/plain", "license_note": "Constructed fixture"}],
-                    "selections": [{"id": "definitions", "source_id": "fixture", "locator": {"kind": "text_lines", "value": "1-" + str(line_count)},
-                                    "claim": "Definitions remain unverified after extraction."}],
+                    "selections": [{"id": "definitions-" + str(index), "source_id": "fixture",
+                                    "locator": {"kind": "text_lines", "value":
+                                                f"{index * line_count + 1}-{(index + 1) * line_count}"},
+                                    "claim": "Definitions remain unverified after extraction."}
+                                   for index in range(selection_count)],
                     "remaining_questions": ["Confirm reading target unit and batch group independence."]}
         (folder / "manifest.json").write_text(canonical(document), encoding="utf-8")
         return self.project.attach_evidence(request_id="source-for-plan", bundle=folder)
+
+    def legacy_context(self, selection, state=None):
+        state = state or self.project.status()
+        return {"schema_version": "research-plan-context-v1", "selection_context": copy.deepcopy(selection),
+                "feedback": [{"action_id": action["id"], "request_id": action["request_id"],
+                              "method_id": action["command"], "status": action["status"],
+                              "observations": copy.deepcopy(action.get("observations", [])),
+                              "next_decision": copy.deepcopy(action.get("next_decision")),
+                              "failure": copy.deepcopy(action.get("failure")), "artifact_ref": action.get("artifact")}
+                             for action in state["actions"] + state["evidence_actions"]]}
+
+    def assert_decision_reference(self, reference, action, project_id):
+        if action.get("next_decision") is None:
+            self.assertIsNone(reference)
+        else:
+            self.assertEqual(reference, {"kind": "saved_action_record", "project_id": project_id,
+                                         "action_id": action["id"], "request_id": action["request_id"],
+                                         "field": "next_decision"})
+            state = self.project.status()
+            saved = next(item for item in state["actions"] + state["evidence_actions"]
+                         if item["id"] == reference["action_id"] and item["request_id"] == reference["request_id"])
+            self.assertEqual(state["id"], reference["project_id"])
+            self.assertEqual(saved[reference["field"]], action["next_decision"])
+
+    def assert_artifact_reference(self, reference, artifact_ref, field, original):
+        self.assertEqual(reference["kind"], "action_artifact_field")
+        self.assertEqual(reference["artifact_ref"], artifact_ref)
+        self.assertEqual(reference["path"], field)
+        value = json.loads((self.project.root / reference["artifact_ref"]).read_bytes())
+        for key in reference["path"]:
+            value = value[key]
+        self.assertEqual(value, original)
+
+    def saved_checks(self, fixed_basis=False):
+        baseline = {"action_id": "saved-parent", "check": "group_cv", "status": "completed",
+                    "source_snapshot_sha256": "a" * 64, "target_column": "reading", "target_unit": "declared_unit",
+                    "design_binding": {"version": 1, "project_id": self.project.status()["id"],
+                                       "training": {"feature_columns": ["speed"] if fixed_basis else ["shape", "speed"]},
+                                       "resource": {"id": "plan-comparison-fixture", "version": 1,
+                                                    "parent_version": None, "checks": ["group_cv"],
+                                                    "title": "Saved parent fixture", "claim": "An unverified design claim"}},
+                    "protocol": {"splitter": "GroupKFold", "n_splits": 2, "shuffle": False, "random_state": None,
+                                 "ridge_alpha": 1.0, "preprocessing": "StandardScaler.fit on training rows only",
+                                 "reference": "training-fold target mean", "split_group_columns": ["signature"],
+                                 "feature_columns": ["speed"] if fixed_basis else ["shape", "speed"]},
+                    "oof": [{"logical_record": index, "physical_line_end": index + 1, "observed": float(index),
+                             "predicted": prediction, "groups": ["a" if index <= 2 else "b"],
+                             "fold": 1 if index <= 2 else 2, "reference_prediction": 3.5 if index <= 2 else 1.5}
+                            for index, prediction in enumerate([-1.0, 3.0, 2.0, 6.0], 1)],
+                    "folds": [{"fold": fold, "train_records": train, "test_records": test,
+                               "reference_prediction": reference, "model_params": {"alpha": 1.0, "fit_intercept": True}}
+                              for fold, train, test, reference in [(1, [3, 4], [1, 2], 3.5), (2, [1, 2], [3, 4], 1.5)]]}
+        candidate = copy.deepcopy(baseline)
+        candidate["action_id"] = "saved-candidate"
+        candidate["design_binding"]["version"] = 2
+        candidate["design_binding"]["resource"].update(version=2, parent_version=1)
+        candidate["design_binding"]["training"]["feature_columns"] = ["speed"]
+        candidate["protocol"]["feature_columns"] = ["speed"]
+        for row, prediction in zip(candidate["oof"], [0.0, 2.0, 4.0, 4.0]):
+            row["predicted"] = prediction
+        if fixed_basis:
+            from autoresearch.input_basis import protocol as basis_protocol
+            candidate["design_binding"]["resource"]["comparison_kind"] = "fixed_input_basis"
+            candidate["design_binding"]["training"]["input_basis"] = "univariate_cubic"
+            candidate["protocol"].update(basis_protocol(candidate["design_binding"]["training"]))
+        return [baseline, candidate]
 
     @staticmethod
     def arguments(context):
@@ -63,17 +135,23 @@ class ResearchPlanProposalTests(unittest.TestCase):
 
     def test_context_reads_saved_feedback_without_advancing_and_retains_proposal_binding(self):
         initial = protocol.build_context(self.project)
+        self.assertEqual(initial["schema_version"], "research-plan-context-v2")
+        self.assertEqual(initial["saved_comparisons"], [])
+        self.assertEqual(initial["remaining_questions"], [])
         initial_proposal = protocol.build_proposal(initial, self.arguments(initial), "Delegated fixture")
         self.assertEqual(initial_proposal["feedback_action_ids"], [])
         self.project.step(request_id="quality-for-plan")
         before = self.project.status()
+        selection = ProjectController(self.project.root).selection_context()
         context = protocol.build_context(self.project)
         self.assertEqual(self.project.status(), before)
+        self.assertEqual(context["selection_context"], selection)
+        self.assertEqual(context["remaining_questions"], (before.get("next_decision") or {}).get("remaining_questions", []))
         action = before["actions"][0]
         feedback = context["feedback"][0]
         self.assertEqual(feedback["action_id"], action["id"])
         self.assertEqual(feedback["observations"], action["observations"])
-        self.assertEqual(feedback["next_decision"], action["next_decision"])
+        self.assert_decision_reference(feedback["next_decision"], action, before["id"])
         self.assertEqual(feedback["artifact_ref"], action["artifact"])
         self.assertIn(canonical(context), protocol.build_prompt(context)["prompt"])
         self.assertEqual(json.loads(protocol.build_prompt(context)["prompt"].split("\n", 1)[1]), context)
@@ -114,42 +192,157 @@ class ResearchPlanProposalTests(unittest.TestCase):
         with self.assertRaises(ResearchError) as caught:
             protocol.build_prompt(oversized)
         self.assertEqual(caught.exception.code, "INVALID_PLAN_CONTEXT")
+        for invalid in ({key: value for key, value in context.items() if key != "saved_comparisons"},
+                        {key: value for key, value in context.items() if key != "remaining_questions"},
+                        {**context, "schema_version": "research-plan-context-v1"},
+                        {**context, "saved_comparisons": [{"scientific_validation": True}]}):
+            with self.subTest(schema=invalid["schema_version"]), self.assertRaises(ResearchError) as caught:
+                protocol._context(invalid)
+            self.assertEqual(caught.exception.code, "INVALID_PLAN_CONTEXT")
         with self.assertRaises(ResearchError):
             protocol.parse_host_response(b'{"plan":{},"plan":{}}', "delegated")
 
-    def test_large_source_decision_uses_traceable_action_reference_without_changing_saved_facts(self):
-        source = self.source_feedback()
+    def test_large_multiselection_feedback_uses_traceable_references_without_changing_saved_facts(self):
+        source = self.source_feedback(line_count=90, selection_count=7)
         before = self.project.status()
         self.assertEqual(len(source["next_decision"]["knowledge_contexts"]), 4)
         files_before = {str(path.relative_to(self.project.root)): path.read_bytes()
                         for path in self.project.root.rglob("*") if path.is_file()}
+        selection = ProjectController(self.project.root).selection_context()
         context = protocol.build_context(self.project)
+        self.assertEqual(context["schema_version"], "research-plan-context-v2")
+        self.assertEqual(context["selection_context"], selection)
+        self.assertEqual(context["saved_comparisons"], [])
+        self.assertTrue(before["next_decision"]["remaining_questions"])
+        self.assertEqual(context["remaining_questions"], before["next_decision"]["remaining_questions"])
+        self.assertEqual(protocol.MAX_CONTEXT_BYTES, 65536)
         self.assertLessEqual(len(canonical(context).encode("utf-8")), protocol.MAX_CONTEXT_BYTES)
-        feedback = next(item for item in context["feedback"] if item["action_id"] == source["id"])
-        reference = feedback["next_decision"]["knowledge_contexts_ref"]
-        self.assertEqual(reference, {"kind": "saved_action_record", "project_id": before["id"],
-                                    "action_id": source["id"], "request_id": source["request_id"],
-                                    "field": "next_decision.knowledge_contexts", "context_count": 4})
-        saved_action = next(action for action in self.project.status()["evidence_actions"]
-                            if action["id"] == reference["action_id"] and action["request_id"] == reference["request_id"])
-        self.assertEqual(len(saved_action["next_decision"]["knowledge_contexts"]), reference["context_count"])
-        expected_decision = copy.deepcopy(saved_action["next_decision"])
-        expected_decision.pop("knowledge_contexts")
-        expected_decision["knowledge_contexts_ref"] = reference
-        self.assertEqual(feedback["next_decision"], expected_decision)
-        self.assertEqual(feedback["observations"], saved_action["observations"])
+        actions = {action["id"]: action for action in before["actions"] + before["evidence_actions"]}
+        for feedback in context["feedback"]:
+            action = actions[feedback["action_id"]]
+            self.assertEqual(set(feedback), protocol.FEEDBACK_FIELDS)
+            self.assert_decision_reference(feedback["next_decision"], action, before["id"])
+            for key, original in (("request_id", action["request_id"]), ("method_id", action["command"]),
+                                  ("status", action["status"]), ("failure", action.get("failure")),
+                                  ("artifact_ref", action.get("artifact"))):
+                self.assertEqual(feedback[key], original)
+            for index, (projected, original) in enumerate(zip(feedback["observations"], action["observations"])):
+                expected = copy.deepcopy(original)
+                if original.get("kind") == "source_observed":
+                    text = expected.pop("exact_text")
+                    reference = projected["exact_text_ref"]
+                    self.assertEqual(reference["characters"], len(text))
+                    self.assertGreater(len(text.encode("utf-8")), reference["characters"])
+                    self.assert_artifact_reference(reference, action["artifact"],
+                                                   ["tool_result", "observations", index, "exact_text"], text)
+                    expected["exact_text_ref"] = reference
+                    self.assertEqual(projected["mapping_status"], "unresolved")
+                    self.assertEqual(projected["submitted_claim"]["status"], "submitter_claim_unreviewed")
+                    self.assertEqual(projected["interpretation_status"], "extraction_only_not_scientific_approval")
+                self.assertEqual(projected, expected)
+            self.assertEqual(len(feedback["observations"]), len(action["observations"]))
         artifact = json.loads((self.project.root / source["artifact"]).read_bytes())
         self.assertNotIn("next_decision", artifact)
         self.assertNotIn("next_decision", artifact["tool_result"])
-        self.assertNotIn("artifact_ref", reference)
-        self.assertTrue(feedback["next_decision"]["knowledge_refs"])
         self.assertTrue(context["selection_context"]["evidence"])
-        original = copy.deepcopy(context)
-        next(item for item in original["feedback"] if item["action_id"] == source["id"])["next_decision"] = saved_action["next_decision"]
-        self.assertGreater(len(canonical(original).encode("utf-8")), protocol.MAX_CONTEXT_BYTES)
+        self.assertFalse(context["selection_context"]["scientific_validation"])
+        original = self.legacy_context(selection, before)
+        self.assertGreater(len(canonical(original).encode("utf-8")), 3 * protocol.MAX_CONTEXT_BYTES)
+        with self.assertRaises(ResearchError) as caught:
+            protocol._context(original)
+        self.assertEqual(caught.exception.code, "INVALID_PLAN_CONTEXT")
+        system = protocol.build_prompt(context)["system"]
+        self.assertIn("original text is not included or established as model-read", system)
+        self.assertIn("Only supplied excerpts are source text", system)
         self.assertEqual(self.project.status(), before)
         self.assertEqual({str(path.relative_to(self.project.root)): path.read_bytes()
                           for path in self.project.root.rglob("*") if path.is_file()}, files_before)
+
+    def test_saved_design_resource_reference_retains_all_other_observation_data(self):
+        record = self.saved_checks(fixed_basis=True)[1]
+        observation = {"kind": "ridge_validation", "design_binding": record["design_binding"],
+                       "protocol": record["protocol"], "scientific_validation": False,
+                       "summary": {"candidate_mae": 0.5, "reference_mae": 1.75, "n": 4,
+                                   "prediction_range": {"negative_predictions": 0, "minimum": 0.0, "maximum": 4.0}},
+                       "usage": {"fit_attempts": 4, "ridge_fit_attempts": 2, "preprocessing_fit_attempts": 2}}
+        artifact_ref = "artifacts/saved-resource-fixture.json"
+        path = self.project.root / artifact_ref
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(canonical({"tool_result": {"observations": [observation]}}), encoding="utf-8")
+        before, original_bytes = copy.deepcopy(observation), path.read_bytes()
+        state = self.project.status()
+        projected, = project_observations([observation], artifact_ref)
+        resource = observation["design_binding"]["resource"]
+        reference = projected["design_binding"]["resource_ref"]
+        self.assert_artifact_reference(reference, artifact_ref,
+                                       ["tool_result", "observations", 0, "design_binding", "resource"], resource)
+        expected = copy.deepcopy(observation)
+        expected["design_binding"]["resource"] = {key: resource[key] for key in
+                                                  ("id", "version", "parent_version", "title", "comparison_kind")}
+        expected["design_binding"]["resource_ref"] = reference
+        self.assertEqual(projected, expected)
+        self.assertEqual(observation, before)
+        self.assertEqual(path.read_bytes(), original_bytes)
+        self.assertEqual(self.project.status(), state)
+        projected["summary"]["candidate_mae"] = 999.0
+        self.assertEqual(observation, before)
+
+    def test_context_supplies_strict_parent_comparisons_without_diagnostic_tables(self):
+        selection = ProjectController(self.project.root).selection_context()
+        state = self.project.status()
+        state["design_revisions"] = [{"version": 1}, {"version": 2}]
+        questions = ["  Preserve the unresolved target definition exactly.\nIncluding its scope.  ", "原生船型编号仍未映射。"]
+        state["next_decision"] = {"remaining_questions": copy.deepcopy(questions)}
+        project_before = self.project.status()
+        for case in ("matched_features", "matched_basis", "worse_candidate", "different_observation"):
+            with self.subTest(case=case):
+                records = self.saved_checks(fixed_basis=case == "matched_basis")
+                if case == "different_observation":
+                    records[1]["oof"][0]["observed"] = 999.0
+                elif case == "worse_candidate":
+                    for row, prediction in zip(records[1]["oof"], [-2.0, 4.0, 1.0, 7.0]):
+                        row["predicted"] = prediction
+                records_before = copy.deepcopy(records)
+                strict, = compare_feature_checks(records)
+                # Retain the actual strict comparison, but exercise the optional catalog-table boundary.
+                with_profiles = {**strict, "input_profiles": [{"column": "speed", "rows": ["not plan context"]}]}
+                by_version = {index: [record] for index, record in enumerate(records, 1)}
+                with patch.object(self.project, "status", return_value=state), \
+                        patch.object(ProjectController, "selection_context", return_value=copy.deepcopy(selection)), \
+                        patch("autoresearch.research_design._records",
+                              side_effect=lambda project, saved, revision: copy.deepcopy(by_version[revision["version"]])), \
+                        patch("autoresearch.feature_comparison.compare_feature_checks", return_value=[with_profiles]) as compare:
+                    context = protocol.build_context(self.project)
+                compare.assert_called_once_with(records)
+                self.assertEqual(context["saved_comparisons"], [strict])
+                self.assertNotIn("input_profiles", context["saved_comparisons"][0])
+                self.assertEqual(context["selection_context"], selection)
+                self.assertEqual(context["remaining_questions"], questions)
+                self.assertEqual(records, records_before)
+                self.assertFalse(strict["scientific_validation"])
+                if case == "different_observation":
+                    self.assertEqual(strict["status"], "not_comparable")
+                    self.assertEqual(strict["reason_codes"], ["OBSERVED_MISMATCH"])
+                    self.assertNotIn("metrics", strict)
+                else:
+                    self.assertEqual(strict["matched_rows"], 4)
+                    self.assertEqual(strict["metrics"]["baseline_mae"], 1.5)
+                    self.assertEqual(strict["metrics"]["candidate_mae"], 2.5 if case == "worse_candidate" else 0.5)
+                    self.assertEqual(strict["metrics"]["mae_change"], 1.0 if case == "worse_candidate" else -1.0)
+                    self.assertEqual(strict["baseline_ref"]["action_id"], "saved-parent")
+                    self.assertEqual(strict["candidate_ref"]["resource_version"], 2)
+                    if case == "matched_basis":
+                        self.assertEqual(strict["comparison_kind"], "fixed_input_basis")
+                        self.assertEqual(strict["changed_protocol_fields"], ["input_basis", "model_input_terms"])
+                prompt = protocol.build_prompt(context)
+                self.assertIn(canonical(context), prompt["prompt"])
+                self.assertIn("candidate MAE minus parent MAE", prompt["system"])
+                self.assertIn("Noncomparable records support no numerical advantage", prompt["system"])
+                context["saved_comparisons"][0]["baseline_ref"]["action_id"] = "changed in memory"
+                self.assertEqual(strict["baseline_ref"]["action_id"], "saved-parent")
+                context["remaining_questions"].append("Cannot change the retained questions")
+                self.assertEqual(state["next_decision"]["remaining_questions"], questions)
+        self.assertEqual(self.project.status(), project_before)
 
     def test_source_plan_context_freezes_and_replays_without_repeating_source_reads(self):
         self.source_feedback()
@@ -161,6 +354,7 @@ class ResearchPlanProposalTests(unittest.TestCase):
                          "cli_budget_usd": 0.1, "reason": "One protocol fixture; no model launch"}
         prepared = journal.prepare(**specification)
         self.assertEqual(prepared["context"], context)
+        self.assertEqual(context["remaining_questions"], before["next_decision"]["remaining_questions"])
         saved = journal.directory / prepared["directory"] / "context.json"
         self.assertEqual(saved.read_bytes(), canonical(context).encode("utf-8"))
         response = self.project.root.parent / "source-plan-response.json"
@@ -183,21 +377,28 @@ class ResearchPlanProposalTests(unittest.TestCase):
 
     def test_existing_bounded_source_context_keeps_its_original_feedback_representation(self):
         source = self.source_feedback(line_count=1)
-        context = protocol.build_context(self.project)
-        legacy = copy.deepcopy(context)
-        next(item for item in legacy["feedback"] if item["action_id"] == source["id"])["next_decision"] = source["next_decision"]
+        selection = ProjectController(self.project.root).selection_context()
+        legacy = self.legacy_context(selection)
+        self.assertEqual(set(legacy), {"schema_version", "selection_context", "feedback"})
+        self.assertNotIn("saved_comparisons", legacy)
+        self.assertEqual(legacy["schema_version"], "research-plan-context-v1")
+        source_feedback = next(item for item in legacy["feedback"] if item["action_id"] == source["id"])
+        self.assertIn("knowledge_contexts", source_feedback["next_decision"])
+        self.assertIn("exact_text", source_feedback["observations"][0])
         self.assertLess(len(canonical(legacy).encode("utf-8")), protocol.MAX_CONTEXT_BYTES)
-        frozen = copy.deepcopy(legacy)
+        frozen = canonical(legacy).encode("utf-8")
+        legacy = json.loads(frozen)
+        self.assertEqual(protocol._context(legacy), legacy)
         proposal = protocol.build_proposal(legacy, self.arguments(legacy), "Saved bounded source fixture")
         self.assertEqual(protocol.validate_proposal(legacy, proposal), proposal)
         self.assertIn(canonical(legacy), protocol.build_prompt(legacy)["prompt"])
-        self.assertEqual(legacy, frozen)
+        self.assertEqual(canonical(legacy).encode("utf-8"), frozen)
 
     def test_researcher_feedback_extends_context_without_becoming_tool_feedback(self):
         self.project.save_plan(request_id="plan-before-note", expected_state_version=0,
                                plan=self.arguments({"feedback": []})["plan"], reason="Record the initial route.")
         before = self.project.status()
-        old_research = protocol.build_context(self.project)
+        old_research = self.legacy_context(ProjectController(self.project.root).selection_context())
         old_selection = old_research["selection_context"]
         self.assertNotIn("researcher_feedback", old_selection)
         old_plan_proposal = protocol.build_proposal(old_research, self.arguments(old_research), "Protocol fixture")

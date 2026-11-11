@@ -4,7 +4,7 @@
 
 ## 已实现的入口
 
-- `src/autoresearch/recipe_improvement.py`：`run_improvement_round`接收原配方、完整`research-plan-context-v1`、原目标、`propose_recipe_change`格式的返回值及已有`recipe-change-validation-v1`结果。输出决定、逐项检查、可读理由、有效配方和下一项问题。显式 `resume=True` 可在同一轮追加新的保存回执。`read_improvement_round`重新核对并返回最新完整阶段，`read_improvement_snapshot`另提供对应原生输入和 `input_path`。
+- `src/autoresearch/recipe_improvement.py`：`run_improvement_round`接收原配方、完整冻结context（新`research-plan-context-v2`，历史v1原件保持）、原目标、`propose_recipe_change`格式的返回值及已有`recipe-change-validation-v1`结果。输出决定、逐项检查、可读理由、有效配方和下一项问题。显式 `resume=True` 可在同一轮追加新的保存回执。`read_improvement_round`重新核对并返回最新完整阶段，`read_improvement_snapshot`另提供对应原生输入和 `input_path`。
 - `scripts/run_recipe_improvement.py`：`fixture`处理明确构造输入；`saved-host`通过已有`read_recipe_validation`核对原Host、验证sidecar及控制器账本，`--resume`继续同一外环记录。CLI始终输出当前最新完整阶段的 `input_path`。实际模型和工具接线仍由主开发负责。
 - 离线材料使用`saved-export --evidence-root --spec`及`load_saved_export`，核对团队导出原件后保存独立外环结果，不构造数据库。`next-input --output --round-id`读取最新完整阶段的有效配方、前轮结果和下一项问题，状态为`awaiting_next_feedback`，不产生新提案或行动。
 - 项目与工作台通过 `preview_recipe_round/apply_recipe_round` 核对原 Host 保存记录并追加 `recipe_revisions`。研究页展示当前有效版本，上传完整 `input.json` 后先核对，再填写理由明确采用或记录回退。操作步骤与 HTTP 字段见[工作台说明](../local-workbench.md#核对外环并保存有效版本)。

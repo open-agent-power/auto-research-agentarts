@@ -6,6 +6,7 @@ from . import host_selection_protocol as host_protocol
 from . import research_plan_proposal as plan_protocol
 from . import research_recipe
 from .contracts import ResearchError, canonical
+from .plan_feedback import projection_notice
 from .project_selection import MAX_PROPOSAL_BYTES, _json_value
 
 
@@ -72,7 +73,7 @@ def _arguments(value):
 
 def build_prompt(context):
     _context(context)
-    return {"system": "Propose one concrete recipe revision for the supplied improvement goal using saved project feedback. "
+    prompt = {"system": "Propose one concrete recipe revision for the supplied improvement goal using saved project feedback. "
             "Return only JSON with exactly candidate, reason, feedback_action_ids, expected_improvement and validation_plan. "
             "Candidate must be a complete research-recipe-v1 object with the same id, scope_match and need as current_recipe, "
             "version equal to current_recipe.version plus one, and on_no_match set to wait. You may revise question and "
@@ -86,6 +87,8 @@ def build_prompt(context):
             "The candidate remains pending validation and adoption, with original resource and execution constraints. "
             "Return no code, provider labels, context identities or markdown.",
             "prompt": "Propose a recipe revision from this complete frozen context:\n" + canonical(context)}
+    prompt["system"] += projection_notice(context["research_context"])
+    return prompt
 
 
 def parse_host_response(raw: bytes, provider: str):

@@ -56,7 +56,7 @@ validate_recipe_change(
 )
 ```
 
-`trace`须为本次冻结的完整实际`research-plan-context-v1`，首次由当前项目按原配方need构建，后续调用沿用原请求context中的`research_context`。`current_version`传原生`research-recipe-v1`，`goal`传本轮有界改进目标。Host以`purpose=recipe`复用原累计grant，consume仅保存`proposed`。子代理首次调用返回`prepared`，按`context_ref/prompt_ref`取得原上下文和提示。使用同一ID传入`response_file`后，适配导入原回答并consume，合法提案进入`proposed`。CLI分支使用原传输，`response_file`仅用于子代理。
+`trace`须为本次冻结的完整实际context（新请求为`research-plan-context-v2`，旧v1沿原封存），首次由当前项目按原配方need构建，后续调用沿用原请求context中的`research_context`。`current_version`传原生`research-recipe-v1`，`goal`传本轮有界改进目标。Host以`purpose=recipe`复用原累计grant，consume仅保存`proposed`。子代理首次调用返回`prepared`，按`context_ref/prompt_ref`取得原上下文和提示。使用同一ID传入`response_file`后，适配导入原回答并consume，合法提案进入`proposed`。CLI分支使用原传输，`response_file`仅用于子代理。
 
 提案适配返回`recipe-change-proposal-result-v1`，字段为`request_id/status/candidate/context_ref/prompt_ref/response_ref/scientific_validation`，其中`scientific_validation`为false。`prepared`时`candidate`为null，`proposed`时为完整的`recipe-change-proposal-v1`，包含`schema_version/context_sha256/provider/candidate/reason/feedback_action_ids/expected_improvement/validation_plan`。内部`candidate`才是原生配方，保留原`id/scope_match/need`、版本加1、`on_no_match=wait`。方法与`evaluation_ref`必须成对来自冻结conditions，反馈行动ID必须指向实际完成或失败的记录。
 
@@ -96,7 +96,7 @@ A64复用已有构造四行工程项目，经一次实际协作子代理请求`a
 
 ### 主团队提供的真实轨迹与Host接线
 
-主团队已提供`research_plan_proposal.py`的`build_context(project)`，返回`research-plan-context-v1`。其中`selection_context`是原控制器的完整实际context，`feedback`来自原项目已保存的分析和来源行动，保留`action_id/request_id/method_id/status/observations/next_decision/failure/artifact_ref`。队友可以据此关联当前问题、原观察和工件，形成外环输入。
+主团队已提供`research_plan_proposal.py`的`build_context(project)`，新请求返回`research-plan-context-v2`。其中`selection_context`是原控制器的完整实际context，`feedback`来自原项目已保存的分析和来源行动，保留`action_id/request_id/method_id/status/observations/next_decision/failure/artifact_ref`。v2对来源全文、资源正文与历史决定使用明确原工件/行动账本引用，数值、协议、范围和用量保持；另供应严格父子`saved_comparisons`。队友应沿本次冻结原件使用该表示，旧v1封存继续按原合同核验，不重建或替换旧请求。完整字段及离线核对见[有界上下文](../host-model-selection.md#计划执行条件)。
 
 该模块还提供`build_prompt`、`parse_host_response`、`build_proposal`和`validate_proposal`。Host的`prepare/advance --purpose plan`可以取得计划候选，子代理分支使用原请求的`context.json/prompt.json`，经`import-response/consume`保存为`proposed`。CLI分支沿现有传输取得原回答。计划与选择请求共用同一累计grant。
 

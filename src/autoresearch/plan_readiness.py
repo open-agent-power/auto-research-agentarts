@@ -13,7 +13,7 @@ def _remaining(budget, limit, used, reserved):
 def assess_plan_readiness(context):
     """Project saved eligibility and budgets, without evaluating the plan's prose.
 
-    The caller supplies a validated research-plan-context-v1. Remaining budget
+    The caller supplies a validated frozen research plan context. Remaining budget
     does not establish method eligibility; only the frozen candidates do that.
     Reservations continue to reduce available budget while execution is unknown.
     """

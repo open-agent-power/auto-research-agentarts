@@ -1,6 +1,7 @@
 """Saved-result outer-loop decisions; constructed evidence is never a model claim."""
 
 import copy
+from contextlib import ExitStack
 import json
 from pathlib import Path
 import shutil
@@ -330,10 +331,11 @@ class RecipeImprovementTests(unittest.TestCase):
                 improvement.read_json(path)
         self.assertEqual(caught.exception.code, "UNSAFE_PATH")
 
-    def test_offline_export_binds_originals_sources_and_next_input_without_database(self):
+    def saved_export_fixture(self, *, legacy=False, source_feedback=False):
         import test_local_evidence as evidence_fixtures
         import test_recipe_improvement_adapter as adapter_fixtures
         from autoresearch import recipe_improvement_adapter as adapter
+        from autoresearch import research_plan_proposal as plan_protocol
         from autoresearch.host_model_selection import HostModelSelection
 
         fixture = adapter_fixtures.RecipeImprovementAdapterTests()
@@ -341,10 +343,33 @@ class RecipeImprovementTests(unittest.TestCase):
         fixture.setUp()
         registered = fixture.manager.register_evidence(evidence_fixtures.LocalEvidenceTests.body(fixture))
         receipt = registered["registration"]["receipt_snapshot_sha256"]
-        candidate = fixture.propose(SOURCE["method_id"])
+        target = GROUPED if source_feedback else SOURCE
+        if source_feedback:
+            fixture.project.read_evidence(request_id="before-recipe-source", receipt_snapshot_sha256=receipt,
+                                          expected_state_version=fixture.project.status()["state_version"])
+        current_builder = plan_protocol.build_context
+
+        def legacy_context(project, need="next_check"):
+            current = current_builder(project, need=need)
+            state = project.status()
+            return {"schema_version": "research-plan-context-v1", "selection_context": current["selection_context"],
+                    "feedback": [{"action_id": action["id"], "request_id": action["request_id"],
+                        "method_id": action["command"], "status": action["status"],
+                        "observations": copy.deepcopy(action.get("observations", [])),
+                        "next_decision": copy.deepcopy(action.get("next_decision")),
+                        "failure": copy.deepcopy(action.get("failure")), "artifact_ref": action.get("artifact")}
+                        for action in state["actions"] + state["evidence_actions"]]}
+
         request_id = fixture.options["request_id"]
-        adapter.validate_recipe_change(candidate, fixture.original, fixture.goal, workspace=fixture.project.root,
-            request_id=request_id, allowed_methods=[SOURCE["method_id"]], allowed_receipts=[receipt])
+        with ExitStack() as patches:
+            if legacy:
+                # Freeze a real v1 Host request as the previous producer did, before any reader runs.
+                patches.enter_context(patch.object(adapter_fixtures, "build_context", side_effect=legacy_context))
+                patches.enter_context(patch.object(plan_protocol, "build_context", side_effect=legacy_context))
+            candidate = fixture.propose(target["method_id"])
+            adapter.validate_recipe_change(candidate, fixture.original, fixture.goal, workspace=fixture.project.root,
+                request_id=request_id, allowed_methods=[target["method_id"]], allowed_receipts=[receipt])
+            original_result = adapter.propose_recipe_change(fixture.original, fixture.trace, fixture.goal, **fixture.options)
         journal = HostModelSelection(fixture.project.root)
         record = journal.status(request_id=request_id)
         exported = self.root / "offline-export"
@@ -352,12 +377,16 @@ class RecipeImprovementTests(unittest.TestCase):
         (exported / "derived").mkdir()
         originals = {"current-recipe.json": fixture.original, "candidate-recipe.json": candidate["candidate"],
                      "selection-context.json": fixture.trace["selection_context"],
-                     "proposal-result.json": adapter.propose_recipe_change(fixture.original, fixture.trace, fixture.goal,
-                                                                          **fixture.options)}
+                     "proposal-result.json": original_result}
         for name, value in originals.items():
             (exported / "derived" / name).write_bytes(canonical(value).encode("utf-8"))
         (exported / "handoff.json").write_bytes(canonical({"schema_version": "a64-rsi-evidence-handoff-v1",
             "request_id": request_id, "project_id": fixture.trace["selection_context"]["project_id"]}).encode("utf-8"))
+        return fixture, exported, record, candidate, receipt
+
+    def test_offline_export_binds_originals_sources_and_next_input_without_database(self):
+        fixture, exported, record, candidate, receipt = self.saved_export_fixture()
+        request_id = fixture.options["request_id"]
         self.assertFalse(list(exported.rglob("*.sqlite*")))
         snapshot = {path: path.read_bytes() for path in exported.rglob("*") if path.is_file()}
         spec = {"issue": {"summary": "Saved quality feedback lacks a source follow-up.",
@@ -414,6 +443,68 @@ class RecipeImprovementTests(unittest.TestCase):
                 improvement.load_saved_export(exported)
         finally:
             host_path.write_bytes(host_raw)
+
+    def assert_export_feedback_rejected(self, exported, record, mutation):
+        host_path = exported / "project/host-model-selections/state.json"
+        context_path = exported / "project/host-model-selections" / record["directory"] / "context.json"
+        host_raw, context_raw = host_path.read_bytes(), context_path.read_bytes()
+        host, context = json.loads(host_raw), json.loads(context_raw)
+        feedback = next(item for item in context["research_context"]["feedback"]
+                        if item["method_id"] == SOURCE["method_id"])
+        mutation(feedback["observations"][0])
+        host["requests"][record["request_id"]]["context"] = context
+        host_path.write_bytes(canonical(host).encode("utf-8"))
+        context_path.write_bytes(canonical(context).encode("utf-8"))
+        try:
+            # Even a consistent replacement of both frozen context copies cannot
+            # substitute a changed observation for the supplied original artifact.
+            with self.assertRaisesRegex(ResearchError, "Export feedback differs from the original saved artifact"):
+                improvement.load_saved_export(exported)
+        finally:
+            host_path.write_bytes(host_raw)
+            context_path.write_bytes(context_raw)
+
+    def test_v2_offline_export_reconstructs_source_projection_and_rejects_forged_values_or_refs(self):
+        from autoresearch.host_model_selection import HostModelSelection
+
+        fixture, exported, record, _, _ = self.saved_export_fixture(source_feedback=True)
+        before = (fixture.project.status(), HostModelSelection(fixture.project.root).status())
+        files = {path: path.read_bytes() for path in exported.rglob("*") if path.is_file()}
+        inputs = improvement.load_saved_export(exported)
+        self.assertEqual(inputs["trace"]["schema_version"], "research-plan-context-v2")
+        feedback = next(item for item in inputs["trace"]["feedback"] if item["method_id"] == SOURCE["method_id"])
+        observation = feedback["observations"][0]
+        original = improvement.read_json(exported / "project" / feedback["artifact_ref"])
+        self.assertNotIn("exact_text", observation)
+        self.assertEqual(observation["exact_text_ref"], {
+            "kind": "action_artifact_field", "artifact_ref": feedback["artifact_ref"],
+            "path": ["tool_result", "observations", 0, "exact_text"],
+            "characters": len(original["tool_result"]["observations"][0]["exact_text"])})
+        decisions = [item for item in inputs["trace"]["feedback"] if item["next_decision"] is not None]
+        self.assertTrue(decisions)
+        for item in decisions:
+            self.assertEqual(item["next_decision"], {"kind": "saved_action_record", "project_id": before[0]["id"],
+                "action_id": item["action_id"], "request_id": item["request_id"], "field": "next_decision"})
+        mutations = [lambda obs: obs.update(mapping_status="fabricated_resolved"),
+                     lambda obs: obs["exact_text_ref"].update(artifact_ref="artifacts/forged.json"),
+                     lambda obs: obs["exact_text_ref"].update(path=["tool_result", "observations", 1, "exact_text"]),
+                     lambda obs: obs["exact_text_ref"].update(characters=1)]
+        for index, mutation in enumerate(mutations):
+            with self.subTest(mutation=index):
+                self.assert_export_feedback_rejected(exported, record, mutation)
+        self.assertEqual((fixture.project.status(), HostModelSelection(fixture.project.root).status()), before)
+        self.assertEqual({path: path.read_bytes() for path in exported.rglob("*") if path.is_file()}, files)
+
+    def test_v1_offline_export_preserves_original_source_observation_equality(self):
+        _, exported, record, _, _ = self.saved_export_fixture(legacy=True, source_feedback=True)
+        files = {path: path.read_bytes() for path in exported.rglob("*") if path.is_file()}
+        inputs = improvement.load_saved_export(exported)
+        self.assertEqual(inputs["trace"]["schema_version"], "research-plan-context-v1")
+        feedback = next(item for item in inputs["trace"]["feedback"] if item["method_id"] == SOURCE["method_id"])
+        self.assertEqual(feedback["observations"][0]["exact_text"], "Original fixture note.\n")
+        self.assertNotIn("exact_text_ref", feedback["observations"][0])
+        self.assert_export_feedback_rejected(exported, record, lambda obs: obs.update(exact_text="Altered original."))
+        self.assertEqual({path: path.read_bytes() for path in exported.rglob("*") if path.is_file()}, files)
 
 
 if __name__ == "__main__":

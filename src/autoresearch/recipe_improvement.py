@@ -6,6 +6,7 @@ from pathlib import Path, PurePosixPath
 
 from . import recipe_change_proposal as protocol
 from .contracts import ResearchError, canonical, fingerprint, identifier
+from .plan_feedback import project_observations
 from .project_selection import _json_value, _text
 from .research_project import ResearchProject, safe_path, write_bytes_once
 from .research_recipe import compile_recipe, parse_json
@@ -535,6 +536,8 @@ def load_saved_export(directory):
             observations = [dict(observation, id=item["action_id"] + ":observation:" + str(index),
                                  action_id=item["action_id"])
                             for index, observation in enumerate(envelope["tool_result"]["observations"])]
+            if context["research_context"]["schema_version"] == "research-plan-context-v2":
+                observations = project_observations(observations, item["artifact_ref"])
             _require(envelope["action_id"] == item["action_id"]
                      and observations == item["observations"],
                      "Export feedback differs from the original saved artifact.")

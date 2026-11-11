@@ -6,13 +6,17 @@
 
 `prepare`和`advance`支持`--purpose plan`，默认用途为`selection`。计划请求与选择请求使用同一份累计grant，`decision_limit`、`cli_budget_usd`和原授权`reason`沿用原值。准备一次计划请求也占一个决策名额。CLI的`advance`会取得一次回答并消费为计划建议，`advance-batch`仍用于候选行动选择。
 
-计划context由[research_plan_proposal.py](../src/autoresearch/research_plan_proposal.py)的`build_context(project)`生成，schema为`research-plan-context-v1`。它包含完整原`selection_context`与实际保存的`feedback`，后者逐项保留行动ID、请求ID、方法、状态、原观察、下一决定、失败及工件引用。`build_prompt`将这些事实交给模型，`parse_host_response`解析原回答，`build_proposal/validate_proposal`绑定提案。
+新计划context由[research_plan_proposal.py](../src/autoresearch/research_plan_proposal.py)的`build_context(project)`生成，schema为`research-plan-context-v2`。它保留完整原`selection_context`，并供应实际行动反馈的有界投影及`saved_comparisons`。行动ID、请求ID、方法、状态、失败和工件引用保持；数值、协议、范围及实际用量不截断，来源全文和资源正文改用明确原件定位，历史决定改用原行动账本定位。`build_prompt`说明这些引用没有包含原文，`parse_host_response`解析原回答，`build_proposal/validate_proposal`绑定提案。旧v1封存context按原合同验证和重放，不改写成v2。
 
 模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
 
 ### 计划执行条件
 
-计划反馈保留真实观察和原决定。来源决定中重复派生的`knowledge_contexts`在新context中投影为`knowledge_contexts_ref`，通过项目、行动、请求与字段路径定位原行动账本；完整决定不在更早生成的工具工件内。当前候选的检索证据及其他`knowledge_refs`仍保留，原行动和历史冻结context不改写。此处减少重复检索片段，不截断观察或提高64KiB门限；其余真实内容仍超限时继续明确拒绝。
+v2的反馈仍有`action_id/request_id/method_id/status/observations/next_decision/failure/artifact_ref`八个字段。每项非空`next_decision`通过`kind=saved_action_record`及项目、行动、请求、`field=next_decision`定位完整原决定；决定只存在原行动账本，不能指向更早的工具工件。来源观察的`exact_text_ref`以`artifact_ref`与`path=[tool_result,observations,index,exact_text]`定位原文，`characters`记录原字符数。设计绑定保留原训练声明和资源身份，完整资源正文在`resource_ref`所指的原工件字段。其他观察值与原件保持，当前候选、预算、条件、未核验研究者意见及检索引文仍来自原sealed selection context；顶层`remaining_questions`另完整保留当前决定记录的同名问题列表，无该字段时为空。
+
+`saved_comparisons`复用既有严格父子核对，保留双方行动/设计/资源身份、可比状态、失败原因、评价类型、完整匹配行数与MAE/负预测计数，省去输入画像正文。`mae_change`为候选减父版本，正值表示这次误差增加，负值表示降低；它与相对训练折均值参考的优势分别解释。不可比记录不提供数值优势，较低保存MAE也不证明物理因果、独立泛化或工程适用。
+
+64KiB门限保持不变。固定投影后仍超过上限时明确拒绝，不按误差挑选行动、截断数值或自动扩额度。原行动、原文、完整资源与历史冻结context保留；字段引用不表示原文已经提供给模型。离线配方导出对v2先从原工件重建相同投影再逐值核对，对旧v1仍核对原观察。旧未提交请求的context若与当前构造不符，按原freshness门保留过期，不用新context覆盖旧请求。
 
 新的计划请求在原冻结context之外附带`execution_conditions`：本地工具、来源读取与估计器拟合的剩余额度（扣除预留），当前合资格候选，各方法缺条件与整体阻塞。余额不等于方法资格；没有待选来源时，即使来源读取额度尚余也不能读取。拟合预留及未知执行继续占用原额度，缺失或未知预算显示为未知。
 
