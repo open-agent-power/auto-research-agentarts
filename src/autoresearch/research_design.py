@@ -4,6 +4,7 @@ import copy
 import json
 
 from .contracts import ResearchError
+from .prediction_summary import summarize_oof_range
 
 
 RESOURCE = {
@@ -46,6 +47,8 @@ def _records(project, state, binding=None):
         check = result.get("analysis", result.get("check_result", result))
         records.append({"action_id": action["id"], "method_id": action["command"],
                         "status": action["status"], "check": METHODS[action["command"]], **copy.deepcopy(check)})
+        if METHODS[action["command"]] in ("random_cv", "group_cv"):
+            records[-1]["prediction_range"] = summarize_oof_range(check["oof"])
     return records
 
 

@@ -3,6 +3,7 @@
 - [研究设计与验证](research-design.md)涵盖原始数据的划分对照、拟合预算、负对照，以及保存预测核验、反馈版本与跨项目资源复用
 - [真人使用与同项目交接](human-use-runbook.md)：两位真实参与者的顺序操作、判断反馈和交接记录
 - [模型计划的执行条件](host-model-selection.md#计划执行条件)：冻结预算余量、合资格候选、缺口与科学审阅边界
+- [帆船阻力公开任务](research/yacht-geometry-study.md)：固定协议、实际计划对比与接续、负预测诊断及未观察到的提示增益
 
 - [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
 - [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，保留能力取舍及平台候选路径；当前接入安排以提交计划为准

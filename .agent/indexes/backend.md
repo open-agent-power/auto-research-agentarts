@@ -1,5 +1,7 @@
 # 后端索引
 
+`prediction_summary.summarize_oof_range`只读已保存OOF，供`research_design`与`project_report`共用，投影观察/预测范围及负值/越界计数，不改原结果或科学资格。[Yacht实际任务](../../docs/research/yacht-geometry-study.md)保留固定协议、两份计划无实质差异及不利局部诊断。
+
 [计划执行条件](../../docs/host-model-selection.md#计划执行条件)由`plan_readiness`从Host冻结context纯只读派生，供新请求prompt、工作台与报告共用。扣除预留后的余量、真实候选和方法缺口分别保留；不修改原Host记录，不判读自由文本或自动批准科研解释。
 
 [研究设计](../../docs/research-design.md)将保存预测的公平基线、分组与敏感性检查接入原控制器。`project_design`保存明确字段绑定及不可变资源版本，`research_design`提供资源目录与反馈候选。实际行动共享原项目预算和请求恢复。

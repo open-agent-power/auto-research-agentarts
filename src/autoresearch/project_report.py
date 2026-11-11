@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness
+from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness, prediction_summary
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
 
@@ -220,6 +220,11 @@ def collect_report(workspace) -> dict:
               "selection_history": selection_history,
               "host_models": {key: value for key, value in host_models.items() if key != "assets"},
               "plan_reviews": plan_readiness.review_plan_requests(host_models["records"]),
+              "prediction_ranges": [{"action_id": entry["action_id"], "check": analysis["check"],
+                                     "summary": prediction_summary.summarize_oof_range(analysis["oof"])}
+                                    for entry in results if entry["status"] == "completed"
+                                    for analysis in [((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}]
+                                    if analysis.get("check") in ("random_cv", "group_cv")],
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
@@ -231,7 +236,8 @@ def collect_report(workspace) -> dict:
               "exporter_code_identity": hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
                                                        + Path(project_selection_view.__file__).read_bytes()
                                                        + Path(host_model_report.__file__).read_bytes()
-                                                       + Path(plan_readiness.__file__).read_bytes()).hexdigest(),
+                                                       + Path(plan_readiness.__file__).read_bytes()
+                                                       + Path(prediction_summary.__file__).read_bytes()).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
     report["snapshot_sha256"] = fingerprint(report)
@@ -469,6 +475,13 @@ def _raw_validation_lines(report):
                 + _number(summary["reference_mae"]) + "，相对改善 "
                 + (_number(improvement * 100) + "%" if improvement is not None else "未知") + "。")
             lines.append("每个训练折分别拟合StandardScaler与Ridge(alpha=1)，评价折不参与拟合；完整行号、折分配、模型系数保存在JSON。")
+            prediction_range = prediction_summary.summarize_oof_range(analysis["oof"])
+            if prediction_range is not None:
+                lines.append("保存预测范围 " + _number(prediction_range["predicted_min"]) + "—" + _number(prediction_range["predicted_max"])
+                    + "，原目标范围 " + _number(prediction_range["observed_min"]) + "—" + _number(prediction_range["observed_max"])
+                    + "；负预测 " + str(prediction_range["negative_predictions"]) + "/" + str(prediction_range["n"])
+                    + "，低于/高于本次观察范围 " + str(prediction_range["below_observed_min"]) + "/" + str(prediction_range["above_observed_max"]) + "。")
+                lines.append("范围描述用于复核保存预测，适用约束按课题判断。")
             sizes = [len(fold["train_records"]) for fold in analysis.get("folds", [])]
             if sizes:
                 lines.append("各折训练样本数 " + "、".join(map(str, sizes)) + "。两种划分的样本量与组分布可能同时变化，误差差异不能单独归因于分组。")

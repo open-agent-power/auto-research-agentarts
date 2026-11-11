@@ -1,13 +1,16 @@
-"""Three bounded upload/registration checks; fixture text is never extracted."""
+"""Bounded evidence upload, original-byte preservation and explicit extraction."""
 
 import base64
 import copy
+import http.client
+import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import test_local_workbench as fixtures
+import test_local_workbench_http as http_fixtures
 from autoresearch.contracts import ResearchError
 from autoresearch.local_workbench import LocalWorkbench
 from autoresearch.project_controller import ProjectController
@@ -60,6 +63,64 @@ class LocalEvidenceTests(unittest.TestCase):
             self.assert_code("IDEMPOTENCY_CONFLICT", self.manager.register_evidence, changed)
             next((self.root / "evidence-uploads").glob("*/sources/*")).write_bytes(b"Changed original")
             self.assert_code("EVIDENCE_CHANGED", self.manager.register_evidence, body)
+
+    def test_html_originals_register_extract_literal_lines_and_replay_without_new_reads(self):
+        original = "<!doctype html>\r\n<html>\r\n<script>window.fixture = '<b>literal</b>';</script>\r\n<p>原始 &amp; HTML</p>\r\n</html>\r\n"
+        raw = original.encode("utf-8")
+        body = self.body("html-originals")
+        body["sources"] = [{**body["sources"][0], "id": suffix, "file_name": "saved-page." + suffix,
+                            "bytes_base64": base64.b64encode(raw).decode("ascii"), "media_type": "text/html"}
+                           for suffix in ("html", "htm")]
+        body["selections"] = [{**body["selections"][0], "id": "lines-" + suffix, "source_id": suffix,
+                               "locator": {"kind": "text_lines", "value": "3-4"}} for suffix in ("html", "htm")]
+        before = self.project.status()
+        registered = self.manager.register_evidence(body)
+        sha = registered["registration"]["receipt_snapshot_sha256"]
+        after_register = self.project.status()
+        self.assertEqual(after_register["budget"], before["budget"])
+        receipt, assets, _ = self.project._load_evidence_input(after_register, sha, task_ref=body["task_ref"])
+        self.assertEqual(assets, {"html": raw, "htm": raw})
+        self.assertTrue(all(source["media_type"] == "text/html" for source in receipt["sources"]))
+        with patch.object(reader, "execute", wraps=reader.execute) as extract:
+            action = self.project.read_evidence(request_id="read-html-originals", receipt_snapshot_sha256=sha,
+                                                expected_state_version=after_register["state_version"])
+            after_read = self.project.status()
+            self.assertEqual(after_read["budget"]["evidence_reads_used"], before["budget"]["evidence_reads_used"] + 1)
+            self.assertEqual(after_read["budget"]["local_tool_calls_used"], before["budget"]["local_tool_calls_used"])
+            selected = "".join(original.splitlines(keepends=True)[2:4])
+            result = json.loads(self.project._artifact(action).read_bytes())["tool_result"]["result"]
+            for selection in result["selections"]:
+                extraction = selection["extraction"]
+                self.assertEqual(extraction["text"], selected)
+                self.assertEqual((extraction["line_start"], extraction["line_end"]), (3, 4))
+                self.assertEqual([line["line"] for line in extraction["lines"]], [3, 4])
+                self.assertEqual(original[extraction["start_char"]:extraction["end_char"]], selected)
+            self.assertTrue(self.manager.register_evidence(body)["replayed"])
+            self.assertTrue(self.project.read_evidence(request_id="read-html-originals", receipt_snapshot_sha256=sha,
+                                                       expected_state_version=after_register["state_version"])["replayed"])
+            self.assertEqual(extract.call_count, 1)
+        self.assertEqual(self.project.status(), after_read)
+
+    def test_html_original_download_remains_an_octet_stream_attachment(self):
+        body = self.body("html-download")
+        raw = b"<html><script>window.fixture = true;</script></html>\n"
+        body["sources"][0].update(file_name="saved-page.html", media_type="text/html",
+                                   bytes_base64=base64.b64encode(raw).decode("ascii"))
+        registered = self.manager.register_evidence(body)
+        sha = registered["registration"]["receipt_snapshot_sha256"]
+        before = self.project.status()
+        server = http_fixtures.LocalWorkbenchHTTPTests.serve(self, local_workspace=self.manager)
+        connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+        self.addCleanup(connection.close)
+        with patch.object(reader, "execute", side_effect=AssertionError("Download must not extract")):
+            connection.request("GET", f"/api/project/evidence-source/{sha}/notes")
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.getheader("Content-Type"), "application/octet-stream")
+            self.assertIn("attachment", response.getheader("Content-Disposition"))
+            self.assertIn("notes.html", response.getheader("Content-Disposition"))
+            self.assertEqual(response.read(), raw)
+        self.assertEqual(self.project.status(), before)
 
     def test_filename_locator_task_version_unknown_code_and_size_boundaries(self):
         body = self.body()

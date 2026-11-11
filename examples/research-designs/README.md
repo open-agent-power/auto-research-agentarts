@@ -1,5 +1,7 @@
 # 研究设计的反馈修订与跨项目复用
 
+[yacht-geometry-transfer.json](yacht-geometry-transfer.json)是实际公开帆船任务的资源定义，可从工作台导入；它复用既有随机／分组Ridge与负对照，未增加新的执行器。数据出处、转换规则和结果见[任务说明](../../docs/research/yacht-geometry-study.md)，原始数据与运行证据不随源码分发。
+
 本示例在同一个完整本地工作台manager中创建两个独立项目。两个CSV均为作者直接构造的六行工程输入，`predicted`是预先给出的保存值。运行使用既有项目、设计绑定、条件候选、控制器、工具工件及预算账本。
 
 从产品根目录执行，`--output`必须指向全新目录。

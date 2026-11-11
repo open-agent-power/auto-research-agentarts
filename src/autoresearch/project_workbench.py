@@ -498,7 +498,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     source = next((item for item in receipt["sources"] if item["id"] == source_id), None)
                     _require(source is not None, "ARTIFACT_NOT_FOUND", "Source is not registered in this receipt.")
                     extension = {"application/pdf": ".pdf", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
-                                 "text/plain": ".txt", "text/markdown": ".md", "application/json": ".json",
+                                 "text/plain": ".txt", "text/markdown": ".md", "text/html": ".html", "application/json": ".json",
                                  "text/csv": ".csv", "text/tab-separated-values": ".tsv"}.get(source["media_type"], ".bin")
                     return self.send_data(200, assets[source_id], "application/octet-stream", source_id + extension)
                 if parsed.path == "/api/project/plan-context.json":

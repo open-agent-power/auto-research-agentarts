@@ -76,6 +76,17 @@ function showMetrics(parent: HTMLElement, record: Obj): void {
   parent.append(el("p", "detail-note", "MAE 为平均绝对误差，越小越好。参考为" + (trained ? "各训练折的目标均值" : reference) + "；相对改善大于0表示本次预测误差较低。"));
   if (trained) parent.append(el("p", "detail-note", record.check === "random_cv" ? "随机五折固定 seed 11、Ridge alpha 1；每折分别拟合训练折的标准化器与模型。"
     : "按声明组拆分，折数为 min(5, 完整组数)、Ridge alpha 1；训练组与评价组分开，每折单独拟合标准化器与模型。"));
+  const predictionRange = object(record.prediction_range);
+  if (trained && Object.keys(predictionRange).length) {
+    const n = measure(predictionRange.n);
+    parent.append(el("h4", "", "保存预测范围"),
+      el("p", "detail-note", "本次原目标范围 " + measure(predictionRange.observed_min) + " – " + measure(predictionRange.observed_max)
+        + "；保存预测范围 " + measure(predictionRange.predicted_min) + " – " + measure(predictionRange.predicted_max) + "。"),
+      el("p", "detail-note", "负预测 " + measure(predictionRange.negative_predictions) + " / " + n
+        + "；低于本次观察范围 " + measure(predictionRange.below_observed_min) + " / " + n
+        + "；高于本次观察范围 " + measure(predictionRange.above_observed_max) + " / " + n + "。"),
+      el("p", "detail-note", "用于复核保存预测；适用约束按课题判断。"));
+  }
   if (summary.reason) parent.append(el("p", "", reasons[text(summary.reason)] ?? text(summary.reason)));
   const groups = objects(details.groups);
   if (groups.length) parent.append(el("p", "research-design-table-hint", "左右滑动查看完整分组列"), metricTable(["原记录分组", "样本", "预测 MAE", "参考 MAE", "平均残差"], groups.map(group => [
@@ -225,7 +236,10 @@ export function createResearchDesignPanel(host: Host): {
     results.append(el("h3", "", "已保存的验证结果"));
     for (const record of records) {
       const entry = el("details", "research-design-result"); entry.open = records.length === 1;
-      entry.append(el("summary", "", (checkNames[text(record.check)] ?? text(record.check)) + " · " + (statuses[text(record.status)] ?? text(record.status))));
+      const predictionRange = object(record.prediction_range), n = predictionRange.n, negative = predictionRange.negative_predictions;
+      const rangeNote = ["random_cv", "group_cv"].includes(text(record.check)) && typeof n === "number" && Number.isFinite(n)
+        && typeof negative === "number" && Number.isFinite(negative) ? " · 负预测 " + measure(negative) + " / " + measure(n) : "";
+      entry.append(el("summary", "", (checkNames[text(record.check)] ?? text(record.check)) + " · " + (statuses[text(record.status)] ?? text(record.status)) + rangeNote));
       if (Object.keys(object(record.summary)).length) {
         if (record.check === "negative_control") showNegativeControl(entry, record); else showMetrics(entry, record);
       }

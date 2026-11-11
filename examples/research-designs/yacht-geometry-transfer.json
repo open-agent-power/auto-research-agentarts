@@ -1,0 +1,24 @@
+{
+  "alternatives": [
+    "Random folds may evaluate familiar geometry at other observed speeds",
+    "A fixed linear model may miss nonlinear speed effects and interactions",
+    "Different folds also change training size and composition; no single-cause attribution"
+  ],
+  "change_reason": "Prespecified new public task; no result-dependent protocol changes.",
+  "checks": [
+    "random_cv",
+    "group_cv",
+    "negative_control"
+  ],
+  "claim": "The fixed linear Ridge baseline has lower merged group-held-out OOF MAE than the corresponding training-fold target mean reference.",
+  "id": "yacht-geometry-transfer",
+  "parent_version": null,
+  "question": "Does the fixed linear Ridge baseline outperform its training-fold mean reference when entire published geometry signatures are held out, and how does this differ from random-row validation?",
+  "schema_version": "research-design-resource-v1",
+  "sources": [
+    "https://archive.ics.uci.edu/dataset/243/yacht+hydrodynamics",
+    "https://doi.org/10.24432/C5XG7R"
+  ],
+  "title": "帆船阻力：随机划分与未见几何签名核验",
+  "version": 1
+}

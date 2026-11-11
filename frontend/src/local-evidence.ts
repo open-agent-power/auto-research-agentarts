@@ -34,7 +34,7 @@ export function createLocalEvidencePanel(host: Host): {
   const taskDetails = el("details", "local-advanced"); taskDetails.append(el("summary", "", "当前取证任务与绑定"));
   const taskText = el("pre", "project-source-text"); taskDetails.append(taskText);
   const form = el("form", "local-evidence-form"), fields = el("fieldset", "local-fieldset");
-  const chooser = el("input"); chooser.type = "file"; chooser.multiple = true; chooser.accept = ".txt,.md,.csv,.tsv,.json,.pdf,.xlsx";
+  const chooser = el("input"); chooser.type = "file"; chooser.multiple = true; chooser.accept = ".txt,.md,.html,.htm,.csv,.tsv,.json,.pdf,.xlsx";
   chooser.setAttribute("aria-label", "选择补充资料文件，可多选");
   const fileStatus = el("p", "detail-note", "1至8个文件；每份不超过32MiB，总计不超过64MiB。原件不会被执行。"); fileStatus.setAttribute("aria-live", "polite");
   const draftHost = el("div", "local-evidence-draft");
@@ -77,7 +77,9 @@ export function createLocalEvidencePanel(host: Host): {
     const explain = (): void => {
       value.placeholder = kind.value === "pdf_page" ? "例如 3:0-800，或单页3" : kind.value === "xlsx_cell" ? "例如 Sheet!A1:C6" : "例如 1-10";
       hint.textContent = kind.value === "pdf_page" ? "页码从1起；页内偏移是提取文本的0基Unicode码点，end排除，不是PDF原字节。没有OCR。"
-        : kind.value === "xlsx_cell" ? "填写真实sheet与单元格；只读保存值/公式缓存，不执行公式。" : "从1起的物理行，最多256行；包含表头及带引号换行，不是CSV逻辑记录号。";
+        : kind.value === "xlsx_cell" ? "填写真实sheet与单元格；只读保存值/公式缓存，不执行公式。"
+          : /\.html?$/i.test(source.name) ? "从1起的原始HTML物理行，最多256行；保留标签与脚本字面文本，按保存原件定位。"
+            : "从1起的物理行，最多256行；包含表头及带引号换行，不是CSV逻辑记录号。";
     };
     const selection: Selection = { id: "selection-" + draft.nextSelection++, kind, value, claim, element: card };
     const remove = el("button", "quiet-button", "移除此选区"); remove.type = "button";
@@ -93,7 +95,7 @@ export function createLocalEvidencePanel(host: Host): {
     url.required = true; media.required = true; license.required = true; license.rows = 2; license.maxLength = 4000; license.value = "许可与访问范围尚待核验";
     url.placeholder = "实际来源URL或明确的本地资料URN；不会自动访问";
     media.value = /\.pdf$/i.test(file.name) ? "application/pdf" : /\.xlsx$/i.test(file.name) ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      : /\.json$/i.test(file.name) ? "application/json" : /\.csv$/i.test(file.name) ? "text/csv" : file.type || "text/plain";
+      : /\.html?$/i.test(file.name) ? "text/html" : /\.json$/i.test(file.name) ? "application/json" : /\.csv$/i.test(file.name) ? "text/csv" : file.type || "text/plain";
     const source: Source = { id: "source-" + draft.nextSource++, name: file.name, size: file.size, encoded, url, media, license, selections: [], element: card };
     const remove = el("button", "quiet-button", "移除此草稿文件"); remove.type = "button";
     remove.addEventListener("click", () => { draft.sources = draft.sources.filter(item => item !== source); card.remove(); changed(draft); });

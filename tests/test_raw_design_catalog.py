@@ -45,6 +45,7 @@ class RawDesignCatalogTests(unittest.TestCase):
         checks[-1]["protocol"] = {"seed": 11, "repeats": 199}
         for check in checks[:2]:
             check["summary"]["excluded"] = 0
+            check["oof"] = []
         for check in checks:
             check["design_binding"] = binding
         report = {"action_results": [{"status": "completed", "action_id": item["check"],

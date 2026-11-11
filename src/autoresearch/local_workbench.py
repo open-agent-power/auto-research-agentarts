@@ -1144,7 +1144,7 @@ class LocalWorkbench:
             source_id = identifier(source["id"], "source_id")
             _require(source_id not in assets, "INVALID_BUNDLE", "Uploaded source IDs must be distinct.")
             name = tabular._filename(source["file_name"])
-            _require(Path(name).suffix.lower() in {".txt", ".md", ".json", ".csv", ".tsv", ".pdf", ".xlsx"},
+            _require(Path(name).suffix.lower() in {".txt", ".md", ".html", ".htm", ".json", ".csv", ".tsv", ".pdf", ".xlsx"},
                      "INVALID_BUNDLE", "Only supported document, table or text source file types are allowed.")
             raw = _decode(source["bytes_base64"], reader.MAX_SOURCE_BYTES)
             total += len(raw)

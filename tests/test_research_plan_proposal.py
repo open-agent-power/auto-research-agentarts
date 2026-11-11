@@ -2,6 +2,7 @@
 
 import base64
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -10,6 +11,7 @@ import unittest
 from autoresearch import research_plan_proposal as protocol
 from autoresearch import host_selection_protocol, recipe_change_proposal, research_recipe
 from autoresearch.contracts import ResearchError, canonical
+from autoresearch.host_model_selection import HostModelSelection
 from autoresearch.local_workbench import LocalWorkbench
 from autoresearch.project_controller import ProjectController
 from autoresearch.project_selection import seal_context, validate_proposal
@@ -31,6 +33,24 @@ class ResearchPlanProposalTests(unittest.TestCase):
                                   "csv_base64": base64.b64encode(b"batch,reading\na,1\nb,\n").decode("ascii"),
                                   "spec_base64": base64.b64encode(canonical(spec).encode("utf-8")).decode("ascii")}})
         self.project, _ = manager.binding()
+
+    def source_feedback(self, line_count=28):
+        self.project.step(request_id="quality-for-source-plan")
+        folder = self.project.root.parent / "source-plan-bundle"
+        (folder / "sources").mkdir(parents=True)
+        line = ("dataset columns target unit group key independence duplicates numeric_columns missing_tokens "
+                "group_columns reading batch original source definitions remain unverified.\n")
+        raw = (line * line_count).encode("utf-8")
+        (folder / "sources/source.txt").write_bytes(raw)
+        document = {"schema_version": "project-evidence-bundle-v1", "task_ref": self.project.evidence_task()["task_ref"],
+                    "contributor": {"role": "operator_assistant", "label": "Plan context fixture"},
+                    "sources": [{"id": "fixture", "path": "sources/source.txt", "sha256": hashlib.sha256(raw).hexdigest(),
+                                 "url": "urn:test:plan-source-context", "media_type": "text/plain", "license_note": "Constructed fixture"}],
+                    "selections": [{"id": "definitions", "source_id": "fixture", "locator": {"kind": "text_lines", "value": "1-" + str(line_count)},
+                                    "claim": "Definitions remain unverified after extraction."}],
+                    "remaining_questions": ["Confirm reading target unit and batch group independence."]}
+        (folder / "manifest.json").write_text(canonical(document), encoding="utf-8")
+        return self.project.attach_evidence(request_id="source-for-plan", bundle=folder)
 
     @staticmethod
     def arguments(context):
@@ -96,6 +116,82 @@ class ResearchPlanProposalTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "INVALID_PLAN_CONTEXT")
         with self.assertRaises(ResearchError):
             protocol.parse_host_response(b'{"plan":{},"plan":{}}', "delegated")
+
+    def test_large_source_decision_uses_traceable_action_reference_without_changing_saved_facts(self):
+        source = self.source_feedback()
+        before = self.project.status()
+        self.assertEqual(len(source["next_decision"]["knowledge_contexts"]), 4)
+        files_before = {str(path.relative_to(self.project.root)): path.read_bytes()
+                        for path in self.project.root.rglob("*") if path.is_file()}
+        context = protocol.build_context(self.project)
+        self.assertLessEqual(len(canonical(context).encode("utf-8")), protocol.MAX_CONTEXT_BYTES)
+        feedback = next(item for item in context["feedback"] if item["action_id"] == source["id"])
+        reference = feedback["next_decision"]["knowledge_contexts_ref"]
+        self.assertEqual(reference, {"kind": "saved_action_record", "project_id": before["id"],
+                                    "action_id": source["id"], "request_id": source["request_id"],
+                                    "field": "next_decision.knowledge_contexts", "context_count": 4})
+        saved_action = next(action for action in self.project.status()["evidence_actions"]
+                            if action["id"] == reference["action_id"] and action["request_id"] == reference["request_id"])
+        self.assertEqual(len(saved_action["next_decision"]["knowledge_contexts"]), reference["context_count"])
+        expected_decision = copy.deepcopy(saved_action["next_decision"])
+        expected_decision.pop("knowledge_contexts")
+        expected_decision["knowledge_contexts_ref"] = reference
+        self.assertEqual(feedback["next_decision"], expected_decision)
+        self.assertEqual(feedback["observations"], saved_action["observations"])
+        artifact = json.loads((self.project.root / source["artifact"]).read_bytes())
+        self.assertNotIn("next_decision", artifact)
+        self.assertNotIn("next_decision", artifact["tool_result"])
+        self.assertNotIn("artifact_ref", reference)
+        self.assertTrue(feedback["next_decision"]["knowledge_refs"])
+        self.assertTrue(context["selection_context"]["evidence"])
+        original = copy.deepcopy(context)
+        next(item for item in original["feedback"] if item["action_id"] == source["id"])["next_decision"] = saved_action["next_decision"]
+        self.assertGreater(len(canonical(original).encode("utf-8")), protocol.MAX_CONTEXT_BYTES)
+        self.assertEqual(self.project.status(), before)
+        self.assertEqual({str(path.relative_to(self.project.root)): path.read_bytes()
+                          for path in self.project.root.rglob("*") if path.is_file()}, files_before)
+
+    def test_source_plan_context_freezes_and_replays_without_repeating_source_reads(self):
+        self.source_feedback()
+        before = self.project.status()
+        context = protocol.build_context(self.project)
+        journal = HostModelSelection(self.project.root)
+        specification = {"request_id": "source-feedback-plan", "provider": "delegated", "purpose": "plan",
+                         "expected_state_version": before["state_version"], "decision_limit": 1,
+                         "cli_budget_usd": 0.1, "reason": "One protocol fixture; no model launch"}
+        prepared = journal.prepare(**specification)
+        self.assertEqual(prepared["context"], context)
+        saved = journal.directory / prepared["directory"] / "context.json"
+        self.assertEqual(saved.read_bytes(), canonical(context).encode("utf-8"))
+        response = self.project.root.parent / "source-plan-response.json"
+        response.write_bytes(canonical(self.arguments(context)).encode("utf-8"))
+        journal.import_response(request_id="source-feedback-plan", response_file=response)
+        proposed = journal.consume(request_id="source-feedback-plan")
+        self.assertEqual(proposed["status"], "proposed")
+        self.assertEqual(proposed["context"], context)
+        rejected = journal.reject_plan(request_id="source-feedback-plan", reason="Retain original route for this fixture.")
+        host_before = journal.status()
+        saved_bytes = saved.read_bytes()
+        self.assertEqual(journal.prepare(**specification), rejected)
+        self.assertEqual(journal.import_response(request_id="source-feedback-plan", response_file=response), rejected)
+        self.assertEqual(journal.consume(request_id="source-feedback-plan"), rejected)
+        self.assertEqual(journal.reject_plan(request_id="source-feedback-plan", reason=rejected["rejection_reason"]), rejected)
+        self.assertEqual(journal.status(), host_before)
+        self.assertEqual(self.project.status(), before)
+        self.assertEqual(saved.read_bytes(), saved_bytes)
+        self.assertEqual(protocol.build_context(self.project), context)
+
+    def test_existing_bounded_source_context_keeps_its_original_feedback_representation(self):
+        source = self.source_feedback(line_count=1)
+        context = protocol.build_context(self.project)
+        legacy = copy.deepcopy(context)
+        next(item for item in legacy["feedback"] if item["action_id"] == source["id"])["next_decision"] = source["next_decision"]
+        self.assertLess(len(canonical(legacy).encode("utf-8")), protocol.MAX_CONTEXT_BYTES)
+        frozen = copy.deepcopy(legacy)
+        proposal = protocol.build_proposal(legacy, self.arguments(legacy), "Saved bounded source fixture")
+        self.assertEqual(protocol.validate_proposal(legacy, proposal), proposal)
+        self.assertIn(canonical(legacy), protocol.build_prompt(legacy)["prompt"])
+        self.assertEqual(legacy, frozen)
 
     def test_researcher_feedback_extends_context_without_becoming_tool_feedback(self):
         self.project.save_plan(request_id="plan-before-note", expected_state_version=0,

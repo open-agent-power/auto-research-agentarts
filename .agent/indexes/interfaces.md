@@ -1,5 +1,7 @@
 # 接口索引
 
+资料登记接受`.html/.htm`与`text/html`，使用原始HTML的`text_lines`坐标，标签不执行、不渲染；原件下载保持`application/octet-stream`附件，详见[来源用法](../../docs/local-workbench.md#在同一项目登记资料再明确读取)。新计划context将来源决定的重复`knowledge_contexts`改为原action账本定位引用，保留观察与当前检索证据，详见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。
+
 `LocalWorkbench.model_view`新增独立`plan_reviews=[{request_id,assessment}]`；报告JSON提供同名字段，Markdown/PDF显示冻结条件。`assessment`为`plan-readiness-v1`，含项目/版本/快照/context身份、`execution_status`、三类`remaining_budget`、`available_actions`、`blocked_methods`与`blockers`，科学解释固定需审阅。新plan提示附带同一`execution_conditions`，原计划回答字段及采用/拒绝协议不变，见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。
 
 [研究设计与保存预测核验](../../docs/research-design.md)通过`GET /api/local-workbench/designs`读取目录与实际验证，`design-bind`冻结项目/资源/预测列，`design-improve`从反馈生成版本，`design-import`导入已知检查协议。执行复用原`advance`，JSON/Markdown/PDF报告包含原设计和实际计算。
