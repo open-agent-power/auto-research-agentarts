@@ -5,6 +5,7 @@
 - [模型计划的执行条件](host-model-selection.md#计划执行条件)：冻结预算余量、合资格候选、缺口与科学审阅边界
 - [计划数值断言核对](plan-fact-check.md)：选中原句、明确比较对象，核对声明与原封存指标的一致或矛盾
 - [跨项目的方法案例快照](project-experience.md)：复用条件记忆和方法卡，显式导入历史观察及限制，分别管理源与目标撤回
+- [案例有无的同状态计划比较](research/experience-judgment-pair.md)：只读冻结原生输入、两份原回答与隐藏标签审阅，保留无实质差异和预算表述问题
 - [帆船阻力公开任务](research/yacht-geometry-study.md)：固定协议、计划接续、负预测诊断、同折特征对照及保留的不利结果
 - [Auto MPG年份输入对照](research/auto-mpg-year-study.md)：新课题的同样本、同折比较，逐组误差、计划建议审阅及原名资料接入
 

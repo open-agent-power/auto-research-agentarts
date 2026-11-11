@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+[案例有无的同状态计划比较](../../docs/research/experience-judgment-pair.md)由`scripts/prepare_experience_pair.py`只读生成两份原生context／prompt，control显式标记offline_ablation；`verify_pair`核对原字节、原生再生成及唯一案例差异。Auto MPG state34的两份实际离线回答均有效，隐藏标签独立审阅为no_material_difference；来源预算表述另经代码核对，不改写原审阅。模型活动与原Host分开记，原项目／用量保持，不能把案例被提及或文字增加当收益。
+
 [方法案例快照](../../docs/project-experience.md)的验收分别核对原OOF算术、来源／目标两层资格、context与当前证据隔离、原ID恢复和成果原件。实际导入Yacht案例到Auto MPG只证明跨项目复用路径；没有新增模型调用或拟合时，不宣称模型已采用或科研质量改善。
 
 所选计划断言的数值核对必须分别记录真实正确原句与故意改错的工程标注；不能把改反关系、改错数值当成真实模型失败。Auto MPG候选虽优于训练均值参考，却差于父版，是区分比较对象的真实依据。精确quote绑定不证明提交者对语义的解释正确，局部核对不证明科研质量提升；见[能力范围](../../docs/plan-fact-check.md)。
