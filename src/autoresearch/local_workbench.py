@@ -536,6 +536,19 @@ class LocalWorkbench:
                         view["platform_runs"].append(copy.deepcopy(imported["intent"]["platform_run"]))
         return view
 
+    def check_plan_fact(self, body):
+        from .host_model_report import capture_host_models
+        from .plan_fact_check import check_plan_fact
+        _require(type(body) is dict and set(body) == {"project_id", "host_request_id", "claim"},
+                 "INVALID_REQUEST", "Provide the project, original Host request and selected assertion.")
+        identifier(body["host_request_id"], "host_request_id")
+        with self._connect(readonly=True) as con:
+            _, project = self._project(con, body["project_id"], active=True)
+        captured = capture_host_models(project.root)
+        record = next((item for item in captured["records"] if item["request_id"] == body["host_request_id"]), None)
+        _require(record is not None, "ARTIFACT_NOT_FOUND", "No original Host request matches this ID.")
+        return check_plan_fact(record, body["claim"])
+
     def model_advance(self, body, *, executable):
         _body(body, ("request_id", "project_id", "expected_state_version", "decision_limit", "cli_budget_usd", "reason"))
         return self._model_command(body, executable=executable, resume=False)

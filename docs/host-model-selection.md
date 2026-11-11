@@ -26,6 +26,8 @@ v2的反馈仍有`action_id/request_id/method_id/status/observations/next_decisi
 
 此投影不解析计划正文、不自动判定科学解释或拒绝自由文本计划。`scientific_review=required`与`scientific_validation=false`始终保留；等待或补材料的计划仍可明确采用。计划文本协议及原采用、拒绝、过期和同ID恢复门保持，实际执行继续由原控制器重新核对条件和累计预算。
 
+已有原回答还可做[所选数值断言核对](plan-fact-check.md)：使用者在计划卡选择精确原句，声明其比较对象与数值判断，宿主按该Host自身封存的`saved_comparisons`计算一致、矛盾或不可核对。`plan-fact-check-v1`结果可下载，明确语义映射由提交者指定、只覆盖选句、科学验证仍为false。它不修改原回答、研究意见或Host状态，也不增加采用／拒绝门；旧v1缺少严格比较时保持不可核对，不借当前项目结果补历史。
+
 ### 研究者意见进入后续context
 
 sealed selection context以可选`researcher_feedback`保存原项目意见，每条共9个字段，为`id/request_id/based_on_state_version/plan_version/author/comment/next_step/action_id/content_trust`。意见与原请求、提交依据版本、当时计划版本及可选既有行动关联，`plan_version`可为空，信任标记为`unverified_researcher_statement`。原Host context保留封存内容，新意见随后续新context提供。

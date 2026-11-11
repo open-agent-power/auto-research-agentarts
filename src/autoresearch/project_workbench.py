@@ -376,6 +376,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
                             "/api/local-workbench/advance-recipe": "advance_recipe",
                             "/api/local-workbench/recipe-preview": "preview_recipe_round",
+                            "/api/local-workbench/plan-fact-check": "check_plan_fact",
                             "/api/local-workbench/recipe-adopt": "adopt_recipe_round",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
                             "/api/local-workbench/continue": "continue_research",

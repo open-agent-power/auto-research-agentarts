@@ -1,5 +1,7 @@
 # 后端索引
 
+`plan_fact_check`核对提交者标注的精确原句、冻结父子比较与数值声明，`LocalWorkbench.check_plan_fact`先复用Host原件核验，再纯计算。它不从自然语言关键词判断语义、不修改Host/项目/预算，也不补当前比较到旧context；见[断言核对](../../docs/plan-fact-check.md)。
+
 `plan_feedback`为新计划/配方的v2反馈提供明确投影：历史决定指原action账本，来源原文与资源正文指原工具工件；保留数值、协议、范围和用量，不提高64KiB上限。`research_plan_proposal`复用严格父子对照，提供`saved_comparisons`帮助区分父版与均值参考。离线`recipe_improvement`从原工件重建同样投影再精确匹配，旧v1封存不变；见[Host上下文](../../docs/host-model-selection.md#计划执行条件)。
 
 `ResearchProject.limit_evidence_budget`及CLI `limit-evidence-budget`显式收紧累计来源上限，保留已用/预留和其他额度，保存不可变预算修订；达到上限后原控制器不再提供来源候选。仅支持降低，不扩额、不重置；见[用法](../../docs/project-slice.md#收紧项目来源额度)。

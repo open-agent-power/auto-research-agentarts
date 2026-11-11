@@ -4,6 +4,8 @@ import { el } from "./dom";
 type Obj = Record<string, unknown>;
 type Host = {
   read(url: string): Promise<Obj>;
+  canCheckPlanFacts(): boolean;
+  checkPlanFact(body: Obj): Promise<Obj>;
   methodTitle(methodId: string): string;
   submit(command: "model-advance" | "model-resume" | "model-plan-advance" | "model-plan-adopt" | "model-plan-reject", body: Obj): Promise<Obj | null>;
   announce(message: string, error?: boolean): void;
@@ -29,6 +31,77 @@ const readinessReasons: Record<string, string> = {
   PROJECT_WAITING: "项目仍有待核对条件", MISSING_SOURCE: "尚未登记匹配来源",
   METHOD_NOT_SUPPORTED: "该方法尚未接入执行器", EVIDENCE_CHANGED: "来源原件已变化，需先核对",
 };
+const factFields: Record<string, string> = { "plan.question": "本轮问题", "plan.basis": "依据与材料", "plan.steps": "建议的步骤",
+  "plan.expected_feedback": "预期反馈与调整", reason: "修改理由", expected_improvement: "预计改善" };
+const factMetrics: Record<string, string> = { baseline_mae: "父版本 MAE", candidate_mae: "候选 MAE", mae_change: "候选减父版本 MAE",
+  relative_improvement: "相对改善比例（非百分数）", baseline_negative_predictions: "父版本负预测数量", candidate_negative_predictions: "候选负预测数量" };
+const factOrders: Record<string, string> = { candidate_lower: "候选 MAE 更低", baseline_lower: "父版本 MAE 更低", equal: "两版 MAE 相同" };
+type FactDraft = { field: string; start: number; end: number; quote: string; comparison: string; kind: string; order: string; metric: string; value: string; open: boolean };
+
+function factSelect(options: Record<string, string>, selected: string): HTMLSelectElement {
+  const control = el("select");
+  for (const [value, label] of Object.entries(options)) { const option = el("option", "", label); option.value = value; control.append(option); }
+  control.value = selected; return control;
+}
+function factText(record: Obj, name: string): string {
+  const proposal = object(record.proposal);
+  return text(name.startsWith("plan.") ? object(proposal.plan)[name.slice(5)] : proposal[name], "");
+}
+function factRawOffset(raw: string, textareaOffset: number): number {
+  // Textareas normalize CRLF and CR to LF; quote coordinates must retain the saved text.
+  let source = 0, displayed = 0;
+  while (source < raw.length && displayed < textareaOffset) {
+    source += raw[source] === "\r" && raw[source + 1] === "\n" ? 2 : 1;
+    displayed++;
+  }
+  return source;
+}
+function factComparisonLabel(comparison: Obj): string {
+  const baseline = object(comparison.baseline_ref), candidate = object(comparison.candidate_ref);
+  return `${text(comparison.check)} · 父v${number(baseline.resource_version)} ${text(baseline.action_id).slice(0, 15)} → 候选v${number(candidate.resource_version)} ${text(candidate.action_id).slice(0, 15)}`;
+}
+function factComparisonDetails(comparison: Obj, target: HTMLElement): void {
+  const metrics = object(comparison.metrics);
+  target.replaceChildren(el("p", "detail-note", `父版本 MAE ${number(metrics.baseline_mae)}；候选 MAE ${number(metrics.candidate_mae)}；候选减父版本 ${number(metrics.mae_change)}。`));
+  const original = el("details", "local-advanced"); original.append(el("summary", "", "查看这条冻结比较的指标与行动身份"),
+    el("pre", "project-source-text", JSON.stringify(comparison, null, 2))); target.append(original);
+}
+function factResult(result: Obj, target: HTMLElement): void {
+  const labels: Record<string, string> = { supported: "所声明的判断与保存数值一致", contradicted: "所声明的判断与保存数值矛盾", undetermined: "当前证据不可核对" };
+  const reasons: Record<string, string> = { matches_saved_fact: "与所选冻结比较相符。", contradicts_saved_fact: "与所选冻结比较不符，请回看原句含义和比较对象。",
+    comparison_not_supplied: "这份请求没有提供所选比较。", comparison_not_comparable: "保存记录未建立两版可比性。", metric_unavailable: "保存记录没有这项可用数值。" };
+  const actual = typeof result.actual === "number" && Number.isFinite(result.actual) ? String(result.actual)
+    : typeof result.actual === "string" ? factOrders[result.actual] ?? result.actual : "未提供";
+  target.replaceChildren(el("p", result.status === "contradicted" ? "notice error" : "notice", labels[text(result.status)] ?? "核对记录需重新读取"),
+    el("p", "", "保存事实 · " + actual), el("p", "detail-note", reasons[text(result.reason_code)] ?? text(result.reason_code)),
+    el("p", "detail-note", `依据原请求 ${text(result.host_request_id)} · 冻结项目版本 ${number(result.source_state_version)}。`));
+  const original = el("details", "local-advanced"); original.append(el("summary", "", "查看原句位置与完整核对记录"),
+    el("pre", "project-source-text", JSON.stringify(result, null, 2))); target.append(original);
+}
+function factFormControls(record: Obj, draft: FactDraft, comparisons: Obj[]) {
+  const details = el("details", "local-advanced local-plan-fact-check"); details.open = draft.open;
+  details.append(el("summary", "", "核对一条数值断言"), el("p", "detail-note", "原句对应何种判断由你指定；这里只核对所声明的判断与冻结数值，其他正文与科学解释仍需审阅。"));
+  const form = el("form", "local-fact-check-form"), fields = el("fieldset", "local-fieldset");
+  const fieldControl = factSelect(factFields, draft.field), source = el("textarea"); source.readOnly = true; source.rows = 6; source.value = factText(record, draft.field);
+  const pick = el("button", "quiet-button", "使用所选原句"); pick.type = "button";
+  const quoted = el("p", "detail-note"); quoted.setAttribute("aria-live", "polite");
+  const comparison = factSelect(Object.fromEntries(comparisons.map((item, index) => [String(index), factComparisonLabel(item)])), draft.comparison);
+  const comparisonDetails = el("div"), kind = factSelect({ mae_order: "MAE 高低判断", metric: "具体指标数值" }, draft.kind);
+  const order = factSelect({ "": "请选择原句声明的关系", ...factOrders }, draft.order), metric = factSelect(factMetrics, draft.metric), value = el("input");
+  value.type = "text"; value.inputMode = "decimal"; value.maxLength = 80; value.value = draft.value;
+  const ordering = field("所声明的 MAE 高低", order), numeric = el("div", "local-form-grid");
+  numeric.append(field("要核对的指标", metric), field("原句中声明的数值", value));
+  const numericHint = el("p", "detail-note", "按原文的小数位核对。相对改善填比例，如0.1表示10%；负预测数量只填整数。");
+  const run = el("button", "action-button primary", "核对所声明的判断"); run.type = "submit";
+  const save = el("button", "quiet-button", "下载这次核对 JSON"); save.type = "button"; save.disabled = true;
+  const actions = el("div", "local-actions"); actions.append(run, save);
+  const result = el("div"); result.setAttribute("aria-live", "polite");
+  fields.append(field("原建议字段", fieldControl), field("原建议正文（请选中一句）", source), pick, quoted,
+    field("要核对的父子比较", comparison), comparisonDetails, field("断言类型", kind), ordering, numeric, numericHint);
+  form.append(fields, actions, result); details.append(form);
+  if (!comparisons.length) { form.hidden = true; details.append(el("p", "notice", "这份请求封存时没有提供严格父子比较，当前无法作这项核对。请继续阅读原建议与保存反馈。")); }
+  return { details, form, fields, fieldControl, source, pick, quoted, comparison, comparisonDetails, kind, order, metric, value, ordering, numeric, numericHint, run, save, result };
+}
 
 function field(label: string, control: HTMLElement): HTMLElement {
   const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap;
@@ -86,6 +159,7 @@ export function createLocalModelPanel(host: Host): {
   const resumeButtons: { button: HTMLButtonElement; body: Obj }[] = [];
   const decisionButtons: { button: HTMLButtonElement; record: Obj; rejectReason?: HTMLTextAreaElement }[] = [];
   const rejectDrafts = new Map<string, string>();
+  const factDrafts = new Map<string, FactDraft>();
   const grant = (): Obj => object(object(view.journal).grant);
   const pending = (): boolean => records.some(record => pendingStates.has(text(record.status, "")));
   const enabled = (): boolean => loaded && view.enabled === true && view.project_id === projectId;
@@ -164,6 +238,7 @@ export function createLocalModelPanel(host: Host): {
       if (plan.basis) card.append(el("p", "detail-note", "依据与材料 · " + text(plan.basis)));
       const cited = strings(proposal.feedback_action_ids);
       card.append(el("p", "detail-note", cited.length ? `引用${cited.length}条已保存执行反馈，可在实验中心和原请求中核对。` : "根据当前课题与条件制定初始计划。"));
+      planFactCheck(record, card);
     }
     const outcome = object(record.outcome);
     if (record.status === "applied") card.append(el("p", "notice", "已采用为研究计划第" + object(outcome.research_plan).version + "版。"));
@@ -178,6 +253,60 @@ export function createLocalModelPanel(host: Host): {
     if (frozen.context_sha256 !== context?.context_sha256) card.append(el("p", "notice", "项目已变化，核对当前计划后再准备新的建议。"));
     card.append(field("拒绝理由", rejectReason)); actions.append(adopt, reject);
     decisionButtons.push({ button: adopt, record }, { button: reject, record, rejectReason });
+  }
+  function planFactCheck(record: Obj, card: HTMLElement): void {
+    const sourceProject = projectId, id = text(record.request_id, ""), key = sourceProject + ":" + id;
+    const comparisons = objects(object(record.context).saved_comparisons);
+    const draft = factDrafts.get(key) ?? { field: factText(record, "plan.basis") ? "plan.basis" : "plan.question", start: 0, end: 0, quote: "",
+      comparison: "0", kind: "mae_order", order: "", metric: "candidate_mae", value: "", open: false };
+    factDrafts.set(key, draft);
+    const ui = factFormControls(record, draft, comparisons); card.append(ui.details);
+    let busy = false, revision = 0, result: Obj | null = null;
+    function controls(): void {
+      ui.fields.disabled = busy; ui.run.textContent = busy ? "正在核对…" : "核对所声明的判断";
+      ui.run.disabled = busy || !host.canCheckPlanFacts() || !draft.quote || !comparisons[Number(draft.comparison)]
+        || draft.kind === "mae_order" && !draft.order || draft.kind === "metric" && !draft.value.trim();
+      ui.save.disabled = !result || busy; ui.ordering.hidden = draft.kind !== "mae_order"; ui.numeric.hidden = ui.numericHint.hidden = draft.kind !== "metric";
+      ui.quoted.textContent = draft.quote ? "已选原句 · " + draft.quote : "先在原建议正文中选中要核对的一句，再使用所选原句。";
+    }
+    function invalidate(): void { revision++; result = null; ui.result.replaceChildren(); controls(); }
+    function edited(): void {
+      if (draft.field !== ui.fieldControl.value) { draft.field = ui.fieldControl.value; draft.start = draft.end = 0; draft.quote = ""; ui.source.value = factText(record, draft.field); }
+      draft.comparison = ui.comparison.value; draft.kind = ui.kind.value; draft.order = ui.order.value; draft.metric = ui.metric.value; draft.value = ui.value.value;
+      factComparisonDetails(comparisons[Number(draft.comparison)] ?? {}, ui.comparisonDetails); invalidate();
+    }
+    ui.pick.addEventListener("click", () => {
+      if (ui.source.selectionStart === ui.source.selectionEnd) { host.announce("请先在原建议正文中选中要核对的原句。", true); return; }
+      const raw = factText(record, draft.field), start = factRawOffset(raw, ui.source.selectionStart), end = factRawOffset(raw, ui.source.selectionEnd);
+      draft.start = Array.from(raw.slice(0, start)).length; draft.end = Array.from(raw.slice(0, end)).length;
+      draft.quote = raw.slice(start, end); invalidate();
+    });
+    for (const control of [ui.fieldControl, ui.comparison, ui.kind, ui.order, ui.metric, ui.value]) {
+      control.addEventListener("input", edited); control.addEventListener("change", edited);
+    }
+    ui.details.addEventListener("toggle", () => { draft.open = ui.details.open; });
+    ui.save.addEventListener("click", () => { if (result) download(result, "-fact-check"); });
+    ui.form.addEventListener("submit", event => { event.preventDefault(); void (async () => {
+      if (ui.run.disabled) return;
+      const comparison = comparisons[Number(draft.comparison)], baseline = object(comparison.baseline_ref), candidate = object(comparison.candidate_ref);
+      const claim = { field: draft.field, start: draft.start, end: draft.end, quote: draft.quote,
+        comparison: { check: comparison.check, baseline_action_id: baseline.action_id, candidate_action_id: candidate.action_id },
+        assertion: draft.kind === "mae_order" ? { kind: "mae_order", value: draft.order } : { kind: "metric", metric: draft.metric, value: draft.value } };
+      const generation = ++revision; busy = true; result = null; ui.result.replaceChildren(); controls();
+      try {
+        const checked = await host.checkPlanFact({ project_id: sourceProject, host_request_id: id, claim });
+        if (generation !== revision || projectId !== sourceProject || !ui.form.isConnected) return;
+        const frozen = object(object(record.context).selection_context);
+        if (checked.schema_version !== "plan-fact-check-v1" || checked.project_id !== sourceProject || checked.host_request_id !== id || checked.context_sha256 !== frozen.context_sha256)
+          throw Error("返回的核对记录不属于这份建议，请重新读取后核对。");
+        result = checked; factResult(checked, ui.result);
+      } catch (error) {
+        if (generation !== revision || projectId !== sourceProject || !ui.form.isConnected) return;
+        ui.result.replaceChildren(el("p", "notice error", error instanceof Error ? error.message : "核对未完成，请重新选择原句后再试。"));
+      } finally { busy = false; if (ui.form.isConnected) controls(); }
+    })(); });
+    factComparisonDetails(comparisons[Number(draft.comparison)] ?? {}, ui.comparisonDetails); controls();
+    if (!host.canCheckPlanFacts() && comparisons.length) ui.details.append(el("p", "detail-note", "此服务未开启本地操作。请在已开启本地操作的工作台核对，原建议仍可阅读。"));
   }
   function usageText(): void {
     const journal = object(view.journal), counts = object(journal.usage);
@@ -205,7 +334,7 @@ export function createLocalModelPanel(host: Host): {
   }
   function download(record: Obj, suffix = ""): void {
     const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], { type: "application/json;charset=utf-8" }));
-    const link = el("a"); link.href = url; link.download = text(record.request_id, "model-request").replace(/[^A-Za-z0-9_.-]/g, "_") + suffix + ".json";
+    const link = el("a"); link.href = url; link.download = text(record.request_id, text(record.host_request_id, "model-request")).replace(/[^A-Za-z0-9_.-]/g, "_") + suffix + ".json";
     link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function improvementSummary(record: Obj, originalCard: HTMLDetailsElement): void {

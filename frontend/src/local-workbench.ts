@@ -363,10 +363,11 @@ export async function mountLocalWorkbench(): Promise<void> {
   const batchPanel = createLocalBatchPanel({ submit: (body, recover, name) => submit(recover
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverBatch: true }
     : command(name, body)), canRecover: canRecoverBatch, announce });
-  const modelPanel = createLocalModelPanel({ read, submit: (name, body) => submit(["model-resume", "model-plan-adopt", "model-plan-reject"].includes(name)
+  const modelPanel = createLocalModelPanel({ read, canCheckPlanFacts: () => description.enabled === true,
+    checkPlanFact: body => previewLocal("plan-fact-check", body), submit: (name, body) => submit(["model-resume", "model-plan-adopt", "model-plan-reject"].includes(name)
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
     : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
-  const recipePanel = createLocalRecipePanel({ read, preview: previewRecipe,
+  const recipePanel = createLocalRecipePanel({ read, preview: body => previewLocal("recipe-preview", body),
     submit: (name, body) => submit(command(name, body)), announce });
   const designPanel = createResearchDesignPanel({ read, submit: (name, body) => submit(command(name, body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
@@ -562,14 +563,14 @@ export async function mountLocalWorkbench(): Promise<void> {
     const value: unknown = await response.json(); if (!response.ok) throw Error("读取失败：" + text(obj(value).code, String(response.status)));
     return obj(value);
   }
-  async function previewRecipe(body: Obj): Promise<Obj> {
-    const response = await fetch("/api/local-workbench/recipe-preview", {
+  async function previewLocal(name: "recipe-preview" | "plan-fact-check", body: Obj): Promise<Obj> {
+    const response = await fetch("/api/local-workbench/" + name, {
       method: "POST", credentials: "same-origin", cache: "no-store",
       headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") },
       body: JSON.stringify(body), signal: AbortSignal.timeout(15000),
     });
     const result = obj(await response.json());
-    if (!response.ok) throw Error("外环核对失败：" + text(result.code, String(response.status)));
+    if (!response.ok) throw Error((name === "recipe-preview" ? "外环核对失败：" : "断言核对失败：") + text(result.code, String(response.status)));
     return result;
   }
   function candidates(): void {

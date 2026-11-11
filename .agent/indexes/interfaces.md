@@ -1,5 +1,7 @@
 # 接口索引
 
+`POST /api/local-workbench/plan-fact-check`精确接收`project_id/host_request_id/claim`，返回`plan-fact-check-v1`只读预览，不进入命令账本。claim绑定原字段Unicode码点span、quote、双方action及check、MAE方向或指标数值。结果区分支持/矛盾/不可核对，保留提交者语义映射与选句范围；原4字段plan、Host采用及预算不变。CLI为`check_plan_fact.py`，见[完整合同](../../docs/plan-fact-check.md)。
+
 原始训练声明可增加`input_basis="univariate_cubic"`（必须一个原CSV输入），资源可增加`comparison_kind="fixed_input_basis"`（raw且明示parent）。结果协议保存`input_basis`描述和`model_input_terms`；对照增加比较类型及`changed_protocol_fields`，其余严格门不放松。`assessment`与报告`design_assessment`共用`saved_parent_mae`范围及真实候选行动配对。详见[研究设计](../../docs/research-design.md)。
 
 `feature_comparisons[].input_profiles`包含列、分组方式、覆盖数、每桶指标与逻辑行号。目录与报告使用同一捕获source核对目标/坐标后派生；不可比较不输出局部交集。工作台输入列切换只读内存数据，JSON保留所有列，Markdown/PDF展示候选首列，详见[按输入描述误差](../../docs/research-design.md)。
