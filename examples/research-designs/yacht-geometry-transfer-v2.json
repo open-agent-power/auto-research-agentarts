@@ -1,0 +1,22 @@
+{
+  "alternatives": [
+    "Geometry inputs may change error under the fixed linear model",
+    "Nonlinear speed behavior can remain unresolved by either linear feature set",
+    "Original grouping and target-scale limits remain"
+  ],
+  "change_reason": "A preregistered single-feature check after saved negative predictions; compare only identical saved evaluation splits with parent v1.",
+  "checks": [
+    "group_cv"
+  ],
+  "claim": "The fixed Froude-only Ridge has lower merged group-held-out OOF MAE than its corresponding training-fold target mean reference.",
+  "id": "yacht-geometry-transfer",
+  "parent_version": 1,
+  "question": "仅Froude输入的组留出误差如何，相对训练折均值参考是否保持优势？与父版本六输入另读同协议特征对照。",
+  "schema_version": "research-design-resource-v1",
+  "sources": [
+    "https://archive.ics.uci.edu/dataset/243/yacht+hydrodynamics",
+    "https://doi.org/10.24432/C5XG7R"
+  ],
+  "title": "帆船阻力：仅Froude的组留出对照",
+  "version": 2
+}

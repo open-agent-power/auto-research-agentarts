@@ -139,7 +139,7 @@ class ProjectReportCurrentSourcesTests(unittest.TestCase):
         project, _ = manager.binding()
         report = collect_report(project.root)
         self.assertEqual(_latest_source_review_lines(report), [])
-        self.assertNotIn("## 最新来源核对与未决问题", _markdown(report))
+        self.assertNotIn("## 最近一次来源核对记录", _markdown(report))
         old = [self.selection(index, "OLD CLAIM " + str(index)) for index in range(6)]
         new = [self.selection(0, "216条保存差异：原表Chem0与metadata Chem28未确认对应。")]
         new.extend(self.selection(index, "New saved claim " + str(index)) for index in range(6, 11))
@@ -156,7 +156,7 @@ class ProjectReportCurrentSourcesTests(unittest.TestCase):
         raw_selections = copy.deepcopy(report["source_selections"])
         lines = _latest_source_review_lines(report)
         self.assertEqual(sum(line.startswith("提交者主张 ") for line in lines), 6)
-        self.assertEqual(sum(line.startswith("未决问题 ") for line in lines), 6)
+        self.assertEqual(sum(line.startswith("来源核对时的问题 ") for line in lines), 6)
         front = "\n".join(lines)
         for value in ("source-current", "operator_assistant", "CURRENT-LABEL", "216", "Chem0", "Chem28",
                       "submitter_claim_unreviewed", "未经作者或科学确认", "unresolved", "unknown"):
@@ -171,8 +171,8 @@ class ProjectReportCurrentSourcesTests(unittest.TestCase):
         self.assertIn("216", same_location[0]["claim"])
         self.assertEqual(same_location[0]["claim_status"], "submitter_claim_unreviewed")
         markdown = _markdown(report)
-        self.assertLess(markdown.index("## 最新来源核对与未决问题"), markdown.index("## 方法与冻结评价"))
-        front_md = markdown.split("## 最新来源核对与未决问题", 1)[1].split("## 方法与冻结评价", 1)[0]
+        self.assertLess(markdown.index("## 最近一次来源核对记录"), markdown.index("## 方法与冻结评价"))
+        front_md = markdown.split("## 最近一次来源核对记录", 1)[1].split("## 方法与冻结评价", 1)[0]
         for value in ("216", "Chem0", "Chem28", "CURRENT-LABEL", "submitter_claim_unreviewed", "未经作者或科学确认"):
             self.assertIn(value, front_md)
         self.assertNotIn("FAILED-LABEL", markdown)

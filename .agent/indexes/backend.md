@@ -1,5 +1,7 @@
 # 后端索引
 
+`feature_comparison.compare_feature_checks`按明确资源父版本只读比较保存的原始训练结果，要求来源、目标、评价行、分组、折和均值参考一致；不取交集、不重拟合、不自动采用。`research_design`目录与`project_report`共用此投影。原始设计可仅配置`group_cv`，省去与当前问题无关的随机重训；累计拟合用量保持，见[研究设计](../../docs/research-design.md)。
+
 `prediction_summary.summarize_oof_range`只读已保存OOF，供`research_design`与`project_report`共用，投影观察/预测范围及负值/越界计数，不改原结果或科学资格。[Yacht实际任务](../../docs/research/yacht-geometry-study.md)保留固定协议、两份计划无实质差异及不利局部诊断。
 
 [计划执行条件](../../docs/host-model-selection.md#计划执行条件)由`plan_readiness`从Host冻结context纯只读派生，供新请求prompt、工作台与报告共用。扣除预留后的余量、真实候选和方法缺口分别保留；不修改原Host记录，不判读自由文本或自动批准科研解释。

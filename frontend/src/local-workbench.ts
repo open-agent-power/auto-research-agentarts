@@ -142,7 +142,7 @@ function planSourceFeedback(project: Obj, saved: Obj): HTMLElement {
     el("p", "detail-note", `第${String(saved.version)}版计划依据项目状态 ${basisState} 制定，当前项目状态为 ${currentState}。下方计划正文保留制定时记录。`),
     el("p", "project-progress-copy", `当前已完成 ${completed.length} 次来源读取，共提取 ${selectionCount} 个选区。提取完成不表示资料解释或提交者主张已获确认。`));
   if (latest) {
-    feedback.append(el("h4", "", "最近一次来源读取仍待确认的问题"));
+    feedback.append(el("h4", "", "最近一次来源读取时记录的问题"));
     if (questions.length) {
       const list = el("ul", "project-questions");
       for (const question of new Set(questions.map(sourceQuestionText))) list.append(el("li", "", question));

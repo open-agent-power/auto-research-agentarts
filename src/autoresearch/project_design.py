@@ -21,7 +21,7 @@ def current(state):
 
 
 def family(resource):
-    return "raw" if resource["checks"][0] == "random_cv" else "saved"
+    return "raw" if resource["checks"][0] in RAW_CHECKS[:2] else "saved"
 
 
 def validate_resource(resource):
@@ -36,13 +36,13 @@ def validate_resource(resource):
         if type(value) is not str or not value.strip() or len(value) > 6000 or "\x00" in value:
             raise ResearchError("INVALID_DESIGN", "Bounded research design text is required.")
     checks = resource["checks"]
-    if (type(checks) is not list or not checks or checks[0] not in ("baseline", "random_cv")
-            or any(check not in (RAW_CHECKS if checks[0] == "random_cv" else SAVED_CHECKS) for check in checks)
+    if (type(checks) is not list or not checks or checks[0] not in ("baseline", "random_cv", "group_cv")
+            or any(check not in (RAW_CHECKS if checks[0] in RAW_CHECKS[:2] else SAVED_CHECKS) for check in checks)
             or len(set(checks)) != len(checks)
             or type(resource["alternatives"]) is not list or not resource["alternatives"]
             or any(type(item) is not str or not item.strip() for item in resource["alternatives"])
             or type(resource["sources"]) is not list):
-        raise ResearchError("INVALID_DESIGN", "Declare a baseline-led check sequence, alternatives and source references.")
+        raise ResearchError("INVALID_DESIGN", "Declare a baseline-led saved check sequence or CV-led raw sequence, alternatives and source references.")
     if len(canonical(resource).encode("utf-8")) > 64 * 1024:
         raise ResearchError("INVALID_DESIGN", "Research design exceeds its saved resource limit.")
     return copy.deepcopy(resource)
@@ -167,12 +167,12 @@ def preferred_checks(state):
 def choice_reason(state, check):
     binding = current(state)
     if binding is not None and family(binding["resource"]) == "raw":
-        random = action_for_check(state, "random_cv")
-        if random is None:
-            return "The raw-table design first executes the fixed random-fold Ridge comparison within its declared estimator budget."
-        summary = random["observations"][0]["summary"]
-        return (f"Random validation {random['id']} saved OOF MAE {summary.get('candidate_mae')}. "
-                f"Continue with {check} to test the effect of declared groups or mismatched prediction pairing.")
+        previous = action_for_check(state, "group_cv") or action_for_check(state, "random_cv")
+        if previous is None:
+            return f"The raw-table design executes its configured {check} Ridge comparison within the declared estimator budget."
+        summary = previous["observations"][0]["summary"]
+        return (f"Validation {previous['id']} saved OOF MAE {summary.get('candidate_mae')}. "
+                f"Continue with the configured {check} to inspect the declared split or saved prediction pairing.")
     baseline = baseline_action(state)
     if baseline is None:
         return "The bound research design first compares the explicitly declared saved predictions with the fixed mean reference."
@@ -189,9 +189,9 @@ def check_eligible(state, check):
     if binding is None or check not in binding["resource"]["checks"]:
         return False
     if family(binding["resource"]) == "raw":
-        if check in RAW_CHECKS[:2] and binding["fit_requirements"].get(check, 0) == 0:
-            return False
-        return check == "random_cv" or action_for_check(state, "random_cv") is not None
+        if check in RAW_CHECKS[:2]:
+            return binding["fit_requirements"].get(check, 0) > 0
+        return any(action_for_check(state, name) is not None for name in RAW_CHECKS[:2])
     if check == "baseline":
         return True
     baseline = baseline_action(state)

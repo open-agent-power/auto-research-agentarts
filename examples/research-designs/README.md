@@ -2,6 +2,10 @@
 
 [yacht-geometry-transfer.json](yacht-geometry-transfer.json)是实际公开帆船任务的资源定义，可从工作台导入；它复用既有随机／分组Ridge与负对照，未增加新的执行器。数据出处、转换规则和结果见[任务说明](../../docs/research/yacht-geometry-study.md)，原始数据与运行证据不随源码分发。
 
+[yacht-geometry-transfer-v2.json](yacht-geometry-transfer-v2.json)是同ID、明确以v1为父版本的Froude-only子资源，只配置`group_cv`。在原项目绑定时声明`feature_columns=["froude_number"]`、`split_group_columns=["geometry_signature"]`和累计`fit_limit=30`；原20次保持已用，新增10次完成相同五折，不重跑随机。本次MAE由7.142228增至7.165757，负预测79→88，候选未改善。
+
+子资源本身不授权增加预算、执行或上传来源。与父版本配对时须核对同项目、来源、目标、完整评价行、组、训练/评价折及参考预测；不符就保存`not_comparable`，不以行交集补齐。页面和报告显示保存结果的差值，完整协议见[特征对照](../../docs/research-design.md#同项目的特征对照)。本轮没有新增候选负控、来源读取或Host请求。
+
 本示例在同一个完整本地工作台manager中创建两个独立项目。两个CSV均为作者直接构造的六行工程输入，`predicted`是预先给出的保存值。运行使用既有项目、设计绑定、条件候选、控制器、工具工件及预算账本。
 
 从产品根目录执行，`--output`必须指向全新目录。

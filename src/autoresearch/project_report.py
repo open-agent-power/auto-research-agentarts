@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness, prediction_summary
+from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness, prediction_summary, feature_comparison, project_design
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
 
@@ -225,6 +225,11 @@ def collect_report(workspace) -> dict:
                                     for entry in results if entry["status"] == "completed"
                                     for analysis in [((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}]
                                     if analysis.get("check") in ("random_cv", "group_cv")],
+              "feature_comparisons": feature_comparison.compare_feature_checks([
+                  {"action_id": entry["action_id"], "status": entry["status"], **analysis}
+                  for entry in results if entry["status"] == "completed"
+                  for analysis in [((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}]
+                  if analysis.get("check") in ("random_cv", "group_cv")]),
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
@@ -237,7 +242,9 @@ def collect_report(workspace) -> dict:
                                                        + Path(project_selection_view.__file__).read_bytes()
                                                        + Path(host_model_report.__file__).read_bytes()
                                                        + Path(plan_readiness.__file__).read_bytes()
-                                                       + Path(prediction_summary.__file__).read_bytes()).hexdigest(),
+                                                       + Path(prediction_summary.__file__).read_bytes()
+                                                       + Path(feature_comparison.__file__).read_bytes()
+                                                       + Path(project_design.__file__).read_bytes()).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
     report["snapshot_sha256"] = fingerprint(report)
@@ -280,7 +287,7 @@ def _latest_source_review_lines(report):
         for index, claim in enumerate(claims[:6], 1):
             lines.append(f"提交者主张 {index}（" + _text(claim.get("status"), 100) + "）：" + _text(claim["text"], 400))
         questions = result.get("remaining_questions") or []
-        lines.extend(f"未决问题 {index}：" + _text(question, 400) for index, question in enumerate(questions[:6], 1))
+        lines.extend(f"来源核对时的问题 {index}：" + _text(question, 400) for index, question in enumerate(questions[:6], 1))
         if len(claims) > 6 or len(questions) > 6:
             lines.append("本段至多展示6条已保存主张和6条未决问题；其余完整记录见JSON。")
         return lines
@@ -484,7 +491,7 @@ def _raw_validation_lines(report):
                 lines.append("范围描述用于复核保存预测，适用约束按课题判断。")
             sizes = [len(fold["train_records"]) for fold in analysis.get("folds", [])]
             if sizes:
-                lines.append("各折训练样本数 " + "、".join(map(str, sizes)) + "。两种划分的样本量与组分布可能同时变化，误差差异不能单独归因于分组。")
+                lines.append("各折训练样本数 " + "、".join(map(str, sizes)) + "。比较不同划分时，样本量与组分布可能同时变化，误差差异不能单独归因于分组。")
             if check == "group_cv" and summary.get("group_count") == summary.get("n"):
                 lines.append("当前声明组均为单条记录，未检验组内重复跨折导致的偏差。")
     for revision, checks in values.items():
@@ -492,6 +499,27 @@ def _raw_validation_lines(report):
         if random.get("candidate_mae") and grouped.get("candidate_mae") is not None:
             lines.append("项目绑定v" + str(revision) + "未见组/随机划分MAE比 " + _number(grouped["candidate_mae"] / random["candidate_mae"])
                          + "；该比值依赖该绑定的声明字段和组含义，解释须结合研究问题。")
+    return lines
+
+
+def _feature_comparison_lines(report):
+    lines = []
+    for comparison in report["feature_comparisons"]:
+        left, right = comparison["baseline_ref"], comparison["candidate_ref"]
+        for label, reference in (("父版本", left), ("候选版本", right)):
+            lines.append(label + "：项目设计v" + str(reference["design_version"]) + "，资源 "
+                         + reference["resource_id"] + " v" + str(reference["resource_version"])
+                         + "，输入 " + "、".join(reference["feature_columns"]) + "，行动 " + reference["action_id"] + "。")
+        if comparison["status"] != "comparable":
+            lines.append("不能形成同协议特征对照：" + "、".join(comparison["reason_codes"]) + "。未生成误差比较成绩。")
+            continue
+        metrics = comparison["metrics"]
+        relative = metrics["relative_improvement"]
+        lines.append("可比较 " + str(comparison["matched_rows"]) + " 行；父版本MAE " + _number(metrics["baseline_mae"])
+                     + "，候选MAE " + _number(metrics["candidate_mae"]) + "，候选−父版本 " + _number(metrics["mae_change"])
+                     + "，相对误差降低 " + (_number(relative * 100) + "%" if relative is not None else "未计算") + "。")
+        lines.append("父版本/候选的负预测数量 " + str(metrics["baseline_negative_predictions"]) + "/"
+                     + str(metrics["candidate_negative_predictions"]) + "。差值为负仅表示本次候选保存误差较低，不代表物理因果或自动采用。")
     return lines
 
 
@@ -725,7 +753,7 @@ def _markdown(report):
              ""]
     latest_source = _latest_source_review_lines(report)
     if latest_source:
-        lines.extend(["## 最新来源核对与未决问题", ""])
+        lines.extend(["## 最近一次来源核对记录", ""])
         for line in latest_source:
             lines.extend([line, ""])
     plan_rows = _research_plan_rows(state)
@@ -754,6 +782,9 @@ def _markdown(report):
     raw_lines = _raw_validation_lines(report)
     if raw_lines:
         lines.extend(["## 原始数据划分对照", "", *[line + "\n" for line in raw_lines]])
+    feature_lines = _feature_comparison_lines(report)
+    if feature_lines:
+        lines.extend(["## 同协议特征对照", "", *[line + "\n" for line in feature_lines]])
     if summary.get("numeric_headers"):
         lines.extend(["## 数值字段计数", "", _markdown_table(summary["numeric_headers"], summary["numeric_rows"]),
                       "", "零包含在有限计数中；空串与声明缺失分别计数，最小/最大仅针对有限值。", "",
@@ -875,7 +906,7 @@ def _pdf(report):
     story.append(p("执行状态：" + str(state["execution_status"]) + "；研究状态：" + str(state["research_status"]) + "。只读导出未调用工具、模型或拟合。", small))
     latest_source = _latest_source_review_lines(report)
     if latest_source:
-        h("最新来源核对与未决问题")
+        h("最近一次来源核对记录")
         for line in latest_source:
             story.append(p(line, small, 650))
     plan_rows = _research_plan_rows(state)
@@ -918,6 +949,11 @@ def _pdf(report):
         h("原始数据划分对照")
         for line in raw_lines:
             story.append(p(line, small, 600))
+    feature_lines = _feature_comparison_lines(report)
+    if feature_lines:
+        h("同协议特征对照")
+        for line in feature_lines:
+            story.append(p(line, small, 650))
     if summary.get("numeric_headers"):
         h("数值字段计数")
         numeric_rows = [[*row[:-2], *[format(float(value), ".4g") if value != "未知" else value for value in row[-2:]]]

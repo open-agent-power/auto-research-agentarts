@@ -13,7 +13,7 @@ const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obje
 const words = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
 const resourceKey = (value: Obj): string => String(value.id) + "@" + String(value.version);
-const rawDesign = (resource: Obj): boolean => words(resource.checks)[0] === "random_cv";
+const rawDesign = (resource: Obj): boolean => words(resource.checks).some(check => ["random_cv", "group_cv"].includes(check));
 const resourceFields = ["schema_version", "id", "version", "title", "question", "claim", "alternatives", "checks", "sources", "parent_version", "change_reason"];
 const checkNames: Record<string, string> = { baseline: "基线比较", grouped: "分组验证", sensitivity: "敏感性检查",
   random_cv: "随机五折验证", group_cv: "分组交叉验证", negative_control: "折内负对照" };
@@ -24,6 +24,17 @@ const reasons: Record<string, string> = {
   reference_mae_underflow: "参考误差超出当前数值精度，无法计算相对改善",
   no_reordering_information: "当前条件内的重排没有提供可区分的信息，原配对关系尚待判断",
   improvement_conclusion_reversed_on_removal: "移除部分单位后，优于参考的结论发生变化",
+};
+const featureComparisonReasons: Record<string, string> = {
+  RESOURCE_LINEAGE_MISMATCH: "两侧设计资源不符合相邻版本关系", PROJECT_MISMATCH: "两侧行动不属于同一项目",
+  CHECK_MISMATCH: "两侧检查类型不同", SOURCE_SNAPSHOT_MISMATCH: "输入来源快照不同",
+  TARGET_MISMATCH: "目标字段不同", TARGET_UNIT_MISMATCH: "目标单位不同", PROTOCOL_MISMATCH: "训练或评价协议不同",
+  DUPLICATE_OOF_RECORD: "保存预测中存在重复评价记录", EMPTY_OOF: "缺少保存的折外预测",
+  ROW_COVERAGE_MISMATCH: "评价行覆盖不同", ROW_COORDINATES_MISMATCH: "评价行原始坐标不同",
+  OBSERVED_MISMATCH: "保存的目标观测值不同", GROUPS_MISMATCH: "评价记录的分组不同",
+  FOLD_ASSIGNMENT_MISMATCH: "评价记录的折分配不同", REFERENCE_PREDICTION_MISMATCH: "参考预测不同",
+  DUPLICATE_FOLD_RECORD: "存在重复折记录", FOLD_RECORDS_MISMATCH: "各折训练或评价记录缺失或不同",
+  DUPLICATE_SPLIT_RECORD: "训练或评价划分内存在重复记录", MODEL_PARAMETERS_MISMATCH: "模型参数不同",
 };
 const percent = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? numeric(value * 100, 5) + "%" : "未计算";
 const measure = (value: unknown): string => typeof value === "number" ? numeric(value) : "未计算";
@@ -111,6 +122,34 @@ function showNegativeControl(parent: HTMLElement, record: Obj): void {
   if (summary.reason) parent.append(el("p", "", reasons[text(summary.reason)] ?? text(summary.reason)));
   if (typeof summary.alignment_supported === "boolean") parent.append(el("p", "", summary.alignment_supported
     ? "本次条件诊断支持原预测与标签的配对关系。" : "本次条件诊断未支持原预测与标签的配对关系。"));
+}
+
+function showFeatureComparisons(parent: HTMLElement, records: Obj[]): void {
+  const comparisons = records.filter(record => record.schema_version === "feature-comparison-v1");
+  if (!comparisons.length) return;
+  parent.append(el("h3", "", "同协议特征对照"));
+  for (const record of comparisons) {
+    const entry = el("article", "research-design-result"), comparable = record.status === "comparable";
+    entry.append(el("h4", "", (checkNames[text(record.check)] ?? text(record.check)) + " · " + (comparable ? "可比较" : "暂不可比较")));
+    for (const [label, reference] of [["基准", object(record.baseline_ref)], ["候选", object(record.candidate_ref)]] as const) {
+      entry.append(el("p", "", label + " · 项目设计修订 " + measure(reference.design_version) + " · 资源 " + text(reference.resource_id)
+        + " v" + measure(reference.resource_version) + "；特征 " + (words(reference.feature_columns).join("、") || "未记录") + "。"));
+    }
+    if (comparable) {
+      const metrics = object(record.metrics), n = measure(record.matched_rows);
+      entry.append(el("p", "", "可比较行数 · " + n),
+        metricSummary([["基准 MAE", measure(metrics.baseline_mae)], ["候选 MAE", measure(metrics.candidate_mae)],
+          ["MAE 差值", measure(metrics.mae_change)], ["相对改善", percent(metrics.relative_improvement)],
+          ["基准负预测", measure(metrics.baseline_negative_predictions) + " / " + n],
+          ["候选负预测", measure(metrics.candidate_negative_predictions) + " / " + n]], "同协议特征对照指标"),
+        el("p", "detail-note", "MAE 差值为候选减基准，负值表示候选误差较低。此处仅比较本次保存结果。"));
+    } else {
+      const codes = words(record.reason_codes);
+      if (codes.length) list(entry, "不能比较的原因", codes.map(code => featureComparisonReasons[code] ?? code));
+      else entry.append(el("p", "", "当前记录尚未提供可比较依据。"));
+    }
+    entry.append(rawRecord(record, "查看两侧行动与对照原记录")); parent.append(entry);
+  }
 }
 
 function columnChecks(parent: HTMLElement, columns: string[], checked: string[], change: (values: string[]) => void): void {
@@ -232,8 +271,8 @@ export function createResearchDesignPanel(host: Host): {
   }
   function showResults(): void {
     results.replaceChildren(); const records = objects(catalog.checks);
-    if (!records.length) { results.append(el("p", "detail-note", "当前设计尚无验证结果。保存设计后，可到下方操作区选择实际候选并执行一步。")); return; }
-    results.append(el("h3", "", "已保存的验证结果"));
+    if (!records.length) results.append(el("p", "detail-note", "当前设计尚无验证结果。保存设计后，可到下方操作区选择实际候选并执行一步。"));
+    else results.append(el("h3", "", "已保存的验证结果"));
     for (const record of records) {
       const entry = el("details", "research-design-result"); entry.open = records.length === 1;
       const predictionRange = object(record.prediction_range), n = predictionRange.n, negative = predictionRange.negative_predictions;
@@ -247,6 +286,7 @@ export function createResearchDesignPanel(host: Host): {
       if (record.protocol) entry.append(rawRecord(object(record.protocol), "查看本次划分、训练与评价协议"));
       entry.append(rawRecord(record, "查看指标、发现与行动原记录")); results.append(entry);
     }
+    showFeatureComparisons(results, objects(catalog.feature_comparisons));
   }
   function showAssessment(): void {
     assessment.replaceChildren(); const value = object(catalog.assessment), bound = binding(), resource = object(bound.resource);
@@ -262,16 +302,21 @@ export function createResearchDesignPanel(host: Host): {
     if (words(value.skipped_checks).includes("grouped")) assessment.append(el("p", "detail-note", "分组核对未适用 · 当前项目未声明分组字段。"));
     if (typeof value.claim_supported === "boolean") assessment.append(el("p", "", value.claim_supported ? "当前样本中的误差比较支持所声明主张。" : "当前检查结果尚未支持所声明主张。"));
     const comparison = object(value.comparison);
-    if (Object.keys(comparison).length) assessment.append(metricSummary([["随机验证 MAE", measure(comparison.random_cv_mae)], ["分组验证 MAE", measure(comparison.group_cv_mae)],
-      ["分组 / 随机 MAE", typeof comparison.group_to_random_mae_ratio === "number" ? measure(comparison.group_to_random_mae_ratio) + " 倍" : "未计算"],
-      ["负对照条件秩", measure(comparison.conditional_rank)]], "两种评价设计与负对照比较"));
+    const comparisonMetrics: string[][] = [];
+    for (const [key, label] of [["random_cv_mae", "随机验证 MAE"], ["group_cv_mae", "分组验证 MAE"],
+      ["group_to_random_mae_ratio", "分组 / 随机 MAE"], ["conditional_rank", "负对照条件秩"]]) {
+      const value = comparison[key];
+      if (typeof value === "number" && Number.isFinite(value)) comparisonMetrics.push([label, measure(value) + (key === "group_to_random_mae_ratio" ? " 倍" : "")]);
+    }
+    if (comparisonMetrics.length) assessment.append(metricSummary(comparisonMetrics, "已保存的评价指标"));
     const sizes = object(comparison.train_sizes);
-    const range = (value: unknown): string => {
-      const counts = Array.isArray(value) ? value.filter((item): item is number => typeof item === "number") : [];
-      return counts.length ? Math.min(...counts) + "–" + Math.max(...counts) : "未取得";
-    };
-    if (raw && Object.keys(sizes).length) assessment.append(el("p", "detail-note", "每折训练样本数：随机 " + range(sizes.random_cv)
-      + "；按组 " + range(sizes.group_cv) + "。样本量与组分布可能同时改变，误差差异不能单独归因于分组。"));
+    const trainingSizes: string[] = [];
+    for (const [key, label] of [["random_cv", "随机"], ["group_cv", "按组"]]) {
+      const value = sizes[key], counts = Array.isArray(value) ? value.filter((item): item is number => typeof item === "number" && Number.isFinite(item)) : [];
+      if (counts.length) trainingSizes.push(label + " " + measure(Math.min(...counts)) + "–" + measure(Math.max(...counts)));
+    }
+    if (raw && trainingSizes.length) assessment.append(el("p", "detail-note", "每折训练样本数：" + trainingSizes.join("；") + "。"
+      + (trainingSizes.length === 2 ? "样本量与组分布可能同时改变，误差差异不能单独归因于分组。" : "")));
     if (comparison.all_groups_singleton === true) assessment.append(el("p", "detail-note", "当前每个声明组都只有1条记录，本次比较没有检验组内重复跨折带来的偏差。"));
     if (catalog.model_calls === 0) assessment.append(el("p", "detail-note", "本次研究设计操作的语言模型调用为0。"));
     next.hidden = !text(resource.id, ""); improve.hidden = !text(resource.id, "") || raw;

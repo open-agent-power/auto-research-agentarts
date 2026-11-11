@@ -103,6 +103,18 @@ class LocalWorkbenchHTTPTests(unittest.TestCase):
                     self.assertEqual((status, response["code"]), (403, "LOCAL_ORIGIN_REQUIRED"))
         self.assertEqual(workspace.calls, [])
 
+    def test_large_framed_method_denials_return_json_without_dispatch(self):
+        workspace = FakeWorkspace()
+        server = self.serve(local_workspace=workspace, allow_local_actions=True)
+        valid = self.session(server)
+        raw = b'{"padding":"' + b'x' * (1024 * 1024) + b'"}'
+        for method in ("PUT", "PATCH", "DELETE"):
+            for attempt in range(3):
+                with self.subTest(method=method, attempt=attempt):
+                    status, response = self.request(server, "/api/local-workbench/create", method, raw, valid)
+                    self.assertEqual((status, response["code"]), (405, "READ_ONLY"))
+        self.assertEqual(workspace.calls, [])
+
     def test_valid_intake_and_explicit_choice_use_original_project_ledger(self):
         root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         server = self.serve(local_workspace=LocalWorkbench(root / "managed"), allow_local_actions=True)

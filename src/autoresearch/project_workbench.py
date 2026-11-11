@@ -325,9 +325,10 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                            "application/json; charset=utf-8", filename)
 
         def project_error(self, status, code, message):
-            # Closing with unread, bounded POST bytes can reset the connection on Windows.
+            # Closing with unread, bounded request bytes can reset the connection on Windows.
             lengths = self.headers.get_all("Content-Length", [])
-            framed = (self.command == "POST" and not getattr(self, "_post_body_read", False)
+            framed = (self.command in ("POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT")
+                      and not getattr(self, "_request_body_read", False)
                       and self.headers.get_all("Transfer-Encoding", []) == []
                       and self.headers.get_all("Content-Encoding", []) == []
                       and len(lengths) == 1 and re.fullmatch(r"[0-9]{1,9}", lengths[0]) is not None)
@@ -335,7 +336,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 length = int(lengths[0])
                 limit = MAX_LOCAL_EVIDENCE_REQUEST_BYTES if urlsplit(self.path).path == "/api/local-workbench/evidence" else MAX_LOCAL_REQUEST_BYTES
                 if 0 < length <= limit:
-                    self._post_body_read = True
+                    self._request_body_read = True
                     self.connection.settimeout(10)
                     try:
                         self.rfile.read(length)
@@ -343,8 +344,15 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                         pass
             self.send_json(status, {"ok": False, "code": code, "message": message})
 
+        def deny(self):
+            self._request_body_read = False
+            self.close_connection = True
+            return self.project_error(405 if self.host_ok() else 403, "READ_ONLY", "This method is not enabled for this service.")
+
+        do_PUT = do_PATCH = do_DELETE = do_OPTIONS = do_HEAD = do_TRACE = do_CONNECT = deny
+
         def do_POST(self):
-            self._post_body_read = False
+            self._request_body_read = False
             if not self.host_ok():
                 self.close_connection = True
                 return self.project_error(403, "HOST_NOT_ALLOWED", "Only the bound local Host is accepted.")
@@ -390,7 +398,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 limit = MAX_LOCAL_EVIDENCE_REQUEST_BYTES if parsed.path == "/api/local-workbench/evidence" else MAX_LOCAL_REQUEST_BYTES
                 _require(0 < length <= limit, "INPUT_TOO_LARGE", "Local request exceeds the input limit.")
                 self.connection.settimeout(10)
-                self._post_body_read = True
+                self._request_body_read = True
                 raw = self.rfile.read(length)
                 _require(len(raw) == length, "INVALID_REQUEST", "The complete request body was not received.")
                 body = _local_body(raw)

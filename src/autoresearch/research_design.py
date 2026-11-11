@@ -5,6 +5,7 @@ import json
 
 from .contracts import ResearchError
 from .prediction_summary import summarize_oof_range
+from .feature_comparison import compare_feature_checks
 
 
 RESOURCE = {
@@ -53,7 +54,7 @@ def _records(project, state, binding=None):
 
 
 def _assessment(resource, records, scope):
-    if resource["checks"][0] == "random_cv":
+    if resource["checks"][0] in ("random_cv", "group_cv"):
         return _raw_assessment(resource, records)
     required = [name for name in resource["checks"] if name != "grouped" or scope.get("group_columns")]
     skipped = ["grouped"] if "grouped" in resource["checks"] and not scope.get("group_columns") else []
@@ -85,32 +86,45 @@ def _assessment(resource, records, scope):
 
 
 def _raw_assessment(resource, records):
-    by_check = {item["check"]: item for item in records}
+    configured = resource["checks"]
+    by_check = {item["check"]: item for item in records if item["check"] in configured}
     missing = [name for name in resource["checks"] if name not in by_check]
     if missing:
         return {"status": "incomplete" if records else "not_started", "claim_supported": None,
-                "reason": "仍需完成当前设计要求的划分对照和负对照。", "missing_checks": missing,
+                "reason": "仍需完成当前设计要求的固定检查。", "missing_checks": missing,
                 "skipped_checks": [], "scientific_validation": False}
-    random = by_check["random_cv"].get("summary", {})
+    random = by_check.get("random_cv", {}).get("summary", {})
     grouped = by_check.get("group_cv", {}).get("summary", {})
     control = by_check.get("negative_control", {}).get("summary", {})
     improvements = [by_check[name].get("summary", {}).get("improvement")
                     for name in resource["checks"] if name != "negative_control"]
-    alignment = control.get("alignment_supported") if "negative_control" in resource["checks"] else True
-    failed = any(value is not None and value <= 0 for value in improvements) or alignment is False
-    unknown = any(value is None for value in improvements) or alignment is None
+    failed = any(value is not None and value <= 0 for value in improvements)
+    unknown = any(value is None for value in improvements)
+    if "negative_control" in configured:
+        failed = failed or control.get("alignment_supported") is False
+        unknown = unknown or control.get("alignment_supported") is None
     random_mae, grouped_mae = random.get("candidate_mae"), grouped.get("candidate_mae")
     ratio = grouped_mae / random_mae if random_mae and grouped_mae is not None else None
     train_sizes = {name: [len(fold["train_records"]) for fold in by_check[name].get("folds", [])]
                    for name in ("random_cv", "group_cv") if name in by_check}
+    comparison = {"train_sizes": train_sizes}
+    if "random_cv" in configured:
+        comparison["random_cv_mae"] = random_mae
+    if "group_cv" in configured:
+        comparison.update(group_cv_mae=grouped_mae, group_count=grouped.get("group_count"),
+                          all_groups_singleton=grouped.get("group_count") == grouped.get("n") if grouped.get("n") else None)
+    if "random_cv" in configured and "group_cv" in configured:
+        comparison["group_to_random_mae_ratio"] = ratio
+    if "negative_control" in configured:
+        comparison["conditional_rank"] = control.get("conditional_rank")
+    supported_reason = "本次已配置固定检查支持所声明的误差比较，仍需核对分组、样本含义与独立评价。"
+    if "negative_control" in configured:
+        supported_reason += "条件重排仅诊断本批预测对应关系。"
     return {"status": "review_ready", "claim_supported": False if failed else None if unknown else True,
-            "reason": "本次固定协议的记录支持所声明比较；条件重排仅诊断本批预测对应关系。" if not failed and not unknown
+            "reason": supported_reason if not failed and not unknown
                 else "已保留不利或不可判断的检查，完整主张需要调整。",
             "missing_checks": [], "skipped_checks": [], "scientific_validation": False,
-            "comparison": {"random_cv_mae": random_mae, "group_cv_mae": grouped_mae,
-                           "group_to_random_mae_ratio": ratio, "conditional_rank": control.get("conditional_rank"),
-                           "train_sizes": train_sizes, "group_count": grouped.get("group_count"),
-                           "all_groups_singleton": grouped.get("group_count") == grouped.get("n") if grouped.get("n") else None}}
+            "comparison": comparison}
 
 
 def resources(manager):
@@ -157,6 +171,7 @@ def view(manager):
         completed = [row[0] for row in con.execute("SELECT id,record FROM requests WHERE command IN ('design_bind','design_improve','design_import')")
                      if json.loads(row[1])["status"] == "completed"]
     binding, checks, state = None, [], None
+    feature_comparisons = []
     snapshots = []
     for project in projects:
         saved = project.status()
@@ -173,6 +188,7 @@ def view(manager):
             state = saved
             binding = revisions[-1] if revisions else None
             checks = by_revision[revisions[-1]["version"]] if revisions else []
+            feature_comparisons = compare_feature_checks([record for records in by_revision.values() for record in records])
     assessment = (_assessment(binding["resource"], checks, state["source_scope"]) if binding
                   else {"status": "not_started", "claim_supported": None,
                         "reason": "先选择研究设计并声明所用字段。", "missing_checks": []})
@@ -200,7 +216,7 @@ def view(manager):
             "group_columns": state["source_scope"].get("group_columns", []) if state else [],
             "budget": state["budget"] if state else {},
             "target_column": target, "completed_requests": completed,
-            "checks": checks, "assessment": assessment, "model_calls": 0,
+            "checks": checks, "feature_comparisons": feature_comparisons, "assessment": assessment, "model_calls": 0,
             "suggested_improvement": bool(binding and checks and binding["resource"]["checks"] == ["baseline"])}
 
 
