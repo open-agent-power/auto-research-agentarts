@@ -1,0 +1,21 @@
+{
+  "schema_version": "research-design-resource-v1",
+  "id": "auto-mpg-origin-transfer",
+  "version": 1,
+  "title": "Auto MPG：六输入的原生 origin 组留出",
+  "question": "固定线性 Ridge 在原生 origin 组留出时是否优于训练折均值参考？父子差值另用严格保存预测对照，判定 model_year 的本次误差贡献。",
+  "claim": "The fixed Ridge model has lower merged origin-held-out OOF MAE than its corresponding training-fold target mean reference.",
+  "alternatives": [
+    "Model-year information may change this fixed protocol's saved errors; that change is not a causal effect or a future-year validation.",
+    "Unequal origin groups alter training sizes and contribute unequally to pooled MAE; native group labels do not establish sampling independence.",
+    "Either fixed linear feature set may miss nonlinear relationships; no tuning, extra algorithms or new data are authorized by this design."
+  ],
+  "checks": [
+    "group_cv"
+  ],
+  "sources": [
+    "https://archive.ics.uci.edu/dataset/9/auto-mpg"
+  ],
+  "parent_version": null,
+  "change_reason": "Prespecified six-feature parent on native origin codes; no result-dependent protocol changes."
+}

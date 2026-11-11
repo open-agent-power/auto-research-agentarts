@@ -34,7 +34,7 @@ export function createLocalEvidencePanel(host: Host): {
   const taskDetails = el("details", "local-advanced"); taskDetails.append(el("summary", "", "当前取证任务与绑定"));
   const taskText = el("pre", "project-source-text"); taskDetails.append(taskText);
   const form = el("form", "local-evidence-form"), fields = el("fieldset", "local-fieldset");
-  const chooser = el("input"); chooser.type = "file"; chooser.multiple = true; chooser.accept = ".txt,.md,.html,.htm,.csv,.tsv,.json,.pdf,.xlsx";
+  const chooser = el("input"); chooser.type = "file"; chooser.multiple = true; chooser.accept = ".txt,.md,.html,.htm,.csv,.tsv,.json,.pdf,.xlsx,.names,.data,.data-original";
   chooser.setAttribute("aria-label", "选择补充资料文件，可多选");
   const fileStatus = el("p", "detail-note", "1至8个文件；每份不超过32MiB，总计不超过64MiB。原件不会被执行。"); fileStatus.setAttribute("aria-live", "polite");
   const draftHost = el("div", "local-evidence-draft");

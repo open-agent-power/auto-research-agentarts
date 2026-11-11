@@ -1,5 +1,7 @@
 # 研究设计的反馈修订与跨项目复用
 
+[auto-mpg-origin-transfer.json](auto-mpg-origin-transfer.json)与[子资源v2](auto-mpg-origin-transfer-v2.json)用于新的Auto MPG公开任务：父版六数值输入，子版只去掉`model_year`，都保留`horsepower`，在相同392条完整记录上按原生`origin`做3折GroupKFold。绑定时累计`fit_limit=12`，两版各3次Scaler与3次Ridge；子资源保留显式父版本1，负对照只关联子版。子版MAE较父版增加43.6285%，即使它仍优于训练折均值参考，也不能称为父版改进；见[完整任务](../../docs/research/auto-mpg-year-study.md)。资源声明不自动导入数据或授权执行，新任务的预算也不重置旧Yacht账本。
+
 [yacht-geometry-transfer.json](yacht-geometry-transfer.json)是实际公开帆船任务的资源定义，可从工作台导入；它复用既有随机／分组Ridge与负对照，未增加新的执行器。数据出处、转换规则和结果见[任务说明](../../docs/research/yacht-geometry-study.md)，原始数据与运行证据不随源码分发。
 
 [yacht-geometry-transfer-v2.json](yacht-geometry-transfer-v2.json)是同ID、明确以v1为父版本的Froude-only子资源，只配置`group_cv`。在原项目绑定时声明`feature_columns=["froude_number"]`、`split_group_columns=["geometry_signature"]`和累计`fit_limit=30`；原20次保持已用，新增10次完成相同五折，不重跑随机。本次MAE由7.142228增至7.165757，负预测79→88，候选未改善。

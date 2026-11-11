@@ -64,6 +64,58 @@ class LocalEvidenceTests(unittest.TestCase):
             next((self.root / "evidence-uploads").glob("*/sources/*")).write_bytes(b"Changed original")
             self.assert_code("EVIDENCE_CHANGED", self.manager.register_evidence, body)
 
+    def test_uci_text_original_suffixes_register_replay_and_index_names_coordinates(self):
+        names = "Auto MPG constructed fixture\r\nHorsepower fixture values include an unknown marker.\r\n来源说明保留原行。\r\n"
+        originals = {"names": ("auto-mpg.names", names.encode("utf-8")),
+                     "data": ("auto-mpg.data", b"18.0 8 307.0 130.0\n"),
+                     "data-original": ("auto-mpg.data-original", b"18.0 8 307.0 130.0\r\n")}
+        body = self.body("uci-text-originals")
+        body["sources"] = [{**body["sources"][0], "id": source_id, "file_name": name,
+                            "bytes_base64": base64.b64encode(raw).decode("ascii")}
+                           for source_id, (name, raw) in originals.items()]
+        locator = {"kind": "text_lines", "value": "2-3"}
+        body["selections"] = [{**body["selections"][0], "id": "names-definition", "source_id": "names", "locator": locator}]
+        before = self.project.status()
+        with patch.object(reader, "execute", side_effect=AssertionError("Registration must not extract")):
+            registered = self.manager.register_evidence(body)
+            after_register = self.project.status()
+            self.assertEqual(after_register["budget"], before["budget"])
+            self.assertEqual(after_register["knowledge_refs"], before["knowledge_refs"])
+            self.assertEqual(len(after_register["evidence_actions"]), 0)
+            self.assertTrue(LocalWorkbench(self.root).register_evidence(body)["replayed"])
+        self.assertEqual(self.project.status(), after_register)
+        stored = sorted((self.root / "evidence-uploads").glob("*/sources/*"))
+        self.assertEqual({path.name: path.read_bytes() for path in stored},
+                         {str(index).zfill(2) + "-" + name: raw
+                          for index, (name, raw) in enumerate(originals.values(), 1)})
+        sha = registered["registration"]["receipt_snapshot_sha256"]
+        receipt, assets, _ = self.project._load_evidence_input(after_register, sha, task_ref=body["task_ref"])
+        self.assertEqual(assets, {source_id: raw for source_id, (_, raw) in originals.items()})
+        self.assertTrue(all(source["media_type"] == "text/plain" for source in receipt["sources"]))
+        action = self.project.read_evidence(request_id="read-uci-names", receipt_snapshot_sha256=sha,
+                                            expected_state_version=after_register["state_version"])
+        self.assertEqual(action["status"], "completed")
+        after_read = self.project.status()
+        self.assertEqual(after_read["budget"], {**after_register["budget"], "evidence_reads_used": 1})
+        selection, = json.loads(self.project._artifact(action).read_bytes())["tool_result"]["result"]["selections"]
+        extraction = selection["extraction"]
+        selected = "".join(names.splitlines(keepends=True)[1:3])
+        self.assertEqual((extraction["line_start"], extraction["line_end"]), (2, 3))
+        self.assertEqual([line["line"] for line in extraction["lines"]], [2, 3])
+        self.assertEqual(extraction["text"], selected)
+        self.assertEqual(names[extraction["start_char"]:extraction["end_char"]], selected)
+        hit, = self.project.knowledge(need="Horsepower")["evidence"]
+        self.assertEqual(hit["quote"], selected)
+        self.assertEqual(hit["location"], {"line_start": 1, "line_end": 2})
+        self.assertEqual(hit["source"]["metadata"]["locator"], locator)
+        self.assertEqual(hit["source"]["metadata"]["selection_id"], "names-definition")
+        self.assertEqual(hit["source"]["metadata"]["original_source_sha256"], selection["source"]["sha256"])
+        with patch.object(reader, "execute", side_effect=AssertionError("Replay must not extract")):
+            self.assertTrue(self.manager.register_evidence(body)["replayed"])
+            self.assertTrue(self.project.read_evidence(request_id="read-uci-names", receipt_snapshot_sha256=sha,
+                                                       expected_state_version=after_register["state_version"])["replayed"])
+        self.assertEqual(self.project.status(), after_read)
+
     def test_html_originals_register_extract_literal_lines_and_replay_without_new_reads(self):
         original = "<!doctype html>\r\n<html>\r\n<script>window.fixture = '<b>literal</b>';</script>\r\n<p>原始 &amp; HTML</p>\r\n</html>\r\n"
         raw = original.encode("utf-8")
