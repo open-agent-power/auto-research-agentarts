@@ -207,6 +207,17 @@ class ProjectController:
             # A context cannot contain a selection reference to its own final hash.
             selected["decision"].pop("selection_ref", None)
             context["baseline_decision"] = _compact_decision(selected["decision"])
+        if project.get("experience_revisions"):
+            from .project_experience_binding import active_cases
+            cases = active_cases(self.project.root, project)
+            if cases:
+                base = project_selection.seal_context(context)
+                for case in cases:
+                    matched = research_recipe.match_method_card(case["method_card"], base)
+                    case["association"] = {key: copy.deepcopy(matched[key]) for key in
+                                           ("status", "matching_candidate_ids", "missing_information")}
+                context["experience"] = {"schema_version": "project-experience-context-v1", "cases": cases,
+                                         "scientific_validation": False}
         return project_selection.seal_context(context)
 
     def selection_context(self, *, need="next_check"):

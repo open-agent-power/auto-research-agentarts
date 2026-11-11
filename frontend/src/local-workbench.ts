@@ -2,6 +2,7 @@
 import { $, el } from "./dom";
 import { createProjectPages, type ProjectOperation } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
+import { createLocalExperiencePanel } from "./local-experience";
 import { createLocalBatchPanel, continuationStopReason } from "./local-batch";
 import { createLocalModelPanel } from "./local-model";
 import { createLocalRecipePanel } from "./local-recipe";
@@ -9,7 +10,7 @@ import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
@@ -360,6 +361,10 @@ export async function mountLocalWorkbench(): Promise<void> {
     || !!lastRequest?.uncertain && !["batch", "continue", "evidence"].includes(lastRequest.command);
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
+  const experiencePanel = createLocalExperiencePanel({ read, submit: (name, body, recover) => submit(recover
+    ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverExperience: true }
+    : command(name, body)), canRecover: canRecoverExperience, announce,
+    methodTitle: id => methodNames[id] ?? id });
   const batchPanel = createLocalBatchPanel({ submit: (body, recover, name) => submit(recover
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverBatch: true }
     : command(name, body)), canRecover: canRecoverBatch, announce });
@@ -375,7 +380,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
     operations: { action: runSection, evidence: evidencePanel.element, continuation: batchPanel.element, model: modelPanel.element, recipe: recipePanel.element },
-    design: designPanel.element, designLibrary: designPanel.libraryElement, reportButton, announce });
+    design: designPanel.element, designLibrary: designPanel.libraryElement, experience: experiencePanel.element, reportButton, announce });
   function planContinuation(requestId = ""): Obj | undefined {
     return items(description.continuations).find(record => record.project_id === activeId() && record.record_status === "incomplete"
       && ["plan", "awaiting_adoption"].includes(text(record.phase, "")) && obj(record.plan_ref).kind === "host_plan"
@@ -391,6 +396,15 @@ export async function mountLocalWorkbench(): Promise<void> {
   function canRecoverModel(body: Obj): boolean {
     return !busy && description.enabled === true && !otherModelBlockers(text(body.request_id, ""))
       && body.project_id === activeId() && modelPanel.canResume(body);
+  }
+  function canRecoverExperience(body: Obj): boolean {
+    const pending = items(description.pending_requests), id = text(body.request_id, "");
+    if (busy || description.enabled !== true || !id || body.project_id !== activeId() || current.id !== activeId()
+      || !pending.some(record => record.request_id === id && record.project_id === body.project_id
+        && ["import_experience", "set_experience_status"].includes(text(record.command, "")))) return false;
+    if (pending.some(record => record.request_id !== id && (record.command !== "evidence" || !record.project_id || record.project_id === body.project_id))) return false;
+    if (lastRequest?.uncertain && lastRequest.requestId !== id || batchUncertain || evidencePending.get(text(body.project_id, ""))?.uncertain) return false;
+    return true;
   }
   function canRecoverBatch(body: Obj, name: "batch" | "continue" = "batch"): boolean {
     const record = items(description[name === "continue" ? "continuations" : "batches"]).find(item => item.request_id === body.request_id && item.project_id === body.project_id);
@@ -420,6 +434,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     refreshButton.disabled = busy;
     retry.hidden = !lastRequest; retry.disabled = busy || !lastRequest || lastRequest.uncertain || (lastRequest.command === "evidence" && requestProject(lastRequest) !== activeId()) || description.enabled !== true;
     evidencePanel.setLocked(locked);
+    experiencePanel.setLocked(locked || current.id !== activeId());
     batchPanel.setLocked(locked || typeof current.state_version !== "number" || current.id !== activeId());
     const planId = text(obj(planContinuation()?.plan_ref).request_id, "");
     modelPanel.setLocked(busy || description.enabled !== true || otherModelBlockers(),
@@ -619,6 +634,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     designPanel.invalidate(); designPanel.setLocked(true);
     batchPanel.setLocked(true);
     await evidencePanel.refresh("", {});
+    await experiencePanel.refresh("", {});
     description = await read("/api/local-workbench");
     if (description.schema_version !== "local-research-workbench-v1") throw Error("本地工作台返回身份不完整。");
     const savedContinuation = (id: string, body?: string): Obj | undefined => items(description.continuations).find(record =>
@@ -661,7 +677,8 @@ export async function mountLocalWorkbench(): Promise<void> {
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
       planPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
-      await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await designPanel.update(current); await workspacePages.update(current, context);
+      await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await designPanel.update(current);
+      await experiencePanel.refresh(now, current, items(description.pending_requests)); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
       try {
         const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
@@ -670,6 +687,11 @@ export async function mountLocalWorkbench(): Promise<void> {
       showPending();
       revealPendingOperations();
     } else { planPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await designPanel.update({}); await workspacePages.update({}, null); }
+    if (lastRequest && experiencePanel.resolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
+    try {
+      const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
+      if (experiencePanel.resolved(text(remembered.command, ""), text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
+    } catch { /* Saved experience revisions remain authoritative. */ }
     if (lastRequest && designPanel.resolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
     try {
       const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
@@ -686,11 +708,13 @@ export async function mountLocalWorkbench(): Promise<void> {
     const recoverBatch = (pending.command === "batch" || pending.command === "continue") && pending.recoverBatch === true
       && canRecoverBatch(obj(JSON.parse(pending.body)), pending.command);
     const recoverModel = pending.recoverModel === true && canRecoverModel(obj(JSON.parse(pending.body)));
+    const recoverExperience = pending.recoverExperience === true && pending.command === "experience-resume" && canRecoverExperience(obj(JSON.parse(pending.body)));
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
+    if (pending.recoverExperience && !recoverExperience) { announce("请先只读刷新，核对本项目的原案例请求；不会用新文件或参数重建操作。", true); return null; }
     const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && !recoverModel && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (!recoverBatch && !recoverModel && !recoverExperience && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
     const modelCommand = MODEL_COMMANDS.has(pending.command);
     const continuation = pending.command === "continue" ? obj(JSON.parse(pending.body)) : {};
     const modelContinuation = pending.command === "continue" && (continuation.plan_mode === "suggest" || continuation.execution_mode === "model");
@@ -708,6 +732,8 @@ export async function mountLocalWorkbench(): Promise<void> {
         Object.assign(reasons, { MODEL_DISABLED: "服务尚未启用Claude CLI，请按使用说明启动", HOST_DECISION_LIMIT: "本项目模型决策名额已用尽", HOST_GRANT_CHANGED: "原累计额度和理由已冻结，不能替换", HOST_SELECTION_PENDING: "请核对原模型请求", HOST_USAGE_UNKNOWN: "原模型费用未知，不能按零计后继续发送" });
         reasons.CODE_CHANGED = "当前项目需按使用说明明确升级到本次代码版本";
         reasons.RESOURCE_CONFLICT = "目录已有同ID同版本且内容不同的资源，请核对版本；原资源保留";
+        reasons.EXPERIENCE_ALREADY_IMPORTED = "本项目已导入这版案例；撤回后的案例请使用恢复参考入口";
+        reasons.EXPERIENCE_LIMIT = "本项目的案例绑定数量已达上限，请核对现有案例";
         const code = text(result.code, String(response.status));
         failed = true; outcomeMessage = "提交未完成：" + (reasons[code] ?? "请核对当前条件与输入") + "（" + code + "）。输入已保留；" + (pending.uncertain ? "结果仍需核对，不自动重发。" : "可以用原ID和原内容显式重试，或核对后修正输入。");
       } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))) {
@@ -742,6 +768,9 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (pending.command === "design-bind") outcomeMessage = "研究设计与输入声明已保存。请核对检查计划，再明确执行下一项验证。";
         if (pending.command === "design-improve") outcomeMessage = "已根据实际反馈保存候选新版，可在知识空间查看，并明确选择采用。";
         if (pending.command === "design-import") outcomeMessage = "研究设计资源已保存到知识目录，可查看并选择用于项目。";
+        if (pending.command === "experience-import") outcomeMessage = "案例快照已加入本项目参考，可在知识空间核对原观察和适用边界。";
+        if (pending.command === "experience-status") outcomeMessage = "案例参考资格已更新，原快照和状态历史保留。";
+        if (pending.command === "experience-resume") outcomeMessage = "原案例请求已核对收口，沿用首次保存的文件与参数。";
         if (modelCommand) {
           const record = obj(result.model_record), outcome = obj(record.outcome), state = text(record.status, ""), actual = text(outcome.status, "尚未提交行动");
           const labels: Record<string, string> = { completed: "已完成", waiting: "已保存等待", failed: "失败，原记录保留", unknown: "未知，保留原请求核对" };
@@ -804,6 +833,10 @@ export async function mountLocalWorkbench(): Promise<void> {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
       outcomeMessage = pending.command === "design-bind" ? "已从保存记录确认研究设计与输入声明，可明确执行下一项验证。"
         : pending.command === "design-import" ? "已从保存记录确认资源导入，可在知识目录查看并选择。" : "已从保存记录确认候选新版，可在知识空间查看并选择。";
+    }
+    if (experiencePanel.resolved(pending.command, pending.requestId)) {
+      pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
+      outcomeMessage = "已从原项目保存记录确认案例操作，原快照和状态历史保留。";
     }
     busy = false; candidates(); downloads(); controls(); showPending(); announce(outcomeMessage, failed);
     return accepted;

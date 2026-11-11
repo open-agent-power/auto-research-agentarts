@@ -373,6 +373,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/design-import": "import_design",
                             "/api/local-workbench/plan": "save_plan",
                             "/api/local-workbench/feedback": "record_feedback",
+                            "/api/local-workbench/experience-import": "import_experience",
+                            "/api/local-workbench/experience-status": "set_experience_status",
+                            "/api/local-workbench/experience-resume": "resume_experience",
                             "/api/local-workbench/advance": "advance", "/api/local-workbench/report": "export",
                             "/api/local-workbench/advance-recipe": "advance_recipe",
                             "/api/local-workbench/recipe-preview": "preview_recipe_round",
@@ -436,7 +439,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
-                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/project/knowledge"}:
+                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/project/knowledge"}:
                     _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
@@ -461,6 +464,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 if parsed.path == "/api/local-workbench/designs" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Research designs do not accept a query.")
                     return self.send_json(200, local_workspace.designs())
+                if parsed.path == "/api/local-workbench/experiences" and local_workspace is not None:
+                    _require(not parsed.query, "INVALID_QUERY", "Historical method cases do not accept a query.")
+                    return self.send_json(200, local_workspace.experiences())
                 if parsed.path.startswith("/api/local-workbench/batch/") and local_workspace is not None:
                     _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved batch JSON identifier.")
                     encoded = parsed.path.removeprefix("/api/local-workbench/batch/")[:-5]

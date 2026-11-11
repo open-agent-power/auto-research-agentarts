@@ -188,7 +188,7 @@ class LocalWorkbench:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]
             active = self._active(con)
             pending = []
-            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status') ORDER BY rowid DESC"):
                 record = tabular._parse(row["record"].encode("utf-8"))
                 if record["status"] not in ("completed", "rejected"):
                     pending.append({"request_id": row["id"], "command": row["command"], "status": record["status"],
@@ -428,6 +428,81 @@ class LocalWorkbench:
             with self._connect() as con:
                 self._save(con, body["request_id"], {"status": "completed", "result": response,
                                                     "intent": {"project_id": body["project_id"]}})
+            return response
+
+    def experiences(self):
+        from .project_experience_binding import view_cases
+        view = {"schema_version": "project-experience-view-v1", "project_id": None,
+                "state_version": None, "cases": [], "history": []}
+        with self._connect(readonly=True) as con:
+            active = self._active(con)
+            project = self._project(con, active)[1] if active is not None else None
+        if project is None:
+            return view
+        state = project.status()
+        view.update(project_id=state["id"], state_version=state["state_version"],
+                    cases=view_cases(project.root, state), history=copy.deepcopy(state.get("experience_revisions", [])))
+        _require(project.status()["snapshot_ref"] == state["snapshot_ref"],
+                 "STALE_STATE", "Project changed while reading its historical method cases.")
+        return view
+
+    def import_experience(self, body):
+        from .project_experience import MAX_BUNDLE_BYTES
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "bundle_base64", "reason"))
+        raw = _decode(body["bundle_base64"], MAX_BUNDLE_BYTES)
+        return self._experience_command(body, digest, bundle=raw)
+
+    def set_experience_status(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "case_id", "status", "reason"))
+        return self._experience_command(body, digest)
+
+    def resume_experience(self, body):
+        _body(body, ("request_id", "project_id"))
+        with self._connect(readonly=True) as con:
+            self._project(con, body["project_id"], active=True)
+            row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+            _require(row is not None and row["command"] in {"import_experience", "set_experience_status"},
+                     "ARTIFACT_NOT_FOUND", "Select the original case inclusion request.")
+            saved = tabular._parse(row["record"].encode("utf-8"))
+            original = saved["intent"]["body"]
+            _require(original["project_id"] == body["project_id"] and original["request_id"] == body["request_id"]
+                     and fingerprint(original) == row["digest"],
+                     "EVIDENCE_CHANGED", "Original case inclusion body changed.")
+            command = row["command"]
+        return getattr(self, command)(original)
+
+    def _experience_command(self, body, digest, *, bundle=None):
+        from .project_experience_binding import import_case, set_status
+        command = "import_experience" if bundle is not None else "set_experience_status"
+        values = {key: body[key] for key in ("request_id", "expected_state_version", "reason")}
+        if bundle is not None:
+            values["bundle"] = bundle
+        else:
+            values.update(case_id=body["case_id"], status=body["status"])
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                old = self._old(con, body, digest)
+                if old is not None and old["status"] == "completed":
+                    revision = getattr(project, command)(**values)
+                    _require(revision == old["result"]["experience_revision"],
+                             "EVIDENCE_CHANGED", "Saved case inclusion receipt differs from the original project revision.")
+                    return self._completed(old)
+                if old is None:
+                    for row in con.execute("SELECT record FROM requests WHERE command IN ('import_experience','set_experience_status')"):
+                        pending = tabular._parse(row[0].encode("utf-8"))
+                        _require(pending["status"] == "completed" or pending["intent"].get("project_id") != body["project_id"],
+                                 "OPERATION_INCOMPLETE", "Recover the original case inclusion request before starting another.")
+                    self._no_pending_batch(con, body["project_id"], evidence=True)
+                    validator = import_case if bundle is not None else set_status
+                    validator(project, **values, _validate_only=True)
+                    self._accept(con, body, digest, command, {"project_id": body["project_id"], "body": copy.deepcopy(body)})
+            revision = getattr(project, command)(**values)
+            response = self._response(command, body["request_id"], body["project_id"], status="completed",
+                                      experience_revision=revision, replayed=old is not None)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status": "completed", "result": response,
+                                                    "intent": {"project_id": body["project_id"], "body": copy.deepcopy(body)}})
             return response
 
     def recipes(self):

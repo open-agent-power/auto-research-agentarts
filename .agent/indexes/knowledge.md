@@ -1,5 +1,7 @@
 # 知识、数据与记忆索引
 
+[跨项目方法案例](../../docs/project-experience.md)复用`ResearchMemory`及既有方法卡；保存OOF数值先复核，再显式导入目标项目。来源active仅表示导出时资格，目标自行撤回／恢复；案例进入独立context，不进入本项目原文证据、FTS或执行资格。首版覆盖固定Ridge保存结果，尚非全部领域的统一经验学习。
+
 结构化[方法卡](../../examples/research-method-cards/feedback-driven.example.json)通过`research_recipe.parse_method_card/match_method_card`读取与关联原宿主候选，保留依据、适用／不适用／未知说明、反馈分支和来源定位。文本不执行、不联网获取来源、不等于条件已自动满足；实际查询、未报告条件和下一轮接续见[方法卡设计](../../docs/recipe-research/recipe-design.md)。
 
 适用：本地检索、RAG、外部来源接入、数据读取和经验复用。目标是让知识参与研究选择及证据核对；开发平台文档与科研证据分别使用。

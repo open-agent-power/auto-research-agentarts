@@ -1,6 +1,7 @@
 """Export saved project evidence as a bounded paper, without research execution."""
 
 import base64
+import copy
 from io import BytesIO
 import hashlib
 import json
@@ -17,6 +18,29 @@ KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel
          "software.source-integrity-check": "software", "data.tabular-quality-audit": "tabular"}
 TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存模型与评价复核报告",
           "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告"}
+
+EXPERIENCE_NOTE = ("以下为显式导入的历史方法案例，数值属于原项目、目标与协议，不是本项目的结果。"
+                   "方法卡条件仍需核对，案例不创建候选或增加执行额度。源记忆撤回限制后续导出；"
+                   "已导入快照须在本项目明确撤回。完整原件及资格历史保留在JSON和输入包。")
+
+
+def _experience_rows(report):
+    rows = []
+    for case in report.get("experience_cases", []):
+        origin = case["origin_evidence"]
+        scope = case["source_scope"]
+        source = (str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id", "未提供"))
+                  + "；原目标 " + str(scope.get("target_column")) + "，单位 " + str(scope.get("target_unit")))
+        numbers = case["observation"]["numerical_summary"]
+        observation = ("评价 " + _number(numbers["n"]) + " 行；排除 " + _number(numbers["excluded"])
+                       + "；MAE " + _number(numbers["candidate_mae"]) + "；训练均值参考 MAE " + _number(numbers["reference_mae"])
+                       + "；负预测 " + _number(numbers["negative_predictions"])
+                       + "；观察范围 " + _number(numbers["observed_min"]) + " 至 " + _number(numbers["observed_max"])
+                       + "；预测范围 " + _number(numbers["predicted_min"]) + " 至 " + _number(numbers["predicted_max"]))
+        rows.append([case["case_id"] + " v" + str(case["case_version"]),
+                     "用于后续参考" if case["inclusion_status"] == "active" else "已从后续参考撤回", source,
+                     observation])
+    return rows
 
 
 def _report_title(kind, results):
@@ -208,6 +232,14 @@ def collect_report(workspace) -> dict:
     for asset in host_models["assets"]:
         assets[asset["name"]] = {key: value for key, value in asset.items() if key != "role"}
         source_manifest.append({key: value for key, value in asset.items() if key != "bytes_base64"})
+    from .project_experience_binding import case_assets, view_cases
+    from . import project_experience_binding, project_experience
+    experience_cases = view_cases(project.root, before)
+    for asset in case_assets(project.root, before):
+        raw, name = asset["data"], asset["name"]
+        assets[name] = {"name": name, **_digest(raw), "bytes_base64": base64.b64encode(raw).decode("ascii")}
+        source_manifest.append({"name": name, "role": "historical_method_case_snapshot", **_digest(raw),
+                                "transfer_scope": "analogy_not_current_evidence"})
     after = project.status()
     _require(after["snapshot_ref"] == before["snapshot_ref"], "PROJECT_CHANGED", "Project changed while collecting this report.")
     _require(host_model_report.host_model_snapshot_sha256(project.root) == host_models["snapshot_sha256"],
@@ -246,9 +278,14 @@ def collect_report(workspace) -> dict:
                                                        + Path(feature_comparison.__file__).read_bytes()
                                                        + Path(project_design.__file__).read_bytes()
                                                        + Path(input_basis.__file__).read_bytes()
+                                                       + Path(project_experience_binding.__file__).read_bytes()
+                                                       + Path(project_experience.__file__).read_bytes()
                                                        + Path(research_design.__file__).read_bytes()).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
+    if before.get("experience_revisions"):
+        report["experience_cases"] = experience_cases
+        report["input"]["experience_revisions"] = copy.deepcopy(before["experience_revisions"])
     binding = before.get("design_revisions", [])[-1] if before.get("design_revisions") else None
     report["design_assessment"] = research_design._assessment(binding["resource"], research_design._records(project, before, binding),
         before["source_scope"], report["feature_comparisons"]) if binding else None
@@ -909,6 +946,12 @@ def _markdown(report):
     if report["plan_reviews"]:
         lines.extend(["## 计划执行条件", "", PLAN_REVIEW_NOTE, "",
                       _markdown_table(["记录项", "请求准备时的条件"], _plan_review_rows(report)), ""])
+    if report.get("experience_cases"):
+        lines.extend(["## 历史方法案例", "", EXPERIENCE_NOTE, "",
+                      _markdown_table(["案例", "当前资格", "原项目与目标", "原条件下的数值观察"], _experience_rows(report)), ""])
+        for case in report["experience_cases"]:
+            lines.extend(["### " + case["case_id"], "", case["method_card"]["question"], "",
+                          *["- " + item for item in case["limitations"]], ""])
     incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
     lines.append(_markdown_table(["行动", "状态", "真实失败/未知"], [[entry["action_id"], entry["status"], canonical(entry["failure"])] for entry in incomplete]) if incomplete else "保存的行动均完成；这不等于研究问题解决或科学批准。")
     lines.extend(["", "恢复只使用原request_id和完整保存工件；unknown不自动重发，预算不通过新目录重置。数值复算、来源抽取和故障注入均按原范围解释。",
@@ -1133,6 +1176,15 @@ def _pdf(report):
         h("计划执行条件")
         story.append(p(PLAN_REVIEW_NOTE, small))
         table(["记录项", "请求准备时的条件"], _plan_review_rows(report), [.40, .60])
+    if report.get("experience_cases"):
+        h("历史方法案例")
+        story.append(p(EXPERIENCE_NOTE, small))
+        table(["案例 / 当前资格", "原项目与目标", "原条件下的数值观察"],
+              [[row[0] + " / " + row[1], row[2], row[3]] for row in _experience_rows(report)], [.24, .35, .41])
+        for case in report["experience_cases"]:
+            story.append(p(case["method_card"]["question"], small))
+            for limit in case["limitations"]:
+                story.append(p("适用限制：" + limit, small))
     h("代码与输入身份")
     for label, value in [("项目", report["project_id"]), ("项目快照", report["project_snapshot_ref"]),
                          ("核心代码", state["code_identity"]), ("导出器代码", report["exporter_code_identity"]),

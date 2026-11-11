@@ -1,5 +1,7 @@
 # Claude CLI 与子代理的选择及计划建议入口
 
+目标项目明确导入的活动[历史方法案例](project-experience.md)进入选择context可选`experience`，随计划／配方context冻结；源观察与当前证据分开。三类提示要求参考时指明案例、源项目与当前差异，原回答字段及证据／反馈ID约束保持。不导入或全部撤回时不追加这段提示；已封存Host不随当前资格改写。
+
 `scripts/run_host_selection.py` 把真实项目 context 交给已安装的 Claude CLI，保存原始回答，再通过原 `ProjectController.advance_selection` 最多执行一个候选行动。也可以导入子代理回答。选择用途下，模型只选候选或等待，不能提供工具参数、增加额度或批准科学结论。完整选择协议见[选择提案](project-selection.md)，已有实跑见[外部模型验证](external-model-validation.md)。
 
 ## 根据真实反馈建议研究计划

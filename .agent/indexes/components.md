@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`local-experience.ts`在知识空间提供显式案例导入、原观察／范围／限制、可读方法条件与协议、资格历史及JSON。`project-pages.ts`复用原focus路由直达`#/knowledge?focus=experience`；草稿和原请求恢复仍由`local-workbench.ts`管理。沿既有表单与表面，不另建主题；见[案例用法](../../docs/project-experience.md)。
+
 `research-design.ts`新增直接输入/固定单列三次基选择，原CSV字段与展开模型项分别展示；多列cubic停用保存，直接输入提交省略可选字段。资源导入导出保留`comparison_kind`。双类对照分别命名为同协议特征对照与同评价划分输入基对照；父版判断与单项训练均值参考分开说明，见[研究设计](../../docs/research-design.md)。
 
 `research-design.ts`在严格父子特征对照下显示输入列选择、保存误差主表及可展开的均差/逐行变化副表；两表复用`metricTable`与局部横向滚动，各自提供手机滑动提示。选择只重绘已收到的`input_profiles`，不提交或执行，见[研究设计](../../docs/research-design.md)。

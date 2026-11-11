@@ -13,7 +13,7 @@ export type ProjectOperation = "action" | "evidence" | "continuation" | "model" 
 
 export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: Record<ProjectOperation, HTMLElement>; planning: HTMLElement[];
-  feedback: HTMLElement; design: HTMLElement; designLibrary: HTMLElement; reportButton: HTMLButtonElement;
+  feedback: HTMLElement; design: HTMLElement; designLibrary: HTMLElement; experience: HTMLElement; reportButton: HTMLButtonElement;
   announce(message: string, error?: boolean): void;
 }): { update(project: Obj, context: Obj | null): Promise<void>; revealOperation(name: ProjectOperation, recoveryKey: string): void } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
@@ -45,7 +45,10 @@ export function createProjectPages(host: HTMLElement, options: {
   const research = panes.get("research")!; research.insertBefore(flow.element, content.get("research")!); research.insertBefore(operation, content.get("research")!);
   flow.element.before(options.design, ...options.planning);
   panes.get("knowledge")?.insertBefore(options.designLibrary, content.get("knowledge")!);
-  const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback, design: options.design };
+  panes.get("knowledge")?.insertBefore(options.experience, content.get("knowledge")!);
+  const caseLink = el("a", "text-button", "阅读或导入历史方法案例"); caseLink.href = "#/knowledge?focus=experience";
+  panes.get("knowledge")!.querySelector(".page-heading > div")!.append(caseLink);
+  const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback, design: options.design, experience: options.experience };
   for (const target of Object.values(focusTargets)) { target.classList.add("project-route-target"); target.tabIndex = -1; }
   host.replaceChildren(common, ...panes.values());
   const nav = $("sections"); nav.replaceChildren();
@@ -75,8 +78,9 @@ export function createProjectPages(host: HTMLElement, options: {
   }
   function focusRoute(): boolean {
     const key = new URLSearchParams(location.hash.split("?")[1] ?? "").get("focus");
-    if (!focusPending || !current.id || activePage !== "research" || key !== "operations" && key !== "plan" && key !== "feedback" && key !== "design") return false;
-    const target = focusTargets[key];
+    const researchFocus = activePage === "research" && (key === "operations" || key === "plan" || key === "feedback" || key === "design");
+    if (!focusPending || !current.id || !researchFocus && !(activePage === "knowledge" && key === "experience")) return false;
+    const target = focusTargets[key as keyof typeof focusTargets];
     if (target.hidden) return false;
     focusPending = false;
     if (key === "operations") operation.open = true;
@@ -85,6 +89,9 @@ export function createProjectPages(host: HTMLElement, options: {
     focus.focus({ preventScroll: true });
     target.scrollIntoView({ block: "start", behavior: "instant" }); return true;
   }
+  caseLink.addEventListener("click", event => {
+    if (location.hash === caseLink.hash) { event.preventDefault(); focusPending = true; focusRoute(); }
+  });
   window.addEventListener("hashchange", route); route();
   async function update(project: Obj, context: Obj | null): Promise<void> {
     current = project;

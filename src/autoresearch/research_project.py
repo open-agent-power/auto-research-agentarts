@@ -26,13 +26,15 @@ def _source_metadata(receipt):
 def code_identity():
     from . import project_recipe, recipe_improvement
     from . import project_model_protocol
-    from . import project_design, plan_feedback
+    from . import project_design, plan_feedback, project_experience, project_experience_binding
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
                         "recipe_improvement": hashlib.sha256(Path(recipe_improvement.__file__).read_bytes()).hexdigest(),
                         "plan_feedback": hashlib.sha256(Path(plan_feedback.__file__).read_bytes()).hexdigest(),
                         "project_design": hashlib.sha256(Path(project_design.__file__).read_bytes()).hexdigest(),
+                        "project_experience": hashlib.sha256(Path(project_experience.__file__).read_bytes()).hexdigest(),
+                        "project_experience_binding": hashlib.sha256(Path(project_experience_binding.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})
@@ -242,7 +244,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions", "experience_revisions"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
@@ -265,6 +267,16 @@ class ResearchProject:
         from .project_recipe import apply_recipe_round
         return apply_recipe_round(self, request_id=request_id, expected_state_version=expected_state_version,
                                   round_input=round_input, reason=reason)
+
+    def import_experience(self, *, request_id, expected_state_version, bundle, reason):
+        from .project_experience_binding import import_case
+        return import_case(self, request_id=request_id, expected_state_version=expected_state_version,
+                           bundle=bundle, reason=reason)
+
+    def set_experience_status(self, *, request_id, expected_state_version, case_id, status, reason):
+        from .project_experience_binding import set_status
+        return set_status(self, request_id=request_id, expected_state_version=expected_state_version,
+                          case_id=case_id, status=status, reason=reason)
 
     def save_plan(self, *, request_id, expected_state_version, plan, reason):
         """Save an operator-authored plan revision without dispatching research."""

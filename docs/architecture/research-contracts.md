@@ -2,6 +2,8 @@
 
 ## 对象边界
 
+已实现的[历史方法案例快照](../project-experience.md)使用原记忆条目及方法卡，新增的是目标项目不可变`experience_revisions`与受控封套资产。资格变更增state，active摘要仅进入独立context；源case／action不能成为目标`evidence_citation_ids`或`feedback_action_ids`。源库与目标副本分别撤回，旧Host及报告保留当时内容。
+
 | 对象 | 职责 | 最小字段 |
 |---|---|---|
 | Project | 长期研究问题、来源与累计资源的归属 | id, goal, research_status, scope, source_refs, budget_ids, state_version |
