@@ -4,7 +4,7 @@ import copy
 
 from .contracts import ResearchError
 from . import method_registry as registry
-from . import project_design
+from . import prediction_adapter, project_design
 
 
 OOF = "p02.saved-oof-residuals"
@@ -228,9 +228,12 @@ def _domain_methods(project, need):
             missing = ["completed quality feedback, a declared numeric target and at least one other numeric column"]
         elif method_id in registry.DESIGN_METHODS:
             check = registry.DESIGN_METHODS[method_id].check
-            eligible = project_design.check_eligible(project, check) and profile.get("rows", 0) <= 512
-            reason = "Use the bound design's saved-prediction check after quality feedback; retain adverse results and original group definitions."
-            missing = ["a bound saved-prediction design, completed quality feedback for at most 512 rows and any required preceding comparison or groups"]
+            raw = check in project_design.RAW_CHECKS
+            row_limit = project_design.MAX_RAW_RECORDS if raw else prediction_adapter.MAX_RECORDS
+            design_kind = "raw-table" if raw else "saved-prediction"
+            eligible = project_design.check_eligible(project, check) and profile.get("rows", 0) <= row_limit
+            reason = f"Use the bound {design_kind} design's check after quality feedback; retain adverse results and original group definitions."
+            missing = [f"a bound {design_kind} design, completed quality feedback for at most {row_limit} rows and any required preceding comparison or groups"]
         done = [item for item in project.get("actions", []) if item["command"] == method_id
                 and item["status"] == "completed" and item["method_instance"]["parameters"] == parameters
                 and (method_id not in registry.DESIGN_METHODS or item.get("design_binding") == project_design.current(project))]

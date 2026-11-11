@@ -93,10 +93,11 @@ class NegativeControlAdapter(PredictionAdapter):
 
     def execute(self, payload, parameters):
         from .prediction_controls import evaluate_negative_control
+        from .project_design import MAX_RAW_RECORDS
 
         predecessor = grouped._parameters(parameters)
         original = {key: value for key, value in payload.items() if key not in ("design_binding", "generated_prediction")}
-        spec, _, _ = tabular._checked(original)
+        spec, _, (_, records, _) = tabular._checked(original)
         binding, generated = payload["design_binding"], payload["generated_prediction"]
         producer = generated["analysis"]
         tabular._require(producer["schema_version"] == "ridge-validation-v1"
@@ -104,6 +105,9 @@ class NegativeControlAdapter(PredictionAdapter):
                          and binding["prediction_column"] is None and "negative_control" in binding["resource"]["checks"],
                          "EVIDENCE_CHANGED", "Negative control requires OOF predictions from the bound raw design.")
         rows = producer["oof"]
+        tabular._require(len(records) <= MAX_RAW_RECORDS and len(rows) <= MAX_RAW_RECORDS,
+                         "UNSUPPORTED_SCOPE",
+                         f"Raw saved-OOF controls support at most {MAX_RAW_RECORDS} captured records and OOF predictions.")
         analysis = evaluate_negative_control([row["observed"] for row in rows], [row["predicted"] for row in rows],
                                              groups=[row["fold"] for row in rows])
         analysis["protocol"]["grouping"] = "within_oof_folds"

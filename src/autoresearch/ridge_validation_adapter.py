@@ -9,7 +9,7 @@ from sklearn.model_selection import GroupKFold, KFold
 from sklearn.preprocessing import StandardScaler
 
 from . import grouped_quality_adapter as grouped, numeric_association_adapter as numeric, prediction_checks, tabular_quality_adapter as tabular
-from . import input_basis
+from . import input_basis, project_design
 
 
 ADAPTER_VERSION = "2"
@@ -34,7 +34,8 @@ def _inputs(payload):
                      "INVALID_TRAINING", "Select distinct numeric features excluding the target and declared grouping columns.")
     tabular._require(type(training.get("fit_limit")) is int and training["fit_limit"] >= 0,
                      "INVALID_TRAINING", "Declare a nonnegative combined scaler and Ridge fit limit.")
-    tabular._require(len(records) <= 512, "UNSUPPORTED_SCOPE", "Training validation supports at most 512 captured rows.")
+    tabular._require(len(records) <= project_design.MAX_RAW_RECORDS, "UNSUPPORTED_SCOPE",
+                     f"Training validation supports at most {project_design.MAX_RAW_RECORDS} captured rows.")
     positions, missing, rows, exclusions = {name: index for index, name in enumerate(header)}, set(spec["missing_tokens"]), [], []
     for logical_record, (values, line_end) in enumerate(records, 1):
         observed = numeric._finite(values[positions[spec["target_column"]]], missing)

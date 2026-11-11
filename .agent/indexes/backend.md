@@ -1,5 +1,7 @@
 # 后端索引
 
+原始Ridge设计的`project_design.MAX_RAW_RECORDS=2048`由绑定、adapter与方法资格共用，raw保存OOF负对照沿用同一上限；显式保存预测列检查仍使用`prediction_adapter.MAX_RECORDS=512`。完整1030行Concrete课题触发扩展，不截断数据或改变拟合协议；既有项目须原显式代码登记，不能据容量扩展重置任何用量。见[原始训练边界](../../docs/research-design.md#原始数据的固定模型验证)。
+
 `ProjectController._selection_context`沿原数值／来源执行分支捕获`conditions[].budget_cost`，Ridge复用当前绑定的`_fit_attempts_needed`，无对应设计为null。`plan_readiness`仅复制捕获成本到v2，旧Host保持v1。资格和执行计数不读取成本投影；见[额度需求](../../docs/method-budget-costs.md)。
 
 `project_experience`复用原条件记忆存储，复核已保存Ridge OOF并导出方法案例；`project_experience_binding`保存目标项目显式导入与active／retired历史，原ID重放及manager接续不复活资格。控制器只把活动案例加入独立`experience`，保持候选、证据及预算；见[案例快照](../../docs/project-experience.md)。

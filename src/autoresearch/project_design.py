@@ -8,6 +8,7 @@ from . import input_basis
 
 SAVED_CHECKS = ("baseline", "grouped", "sensitivity")
 RAW_CHECKS = ("random_cv", "group_cv", "negative_control")
+MAX_RAW_RECORDS = 2048
 CHECKS = (*SAVED_CHECKS, *RAW_CHECKS)
 CHECK_METHODS = {**{name: "data.prediction-" + name for name in SAVED_CHECKS},
                  "random_cv": "data.ridge-random-validation", "group_cv": "data.ridge-group-validation",
@@ -68,7 +69,8 @@ def _training(payload, training):
             and not set(features) & set(spec["group_columns"]) and type(training["fit_limit"]) is int and 0 <= training["fit_limit"] <= 40,
             "INVALID_TRAINING", "Use explicit numeric features, distinct target, declared split groups and 0..40 estimator attempts.")
     input_basis.protocol(training)
-    require(10 <= len(rows) <= 512, "UNSUPPORTED_SCOPE", "Raw validation supports 10..512 captured records.")
+    require(10 <= len(rows) <= MAX_RAW_RECORDS, "UNSUPPORTED_SCOPE",
+            f"Raw validation supports 10..{MAX_RAW_RECORDS} captured records.")
     positions, missing = {name: index for index, name in enumerate(column_names)}, set(spec["missing_tokens"])
     complete_groups = []
     for row, _ in rows:
