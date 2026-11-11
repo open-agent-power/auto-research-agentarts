@@ -3,6 +3,7 @@
 import copy
 
 from .contracts import ResearchError, canonical, identifier
+from . import input_basis
 
 
 SAVED_CHECKS = ("baseline", "grouped", "sensitivity")
@@ -25,7 +26,7 @@ def family(resource):
 
 
 def validate_resource(resource):
-    if (type(resource) is not dict or set(resource) != RESOURCE_FIELDS
+    if (type(resource) is not dict or not RESOURCE_FIELDS <= set(resource) <= RESOURCE_FIELDS | {"comparison_kind"}
             or resource["schema_version"] != "research-design-resource-v1"
             or type(resource["version"]) is not int or resource["version"] < 1
             or resource["parent_version"] is not None and
@@ -43,6 +44,9 @@ def validate_resource(resource):
             or any(type(item) is not str or not item.strip() for item in resource["alternatives"])
             or type(resource["sources"]) is not list):
         raise ResearchError("INVALID_DESIGN", "Declare a baseline-led saved check sequence or CV-led raw sequence, alternatives and source references.")
+    if "comparison_kind" in resource and (resource["comparison_kind"] != "fixed_input_basis"
+                                         or family(resource) != "raw" or resource["parent_version"] is None):
+        raise ResearchError("INVALID_DESIGN", "A fixed_input_basis comparison requires a raw child resource with an explicit parent version.")
     if len(canonical(resource).encode("utf-8")) > 64 * 1024:
         raise ResearchError("INVALID_DESIGN", "Research design exceeds its saved resource limit.")
     return copy.deepcopy(resource)
@@ -51,7 +55,8 @@ def validate_resource(resource):
 def _training(payload, training):
     from . import tabular_quality_adapter as tabular, numeric_association_adapter as numeric
     require = tabular._require
-    require(type(training) is dict and set(training) == {"feature_columns", "split_group_columns", "fit_limit"},
+    fields = {"feature_columns", "split_group_columns", "fit_limit"}
+    require(type(training) is dict and fields <= set(training) <= fields | {"input_basis"},
             "INVALID_TRAINING", "Declare features, split groups and the cumulative fit limit.")
     spec, _, (column_names, rows, _) = tabular._checked(payload)
     features, groups = training["feature_columns"], training["split_group_columns"]
@@ -62,6 +67,7 @@ def _training(payload, training):
             and spec["target_column"] is not None and spec["target_column"] not in features
             and not set(features) & set(spec["group_columns"]) and type(training["fit_limit"]) is int and 0 <= training["fit_limit"] <= 40,
             "INVALID_TRAINING", "Use explicit numeric features, distinct target, declared split groups and 0..40 estimator attempts.")
+    input_basis.protocol(training)
     require(10 <= len(rows) <= 512, "UNSUPPORTED_SCOPE", "Raw validation supports 10..512 captured records.")
     positions, missing = {name: index for index, name in enumerate(column_names)}, set(spec["missing_tokens"])
     complete_groups = []

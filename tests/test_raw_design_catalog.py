@@ -38,13 +38,14 @@ class RawDesignCatalogTests(unittest.TestCase):
         binding = {"resource": RAW_RESOURCE, "version": 1, "target_column": "observed",
                    "prediction_column": None, "reason": "Question requires unseen groups",
                    "training": {"feature_columns": ["x"], "split_group_columns": ["batch"], "fit_limit": 20}}
-        self.assertIn(["模型输入列", "x"], _design_rows({"design_revisions": [binding]}))
+        self.assertIn(["原CSV输入列", "x"], _design_rows({"design_revisions": [binding]}))
         checks = self.checks(grouped=-0.2, rank=0.7)
         checks[-1]["summary"].update(excluded=0, original_mae=3.0, permutation_median=2.5,
             permutation_p05=1.0, permutation_p95=4.0)
         checks[-1]["protocol"] = {"seed": 11, "repeats": 199}
         for check in checks[:2]:
             check["summary"]["excluded"] = 0
+            check["protocol"] = {}
             check["oof"] = []
         for check in checks:
             check["design_binding"] = binding

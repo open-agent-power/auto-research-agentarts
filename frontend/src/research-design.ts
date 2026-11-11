@@ -7,7 +7,7 @@ type Host = {
   submit(name: string, body: Obj): Promise<Obj | null>;
   announce(message: string, error?: boolean): void;
 };
-type Draft = { resource: string; prediction: string; reason: string; improvement: string; features: string[]; groups: string[]; fitLimit: number };
+type Draft = { resource: string; prediction: string; reason: string; improvement: string; features: string[]; groups: string[]; fitLimit: number; inputBasis: string };
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(object) : [];
 const words = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
@@ -38,6 +38,14 @@ const featureComparisonReasons: Record<string, string> = {
 };
 const percent = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? numeric(value * 100, 5) + "%" : "未计算";
 const measure = (value: unknown): string => typeof value === "number" ? numeric(value) : "未计算";
+const basisTitle = (value: unknown): string => {
+  const kind = typeof value === "string" ? value : object(value).kind;
+  return kind === "univariate_cubic" ? "固定单列三次基" : kind === undefined || kind === "raw" ? "直接输入" : text(kind);
+};
+const previewTerms = (columns: string[], basis: string): string[] => basis === "univariate_cubic"
+  ? columns.length === 1 ? [columns[0], columns[0] + "^2", columns[0] + "^3"] : [] : columns;
+const savedTerms = (protocol: Obj): string[] => "input_basis" in protocol ? words(protocol.model_input_terms) : words(protocol.feature_columns);
+const comparisonTitle = (record: Obj): string => record.comparison_kind === "fixed_input_basis" ? "同评价划分的输入基对照" : "同协议特征对照";
 
 function field(label: string, control: HTMLElement): HTMLElement {
   const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap;
@@ -54,6 +62,7 @@ function designCopy(parent: HTMLElement, resource: Obj): void {
     el("h4", "", "待验证的主张"), el("p", "", text(resource.claim)));
   list(parent, "竞争解释", words(resource.alternatives));
   list(parent, "检查计划", words(resource.checks).map(check => checkNames[check] ?? check));
+  if (resource.comparison_kind === "fixed_input_basis") parent.append(el("p", "detail-note", "版本比较方式 · 同评价划分的输入基对照"));
 }
 
 function rawRecord(value: Obj, label: string): HTMLDetailsElement {
@@ -87,6 +96,11 @@ function showMetrics(parent: HTMLElement, record: Obj): void {
   parent.append(el("p", "detail-note", "MAE 为平均绝对误差，越小越好。参考为" + (trained ? "各训练折的目标均值" : reference) + "；相对改善大于0表示本次预测误差较低。"));
   if (trained) parent.append(el("p", "detail-note", record.check === "random_cv" ? "随机五折固定 seed 11、Ridge alpha 1；每折分别拟合训练折的标准化器与模型。"
     : "按声明组拆分，折数为 min(5, 完整组数)、Ridge alpha 1；训练组与评价组分开，每折单独拟合标准化器与模型。"));
+  if (trained) {
+    const protocol = object(record.protocol);
+    parent.append(el("p", "", "原CSV列 · " + (words(protocol.feature_columns).join("、") || "未记录")
+      + "；输入映射 · " + basisTitle(protocol.input_basis) + "；保存的模型输入项 · " + (savedTerms(protocol).join("、") || "未记录") + "。"));
+  }
   const predictionRange = object(record.prediction_range);
   if (trained && Object.keys(predictionRange).length) {
     const n = measure(predictionRange.n);
@@ -160,21 +174,25 @@ function showInputProfiles(parent: HTMLElement, record: Obj): void {
 function showFeatureComparisons(parent: HTMLElement, records: Obj[]): void {
   const comparisons = records.filter(record => record.schema_version === "feature-comparison-v1");
   if (!comparisons.length) return;
-  parent.append(el("h3", "", "同协议特征对照"));
+  const titles = new Set(comparisons.map(comparisonTitle));
+  parent.append(el("h3", "", titles.size === 1 ? comparisonTitle(comparisons[0]) : "版本对照"));
   for (const record of comparisons) {
     const entry = el("article", "research-design-result"), comparable = record.status === "comparable";
-    entry.append(el("h4", "", (checkNames[text(record.check)] ?? text(record.check)) + " · " + (comparable ? "可比较" : "暂不可比较")));
+    const fixedBasis = record.comparison_kind === "fixed_input_basis", title = comparisonTitle(record);
+    entry.append(el("h4", "", (titles.size > 1 ? title + " · " : "") + (checkNames[text(record.check)] ?? text(record.check)) + " · " + (comparable ? "可比较" : "暂不可比较")));
     for (const [label, reference] of [["基准", object(record.baseline_ref)], ["候选", object(record.candidate_ref)]] as const) {
       entry.append(el("p", "", label + " · 项目设计修订 " + measure(reference.design_version) + " · 资源 " + text(reference.resource_id)
-        + " v" + measure(reference.resource_version) + "；特征 " + (words(reference.feature_columns).join("、") || "未记录") + "。"));
+        + " v" + measure(reference.resource_version) + (fixedBasis ? "；原CSV列 " : "；特征 ") + (words(reference.feature_columns).join("、") || "未记录")
+        + (fixedBasis ? "；输入映射 " + basisTitle(reference.input_basis) + "；模型输入项 " + (savedTerms(reference).join("、") || "未记录") : "") + "。"));
     }
+    if (fixedBasis) list(entry, "本次协议变化", words(record.changed_protocol_fields).map(key => ({ input_basis: "输入映射", model_input_terms: "模型输入项" }[key] ?? key)));
     if (comparable) {
       const metrics = object(record.metrics), n = measure(record.matched_rows);
       entry.append(el("p", "", "可比较行数 · " + n),
         metricSummary([["基准 MAE", measure(metrics.baseline_mae)], ["候选 MAE", measure(metrics.candidate_mae)],
           ["MAE 差值", measure(metrics.mae_change)], ["相对改善", percent(metrics.relative_improvement)],
           ["基准负预测", measure(metrics.baseline_negative_predictions) + " / " + n],
-          ["候选负预测", measure(metrics.candidate_negative_predictions) + " / " + n]], "同协议特征对照指标"),
+          ["候选负预测", measure(metrics.candidate_negative_predictions) + " / " + n]], title + "指标"),
         el("p", "detail-note", "MAE 差值为候选减基准，负值表示候选误差较低。此处仅比较本次保存结果。"));
     } else {
       const codes = words(record.reason_codes);
@@ -215,13 +233,19 @@ export function createResearchDesignPanel(host: Host): {
   const training = el("div", "research-design-training"), trainingColumns = el("div", "local-form-grid");
   const features = el("fieldset", "local-fieldset research-design-columns"), splitGroups = el("fieldset", "local-fieldset research-design-columns");
   const featureOptions = el("div", "research-design-column-options"), groupOptions = el("div", "research-design-column-options");
-  features.append(el("legend", "local-label", "用于训练的数值特征（1至16列）"), featureOptions);
+  features.append(el("legend", "local-label", "用于训练的原CSV数值列（1至16列）"), featureOptions);
   splitGroups.append(el("legend", "local-label", "用于分组拆分的声明字段"), groupOptions); trainingColumns.append(features, splitGroups);
   const fitLimit = el("input"); fitLimit.type = "number"; fitLimit.min = "1"; fitLimit.max = "40"; fitLimit.step = "1"; fitLimit.value = "20";
+  const inputBasis = el("select"), basisNote = el("p", "detail-note"), trainingProtocol = el("p", "detail-note");
+  for (const [value, label] of [["raw", "直接使用所选CSV列"], ["univariate_cubic", "固定单列三次基（x、x²、x³）"]]) {
+    const option = el("option", "", label); option.value = value; inputBasis.append(option);
+  }
+  basisNote.setAttribute("role", "status"); basisNote.setAttribute("aria-live", "polite");
   training.hidden = true;
   training.append(el("p", "detail-note", "明确选择特征与分组。目标字段和已声明分组字段不进入特征；执行需至少10条完整记录、2个完整组。"), trainingColumns,
+    field("模型输入映射", inputBasis), basisNote,
     field("累计 fit 尝试上限", fitLimit), el("p", "detail-note", "上限为1至40次，默认20。每折包含标准化器与Ridge各1次fit，两类合计2次。累计已用与预留沿项目保存，调整设计继续读取原消耗。"),
-    el("p", "detail-note", "固定比较随机五折（seed 11）与分组 min(5, 组数) 折，Ridge alpha 为1。标准化在各训练折内拟合。"));
+    trainingProtocol);
   const fitBudget = el("div", "research-design-fit-budget"); fitBudget.hidden = true;
   const bind = el("button", "action-button primary", "保存研究设计与预测列"); bind.type = "submit";
   const formDetails = el("details", "research-design-editor");
@@ -254,7 +278,7 @@ export function createResearchDesignPanel(host: Host): {
     if (!value) {
       const saved = catalog.project_id === projectId ? object(object(catalog.binding).training) : {};
       value = { resource: "", prediction: "", reason: "", improvement: "", features: words(saved.feature_columns), groups: words(saved.split_group_columns),
-        fitLimit: typeof saved.fit_limit === "number" ? saved.fit_limit : 20 }; drafts.set(projectId, value);
+        fitLimit: typeof saved.fit_limit === "number" ? saved.fit_limit : 20, inputBasis: saved.input_basis === "univariate_cubic" ? "univariate_cubic" : "raw" }; drafts.set(projectId, value);
     }
     return value;
   };
@@ -266,10 +290,15 @@ export function createResearchDesignPanel(host: Host): {
     fields.disabled = !editable;
     const raw = rawDesign(selected() ?? {}), fit = fitLimit.valueAsNumber, budget = object(catalog.budget);
     const minimumFit = Math.max(1, typeof budget.fit_limit === "number" ? budget.fit_limit : 1); fitLimit.min = String(minimumFit);
-    const featureCount = featureOptions.querySelectorAll("input:checked").length;
-    for (const input of featureOptions.querySelectorAll<HTMLInputElement>("input")) input.disabled = featureCount >= 16 && !input.checked;
+    const columns = [...featureOptions.querySelectorAll<HTMLInputElement>("input:checked")].map(input => input.value), featureCount = columns.length;
+    const cubic = inputBasis.value === "univariate_cubic", validBasis = !cubic || featureCount === 1;
+    inputBasis.setCustomValidity(validBasis ? "" : "固定单列三次基要求恰好选择1个原CSV数值列。");
+    basisNote.textContent = !validBasis ? "固定单列三次基要求恰好选择1个原CSV数值列，当前已选择 " + featureCount + " 列。请调整原CSV列选择后再保存。"
+      : cubic ? "固定映射预览 · 原CSV列 " + columns[0] + " → 模型输入项 " + previewTerms(columns, inputBasis.value).join("、") + "（按原尺度展开，无常数列）。"
+        : "直接输入 · 原CSV列与模型输入项相同：" + (columns.join("、") || "尚未选择") + "。";
+    for (const input of featureOptions.querySelectorAll<HTMLInputElement>("input")) input.disabled = featureCount >= (cubic ? 1 : 16) && !input.checked;
     const trainingReady = featureCount > 0 && featureCount <= 16 && groupOptions.querySelectorAll("input:checked").length > 0
-      && Number.isInteger(fit) && fit >= minimumFit && fit <= 40;
+      && validBasis && Number.isInteger(fit) && fit >= minimumFit && fit <= 40;
     bind.disabled = !editable || !catalog.target_column || !selected() || !(raw ? trainingReady : prediction.value) || !reason.value.trim();
     improveFields.disabled = !editable;
     improveButton.disabled = !editable || catalog.suggested_improvement !== true || !improveReason.value.trim();
@@ -280,13 +309,16 @@ export function createResearchDesignPanel(host: Host): {
   function showSelection(): void {
     copy.replaceChildren(); const resource = selected();
     const raw = rawDesign(resource ?? {}); training.hidden = !raw; predictionField.hidden = raw; prediction.required = !raw; fitLimit.required = raw; fitLimit.disabled = !raw;
+    inputBasis.disabled = !raw; inputBasis.required = raw;
     bind.textContent = raw ? "保存原始数据训练设计" : "保存研究设计与预测列";
     reason.placeholder = raw ? "说明特征、分组划分和比较目的，以及采用该设计的依据" : "说明为何采用该设计，以及这列预测的来源与比较目的";
     if (raw) {
       const saved = draft(), groupColumns = words(catalog.group_columns);
       columnChecks(featureOptions, words(catalog.numeric_columns).filter(column => column !== catalog.target_column && !groupColumns.includes(column)), saved.features,
         values => { draft().features = values; controls(); });
-      columnChecks(groupOptions, groupColumns, saved.groups, values => { draft().groups = values; controls(); }); fitLimit.value = String(saved.fitLimit);
+      columnChecks(groupOptions, groupColumns, saved.groups, values => { draft().groups = values; controls(); }); fitLimit.value = String(saved.fitLimit); inputBasis.value = saved.inputBasis;
+      trainingProtocol.textContent = "按设计执行" + words(resource?.checks).filter(check => ["random_cv", "group_cv"].includes(check)).map(check => checkNames[check]).join("、")
+        + "，Ridge alpha 为1；输入映射后，在各训练折内单独拟合标准化器与模型。";
     }
     if (resource) {
       designCopy(copy, resource);
@@ -326,7 +358,9 @@ export function createResearchDesignPanel(host: Host): {
     assessment.replaceChildren(); const value = object(catalog.assessment), bound = binding(), resource = object(bound.resource);
     const raw = rawDesign(resource), boundTraining = object(bound.training);
     bindingNote.textContent = text(resource.id, "") ? "已采用 " + text(resource.title, text(resource.id)) + " v" + String(resource.version)
-      + (raw ? " · 特征 " + words(boundTraining.feature_columns).join("、") + " · 拆分组 " + words(boundTraining.split_group_columns).join("、")
+      + (raw ? " · 原CSV列 " + words(boundTraining.feature_columns).join("、") + " · 输入映射 " + basisTitle(boundTraining.input_basis)
+        + " · 模型输入项 " + previewTerms(words(boundTraining.feature_columns), text(boundTraining.input_basis, "raw")).join("、")
+        + " · 拆分组 " + words(boundTraining.split_group_columns).join("、")
         : " · 保存预测列 " + text(bound.prediction_column)) + " · 项目设计修订 " + String(bound.version)
       : "尚未绑定研究设计。选择库内版本、核对输入声明并填写采用理由。";
     const title = value.status === "review_ready" ? "规定检查记录已齐" : value.status === "incomplete" ? "验证尚未完成" : "等待选择研究设计";
@@ -334,7 +368,12 @@ export function createResearchDesignPanel(host: Host): {
     const missing = words(value.missing_checks);
     if (missing.length) assessment.append(el("p", "", "下一项验证 · " + (checkNames[missing[0]] ?? missing[0])), el("p", "detail-note", "待完成 · " + missing.map(check => checkNames[check] ?? check).join("、")));
     if (words(value.skipped_checks).includes("grouped")) assessment.append(el("p", "detail-note", "分组核对未适用 · 当前项目未声明分组字段。"));
-    if (typeof value.claim_supported === "boolean") assessment.append(el("p", "", value.claim_supported ? "当前样本中的误差比较支持所声明主张。" : "当前检查结果尚未支持所声明主张。"));
+    if (value.claim_scope === "saved_parent_mae") {
+      const conclusion = value.claim_supported === true ? "当前检查支持候选误差较低。"
+        : value.claim_supported === false ? "当前检查未支持所声明的改善主张。" : "当前尚不能判断是否改善。";
+      assessment.append(el("p", "", "相对指定父版本的保存MAE，" + conclusion),
+        el("p", "detail-note", "下方单项检查的参考仍指训练折目标均值；父版本判断见版本对照。"));
+    } else if (typeof value.claim_supported === "boolean") assessment.append(el("p", "", value.claim_supported ? "当前样本中的误差比较支持所声明主张。" : "当前检查结果尚未支持所声明主张。"));
     const comparison = object(value.comparison);
     const comparisonMetrics: string[][] = [];
     for (const [key, label] of [["random_cv_mae", "随机验证 MAE"], ["group_cv_mae", "分组验证 MAE"],
@@ -430,11 +469,13 @@ export function createResearchDesignPanel(host: Host): {
   reason.addEventListener("input", () => { draft().reason = reason.value; controls(); });
   improveReason.addEventListener("input", () => { draft().improvement = improveReason.value; controls(); });
   fitLimit.addEventListener("input", () => { draft().fitLimit = fitLimit.valueAsNumber; controls(); });
+  inputBasis.addEventListener("change", () => { draft().inputBasis = inputBasis.value; controls(); });
   form.addEventListener("submit", event => {
     event.preventDefault(); const resource = selected(); if (bind.disabled || !resource || !form.reportValidity()) return;
     const body = { project_id: projectId, expected_state_version: project.state_version, resource_id: resource.id, resource_version: resource.version, reason: reason.value.trim() };
     void host.submit("design-bind", rawDesign(resource) ? { ...body, prediction_column: null,
-      training: { feature_columns: draft().features, split_group_columns: draft().groups, fit_limit: fitLimit.valueAsNumber } }
+      training: { feature_columns: draft().features, split_group_columns: draft().groups, fit_limit: fitLimit.valueAsNumber,
+        ...(inputBasis.value === "univariate_cubic" ? { input_basis: "univariate_cubic" } : {}) } }
       : { ...body, prediction_column: prediction.value });
   });
   improveForm.addEventListener("submit", event => {
@@ -450,7 +491,7 @@ export function createResearchDesignPanel(host: Host): {
       if (file.size > 4 * 1024 * 1024) throw Error("资源JSON文件上限为4 MiB，请核对文件。");
       const parsed = object(JSON.parse(await file.text())); if (token !== importGeneration) return;
       if (parsed.schema_version !== "research-design-resource-v1" || resourceFields.some(key => !(key in parsed))) throw Error("请选择包含完整研究设计协议字段的 research-design-resource-v1 文件。");
-      importedResource = Object.fromEntries(resourceFields.map(key => [key, parsed[key]]));
+      importedResource = Object.fromEntries([...resourceFields, ...("comparison_kind" in parsed ? ["comparison_kind"] : [])].map(key => [key, parsed[key]]));
       importStatus.textContent = "已读取 " + text(parsed.title, text(parsed.id)) + " v" + String(parsed.version) + "。点击导入后保存到资源目录。";
     } catch (error) {
       if (token !== importGeneration) return;

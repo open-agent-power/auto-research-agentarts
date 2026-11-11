@@ -1,0 +1,23 @@
+{
+  "alternatives": [
+    "The raw-speed linear basis may miss speed-dependent shape.",
+    "Extra basis terms and coefficients also change the hypothesis space and effective regularization.",
+    "The already inspected parent-family observations and speed grid do not provide an independent final evaluation."
+  ],
+  "change_reason": "Prospectively fix one follow-up candidate after the complete saved residual profile; no degree, seed, parameter or geometry search.",
+  "checks": [
+    "group_cv"
+  ],
+  "claim": "This fixed cubic candidate has lower merged group-held-out OOF MAE than the raw-Froude parent v2 under the same saved evaluation contract.",
+  "id": "yacht-geometry-transfer",
+  "parent_version": 2,
+  "question": "Does one fixed cubic speed basis change the saved group-held-out error relative to the raw-Froude parent?",
+  "schema_version": "research-design-resource-v1",
+  "sources": [
+    "https://archive.ics.uci.edu/dataset/243/yacht+hydrodynamics",
+    "https://doi.org/10.24432/C5XG7R"
+  ],
+  "title": "Fixed cubic Froude basis under the original grouped evaluation",
+  "version": 3,
+  "comparison_kind": "fixed_input_basis"
+}

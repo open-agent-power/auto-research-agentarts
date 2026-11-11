@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness, prediction_summary, feature_comparison, project_design
+from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness, prediction_summary, feature_comparison, project_design, input_basis, research_design
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
 
@@ -244,9 +244,14 @@ def collect_report(workspace) -> dict:
                                                        + Path(plan_readiness.__file__).read_bytes()
                                                        + Path(prediction_summary.__file__).read_bytes()
                                                        + Path(feature_comparison.__file__).read_bytes()
-                                                       + Path(project_design.__file__).read_bytes()).hexdigest(),
+                                                       + Path(project_design.__file__).read_bytes()
+                                                       + Path(input_basis.__file__).read_bytes()
+                                                       + Path(research_design.__file__).read_bytes()).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
+    binding = before.get("design_revisions", [])[-1] if before.get("design_revisions") else None
+    report["design_assessment"] = research_design._assessment(binding["resource"], research_design._records(project, before, binding),
+        before["source_scope"], report["feature_comparisons"]) if binding else None
     report["snapshot_sha256"] = fingerprint(report)
     return report
 
@@ -444,9 +449,12 @@ def _design_rows(state):
     binding = revisions[-1]
     resource = binding["resource"]
     fields = ([["观察目标", binding["target_column"]],
-               ["模型输入列", "、".join(binding["training"]["feature_columns"])],
+               ["原CSV输入列", "、".join(binding["training"]["feature_columns"])],
                ["划分分组列", "、".join(binding["training"]["split_group_columns"])]] if binding.get("training") else
               [["实际值 / 保存预测列", binding["target_column"] + " / " + binding["prediction_column"]]])
+    if binding.get("training", {}).get("input_basis") == "univariate_cubic":
+        fields.extend([["固定输入映射", "原尺度单列展开为一次、二次、三次项，无常数列；之后按训练折标准化"],
+                       ["模型输入项", "、".join(input_basis.protocol(binding["training"])["model_input_terms"])]])
     return [["研究设计", resource["title"]], ["资源与项目绑定版本", f"{resource['id']} v{resource['version']} / 绑定v{binding['version']}"],
             ["研究问题", resource["question"]], ["待检验判断", resource["claim"]],
             ["可替代解释或方法", "；".join(resource["alternatives"])],
@@ -482,6 +490,9 @@ def _raw_validation_lines(report):
                 + _number(summary["reference_mae"]) + "，相对改善 "
                 + (_number(improvement * 100) + "%" if improvement is not None else "未知") + "。")
             lines.append("每个训练折分别拟合StandardScaler与Ridge(alpha=1)，评价折不参与拟合；完整行号、折分配、模型系数保存在JSON。")
+            if analysis["protocol"].get("input_basis", {}).get("kind") == "univariate_cubic":
+                lines.append("原尺度单列先展开一次、二次、三次项，无常数列，再在训练折拟合标准化；模型输入项："
+                             + "、".join(analysis["protocol"]["model_input_terms"]) + "。未裁剪预测或变换目标。")
             prediction_range = prediction_summary.summarize_oof_range(analysis["oof"])
             if prediction_range is not None:
                 lines.append("保存预测范围 " + _number(prediction_range["predicted_min"]) + "—" + _number(prediction_range["predicted_max"])
@@ -506,12 +517,18 @@ def _feature_comparison_lines(report):
     lines = []
     for comparison in report["feature_comparisons"]:
         left, right = comparison["baseline_ref"], comparison["candidate_ref"]
+        fixed_basis = comparison.get("comparison_kind") == "fixed_input_basis"
+        lines.append("同评价划分的输入基对照。" if fixed_basis else "同协议特征对照。")
         for label, reference in (("父版本", left), ("候选版本", right)):
             lines.append(label + "：项目设计v" + str(reference["design_version"]) + "，资源 "
                          + reference["resource_id"] + " v" + str(reference["resource_version"])
                          + "，输入 " + "、".join(reference["feature_columns"]) + "，行动 " + reference["action_id"] + "。")
+            if fixed_basis:
+                lines.append(label + "保存的模型输入项：" + "、".join(reference.get("model_input_terms", [])) + "。")
+        if fixed_basis:
+            lines.append("固定Ridge超参数与评价划分，明确比较原单列输入和一次/二次/三次基；输入空间及有效正则化随之改变。")
         if comparison["status"] != "comparable":
-            lines.append("不能形成同协议特征对照：" + "、".join(comparison["reason_codes"]) + "。未生成误差比较成绩。")
+            lines.append("不能形成此版本对照：" + "、".join(comparison["reason_codes"]) + "。未生成误差比较成绩。")
             continue
         metrics = comparison["metrics"]
         relative = metrics["relative_improvement"]
@@ -523,6 +540,15 @@ def _feature_comparison_lines(report):
     return lines
 
 
+def _design_assessment_lines(report):
+    assessment = report.get("design_assessment")
+    if not assessment:
+        return []
+    scope = "相对指定父版本的保存MAE" if assessment.get("claim_scope") == "saved_parent_mae" else "当前配置检查的保存误差比较"
+    decision = "支持" if assessment["claim_supported"] is True else "未支持" if assessment["claim_supported"] is False else "尚不能判断"
+    return [scope + "：" + decision + "此限定的误差主张。", assessment["reason"], "此核对不判读自由正文，也不授予科学确认或自动采用。"]
+
+
 def _input_profile_tables(report):
     """Print the candidate's first input; all input profiles remain in JSON."""
     for comparison in report["feature_comparisons"]:
@@ -531,7 +557,9 @@ def _input_profile_tables(report):
             continue
         profile = profiles[0]
         description = ("按实际输入值分组" if profile["grouping"] == "exact_values" else "按输入最小/最大值固定分为5个等宽区间，末区间含右端点")
-        note = ("报告按候选首个输入 " + profile["column"] + " 展示；" + description + "，完整覆盖 " + str(profile["n"])
+        left, right = comparison["baseline_ref"], comparison["candidate_ref"]
+        note = ("资源 " + left["resource_id"] + " v" + str(left["resource_version"]) + "→v" + str(right["resource_version"])
+                + "（项目绑定v" + str(left["design_version"]) + "→v" + str(right["design_version"]) + "）。报告按候选首个输入 " + profile["column"] + " 展示；" + description + "，完整覆盖 " + str(profile["n"])
                 + " 行。候选逐行绝对误差较低/较高/相同 " + "/".join(str(profile[key]) for key in ("improved_rows", "worsened_rows", "tied_rows"))
                 + "。分界只使用输入值；这是保存结果的探索性描述，不证明新数据泛化。全部输入列及行号见JSON。")
         errors, bias = [], []
@@ -804,7 +832,10 @@ def _markdown(report):
         lines.extend(["## 原始数据划分对照", "", *[line + "\n" for line in raw_lines]])
     feature_lines = _feature_comparison_lines(report)
     if feature_lines:
-        lines.extend(["## 同协议特征对照", "", *[line + "\n" for line in feature_lines]])
+        lines.extend(["## 研究版本对照", "", *[line + "\n" for line in feature_lines]])
+    decision_lines = _design_assessment_lines(report)
+    if decision_lines:
+        lines.extend(["## 当前设计的保存结果核对", "", *[line + "\n" for line in decision_lines]])
     for note, errors, bias in _input_profile_tables(report):
         lines.extend(["## 按输入查看保存预测误差", "", note, "",
                       _markdown_table(["输入值/区间", "样本", "父版本MAE", "候选MAE", "候选减父版本", "负预测 父/候选"], errors), "",
@@ -977,8 +1008,13 @@ def _pdf(report):
             story.append(p(line, small, 600))
     feature_lines = _feature_comparison_lines(report)
     if feature_lines:
-        h("同协议特征对照")
+        h("研究版本对照")
         for line in feature_lines:
+            story.append(p(line, small, 650))
+    decision_lines = _design_assessment_lines(report)
+    if decision_lines:
+        h("当前设计的保存结果核对")
+        for line in decision_lines:
             story.append(p(line, small, 650))
     for note, errors, bias in _input_profile_tables(report):
         h("按输入查看保存预测误差")

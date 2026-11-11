@@ -4,7 +4,22 @@
 
 [yacht-geometry-transfer-v2.json](yacht-geometry-transfer-v2.json)是同ID、明确以v1为父版本的Froude-only子资源，只配置`group_cv`。在原项目绑定时声明`feature_columns=["froude_number"]`、`split_group_columns=["geometry_signature"]`和累计`fit_limit=30`；原20次保持已用，新增10次完成相同五折，不重跑随机。本次MAE由7.142228增至7.165757，负预测79→88，候选未改善。
 
+[yacht-geometry-transfer-v3.json](yacht-geometry-transfer-v3.json)明确以v2为父版本，声明`comparison_kind="fixed_input_basis"`，只配置`group_cv`。在原项目绑定时使用以下训练声明，原30次保持已用，新增5次Scaler与5次Ridge后累计40次；资源本身不执行或扩额度。
+
+```json
+{
+  "feature_columns": ["froude_number"],
+  "split_group_columns": ["geometry_signature"],
+  "fit_limit": 40,
+  "input_basis": "univariate_cubic"
+}
+```
+
+`input_basis`把唯一原CSV输入按原尺度展开为`Fn、Fn²、Fn³`，不加常数列，再按原训练折拟合StandardScaler与固定Ridge；展开不新增fit。两侧输入映射和`model_input_terms`明确保存，其余完整行、来源、目标、折及模型参数保持严格一致。目录和报告的`claim_scope="saved_parent_mae"`只在真实父版本配对依据完整时判断，缺失或不可比保持未知、已证实不利保持False，不用优于均值参考代替父版本比较。该任务v3相对v2的MAE由7.165757降至2.743855，但负预测仍为88，局部不利结果照常保留；科学验证保持false。契约见[固定输入基函数对照](../../docs/research-design.md#固定输入基函数对照)。
+
 子资源本身不授权增加预算、执行或上传来源。与父版本配对时须核对同项目、来源、目标、完整评价行、组、训练/评价折及参考预测；不符就保存`not_comparable`，不以行交集补齐。页面和报告显示保存结果的差值，完整协议见[特征对照](../../docs/research-design.md#同项目的特征对照)。本轮没有新增候选负控、来源读取或Host请求。
+
+## 保存预测的双项目工程演示
 
 本示例在同一个完整本地工作台manager中创建两个独立项目。两个CSV均为作者直接构造的六行工程输入，`predicted`是预先给出的保存值。运行使用既有项目、设计绑定、条件候选、控制器、工具工件及预算账本。
 

@@ -15,6 +15,24 @@ def _reference(record):
             "feature_columns": copy.deepcopy(record["protocol"]["feature_columns"])}
 
 
+def _fixed_basis_protocols_match(baseline, candidate):
+    from .input_basis import protocol
+
+    left, right = baseline["protocol"], candidate["protocol"]
+    columns = left["feature_columns"]
+    left_training = baseline["design_binding"].get("training", {})
+    right_training = candidate["design_binding"].get("training", {})
+    if (len(columns) != 1 or right["feature_columns"] != columns
+            or left_training.get("feature_columns") != columns or "input_basis" in left_training
+            or right_training.get("feature_columns") != columns or right_training.get("input_basis") != "univariate_cubic"):
+        return False
+    expected = protocol(right_training)
+    fields = ("input_basis", "model_input_terms")
+    if any(key in left or right.get(key) != expected[key] for key in fields):
+        return False
+    return left == {key: value for key, value in right.items() if key not in fields}
+
+
 def compare_feature_pair(baseline, candidate):
     """Require the same saved evaluation before describing prediction changes."""
     reasons = []
@@ -29,9 +47,10 @@ def compare_feature_pair(baseline, candidate):
                         ("target_column", "TARGET_MISMATCH"), ("target_unit", "TARGET_UNIT_MISMATCH")):
         if baseline[key] != candidate[key]:
             reasons.append(reason)
+    fixed_basis = right_resource.get("comparison_kind") == "fixed_input_basis"
     protocols = [{key: value for key, value in record["protocol"].items() if key != "feature_columns"}
                  for record in (baseline, candidate)]
-    if protocols[0] != protocols[1]:
+    if (fixed_basis and not _fixed_basis_protocols_match(baseline, candidate)) or (not fixed_basis and protocols[0] != protocols[1]):
         reasons.append("PROTOCOL_MISMATCH")
     row_maps = [{row["logical_record"]: row for row in record["oof"]} for record in (baseline, candidate)]
     if any(len(rows) != len(record["oof"]) for rows, record in zip(row_maps, (baseline, candidate))):
@@ -65,6 +84,14 @@ def compare_feature_pair(baseline, candidate):
               "baseline_ref": _reference(baseline), "candidate_ref": _reference(candidate),
               "status": "not_comparable" if reasons else "comparable", "reason_codes": list(dict.fromkeys(reasons)),
               "scientific_validation": False}
+    if fixed_basis:
+        result.update(comparison_kind="fixed_input_basis", changed_protocol_fields=[key for key in ("input_basis", "model_input_terms")
+                      if baseline["protocol"].get(key) != candidate["protocol"].get(key)])
+        for name, record in (("baseline_ref", baseline), ("candidate_ref", candidate)):
+            saved = record["protocol"]
+            result[name]["input_basis"] = copy.deepcopy(saved.get("input_basis", {"kind": "raw", "source_columns": saved["feature_columns"]}))
+            if "model_input_terms" in saved or "input_basis" not in saved:
+                result[name]["model_input_terms"] = copy.deepcopy(saved.get("model_input_terms", saved["feature_columns"]))
     if reasons:
         return result
     errors = [_mean([abs(row["predicted"] - row["observed"]) for row in record["oof"]])

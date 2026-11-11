@@ -1,5 +1,7 @@
 # 后端索引
 
+`input_basis`提供唯一固定原尺度单列`[x,x²,x³]`展开，`project_design`冻结可选`training.input_basis`，Ridge适配器v2在训练折标准化前使用并保存三维参数。`fixed_input_basis`资源须明示父版，比较门仅允许这两项显式元数据差异；目录与报告的`saved_parent_mae`判断使用真实父版配对，不能用训练均值参考冒充。见[固定输入基对照](../../docs/research-design.md#固定输入基函数对照)。
+
 `feature_comparison`接收已捕获输入时，为严格匹配的父子OOF派生`input_profiles`：按候选输入优先、父版补列，≤16个数值逐值分组，否则按输入范围分5等宽区间。保留完整评价行、逻辑行号、MAE、预测减观测均值、负预测和逐行变化；只读派生，不取误差定边界、不训练，见[研究设计](../../docs/research-design.md)。
 
 `feature_comparison.compare_feature_checks`按明确资源父版本只读比较保存的原始训练结果，要求来源、目标、评价行、分组、折和均值参考一致；不取交集、不重拟合、不自动采用。`research_design`目录与`project_report`共用此投影。原始设计可仅配置`group_cv`，省去与当前问题无关的随机重训；累计拟合用量保持，见[研究设计](../../docs/research-design.md)。

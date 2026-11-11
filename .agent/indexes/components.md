@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`research-design.ts`新增直接输入/固定单列三次基选择，原CSV字段与展开模型项分别展示；多列cubic停用保存，直接输入提交省略可选字段。资源导入导出保留`comparison_kind`。双类对照分别命名为同协议特征对照与同评价划分输入基对照；父版判断与单项训练均值参考分开说明，见[研究设计](../../docs/research-design.md)。
+
 `research-design.ts`在严格父子特征对照下显示输入列选择、保存误差主表及可展开的均差/逐行变化副表；两表复用`metricTable`与局部横向滚动，各自提供手机滑动提示。选择只重绘已收到的`input_profiles`，不提交或执行，见[研究设计](../../docs/research-design.md)。
 
 计划原文与当前事实分开显示：[local-workbench.ts](../../frontend/src/local-workbench.ts)保留制定时原文，另从已完成来源行动显示当前读取／选区数量与最新未决项；不据此推断先后或科学确认。[project-view.ts](../../frontend/src/project-view.ts)的`sourceQuestionText`复用精确中文释义，未知问题保留原文，来源卡去重展示且保留完整原数组。两处共用同一问题显示方式。

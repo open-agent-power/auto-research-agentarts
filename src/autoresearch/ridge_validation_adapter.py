@@ -9,9 +9,10 @@ from sklearn.model_selection import GroupKFold, KFold
 from sklearn.preprocessing import StandardScaler
 
 from . import grouped_quality_adapter as grouped, numeric_association_adapter as numeric, prediction_checks, tabular_quality_adapter as tabular
+from . import input_basis
 
 
-ADAPTER_VERSION = "1"
+ADAPTER_VERSION = "2"
 
 
 def _inputs(payload):
@@ -51,7 +52,8 @@ def _inputs(payload):
         else:
             rows.append({"logical_record": logical_record, "physical_line_end": line_end,
                          "observed": observed, "features": inputs, "groups": labels})
-    return {"spec": spec, "binding": binding, "training": training, "rows": rows,
+    model_inputs = input_basis.expand(np.array([row["features"] for row in rows], dtype=float).reshape(-1, len(features)), training)
+    return {"spec": spec, "binding": binding, "training": training, "rows": rows, "model_inputs": model_inputs,
             "input_n": len(records), "exclusions": exclusions, "physical_end": physical_end}
 
 
@@ -89,7 +91,7 @@ class RidgeValidationAdapter:
         self.TOOL_ID = "data.ridge-" + ("random-validation" if check == "random_cv" else "group-validation")
 
     def code_identity(self):
-        raw = Path(__file__).read_bytes() + Path(prediction_checks.__file__).read_bytes()
+        raw = Path(__file__).read_bytes() + Path(prediction_checks.__file__).read_bytes() + Path(input_basis.__file__).read_bytes()
         return hashlib.sha256(raw + tabular.code_identity().encode("ascii") + numeric.code_identity().encode("ascii")).hexdigest()
 
     def required_fit_attempts(self, payload):
@@ -106,7 +108,7 @@ class RidgeValidationAdapter:
         tabular._require(data["training"]["fit_limit"] >= 2 * count,
                          "FIT_BUDGET_EXHAUSTED", "The frozen fit limit must cover both preprocessing and estimator attempts.")
         rows, training = data["rows"], data["training"]
-        x = np.array([row["features"] for row in rows], dtype=float)
+        x = data["model_inputs"]
         y = np.array([row["observed"] for row in rows], dtype=float)
         summary = {"n": len(rows), "input_n": data["input_n"], "excluded": len(data["exclusions"]),
                    "group_count": len({row["groups"] for row in rows}) if training["split_group_columns"] else None,
@@ -116,7 +118,8 @@ class RidgeValidationAdapter:
                     "shuffle": self.check == "random_cv", "random_state": 11 if self.check == "random_cv" else None,
                     "ridge_alpha": 1.0, "preprocessing": "StandardScaler.fit on training rows only",
                     "reference": "training-fold target mean", "feature_columns": training["feature_columns"],
-                    "split_group_columns": training["split_group_columns"], "grouping_semantics": "operator-declared source columns"}
+                    "split_group_columns": training["split_group_columns"], "grouping_semantics": "operator-declared source columns",
+                    **input_basis.protocol(training)}
         oof, folds = [], []
         if count:
             labels = list(dict.fromkeys(row["groups"] for row in rows))

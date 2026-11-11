@@ -53,9 +53,9 @@ def _records(project, state, binding=None):
     return records
 
 
-def _assessment(resource, records, scope):
+def _assessment(resource, records, scope, comparisons=()):
     if resource["checks"][0] in ("random_cv", "group_cv"):
-        return _raw_assessment(resource, records)
+        return _raw_assessment(resource, records, comparisons)
     required = [name for name in resource["checks"] if name != "grouped" or scope.get("group_columns")]
     skipped = ["grouped"] if "grouped" in resource["checks"] and not scope.get("group_columns") else []
     by_check = {item["check"]: item for item in records}
@@ -85,7 +85,31 @@ def _assessment(resource, records, scope):
             "missing_checks": [], "skipped_checks": skipped}
 
 
-def _raw_assessment(resource, records):
+def _parent_mae_assessment(assessment, resource, records, comparisons):
+    by_check = {item["check"]: item for item in records}
+    failed, unknown, paired = False, False, []
+    for check in resource["checks"]:
+        if check == "negative_control":
+            alignment = by_check[check].get("summary", {}).get("alignment_supported")
+            failed, unknown = failed or alignment is False, unknown or alignment is None
+            continue
+        matches = [item for item in comparisons if item.get("comparison_kind") == "fixed_input_basis"
+                   and item["check"] == check and item["candidate_ref"]["action_id"] == by_check[check]["action_id"]]
+        unknown = unknown or not matches or any(item["status"] != "comparable" for item in matches)
+        for item in matches:
+            change = item.get("metrics", {}).get("mae_change")
+            failed = failed or change is not None and change >= 0
+            paired.append({"check": check, "baseline_action_id": item["baseline_ref"]["action_id"],
+                           "candidate_action_id": item["candidate_ref"]["action_id"], "status": item["status"], "mae_change": change})
+    supported = False if failed else None if unknown else True
+    assessment.update(claim_scope="saved_parent_mae", claim_supported=supported, parent_mae_comparisons=paired,
+        reason=("严格匹配的已保存父版本对照中，候选MAE较低；这是本次评价差异，不是独立泛化或科学确认。" if supported is True else
+                "已保留不利的父版本比较或配置检查，未支持完整比较主张。" if supported is False else
+                "缺少完整可比较的父版本记录，不能用优于训练均值参考替代父版本判断。"))
+    return assessment
+
+
+def _raw_assessment(resource, records, comparisons=()):
     configured = resource["checks"]
     by_check = {item["check"]: item for item in records if item["check"] in configured}
     missing = [name for name in resource["checks"] if name not in by_check]
@@ -120,11 +144,12 @@ def _raw_assessment(resource, records):
     supported_reason = "本次已配置固定检查支持所声明的误差比较，仍需核对分组、样本含义与独立评价。"
     if "negative_control" in configured:
         supported_reason += "条件重排仅诊断本批预测对应关系。"
-    return {"status": "review_ready", "claim_supported": False if failed else None if unknown else True,
+    assessment = {"status": "review_ready", "claim_supported": False if failed else None if unknown else True,
             "reason": supported_reason if not failed and not unknown
                 else "已保留不利或不可判断的检查，完整主张需要调整。",
             "missing_checks": [], "skipped_checks": [], "scientific_validation": False,
             "comparison": comparison}
+    return _parent_mae_assessment(assessment, resource, records, comparisons) if resource.get("comparison_kind") == "fixed_input_basis" else assessment
 
 
 def resources(manager):
@@ -177,7 +202,9 @@ def view(manager):
         saved = project.status()
         revisions = saved.get("design_revisions", [])
         by_revision = {revision["version"]: _records(project, saved, revision) for revision in revisions}
-        snapshots.append((project, saved, by_revision))
+        comparisons = compare_feature_checks([record for records in by_revision.values() for record in records],
+                                             project._source(saved) if saved["id"] == active else None)
+        snapshots.append((project, saved, by_revision, comparisons))
         for revision in revisions:
             if revision["request_id"] not in completed:
                 completed.append(revision["request_id"])
@@ -188,25 +215,25 @@ def view(manager):
             state = saved
             binding = revisions[-1] if revisions else None
             checks = by_revision[revisions[-1]["version"]] if revisions else []
-            feature_comparisons = compare_feature_checks([record for records in by_revision.values() for record in records], project._source(saved))
-    assessment = (_assessment(binding["resource"], checks, state["source_scope"]) if binding
+            feature_comparisons = comparisons
+    assessment = (_assessment(binding["resource"], checks, state["source_scope"], feature_comparisons) if binding
                   else {"status": "not_started", "claim_supported": None,
                         "reason": "先选择研究设计并声明所用字段。", "missing_checks": []})
     for resource in catalog:
         resource["usage_count"] = len(usage[(resource["id"], resource["version"])])
         resource["status"] = "candidate" if resource["parent_version"] else "available"
         resource["validation_evidence"] = []
-        for project, saved, by_revision in snapshots:
+        for project, saved, by_revision, comparisons in snapshots:
             for current in saved.get("design_revisions", []):
                 if (current["resource"]["id"], current["resource"]["version"]) != (resource["id"], resource["version"]):
                     continue
                 actual = by_revision[current["version"]]
-                assessed = _assessment(resource, actual, saved["source_scope"])
+                assessed = _assessment(resource, actual, saved["source_scope"], comparisons)
                 if assessed["status"] == "review_ready":
                     resource["status"] = "validated"
                     resource["validation_evidence"].append({"project_id": saved["id"], "source_snapshot_sha256": saved["source_snapshot_sha256"],
                         "action_ids": [item["action_id"] for item in actual], "assessment": assessed})
-    if any(project.status()["snapshot_ref"] != saved["snapshot_ref"] for project, saved, _ in snapshots):
+    if any(project.status()["snapshot_ref"] != saved["snapshot_ref"] for project, saved, _, _ in snapshots):
         raise ResearchError("PROJECT_CHANGED", "A project changed while reading design evidence; refresh its saved view.")
     target = state["source_scope"].get("target_column") if state else None
     return {"schema_version": "research-design-catalog-v1", "project_id": active,

@@ -28,6 +28,16 @@
 
 可比较时显示父版本和候选MAE、候选减父版本的差值、相对误差变化及两版负预测数，不自动采用候选或批准科学结论。[帆船任务](research/yacht-geometry-study.md)在原20次拟合后增加10次Froude-only组留出，累计20→30；同折MAE增加0.023528、约0.3294%，负预测79→88，未改善。该结果描述本次线性协议，不证明两版等效或几何信息无用。
 
+## 固定输入基函数对照
+
+原始数据训练新增唯一可选声明`training.input_basis="univariate_cubic"`，要求`feature_columns`只包含一个原CSV数值列。先按原尺度把该列`x`展开为`[x,x²,x³]`，顺序固定、不加常数列，再在每个训练折拟合三列StandardScaler与Ridge(alpha=1, fit_intercept=True)。未声明时继续使用原始输入列。固定展开不学习参数，每折仍只计一次Scaler和一次Ridge拟合；不提供次数搜索、任意表达式、目标变换或预测裁剪。
+
+变换对照的资源须明确`comparison_kind="fixed_input_basis"`与同ID的`parent_version`。当前只接受同一原列的直接输入父版本与固定三次基候选，明确列出协议变化`input_basis`和`model_input_terms`。来源、目标与单位、完整评价行、原坐标、实际值、分组、折、训练/评价集合、参考预测及其余协议和模型参数仍全部相同。默认特征比较继续拒绝输入变换差异，不把变换列名冒充原CSV字段，也不把两侧模型输入称为相同。
+
+该资源的判断范围为`claim_scope="saved_parent_mae"`：每项已配置CV必须关联当前候选行动与指定父版本的严格配对。缺少或不可比较的父版本依据保持`claim_supported=null`；已证实非改善保持`false`；全部必要配对的候选保存MAE较低时才为`true`。优于训练折均值参考不能替代这个父版本判断，其他已配置检查仍按原判据保留。目录的`assessment`与报告的`design_assessment`共用该范围，页面显示相同依据，`scientific_validation`始终为`false`。
+
+JSON保留原始来源列、展开规则、`model_input_terms`、每折三维Scaler参数、三维Ridge系数、截距、完整折与原始行映射；两侧比较引用也显示各自输入映射。保存参数可沿原尺度展开独立重建OOF，不需再次拟合。实际用法见[帆船固定三次基对照](research/yacht-geometry-study.md#11月12日固定三次速度基对照)及[共享v3资源](../examples/research-designs/yacht-geometry-transfer-v3.json)。
+
 ## 保存预测的输入诊断
 
 可比较的两版OOF可进一步按原始数值输入查看误差，结果位于`feature_comparisons[].input_profiles`。诊断读取同一捕获来源，核对目标和原始行坐标，覆盖全部匹配OOF；各输入先列候选特征，再补父版本其余输入。数值取值不超过16个时按全部实际值分组，更多时按输入最小值和最大值固定分为5个等宽区间，末区间包含右端点。分界只使用输入值，不按误差选区间。未通过比较资格或原件核对时，不生成取交集、删行后的局部诊断表。
@@ -67,8 +77,8 @@
 
 知识目录的导出保留验证元数据。导入时只采用资源协议字段，原版本同内容可重放，版本内容冲突会拒绝。导入版本的本地使用和验证记录从当前manager实际项目计算。
 
-纯数值计算在`prediction_checks.py`，源绑定与工具工件在`prediction_adapter.py`，项目设计修订在`project_design.py`，资源目录与反馈版本在`research_design.py`。保存OOF的严格特征对照与输入画像在`feature_comparison.py`。离线可复现用法见[双项目演示](../examples/research-designs/README.md)。
+纯数值计算在`prediction_checks.py`，源绑定与工具工件在`prediction_adapter.py`，项目设计修订在`project_design.py`，资源目录与反馈版本在`research_design.py`。固定原尺度展开在`input_basis.py`，保存OOF的严格特征/输入基对照与输入画像在`feature_comparison.py`。离线可复现用法见[双项目演示](../examples/research-designs/README.md)。
 
 ## Limitations
 
-输入画像描述已经用于研究与方法选择的数据。分界不看误差，不会使后续解释或据此选择的新方法成为独立盲测；层间模式、逐行改善数量和接近零的总体平均误差均不证明因果、等效、总体显著性或工程适用性。新输入变换、训练、预算修订及科学采用各沿原明确入口处理，读取画像不授予这些操作。
+输入画像描述已经用于研究与方法选择的数据。分界不看误差，不会使后续解释或据此选择的新方法成为独立盲测；层间模式、逐行改善数量和接近零的总体平均误差均不证明因果、等效、总体显著性或工程适用性。固定三次基增加了输入项与参数维度，保持同一alpha不表示函数空间或有效正则化相同；相对保存父版本MAE降低也不证明三次物理规律。新输入变换、训练、预算修订及科学采用各沿原明确入口处理，读取画像不授予这些操作。

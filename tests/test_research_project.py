@@ -167,6 +167,23 @@ class ResearchProjectTests(unittest.TestCase):
             con.execute("UPDATE actions SET record=? WHERE request_id=?", (json.dumps(action), "original"))
         self.assert_code("EXECUTION_UNKNOWN", self.project.upgrade, request_id="bypass-unknown", expected_code_identity=after["code_identity"])
 
+    def test_completed_upgrade_replays_its_historical_receipt_after_later_code_versions(self):
+        original = self.project.status()
+        with patch("autoresearch.research_project.code_identity", return_value="b" * 64):
+            first = self.project.upgrade(request_id="first-upgrade", expected_code_identity=original["code_identity"])
+        with patch("autoresearch.research_project.code_identity", return_value="c" * 64):
+            self.project.upgrade(request_id="second-upgrade", expected_code_identity="b" * 64)
+            before = self.project.status()
+            files = {str(path.relative_to(self.project.root)): path.read_bytes() for path in self.project.root.rglob("*") if path.is_file()}
+            self.assertEqual(self.project.upgrade(request_id="first-upgrade", expected_code_identity=original["code_identity"]), first)
+            self.assertEqual(self.project.status(), before)
+            self.assertEqual(files, {str(path.relative_to(self.project.root)): path.read_bytes() for path in self.project.root.rglob("*") if path.is_file()})
+            self.assert_code("IDEMPOTENCY_CONFLICT", self.project.upgrade, request_id="first-upgrade", expected_code_identity="b" * 64)
+            self.assert_code("IDEMPOTENCY_CONFLICT", self.project.upgrade, request_id="first-upgrade", expected_code_identity=original["code_identity"], evidence_read_limit=7)
+        with patch("autoresearch.research_project.code_identity", return_value="d" * 64):
+            self.assertEqual(self.project.upgrade(request_id="first-upgrade", expected_code_identity=original["code_identity"]), first)
+            self.assert_code("CODE_CHANGED", self.project.step, request_id="cannot-skip-current-upgrade")
+
     def test_domain_registry_does_not_reuse_p02_parameters_or_endpoint(self):
         packet = source_integrity_adapter.capture_source(Path(source_evidence_adapter.__file__))
         folder = self.root / "software-inputs"

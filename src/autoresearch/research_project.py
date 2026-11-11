@@ -655,7 +655,7 @@ class ResearchProject:
                 project = self._project(con)
                 previous = next((r for r in project.get("code_revisions", []) if r["request_id"] == request_id), None)
                 if previous:
-                    require(previous["from"] == expected_code_identity and previous["to"] == code_identity()
+                    require(previous["from"] == expected_code_identity
                             and previous["evidence_read_limit"] == evidence_read_limit,
                             "IDEMPOTENCY_CONFLICT", "Upgrade request content changed.")
                     return previous
