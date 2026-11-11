@@ -124,6 +124,39 @@ function showNegativeControl(parent: HTMLElement, record: Obj): void {
     ? "本次条件诊断支持原预测与标签的配对关系。" : "本次条件诊断未支持原预测与标签的配对关系。"));
 }
 
+function showInputProfiles(parent: HTMLElement, record: Obj): void {
+  const profiles = objects(record.input_profiles);
+  if (record.status !== "comparable" || !profiles.length) return;
+  const selection = el("select"), grouping = el("p", "detail-note"), table = el("div");
+  const secondary = el("details", "research-design-raw");
+  for (const profile of profiles) {
+    const option = el("option", "", text(profile.column)); option.value = text(profile.column); selection.append(option);
+  }
+  function render(): void {
+    const profile = profiles[selection.selectedIndex];
+    if (!profile) return;
+    const buckets = objects(profile.buckets);
+    grouping.textContent = (profile.grouping === "exact_values" ? "按实际输入值分组" : "按输入的5个等宽区间分组")
+      + " · 保存行数 " + measure(profile.n) + "。分界不使用误差；这是保存结果的探索性描述，不证明新数据泛化。";
+    table.replaceChildren(metricTable(["输入值 / 区间", "n", "基准 MAE", "候选 MAE", "MAE 差", "负预测 · 基准 / 候选"], buckets.map(bucket => [
+      text(bucket.label), measure(bucket.n), measure(bucket.baseline_mae), measure(bucket.candidate_mae), measure(bucket.mae_change),
+      measure(bucket.baseline_negative_predictions) + " / " + measure(bucket.candidate_negative_predictions),
+    ])));
+    secondary.replaceChildren(el("summary", "", "查看平均误差与逐行变化"),
+      el("p", "detail-note", "平均误差为预测减观测。候选相对基准的逐行绝对误差：降低 " + measure(profile.improved_rows)
+        + " 行、升高 " + measure(profile.worsened_rows) + " 行、相同 " + measure(profile.tied_rows) + " 行。"),
+      el("p", "research-design-table-hint", "左右滑动查看完整列"),
+      metricTable(["输入值 / 区间", "基准平均误差", "候选平均误差", "绝对误差降低 / 升高 / 相同行数"], buckets.map(bucket => [
+        text(bucket.label), measure(bucket.baseline_mean_error), measure(bucket.candidate_mean_error),
+        measure(bucket.improved_rows) + " / " + measure(bucket.worsened_rows) + " / " + measure(bucket.tied_rows),
+      ])), el("p", "detail-note", "各组逻辑行号保留在下方对照原记录。"));
+  }
+  selection.addEventListener("change", render);
+  parent.append(el("h4", "", "按输入查看保存预测误差"), field("查看输入列", selection),
+    grouping, el("p", "research-design-table-hint", "左右滑动查看完整列"), table, secondary);
+  render();
+}
+
 function showFeatureComparisons(parent: HTMLElement, records: Obj[]): void {
   const comparisons = records.filter(record => record.schema_version === "feature-comparison-v1");
   if (!comparisons.length) return;
@@ -148,6 +181,7 @@ function showFeatureComparisons(parent: HTMLElement, records: Obj[]): void {
       if (codes.length) list(entry, "不能比较的原因", codes.map(code => featureComparisonReasons[code] ?? code));
       else entry.append(el("p", "", "当前记录尚未提供可比较依据。"));
     }
+    showInputProfiles(entry, record);
     entry.append(rawRecord(record, "查看两侧行动与对照原记录")); parent.append(entry);
   }
 }

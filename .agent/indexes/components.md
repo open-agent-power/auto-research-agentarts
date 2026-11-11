@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`research-design.ts`在严格父子特征对照下显示输入列选择、保存误差主表及可展开的均差/逐行变化副表；两表复用`metricTable`与局部横向滚动，各自提供手机滑动提示。选择只重绘已收到的`input_profiles`，不提交或执行，见[研究设计](../../docs/research-design.md)。
+
 计划原文与当前事实分开显示：[local-workbench.ts](../../frontend/src/local-workbench.ts)保留制定时原文，另从已完成来源行动显示当前读取／选区数量与最新未决项；不据此推断先后或科学确认。[project-view.ts](../../frontend/src/project-view.ts)的`sourceQuestionText`复用精确中文释义，未知问题保留原文，来源卡去重展示且保留完整原数组。两处共用同一问题显示方式。
 
 “继续研究”复用[local-batch.ts](../../frontend/src/local-batch.ts)与原操作区，显示计划方式、执行方式及原阶段记录；[local-workbench.ts](../../frontend/src/local-workbench.ts)按原body确认丢失回执并恢复同ID，[local-model.ts](../../frontend/src/local-model.ts)仅对该任务关联的原计划请求放行核对／采用／拒绝。刷新不执行，其他新请求保持原锁。见[操作用法](../../docs/local-workbench.md#继续研究选计划再按授权行动)。

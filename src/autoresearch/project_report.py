@@ -229,7 +229,7 @@ def collect_report(workspace) -> dict:
                   {"action_id": entry["action_id"], "status": entry["status"], **analysis}
                   for entry in results if entry["status"] == "completed"
                   for analysis in [((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}]
-                  if analysis.get("check") in ("random_cv", "group_cv")]),
+                  if analysis.get("check") in ("random_cv", "group_cv")], source_packet),
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
@@ -523,6 +523,26 @@ def _feature_comparison_lines(report):
     return lines
 
 
+def _input_profile_tables(report):
+    """Print the candidate's first input; all input profiles remain in JSON."""
+    for comparison in report["feature_comparisons"]:
+        profiles = comparison.get("input_profiles", [])
+        if not profiles:
+            continue
+        profile = profiles[0]
+        description = ("按实际输入值分组" if profile["grouping"] == "exact_values" else "按输入最小/最大值固定分为5个等宽区间，末区间含右端点")
+        note = ("报告按候选首个输入 " + profile["column"] + " 展示；" + description + "，完整覆盖 " + str(profile["n"])
+                + " 行。候选逐行绝对误差较低/较高/相同 " + "/".join(str(profile[key]) for key in ("improved_rows", "worsened_rows", "tied_rows"))
+                + "。分界只使用输入值；这是保存结果的探索性描述，不证明新数据泛化。全部输入列及行号见JSON。")
+        errors, bias = [], []
+        for bucket in profile["buckets"]:
+            errors.append([bucket["label"], str(bucket["n"]), _number(bucket["baseline_mae"]), _number(bucket["candidate_mae"]),
+                           _number(bucket["mae_change"]), str(bucket["baseline_negative_predictions"]) + "/" + str(bucket["candidate_negative_predictions"])])
+            bias.append([bucket["label"], _number(bucket["baseline_mean_error"]), _number(bucket["candidate_mean_error"]),
+                         "/".join(str(bucket[key]) for key in ("improved_rows", "worsened_rows", "tied_rows"))])
+        yield note, errors, bias
+
+
 def _prediction_rows(notes):
     rows = []
     for note in notes:
@@ -785,6 +805,11 @@ def _markdown(report):
     feature_lines = _feature_comparison_lines(report)
     if feature_lines:
         lines.extend(["## 同协议特征对照", "", *[line + "\n" for line in feature_lines]])
+    for note, errors, bias in _input_profile_tables(report):
+        lines.extend(["## 按输入查看保存预测误差", "", note, "",
+                      _markdown_table(["输入值/区间", "样本", "父版本MAE", "候选MAE", "候选减父版本", "负预测 父/候选"], errors), "",
+                      "平均误差为预测减观测；负值为低估。逐行变化按绝对误差比较，候选较低/较高/相同。", "",
+                      _markdown_table(["输入值/区间", "父版本平均误差", "候选平均误差", "逐行较低/较高/相同"], bias), ""])
     if summary.get("numeric_headers"):
         lines.extend(["## 数值字段计数", "", _markdown_table(summary["numeric_headers"], summary["numeric_rows"]),
                       "", "零包含在有限计数中；空串与声明缺失分别计数，最小/最大仅针对有限值。", "",
@@ -875,6 +900,7 @@ def _pdf(report):
     margin, width = 44, A4[0] - 88
     body = ParagraphStyle("PRBody", fontName=font, fontSize=9.5, leading=14.2, spaceAfter=6, wordWrap="CJK", splitLongWords=1)
     small = ParagraphStyle("PRSmall", parent=body, fontSize=8.2, leading=11.8, spaceAfter=4)
+    field_label_style = ParagraphStyle("PRFieldLabel", parent=small, keepWithNext=True)
     heading = ParagraphStyle("PRHeading", parent=body, fontSize=12, leading=17, textColor=green, spaceBefore=8, spaceAfter=7, keepWithNext=True)
     title = ParagraphStyle("PRTitle", parent=body, fontSize=18, leading=25, spaceAfter=12)
     table_style = ParagraphStyle("PRCell", parent=small, spaceAfter=0)
@@ -913,14 +939,14 @@ def _pdf(report):
     if plan_rows:
         h("当前研究计划与修订")
         for label, content in plan_rows:
-            story.append(p(label, small))
+            story.append(p(label, field_label_style))
             story.append(p(content, limit=1800))
     feedback_rows = _researcher_feedback_rows(state)
     if feedback_rows:
         h("研究者反馈")
         story.append(p(RESEARCHER_FEEDBACK_NOTE, small))
         for label, content in feedback_rows:
-            story.append(p(label, small))
+            story.append(p(label, field_label_style))
             story.append(p(content, limit=6000))
     design_rows = _design_rows(state)
     if design_rows:
@@ -954,6 +980,12 @@ def _pdf(report):
         h("同协议特征对照")
         for line in feature_lines:
             story.append(p(line, small, 650))
+    for note, errors, bias in _input_profile_tables(report):
+        h("按输入查看保存预测误差")
+        story.append(p(note, small, 900))
+        table(["输入值/区间", "样本", "父版本MAE", "候选MAE", "候选减父版本", "负预测 父/候选"], errors, [.24, .08, .16, .16, .18, .18])
+        story.append(p("平均误差为预测减观测；负值为低估。逐行变化按绝对误差比较，候选较低/较高/相同。", small))
+        table(["输入值/区间", "父版本平均误差", "候选平均误差", "逐行较低/较高/相同"], bias, [.28, .23, .23, .26])
     if summary.get("numeric_headers"):
         h("数值字段计数")
         numeric_rows = [[*row[:-2], *[format(float(value), ".4g") if value != "未知" else value for value in row[-2:]]]

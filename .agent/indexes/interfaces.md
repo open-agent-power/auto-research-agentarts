@@ -1,5 +1,7 @@
 # 接口索引
 
+`feature_comparisons[].input_profiles`包含列、分组方式、覆盖数、每桶指标与逻辑行号。目录与报告使用同一捕获source核对目标/坐标后派生；不可比较不输出局部交集。工作台输入列切换只读内存数据，JSON保留所有列，Markdown/PDF展示候选首列，详见[按输入描述误差](../../docs/research-design.md)。
+
 研究设计目录与报告JSON的`feature_comparisons`保留两侧资源/项目设计版本和行动引用。仅明确父子版本、同协议同评价集合输出差值与负预测计数；不可比较保留`reason_codes`且不输出指标。工作台显示实际配置的检查与已保存指标，不为仅`group_cv`补造随机或负控结果，详见[研究设计](../../docs/research-design.md)。
 
 资料登记接受`.html/.htm`与`text/html`，使用原始HTML的`text_lines`坐标，标签不执行、不渲染；原件下载保持`application/octet-stream`附件，详见[来源用法](../../docs/local-workbench.md#在同一项目登记资料再明确读取)。新计划context将来源决定的重复`knowledge_contexts`改为原action账本定位引用，保留观察与当前检索证据，详见[计划执行条件](../../docs/host-model-selection.md#计划执行条件)。

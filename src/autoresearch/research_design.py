@@ -188,7 +188,7 @@ def view(manager):
             state = saved
             binding = revisions[-1] if revisions else None
             checks = by_revision[revisions[-1]["version"]] if revisions else []
-            feature_comparisons = compare_feature_checks([record for records in by_revision.values() for record in records])
+            feature_comparisons = compare_feature_checks([record for records in by_revision.values() for record in records], project._source(saved))
     assessment = (_assessment(binding["resource"], checks, state["source_scope"]) if binding
                   else {"status": "not_started", "claim_supported": None,
                         "reason": "先选择研究设计并声明所用字段。", "missing_checks": []})
