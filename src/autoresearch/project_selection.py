@@ -104,6 +104,16 @@ def experience_notice(context):
             "or authorize execution. Retain adverse observations, uncertainty and the option not to use a case.")
 
 
+def budget_cost_notice(selection):
+    if not any("budget_cost" in condition for condition in selection.get("conditions", [])):
+        return ""
+    return (" Captured condition.budget_cost describes the budget categories and requirements for one new dispatch only. "
+            "A source read uses evidence_reads only; it requires no numerical-tool local_tool_calls or estimator_fits. "
+            "Ordinary checks use local_tool_calls. Training uses the captured estimator_fits for both Scaler and Ridge "
+            "fits; null is unknown, not zero, and must not be guessed. These costs do not establish eligibility, add "
+            "candidates or refill budgets. Preserve all condition, candidate and unknown-execution gates.")
+
+
 def _context(payload):
     code = "INVALID_SELECTION_CONTEXT"
     _json_value(payload, MAX_CONTEXT_BYTES, code)
@@ -120,6 +130,13 @@ def _context(payload):
              and all(type(item) is dict for item in payload["conditions"])
              and type(payload["blockers"]) is list and len(payload["blockers"]) <= 32
              and all(type(item) is dict for item in payload["blockers"]), code, "Invalid host conditions or blockers.")
+    for condition in payload["conditions"]:
+        if "budget_cost" in condition:
+            cost = condition["budget_cost"]
+            _require(type(cost) is dict and set(cost) == {"local_tool_calls", "evidence_reads", "estimator_fits"}
+                     and all(type(cost[key]) is int and cost[key] >= 0 for key in ("local_tool_calls", "evidence_reads"))
+                     and (cost["estimator_fits"] is None or type(cost["estimator_fits"]) is int and cost["estimator_fits"] >= 0),
+                     code, "Captured budget cost requires exact nonnegative integer counts; estimator_fits may be null.")
     candidates, ids = payload["candidates"], set()
     _require(type(candidates) is list and len(candidates) <= 16, code, "At most sixteen host candidates are supported.")
     for item in candidates:

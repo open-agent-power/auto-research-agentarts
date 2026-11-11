@@ -12,6 +12,7 @@ from xml.sax.saxutils import escape
 from . import paper_export, project_workbench, project_selection_view, snapshot_viewer, host_model_report, plan_readiness, prediction_summary, feature_comparison, project_design, input_basis, research_design
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
+from . import project_controller, project_selection
 
 
 KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel",
@@ -240,6 +241,8 @@ def collect_report(workspace) -> dict:
         assets[name] = {"name": name, **_digest(raw), "bytes_base64": base64.b64encode(raw).decode("ascii")}
         source_manifest.append({"name": name, "role": "historical_method_case_snapshot", **_digest(raw),
                                 "transfer_scope": "analogy_not_current_evidence"})
+    current_selection = project_controller.ProjectController(project.root).selection_context()
+    current_conditions = plan_readiness.assess_plan_readiness({"selection_context": current_selection})
     after = project.status()
     _require(after["snapshot_ref"] == before["snapshot_ref"], "PROJECT_CHANGED", "Project changed while collecting this report.")
     _require(host_model_report.host_model_snapshot_sha256(project.root) == host_models["snapshot_sha256"],
@@ -252,6 +255,7 @@ def collect_report(workspace) -> dict:
               "selection_history": selection_history,
               "host_models": {key: value for key, value in host_models.items() if key != "assets"},
               "plan_reviews": plan_readiness.review_plan_requests(host_models["records"]),
+              "execution_conditions": current_conditions,
               "prediction_ranges": [{"action_id": entry["action_id"], "check": analysis["check"],
                                      "summary": prediction_summary.summarize_oof_range(analysis["oof"])}
                                     for entry in results if entry["status"] == "completed"
@@ -263,6 +267,7 @@ def collect_report(workspace) -> dict:
                   for analysis in [((entry.get("tool_result") or {}).get("result") or {}).get("analysis") or {}]
                   if analysis.get("check") in ("random_cv", "group_cv")], source_packet),
               "input": {"schema_version": "research-project-report-input-v1", "source_packet": source_packet,
+                        "selection_context": current_selection,
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
                         "researcher_feedback": before.get("researcher_feedback", []),
@@ -274,6 +279,8 @@ def collect_report(workspace) -> dict:
                                                        + Path(project_selection_view.__file__).read_bytes()
                                                        + Path(host_model_report.__file__).read_bytes()
                                                        + Path(plan_readiness.__file__).read_bytes()
+                                                       + Path(project_controller.__file__).read_bytes()
+                                                       + Path(project_selection.__file__).read_bytes()
                                                        + Path(prediction_summary.__file__).read_bytes()
                                                        + Path(feature_comparison.__file__).read_bytes()
                                                        + Path(project_design.__file__).read_bytes()
@@ -392,6 +399,19 @@ def _host_request_rows(report):
 PLAN_REVIEW_NOTE = ("以下条件来自各请求准备时的冻结版本，仅核对执行条件，不判读建议正文。"
                     "当前执行仍须重新检查项目；科学解释仍需审阅。摘要最多列最近3条，完整条件见report.json的plan_reviews。")
 
+METHOD_BUDGET_NOTE = ("以下是本次导出时，一次新派发需要覆盖的方法额度，完整选择context保留在input.json。"
+                      "成本与剩余额度分别保存，执行仍须有合法候选并满足当前条件。0表示不消耗该类额度；"
+                      "拟合未确定时需先绑定可用设计，Scaler与Ridge均计拟合尝试。已完成请求的原ID重放不追加用量，未知执行不自动重发。")
+
+
+def _method_budget_rows(assessment):
+    rows = []
+    for item in assessment.get("method_budget_costs", []):
+        cost = item["budget_cost"]
+        rows.append([item["method_id"], str(cost["local_tool_calls"]), str(cost["evidence_reads"]),
+                     "未确定，需绑定可用设计" if cost["estimator_fits"] is None else str(cost["estimator_fits"])])
+    return rows
+
 
 def _plan_review_rows(report):
     rows = []
@@ -406,6 +426,8 @@ def _plan_review_rows(report):
                      ["当时可执行候选", "；".join(item["method_id"] for item in review["available_actions"]) or "无，后续行动需先补条件"]])
         if review["blockers"]:
             rows.append(["整体阻塞", "；".join(item["code"] for item in review["blockers"])])
+        if review.get("method_budget_costs"):
+            rows.append(["当时方法成本快照", str(len(review["method_budget_costs"])) + "项，完整需求见JSON plan_reviews.method_budget_costs"])
         for method in review["blocked_methods"]:
             reasons = list(method["execution_blockers"]) + list(method.get("missing_information", []))
             rows.append([method["method_id"], "；".join(reasons) or "受整体阻塞限制"])
@@ -946,6 +968,9 @@ def _markdown(report):
     if report["plan_reviews"]:
         lines.extend(["## 计划执行条件", "", PLAN_REVIEW_NOTE, "",
                       _markdown_table(["记录项", "请求准备时的条件"], _plan_review_rows(report)), ""])
+    if report.get("execution_conditions", {}).get("method_budget_costs"):
+        lines.extend(["## 当前方法的额度消耗", "", METHOD_BUDGET_NOTE, "",
+                      _markdown_table(["方法", "本地工具", "来源读取", "拟合尝试"], _method_budget_rows(report["execution_conditions"])), ""])
     if report.get("experience_cases"):
         lines.extend(["## 历史方法案例", "", EXPERIENCE_NOTE, "",
                       _markdown_table(["案例", "当前资格", "原项目与目标", "原条件下的数值观察"], _experience_rows(report)), ""])
@@ -1176,6 +1201,10 @@ def _pdf(report):
         h("计划执行条件")
         story.append(p(PLAN_REVIEW_NOTE, small))
         table(["记录项", "请求准备时的条件"], _plan_review_rows(report), [.40, .60])
+    if report.get("execution_conditions", {}).get("method_budget_costs"):
+        h("当前方法的额度消耗")
+        story.append(p(METHOD_BUDGET_NOTE, small))
+        table(["方法", "本地工具", "来源读取", "拟合尝试"], _method_budget_rows(report["execution_conditions"]), [.46, .16, .16, .22])
     if report.get("experience_cases"):
         h("历史方法案例")
         story.append(p(EXPERIENCE_NOTE, small))

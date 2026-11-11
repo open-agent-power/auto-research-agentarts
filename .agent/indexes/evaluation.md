@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+[方法预算成本](../../docs/method-budget-costs.md)针对上一轮条件性来源预算表述补事实输入。工程验证数值额度用满时仍可真实读取合法来源，原ID不重扣；固定Ridge的2组4次fit与声明相同。原Auto MPG／Yacht不追加研究或Host，旧案例比较和无差异结果保持；提示与工程通过不等于新的模型判断或科研收益。
+
 [案例有无的同状态计划比较](../../docs/research/experience-judgment-pair.md)由`scripts/prepare_experience_pair.py`只读生成两份原生context／prompt，control显式标记offline_ablation；`verify_pair`核对原字节、原生再生成及唯一案例差异。Auto MPG state34的两份实际离线回答均有效，隐藏标签独立审阅为no_material_difference；来源预算表述另经代码核对，不改写原审阅。模型活动与原Host分开记，原项目／用量保持，不能把案例被提及或文字增加当收益。
 
 [方法案例快照](../../docs/project-experience.md)的验收分别核对原OOF算术、来源／目标两层资格、context与当前证据隔离、原ID恢复和成果原件。实际导入Yacht案例到Auto MPG只证明跨项目复用路径；没有新增模型调用或拟合时，不宣称模型已采用或科研质量改善。

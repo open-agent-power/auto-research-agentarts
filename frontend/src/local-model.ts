@@ -135,6 +135,8 @@ export function createLocalModelPanel(host: Host): {
     el("p", "detail-note", "查看已保存的计划与行动建议。这里的新模型请求使用本机已有 Claude CLI 和当前请求额度。"));
   const status = el("p", "notice", "正在读取模型请求记录…"); status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
   const usage = el("div", "local-model-usage");
+  const currentCosts = el("details", "local-advanced"), costContent = el("div"); currentCosts.hidden = true;
+  currentCosts.append(el("summary", "", "当前方法的额度消耗"), costContent);
   const form = el("form", "local-model-form local-batch-form"), fields = el("fieldset", "local-fieldset");
   const purpose = el("select");
   for (const [value, label] of [["selection", "选择并执行下一步"], ["plan", "建议研究计划"]]) {
@@ -150,7 +152,7 @@ export function createLocalModelPanel(host: Host): {
   fields.append(grid, field("本次范围与理由", reason), grantNote);
   const start = el("button", "action-button primary", "用模型选择并执行一步"); start.type = "submit";
   form.append(field("这次请模型做什么", purpose), fields, start, el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
-  const history = el("div", "local-model-history local-batch-history"); section.append(status, usage, form, history);
+  const history = el("div", "local-model-history local-batch-history"); section.append(status, usage, currentCosts, form, history);
   const planHistory = el("section", "local-panel local-plan-proposals content-section"); planHistory.hidden = true;
   const improvement = el("section", "local-panel local-improvement content-section"); improvement.hidden = true;
   let projectId = "", project: Obj = {}, context: Obj | null = null, view: Obj = {}, records: Obj[] = [];
@@ -191,11 +193,52 @@ export function createLocalModelPanel(host: Host): {
     }
   }
 
+  function methodBudgetCosts(methods: Obj[]): HTMLElement {
+    const content = el("div"), scroll = el("div", "project-table-scroll"), table = el("table", "research-design-table method-budget-table");
+    const columns = el("colgroup"); for (let index = 0; index < 4; index++) columns.append(el("col")); table.append(columns);
+    const head = el("thead"), titles = el("tr");
+    for (const title of ["方法", "本地工具", "来源读取", "估计器拟合"]) { const cell = el("th", "", title); cell.scope = "col"; titles.append(cell); }
+    head.append(titles); table.append(head);
+    const category = (method: Obj): string => {
+      const cost = object(method.budget_cost);
+      return typeof cost.evidence_reads === "number" && cost.evidence_reads > 0 ? "来源读取"
+        : cost.estimator_fits === null || typeof cost.estimator_fits === "number" && cost.estimator_fits > 0 ? "训练" : "普通检查";
+    };
+    for (const group of ["来源读取", "普通检查", "训练"]) {
+      const members = methods.filter(method => category(method) === group); if (!members.length) continue;
+      const body = el("tbody"), heading = el("tr"), label = el("th"); label.scope = "rowgroup"; label.colSpan = 4;
+      label.append(el("span", "method-budget-group", group)); heading.append(label); body.append(heading);
+      for (const method of members) {
+        const cost = object(method.budget_cost), row = el("tr"), name = el("th", "", host.methodTitle(text(method.method_id))); name.scope = "row"; row.append(name);
+        for (const key of ["local_tool_calls", "evidence_reads", "estimator_fits"]) {
+          const value = cost[key], label = value === 0 ? "0 次（不消耗）"
+            : key === "estimator_fits" && value === null ? "未确定，需先绑定可用设计" : number(value) + (typeof value === "number" ? " 次" : "");
+          row.append(el("td", "", label));
+        }
+        body.append(row);
+      }
+      table.append(body);
+    }
+    scroll.append(table); content.append(el("p", "research-design-table-hint", "左右滑动查看完整额度列"), scroll); return content;
+  }
+  function currentMethodCosts(): void {
+    costContent.replaceChildren(); currentCosts.hidden = true;
+    if (!projectId || project.id !== projectId || context?.schema_version !== "project-selection-context-v1"
+      || context.project_id !== projectId || typeof project.state_version !== "number" || context.state_version !== project.state_version
+      || typeof project.snapshot_ref !== "string" || context.snapshot_ref !== project.snapshot_ref) return;
+    const methods = objects(context.conditions).filter(method => Object.keys(object(method.budget_cost)).length);
+    if (!methods.length) return;
+    currentCosts.hidden = false;
+    costContent.append(el("p", "detail-note", `当前项目版本${number(context.state_version)} · 每种方法单次新派发的额度需求。`), methodBudgetCosts(methods),
+      el("p", "detail-note", "估计器拟合按实际 fit 次数计，Scaler 与 Ridge 的 fit 都计入。拟合次数未确定时需先绑定可用设计，不能按 0 次处理。"),
+      el("p", "detail-note", "额度需求不授予执行许可，也不代表当前可执行候选；是否能行动仍由完整当前条件决定。"));
+  }
+
   function planExecutionConditions(record: Obj, card: HTMLElement): void {
     const frozen = object(object(record.context).selection_context);
     const review = objects(view.plan_reviews).find(item => item.request_id === record.request_id);
     const assessment = object(review?.assessment);
-    if (assessment.schema_version !== "plan-readiness-v1" || typeof frozen.context_sha256 !== "string"
+    if (!["plan-readiness-v1", "plan-readiness-v2"].includes(text(assessment.schema_version, "")) || typeof frozen.context_sha256 !== "string"
       || assessment.context_sha256 !== frozen.context_sha256 || assessment.project_id !== frozen.project_id
       || assessment.snapshot_ref !== frozen.snapshot_ref || !["available", "blocked"].includes(text(assessment.execution_status, ""))) return;
     const budget = object(assessment.remaining_budget), candidates = objects(assessment.available_actions);
@@ -206,25 +249,26 @@ export function createLocalModelPanel(host: Host): {
         ? "当时可执行的候选 · " + [...new Set(candidates.map(item => host.methodTitle(text(item.method_id))))].join("、")
         : "当时没有可执行候选；后续行动需先补条件。"));
     const methods = objects(assessment.blocked_methods), blockers = objects(assessment.blockers);
-    if (methods.length || blockers.length) {
-      const gaps = el("details", "local-advanced"); gaps.append(el("summary", "", "查看方法条件与缺口"));
-      for (const blocker of blockers) {
-        const code = text(blocker.code);
-        gaps.append(el("p", "", readinessReasons[code] ?? code));
-      }
-      if (methods.length) {
-        const list = el("ul");
-        for (const method of methods) {
-          const reasons = strings(method.execution_blockers).map(code => readinessReasons[code] ?? code);
-          const missing = strings(method.missing_information), item = el("li"), description = el("p");
-          description.append(el("strong", "", host.methodTitle(text(method.method_id))), document.createTextNode(" · "
-            + (reasons.join("；") || "受上述项目条件限制") + (missing.length ? "。待补信息：" + missing.join("；") : "")));
-          item.append(description); list.append(item);
-        }
-        gaps.append(list);
-      }
-      card.append(gaps);
+    const costs = assessment.schema_version === "plan-readiness-v2" ? objects(assessment.method_budget_costs) : [];
+    const gaps = el("details", "local-advanced"); gaps.append(el("summary", "", "查看方法成本、条件与缺口"));
+    if (costs.length) gaps.append(el("p", "detail-note", "请求准备时捕获的单次新派发额度需求。估计器拟合包含 Scaler 与 Ridge 的 fit；这份冻结成本不授予执行许可。"), methodBudgetCosts(costs));
+    else gaps.append(el("p", "detail-note", "当时未捕获方法成本。"));
+    for (const blocker of blockers) {
+      const code = text(blocker.code);
+      gaps.append(el("p", "", readinessReasons[code] ?? code));
     }
+    if (methods.length) {
+      const list = el("ul");
+      for (const method of methods) {
+        const reasons = strings(method.execution_blockers).map(code => readinessReasons[code] ?? code);
+        const missing = strings(method.missing_information), item = el("li"), description = el("p");
+        description.append(el("strong", "", host.methodTitle(text(method.method_id))), document.createTextNode(" · "
+          + (reasons.join("；") || "受上述项目条件限制") + (missing.length ? "。待补信息：" + missing.join("；") : "")));
+        item.append(description); list.append(item);
+      }
+      gaps.append(list);
+    }
+    card.append(gaps);
     card.append(el("p", "", "科学解释仍需审阅；此处核对执行条件。"));
   }
   function planSuggestion(record: Obj, card: HTMLElement, actions: HTMLElement): void {
@@ -454,6 +498,7 @@ export function createLocalModelPanel(host: Host): {
       records = []; view = {}; reason.value = ""; limit.value = "1"; cap.value = "0.10"; usage.replaceChildren(); savedRequests();
     }
     projectId = nextId; project = nextProject; context = nextContext; loading = true; loaded = false;
+    currentMethodCosts();
     improvement.hidden = true;
     status.textContent = "正在读取模型请求记录…"; controls();
     try {

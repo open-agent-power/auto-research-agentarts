@@ -7,7 +7,7 @@ from . import research_plan_proposal as plan_protocol
 from . import research_recipe
 from .contracts import ResearchError, canonical
 from .plan_feedback import projection_notice
-from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice
+from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice
 
 
 MAX_CONTEXT_BYTES = host_protocol.MAX_CONTEXT_BYTES
@@ -89,6 +89,7 @@ def build_prompt(context):
             "prompt": "Propose a recipe revision from this complete frozen context:\n" + canonical(context)}
     prompt["system"] += projection_notice(context["research_context"])
     prompt["system"] += experience_notice(context["research_context"]["selection_context"])
+    prompt["system"] += budget_cost_notice(context["research_context"]["selection_context"])
     return prompt
 
 

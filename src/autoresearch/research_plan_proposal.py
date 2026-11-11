@@ -5,7 +5,7 @@ import copy
 from . import host_selection_protocol as host_protocol
 from .contracts import ResearchError, canonical
 from .project_controller import ProjectController
-from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice
+from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice
 from .plan_readiness import assess_plan_readiness
 from .plan_feedback import decision_reference, project_observations, projection_notice
 
@@ -137,6 +137,7 @@ def build_prompt(context):
             + " Propose a plan from this complete frozen project context:\n" + canonical(context)}
     prompt["system"] += projection_notice(context)
     prompt["system"] += experience_notice(context["selection_context"])
+    prompt["system"] += budget_cost_notice(context["selection_context"])
     return prompt
 
 

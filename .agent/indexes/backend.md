@@ -1,5 +1,7 @@
 # 后端索引
 
+`ProjectController._selection_context`沿原数值／来源执行分支捕获`conditions[].budget_cost`，Ridge复用当前绑定的`_fit_attempts_needed`，无对应设计为null。`plan_readiness`仅复制捕获成本到v2，旧Host保持v1。资格和执行计数不读取成本投影；见[额度需求](../../docs/method-budget-costs.md)。
+
 `project_experience`复用原条件记忆存储，复核已保存Ridge OOF并导出方法案例；`project_experience_binding`保存目标项目显式导入与active／retired历史，原ID重放及manager接续不复活资格。控制器只把活动案例加入独立`experience`，保持候选、证据及预算；见[案例快照](../../docs/project-experience.md)。
 
 `plan_fact_check`核对提交者标注的精确原句、冻结父子比较与数值声明，`LocalWorkbench.check_plan_fact`先复用Host原件核验，再纯计算。它不从自然语言关键词判断语义、不修改Host/项目/预算，也不补当前比较到旧context；见[断言核对](../../docs/plan-fact-check.md)。

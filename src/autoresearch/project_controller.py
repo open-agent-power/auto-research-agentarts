@@ -147,22 +147,27 @@ class ProjectController:
                   if item.get("selection_count", 0) > 0 and item["receipt_snapshot_sha256"] not in finished]
         for option in plan["options"]:
             method_id, reasons = option["method_id"], []
+            budget_cost = None
             if option["condition"] != "satisfied":
                 reasons.append("CONDITION_NOT_SATISFIED")
             if option["completed"]:
                 reasons.append("ALREADY_COMPLETED")
             parameters = []
             if method_id == primary or method_id in registry.followup_ids(primary):
+                fits = self.project._fit_attempts_needed(project, method_id) if method_id in registry.RIDGE else 0
+                budget_cost = {"local_tool_calls": 1, "evidence_reads": 0,
+                               "estimator_fits": (fits if fits > 0 else None) if method_id in registry.RIDGE else 0}
                 if method_id == primary and project["research_status"] != "active":
                     reasons.append("PROJECT_WAITING")
                 if len(project["actions"]) >= project["budget"]["local_tool_call_limit"]:
                     reasons.append("BUDGET_EXHAUSTED")
                 if method_id in registry.RIDGE and (project["budget"].get("fit_attempts_used", 0) + project["budget"].get("fits_reserved", 0)
-                                                   + self.project._fit_attempts_needed(project, method_id) > project["budget"].get("fit_limit", 0)):
+                                                   + fits > project["budget"].get("fit_limit", 0)):
                     reasons.append("FIT_BUDGET_EXHAUSTED")
                 parameters = ([{"dimension": value} for value in option.get("remaining_dimensions", [])]
                               if method_id == research_methods.OOF else [copy.deepcopy(option.get("parameters", {}))])
             elif method_id == registry.source_id(project):
+                budget_cost = {"local_tool_calls": 0, "evidence_reads": 1, "estimator_fits": 0}
                 if len(project["evidence_actions"]) >= project["budget"].get("evidence_read_limit", 0):
                     reasons.append("BUDGET_EXHAUSTED")
                 if not unread:
@@ -176,6 +181,8 @@ class ProjectController:
             evaluation_ref = (registry.evaluation_ref(method_id) if not registry.is_source(method_id)
                               else "source-extraction-only-not-scientific-approval")
             conditions[-1]["evaluation_ref"] = evaluation_ref
+            if budget_cost is not None:
+                conditions[-1]["budget_cost"] = budget_cost
             if not reasons and not blockers:
                 for parameter in parameters:
                     candidate = {"method_id": method_id, "parameters": parameter,

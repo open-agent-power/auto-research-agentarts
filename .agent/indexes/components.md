@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`local-model.ts`在原模型操作区显示可展开的方法成本表，当前context须匹配项目／版本／快照，CLI关闭仍可阅读。历史计划分别处理readiness v1／v2，缺成本不猜值；手机局部横向滑动与原表格样式复用，见[方法额度](../../docs/method-budget-costs.md)。
+
 `local-experience.ts`在知识空间提供显式案例导入、原观察／范围／限制、可读方法条件与协议、资格历史及JSON。`project-pages.ts`复用原focus路由直达`#/knowledge?focus=experience`；草稿和原请求恢复仍由`local-workbench.ts`管理。沿既有表单与表面，不另建主题；见[案例用法](../../docs/project-experience.md)。
 
 `research-design.ts`新增直接输入/固定单列三次基选择，原CSV字段与展开模型项分别展示；多列cubic停用保存，直接输入提交省略可选字段。资源导入导出保留`comparison_kind`。双类对照分别命名为同协议特征对照与同评价划分输入基对照；父版判断与单项训练均值参考分开说明，见[研究设计](../../docs/research-design.md)。

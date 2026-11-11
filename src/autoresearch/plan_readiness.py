@@ -28,7 +28,7 @@ def assess_plan_readiness(context):
         for condition in selection["conditions"]
         if condition["execution_blockers"] or blockers
     ]
-    return {
+    result = {
         "schema_version": "plan-readiness-v1",
         "project_id": selection["project_id"],
         "snapshot_ref": selection["snapshot_ref"],
@@ -46,6 +46,11 @@ def assess_plan_readiness(context):
         "scientific_review": "required",
         "scientific_validation": False,
     }
+    costs = [{key: copy.deepcopy(condition[key]) for key in ("method_id", "evaluation_ref", "budget_cost")}
+             for condition in selection["conditions"] if "budget_cost" in condition]
+    if costs:
+        result.update(schema_version="plan-readiness-v2", method_budget_costs=costs)
+    return result
 
 
 def review_plan_requests(records):

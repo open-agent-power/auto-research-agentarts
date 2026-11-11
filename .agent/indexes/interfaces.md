@@ -1,5 +1,7 @@
 # 接口索引
 
+选择context的条件新增可选`budget_cost={local_tool_calls,evidence_reads,estimator_fits}`；前两项为非负整数，拟合可null。readiness有捕获值时为`plan-readiness-v2`并含`method_budget_costs`，无值旧v1不变。报告`execution_conditions`为当前，`plan_reviews`为原Host冻结条件，完整依据在`input.selection_context`；见[字段与语义](../../docs/method-budget-costs.md)。
+
 跨项目方法案例通过`GET /experiences`读取，`POST /experience-import`、`/experience-status`明确导入或改变本地资格，`/experience-resume`仅恢复原manager请求。前缀均为`/api/local-workbench`；原选择／计划／配方回答协议不变，见[案例接口](../../docs/project-experience.md#接口与成果)。
 
 `POST /api/local-workbench/plan-fact-check`精确接收`project_id/host_request_id/claim`，返回`plan-fact-check-v1`只读预览，不进入命令账本。claim绑定原字段Unicode码点span、quote、双方action及check、MAE方向或指标数值。结果区分支持/矛盾/不可核对，保留提交者语义映射与选句范围；原4字段plan、Host采用及预算不变。CLI为`check_plan_fact.py`，见[完整合同](../../docs/plan-fact-check.md)。
