@@ -1,0 +1,23 @@
+{
+  "alternatives": [
+    "Age or composition effects may be nonlinear or interactive, beyond this fixed additive baseline.",
+    "Equal published ingredient values do not verify independent batches or laboratories.",
+    "An average MAE advantage may coexist with nonphysical negative predictions and local failures."
+  ],
+  "change_reason": "Prespecified intact1030-row grouped baseline; no result-dependent split or feature choice.",
+  "checks": [
+    "group_cv",
+    "negative_control"
+  ],
+  "claim": "The fixed additive Ridge baseline has lower pooled held-out mixture-group MAE than its training-fold target-mean reference.",
+  "id": "concrete-mixture-transfer",
+  "parent_version": null,
+  "question": "What performance and physical prediction failures does a fixed linear Ridge baseline show when entire derived ingredient-mixture groups are held out, and what concrete subsequent evidence or action does its saved feedback justify?",
+  "schema_version": "research-design-resource-v1",
+  "sources": [
+    "https://archive.ics.uci.edu/ml/datasets/concrete+compressive+strength",
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Readme.txt"
+  ],
+  "title": "混凝土抗压强度：完整配合比组留出基线",
+  "version": 1
+}

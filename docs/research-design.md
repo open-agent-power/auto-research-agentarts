@@ -30,13 +30,21 @@
 
 ## 固定输入基函数对照
 
-原始数据训练新增唯一可选声明`training.input_basis="univariate_cubic"`，要求`feature_columns`只包含一个原CSV数值列。先按原尺度把该列`x`展开为`[x,x²,x³]`，顺序固定、不加常数列，再在每个训练折拟合三列StandardScaler与Ridge(alpha=1, fit_intercept=True)。未声明时继续使用原始输入列。固定展开不学习参数，每折仍只计一次Scaler和一次Ridge拟合；不提供次数搜索、任意表达式、目标变换或预测裁剪。
+固定单列三次基声明`training.input_basis="univariate_cubic"`要求`feature_columns`只包含一个原CSV数值列。先按原尺度把该列`x`展开为`[x,x²,x³]`，顺序固定、不加常数列，再在每个训练折拟合三列StandardScaler与Ridge(alpha=1, fit_intercept=True)。未声明输入映射时继续使用原始输入列。固定展开不学习参数，每折仍只计一次Scaler和一次Ridge拟合；不提供次数搜索、任意表达式、目标变换或预测裁剪。
 
-变换对照的资源须明确`comparison_kind="fixed_input_basis"`与同ID的`parent_version`。当前只接受同一原列的直接输入父版本与固定三次基候选，明确列出协议变化`input_basis`和`model_input_terms`。来源、目标与单位、完整评价行、原坐标、实际值、分组、折、训练/评价集合、参考预测及其余协议和模型参数仍全部相同。默认特征比较继续拒绝输入变换差异，不把变换列名冒充原CSV字段，也不把两侧模型输入称为相同。
+变换对照的资源须明确`comparison_kind="fixed_input_basis"`与同ID的`parent_version`。只接受同顺序原列的直接输入父版本与明确的固定三次基或下述log1p候选，列出协议变化`input_basis`和`model_input_terms`。来源、目标与单位、完整评价行、原坐标、实际值、分组、折、训练/评价集合、参考预测及其余协议和模型参数仍全部相同；候选保存元数据必须与冻结声明精确对应。默认特征比较继续拒绝输入变换差异，不把变换列名冒充原CSV字段，也不把两侧模型输入称为相同。
 
 该资源的判断范围为`claim_scope="saved_parent_mae"`：每项已配置CV必须关联当前候选行动与指定父版本的严格配对。缺少或不可比较的父版本依据保持`claim_supported=null`；已证实非改善保持`false`；全部必要配对的候选保存MAE较低时才为`true`。优于训练折均值参考不能替代这个父版本判断，其他已配置检查仍按原判据保留。目录的`assessment`与报告的`design_assessment`共用该范围，页面显示相同依据，`scientific_validation`始终为`false`。
 
 JSON保留原始来源列、展开规则、`model_input_terms`、每折三维Scaler参数、三维Ridge系数、截距、完整折与原始行映射；两侧比较引用也显示各自输入映射。保存参数可沿原尺度展开独立重建OOF，不需再次拟合。实际用法见[帆船固定三次基对照](research/yacht-geometry-study.md#11月12日固定三次速度基对照)及[共享v3资源](../examples/research-designs/yacht-geometry-transfer-v3.json)。
+
+### 固定log1p原输入变换
+
+`training.input_transforms={"age":"log1p"}`明确将所选原训练列替换为`ln(1+x)`，其余原列、顺序和维度保持。映射须非空，只接受`log1p`、已选择的原数值输入，且与任何`input_basis`声明互斥；不支持表达式、组合、目标变换或新增派生列。工作台在原输入映射控件选择固定log1p后勾选具体训练列，并预览实际模型输入项；空选择、取消仍被变换的训练列等情况保留草稿并阻止保存。
+
+映射发生在每折训练标准化前，函数本身不拟合。完整案例中每个被变换值须有限且大于-1；原绑定的需求预检及执行入口共用这一检查，域错误在拟合前拒绝，不删除该行、更换目标或裁剪结果。原来的目标／输入／分组缺失排除规则保持，每折仍为一次Scaler和一次Ridge，累计拟合上限不重置。
+
+保存协议用`input_basis={kind:"log1p",source_columns:[全部原列],transformed_columns:[按原列顺序的变换列],order:"raw_log1p_then_fold_standardization"}`及`model_input_terms`描述实际输入，例如`log1p(age)`。原CSV与输入画像继续使用原始age，报告、结果和父子引用展示实际映射及模型项。该比较复用前述严格父版资格和`saved_parent_mae`范围，不接受已变换的父版或额外协议差异。真实例子与不利结果见[混凝土固定龄期对照](research/concrete-mixture-study.md#固定log1p龄期的同评价对照)和[子资源v2](../examples/research-designs/concrete-mixture-transfer-v2.json)。
 
 ## 保存预测的输入诊断
 

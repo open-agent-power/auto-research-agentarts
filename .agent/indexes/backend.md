@@ -1,5 +1,7 @@
 # 后端索引
 
+`input_basis`新增显式selected-column log1p，`project_design`接`training.input_transforms`并沿原绑定需求预检验证完整案例域；Ridge共用映射／元数据和原2fit/折计数。`feature_comparison`将原`fixed_input_basis`门扩至精确声明log1p，仍只接受同原列的raw父版、同完整评价及除映射两字段之外相同协议；沿原父MAE assessment，见[固定log1p](../../docs/research-design.md#固定log1p原输入变换)。
+
 `inspect_saved_oof(..., within_group_column=...)`在请求时追加同组相邻原输入变化。使用私有完整训练输入检查其他列固定及单评价折，先聚合同值记录再形成相邻对；保留不合条件组与层，每种确切取值对按组等权汇总。默认JSON／Markdown保持，旧项目与预算保持，见[对应语义](../../docs/research-design.md#同组原输入的相邻变化)。
 
 `saved_oof_diagnostics.inspect_saved_oof`只读明确指定的单个原始Ridge行动，复用`project_experience`原工件及折核验，并按raw2048核对捕获CSV的完整行／排除、目标与划分组。独立提供全部行、折、组、行／组加权与原输入诊断，不改旧P02工具、父子比较、经验512边界或原项目；见[单结果诊断](../../docs/research-design.md#单个已保存验证的只读诊断)。

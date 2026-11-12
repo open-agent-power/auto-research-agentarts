@@ -1,5 +1,7 @@
 # 研究设计的反馈修订与跨项目复用
 
+[concrete-mixture-transfer.json](concrete-mixture-transfer.json)与[子资源v2](concrete-mixture-transfer-v2.json)保留混凝土任务的原始八输入父版和唯一固定log1p龄期对照定义。子版只配置`group_cv`，沿同一来源、完整1,030行、427七材料声明组及五折严格比较父v1；绑定时保留累计`fit_limit=20`，其他七输入与顺序保持，声明`input_transforms={"age":"log1p"}`且不声明`input_basis`。两版各5次Scaler及5次Ridge；共享资源不导入原数据、原验证或授予预算，新项目需先明确原行／组含义并形成自己的父版结果。实测子版MAE降低31.973%，但新增2负预测、318行／131组恶化，原项目计划v4保留探索性停点，见[完整结果](../../docs/research/concrete-mixture-study.md#固定log1p龄期的同评价对照)。
+
 [auto-mpg-origin-transfer.json](auto-mpg-origin-transfer.json)与[子资源v2](auto-mpg-origin-transfer-v2.json)用于新的Auto MPG公开任务：父版六数值输入，子版只去掉`model_year`，都保留`horsepower`，在相同392条完整记录上按原生`origin`做3折GroupKFold。绑定时累计`fit_limit=12`，两版各3次Scaler与3次Ridge；子资源保留显式父版本1，负对照只关联子版。子版MAE较父版增加43.6285%，即使它仍优于训练折均值参考，也不能称为父版改进；见[完整任务](../../docs/research/auto-mpg-year-study.md)。资源声明不自动导入数据或授权执行，新任务的预算也不重置旧Yacht账本。
 
 [yacht-geometry-transfer.json](yacht-geometry-transfer.json)是实际公开帆船任务的资源定义，可从工作台导入；它复用既有随机／分组Ridge与负对照，未增加新的执行器。数据出处、转换规则和结果见[任务说明](../../docs/research/yacht-geometry-study.md)，原始数据与运行证据不随源码分发。

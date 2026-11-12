@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`research-design.ts`在原输入映射表单新增固定log1p与已选原训练列复选框，草稿、绑定恢复、无效选择阻断和真实模型项预览共用原工作流。被取消训练的变换列保留草稿并提示恢复后取消，不静默降为raw；结果／比较／报告区分原CSV、log1p项和父版／均值参考，见[固定映射](../../docs/research-design.md#固定log1p原输入变换)。
+
 `project-view.ts`质量数值表复用`resultTable`的语义行表头，仅该表加`quality-numeric-table`。横向滚动固定字段列，使右端有限范围仍能对应材料／目标；≤720px首列140px并保留完整换行。其他结果表及研究状态不变，样式沿既有实色内容token。
 
 `local-model.ts`在原模型操作区显示可展开的方法成本表，当前context须匹配项目／版本／快照，CLI关闭仍可阅读。历史计划分别处理readiness v1／v2，缺成本不猜值；手机局部横向滑动与原表格样式复用，见[方法额度](../../docs/method-budget-costs.md)。
