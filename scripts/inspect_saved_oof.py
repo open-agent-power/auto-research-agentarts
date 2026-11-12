@@ -30,6 +30,30 @@ def _fold_coverage(bucket, total):
     return f"{bucket['fold_count']}/{total}" + (f" ({counts})" if counts else "")
 
 
+def _within_group_markdown(within):
+    summary = within["summary"]
+    lines = [f"## 组内相邻输入对照：{within['column']}", "",
+             f"声明分组：{_cell(within['group_columns'])}；原尺度输入。",
+             f"完整保留 {summary['group_count']} 组 / {summary['row_count']} 行 / {summary['level_count']} 个组内输入水平；"
+             f"可比较 {summary['comparable_group_count']} 组 / {summary['comparable_row_count']} 行，"
+             f"不可比较 {summary['noncomparable_group_count']} 组 / {summary['noncomparable_row_count']} 行。",
+             f"可比较组共 {summary['adjacent_pair_count']} 个相邻对，分为 {summary['pair_type_count']} 种精确低值/高值组合。",
+             "变化统一为高值水平均值 − 低值水平均值；平均残差变化 = 预测变化 − 观察变化。", "",
+             "### 完整相邻输入对类型", ""]
+    lines += _table(["低值", "高值", "组数", "低值行", "高值行", "平均观察变化", "平均预测变化", "平均残差变化", "观察增加组", "观察减少组", "观察持平组"], [
+        [pair[key] for key in ("low_value", "high_value", "group_count", "low_n", "high_n", "mean_observed_change",
+                               "mean_predicted_change", "mean_error_change", "observed_increase_groups",
+                               "observed_decrease_groups", "observed_tie_groups")] for pair in within["pair_summaries"]])
+    if summary["reason_counts"]:
+        labels = {"singleton": "单行组", "single_input_level": "只有一个输入水平", "mixed_evaluation_folds": "跨保存评价折",
+                  "varying_other_features": "其他训练输入变化"}
+        lines += ["不可比较原因（同一组可能有多项）：" + "；".join(
+            f"{labels[item['reason_code']]} {item['group_count']} 组 / {item['row_count']} 行"
+            for item in summary["reason_counts"]) + "。", ""]
+    lines += ["各组状态、原因、变化的其他输入、完整水平/相邻对与逻辑行成员保留在 diagnostic.json 的 within_group。", ""]
+    return lines
+
+
 def diagnostic_markdown(result):
     origin, row, group = result["provenance"], result["row_weighted"], result["group_weighted"]
     lines = ["# 保存 OOF 只读诊断", "", f"项目：`{origin['project_id']}`；state_version：{origin['state_version']}。",
@@ -59,7 +83,10 @@ def diagnostic_markdown(result):
             [bucket["label"], bucket["n"], bucket["group_count"], _fold_coverage(bucket, len(result["folds"])),
              *[bucket[key] for key in ("candidate_mae", "reference_mae", "mean_error", "negative_predictions")]]
             for bucket in profile["buckets"]])
-    lines += ["## Limitations", "", *("- " + value for value in result["limitations"]), "",
+    if "within_group" in result:
+        lines += _within_group_markdown(result["within_group"])
+    limitations = result["limitations"] + (result["within_group"]["limitations"] if "within_group" in result else [])
+    lines += ["## Limitations", "", *("- " + value for value in limitations), "",
               "scientific_validation=false；新增 model / fit / source dispatch 均为 0。", ""]
     return "\n".join(lines)
 
@@ -69,6 +96,7 @@ def main(argv=None):
     for name in ("workspace", "action-id", "output"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--column", action="append", default=[])
+    parser.add_argument("--within-group-column", help="比较声明组内相邻原始训练输入水平（可选）")
     args = parser.parse_args(argv)
     try:
         workspace, output = Path(args.workspace).resolve(), Path(args.output).resolve()
@@ -76,7 +104,7 @@ def main(argv=None):
             raise ResearchError("INVALID_DIAGNOSTIC_OUTPUT", "Output must be separate from the original project.")
         if output.exists():
             raise ResearchError("EVIDENCE_CONFLICT", "Use a fresh output directory; existing evidence is preserved.")
-        result = inspect_saved_oof(workspace, args.action_id, args.column)
+        result = inspect_saved_oof(workspace, args.action_id, args.column, within_group_column=args.within_group_column)
         raw = json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
         markdown = diagnostic_markdown(result)
         output.mkdir(parents=True, exist_ok=False)

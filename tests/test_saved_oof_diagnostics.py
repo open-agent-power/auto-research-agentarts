@@ -22,7 +22,7 @@ from autoresearch.project_controller import ProjectController
 from autoresearch.project_design import bind
 from autoresearch.research_design import RAW_RESOURCE
 from autoresearch.research_project import ResearchProject
-from autoresearch.saved_oof_diagnostics import inspect_saved_oof
+from autoresearch.saved_oof_diagnostics import _within_group, inspect_saved_oof
 
 
 class SavedOOFDiagnosticsTests(unittest.TestCase):
@@ -176,6 +176,53 @@ class SavedOOFDiagnosticsTests(unittest.TestCase):
                 self.read((column,))
             self.assertEqual(caught.exception.code, "INVALID_DIAGNOSTIC_COLUMN")
 
+    def test_within_group_preserves_default_output_and_all_noncomparable_source_rows(self):
+        self.forbid_execution()
+        files, state = self.files(self.project.root), self.project.status()
+        default = self.read(())
+        explicit_none = inspect_saved_oof(self.project.root, self.action_id, (), within_group_column=None)
+        self.assertEqual(json.dumps(default), json.dumps(explicit_none))
+        self.assertEqual(self.cli["diagnostic_markdown"](default), self.cli["diagnostic_markdown"](explicit_none))
+        self.assertNotIn("within_group", default)
+        result = inspect_saved_oof(self.project.root, self.action_id, (), within_group_column="age")
+        within = result.pop("within_group")
+        self.assertEqual(json.dumps(result), json.dumps(default))
+        self.assertEqual(within["group_columns"], ["group"])
+        self.assertEqual((within["summary"]["group_count"], within["summary"]["row_count"]), (3, 21))
+        self.assertEqual(within["summary"]["comparable_group_count"], 0)
+        self.assertEqual(within["pair_summaries"], [])
+        self.assertEqual([group["reason_codes"] for group in within["groups"]],
+                         [["varying_other_features"], ["varying_other_features"], ["singleton"]])
+        self.assertEqual([group["varying_other_features"] for group in within["groups"]], [["x"], ["x"], []])
+        self.assertEqual(sorted(record for group in within["groups"] for level in group["levels"] for record in level["logical_records"]),
+                         [row["logical_record"] for row in result["rows"]])
+        self.assertTrue(all(group["adjacent_pairs"] == [] for group in within["groups"]))
+        self.assertEqual(self.files(self.project.root), files)
+        self.assertEqual(self.project.status(), state)
+
+    def test_within_group_rejects_invalid_column_and_missing_declared_groups(self):
+        self.forbid_execution()
+        for column in ("y", "group", "unused_group", "unknown", "", [], 1):
+            with self.subTest(column=column), self.assertRaises(ResearchError) as caught:
+                inspect_saved_oof(self.project.root, self.action_id, within_group_column=column)
+            self.assertEqual(caught.exception.code, "INVALID_DIAGNOSTIC_COLUMN")
+        # Deliberately remove the saved declaration in all three binding locations:
+        # this tests the explicit preflight refusal, without pretending the old OOF
+        # was generated under a different model or running another estimator.
+        state = self.project.status()
+        action = next(item for item in state["actions"] if item["id"] == self.action_id)
+        binding = copy.deepcopy(action["design_binding"])
+        binding["training"]["split_group_columns"] = []
+        self.rewrite(lambda value: (value.update(design_binding=binding), value["protocol"].update(split_group_columns=[])),
+                     lambda saved: saved.update(design_binding=binding))
+        with closing(sqlite3.connect(self.project.db)) as connection, connection:
+            project = json.loads(connection.execute("SELECT record FROM project").fetchone()[0])
+            project["design_revisions"][0] = binding
+            connection.execute("UPDATE project SET record=?", (canonical(project),))
+        with self.assertRaises(ResearchError) as caught:
+            inspect_saved_oof(self.project.root, self.action_id, within_group_column="age")
+        self.assertEqual(caught.exception.code, "NO_DECLARED_DIAGNOSTIC_GROUPS")
+
     def test_corrupt_documented_inputs_rejected_even_with_matching_artifact_fingerprint(self):
         cases = {
             "observed": lambda value: value["oof"][0].update(observed=999),
@@ -273,6 +320,100 @@ class SavedOOFDiagnosticsTests(unittest.TestCase):
                 self.assertEqual(self.cli["main"]([*args, "--output", str(destination)]), 2)
                 self.assertFalse(json.loads(stdout.getvalue())["ok"])
         self.assertEqual(self.files(self.project.root), files)
+
+    def test_cli_within_group_flag_is_optional_readonly_and_retains_fresh_output_contract(self):
+        self.forbid_execution()
+        files = self.files(self.project.root)
+        output = self.project.root.parent / "within-diagnostic"
+        args = ["--workspace", str(self.project.root), "--action-id", self.action_id,
+                "--within-group-column", "age", "--output", str(output)]
+        with redirect_stdout(io.StringIO()) as stdout:
+            self.assertEqual(self.cli["main"](args), 0, stdout.getvalue())
+        result = json.loads((output / "diagnostic.json").read_text(encoding="utf-8"))
+        self.assertEqual(result, inspect_saved_oof(self.project.root, self.action_id, within_group_column="age"))
+        self.assertEqual(result["requested_columns"], [])
+        self.assertTrue(all(row["input_values"] == {} for row in result["rows"]))
+        markdown = (output / "diagnostic.md").read_text(encoding="utf-8")
+        for text in ("组内相邻输入对照：age", "完整相邻输入对类型", "其他训练输入变化 2 组 / 20 行", "单行组 1 组 / 1 行"):
+            self.assertIn(text, markdown)
+        with redirect_stdout(io.StringIO()) as stdout:
+            self.assertEqual(self.cli["main"](args), 2)
+        self.assertEqual(json.loads(stdout.getvalue())["code"], "EVIDENCE_CONFLICT")
+        self.assertEqual(self.files(self.project.root), files)
+
+
+class WithinGroupArithmeticTests(unittest.TestCase):
+    """Frozen raw-input/OOF arithmetic examples; these are not fitted project evidence."""
+
+    @staticmethod
+    def projection(samples):
+        rows, inputs = [], {}
+        for record, (labels, age, x, fold, observed, predicted) in enumerate(samples, 1):
+            rows.append({"logical_record": record, "groups": labels, "fold": fold,
+                         "observed": observed, "predicted": predicted, "reference_prediction": 3.0,
+                         "input_values": {}})
+            inputs[record] = {"age": age, "x": x}
+        return _within_group(rows, inputs, {"feature_columns": ["age", "x"],
+                                           "split_group_columns": ["batch", "kind"]}, "age")
+
+    def test_repeated_raw_levels_sorted_adjacency_and_exact_pair_equal_group_averages(self):
+        result = self.projection([
+            (["A", "one"], 40, 7, 1, 15, 19),
+            (["A", "one"], 10, 7, 1, 0, 1), (["A", "one"], 20, 7, 1, 8, 10),
+            (["A", "one"], 10, 7, 1, 4, 7), (["A", "one"], 20, 7, 1, 10, 14),
+            (["A", "one"], 20, 7, 1, 12, 15),
+            (["A", "two"], 20, 9, 2, 16, 19), (["A", "two"], 10, 9, 2, 20, 15),
+            (["B", "one"], 40, 2, 3, 5, 6), (["B", "one"], 10, 2, 3, 5, 5),
+        ])
+        self.assertFalse(result["scientific_validation"])
+        self.assertEqual(result["group_columns"], ["batch", "kind"])
+        summary = result["summary"]
+        self.assertEqual((summary["comparable_group_count"], summary["comparable_row_count"],
+                          summary["adjacent_pair_count"], summary["pair_type_count"]), (3, 10, 4, 3))
+        group = result["groups"][0]
+        self.assertEqual(group["fixed_other_features"], {"x": 7})
+        self.assertEqual(group["fold"], 1)
+        self.assertEqual([level["value"] for level in group["levels"]], [10, 20, 40])
+        self.assertEqual([level["n"] for level in group["levels"]], [2, 3, 1])
+        self.assertEqual([level["observed_mean"] for level in group["levels"]], [2, 10, 15])
+        self.assertEqual([level["predicted_mean"] for level in group["levels"]], [4, 13, 19])
+        self.assertEqual([level["reference_mean"] for level in group["levels"]], [3, 3, 3])
+        self.assertEqual([level["candidate_mae"] for level in group["levels"]], [2, 3, 4])
+        self.assertEqual([level["mean_error"] for level in group["levels"]], [2, 3, 4])
+        self.assertEqual([(pair["low_value"], pair["high_value"]) for pair in group["adjacent_pairs"]], [(10, 20), (20, 40)])
+        first = group["adjacent_pairs"][0]
+        self.assertEqual((first["low_n"], first["high_n"]), (2, 3))
+        self.assertEqual((first["low_logical_records"], first["high_logical_records"]), ([2, 4], [3, 5, 6]))
+        self.assertEqual((first["observed_change"], first["predicted_change"], first["mean_error_change"]), (8, 9, 1))
+        pairs = result["pair_summaries"]
+        self.assertEqual([(pair["low_value"], pair["high_value"]) for pair in pairs], [(10, 20), (10, 40), (20, 40)])
+        self.assertEqual((pairs[0]["group_count"], pairs[0]["low_n"], pairs[0]["high_n"]), (2, 3, 4))
+        self.assertEqual((pairs[0]["mean_observed_change"], pairs[0]["mean_predicted_change"], pairs[0]["mean_error_change"]), (2, 6.5, 4.5))
+        self.assertEqual((pairs[0]["observed_increase_groups"], pairs[0]["observed_decrease_groups"], pairs[0]["observed_tie_groups"]), (1, 1, 0))
+        self.assertEqual(pairs[1]["observed_tie_groups"], 1)
+        self.assertEqual(pairs[0]["group_membership"], [["A", "one"], ["A", "two"]])
+        self.assertEqual(sorted(record for item in result["groups"] for level in item["levels"] for record in level["logical_records"]), list(range(1, 11)))
+
+    def test_noncomparable_groups_keep_every_level_member_and_reason_without_contrasts(self):
+        result = self.projection([
+            (["D", "one"], 10, 1, 1, 1, 2),
+            (["E", "one"], 10, 1, 1, 1, 2), (["E", "one"], 10, 1, 1, 2, 3),
+            (["F", "one"], 10, 1, 1, 1, 2), (["F", "one"], 10, 2, 1, 2, 3),
+            (["F", "one"], 20, 1, 1, 3, 4),
+            (["G", "one"], 10, 1, 1, 1, 2), (["G", "one"], 20, 1, 2, 2, 3),
+        ])
+        groups = result["groups"]
+        self.assertEqual([group["reason_codes"] for group in groups],
+                         [["singleton"], ["single_input_level"], ["varying_other_features"], ["mixed_evaluation_folds"]])
+        self.assertEqual(groups[2]["varying_other_features"], ["x"])
+        self.assertEqual(groups[2]["fixed_other_features"], {})
+        self.assertEqual(groups[3]["folds"], [1, 2])
+        self.assertIsNone(groups[3]["fold"])
+        self.assertEqual([len(group["levels"]) for group in groups], [1, 1, 2, 2])
+        self.assertTrue(all(group["status"] == "not_comparable" and group["adjacent_pairs"] == [] for group in groups))
+        self.assertEqual(result["pair_summaries"], [])
+        self.assertEqual((result["summary"]["noncomparable_group_count"], result["summary"]["noncomparable_row_count"]), (4, 8))
+        self.assertEqual(sorted(record for group in groups for level in group["levels"] for record in level["logical_records"]), list(range(1, 9)))
 
 
 if __name__ == "__main__":

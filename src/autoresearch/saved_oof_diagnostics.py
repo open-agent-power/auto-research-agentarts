@@ -64,7 +64,7 @@ def _rows(analysis, spec, header, original, training, columns):
                  "OOF rows require unique original coordinates and finite saved predictions.")
         by_id[row["logical_record"]] = row
     positions, missing = {name: index for index, name in enumerate(header)}, set(spec["missing_tokens"])
-    expected_exclusions, complete, rows = [], set(), []
+    expected_exclusions, complete, rows, full_inputs = [], set(), [], {}
     features, groups = training["feature_columns"], training["split_group_columns"]
     for index, (raw, physical) in enumerate(original, 1):
         observed = numeric._finite(raw[positions[spec["target_column"]]], missing)
@@ -87,11 +87,12 @@ def _rows(analysis, spec, header, original, training, columns):
                  "OOF target, physical coordinates or declared groups differ from the captured original row.")
         rows.append({**copy.deepcopy(row), "residual": row["predicted"] - observed,
                      "input_values": {name: inputs[name] for name in columns}})
+        full_inputs[index] = inputs
     _require(set(by_id) == complete and exclusions == expected_exclusions
              and saved.get("input_n") == len(original) and saved.get("n") == len(rows)
              and saved.get("excluded") == len(exclusions),
              "OOF and exclusions must cover every original row with the original complete-case mask.")
-    return rows, by_id
+    return rows, by_id, full_inputs
 
 
 def _metrics(rows):
@@ -162,7 +163,100 @@ def _folds(analysis, rows, declared):
     return folds
 
 
-def inspect_saved_oof(workspace, action_id, columns=()):
+def _within_levels(members, full_inputs, column):
+    grouped = {}
+    for row in members:
+        grouped.setdefault(full_inputs[row["logical_record"]][column], []).append(row)
+    return [{"value": value, "n": len(rows), "logical_records": [row["logical_record"] for row in rows],
+             "folds": sorted({row["fold"] for row in rows}),
+             "observed_mean": _mean([row["observed"] for row in rows]),
+             "predicted_mean": _mean([row["predicted"] for row in rows]),
+             "reference_mean": _mean([row["reference_prediction"] for row in rows]),
+             "mean_error": _mean([row["predicted"] - row["observed"] for row in rows]),
+             "candidate_mae": _mean([abs(row["predicted"] - row["observed"]) for row in rows])}
+            for value, rows in sorted(grouped.items())]
+
+
+def _adjacent_pairs(levels):
+    pairs = []
+    for low, high in zip(levels, levels[1:]):
+        observed = high["observed_mean"] - low["observed_mean"]
+        predicted = high["predicted_mean"] - low["predicted_mean"]
+        pairs.append({"low_value": low["value"], "high_value": high["value"],
+                      "low_n": low["n"], "high_n": high["n"],
+                      "low_logical_records": list(low["logical_records"]),
+                      "high_logical_records": list(high["logical_records"]),
+                      "observed_change": observed, "predicted_change": predicted,
+                      "mean_error_change": predicted - observed})
+    return pairs
+
+
+def _within_pair_summaries(groups):
+    grouped = {}
+    for group in groups:
+        for pair in group["adjacent_pairs"]:
+            grouped.setdefault((pair["low_value"], pair["high_value"]), []).append((group["groups"], pair))
+    return [{"low_value": low, "high_value": high, "group_count": len(items),
+             "low_n": sum(pair["low_n"] for _, pair in items), "high_n": sum(pair["high_n"] for _, pair in items),
+             "mean_observed_change": _mean([pair["observed_change"] for _, pair in items]),
+             "mean_predicted_change": _mean([pair["predicted_change"] for _, pair in items]),
+             "mean_error_change": _mean([pair["mean_error_change"] for _, pair in items]),
+             "observed_increase_groups": sum(pair["observed_change"] > 0 for _, pair in items),
+             "observed_decrease_groups": sum(pair["observed_change"] < 0 for _, pair in items),
+             "observed_tie_groups": sum(pair["observed_change"] == 0 for _, pair in items),
+             "group_membership": [list(labels) for labels, _ in items]}
+            for (low, high), items in sorted(grouped.items())]
+
+
+def _within_group(rows, full_inputs, training, column):
+    """Describe adjacent raw input levels only within a single model and fixed other inputs."""
+    other_features = [name for name in training["feature_columns"] if name != column]
+    grouped, groups = {}, []
+    for row in rows:
+        grouped.setdefault(tuple(row["groups"]), []).append(row)
+    for labels, members in sorted(grouped.items()):
+        records = [row["logical_record"] for row in members]
+        folds = sorted({row["fold"] for row in members})
+        levels = _within_levels(members, full_inputs, column)
+        varying = [name for name in other_features if len({full_inputs[index][name] for index in records}) != 1]
+        reasons = []
+        if len(members) == 1:
+            reasons.append("singleton")
+        elif len(levels) == 1:
+            reasons.append("single_input_level")
+        if len(folds) != 1:
+            reasons.append("mixed_evaluation_folds")
+        if varying:
+            reasons.append("varying_other_features")
+        groups.append({"groups": list(labels), "n": len(members), "logical_records": records,
+                       "folds": folds, "fold": folds[0] if len(folds) == 1 else None,
+                       "status": "not_comparable" if reasons else "comparable", "reason_codes": reasons,
+                       "varying_other_features": varying,
+                       "fixed_other_features": {name: full_inputs[records[0]][name] for name in other_features if name not in varying},
+                       "levels": levels, "adjacent_pairs": [] if reasons else _adjacent_pairs(levels)})
+    comparable = [group for group in groups if group["status"] == "comparable"]
+    pair_summaries = _within_pair_summaries(groups)
+    reason_counts = [{"reason_code": reason, "group_count": sum(reason in group["reason_codes"] for group in groups),
+                      "row_count": sum(group["n"] for group in groups if reason in group["reason_codes"])}
+                     for reason in sorted({reason for group in groups for reason in group["reason_codes"]})]
+    return {"column": column, "group_columns": list(training["split_group_columns"]),
+            "summary": {"group_count": len(groups), "row_count": len(rows),
+                        "comparable_group_count": len(comparable), "comparable_row_count": sum(group["n"] for group in comparable),
+                        "noncomparable_group_count": len(groups) - len(comparable),
+                        "noncomparable_row_count": sum(group["n"] for group in groups if group["status"] != "comparable"),
+                        "level_count": sum(len(group["levels"]) for group in groups),
+                        "comparable_level_count": sum(len(group["levels"]) for group in comparable),
+                        "adjacent_pair_count": sum(len(group["adjacent_pairs"]) for group in comparable),
+                        "pair_type_count": len(pair_summaries), "reason_counts": reason_counts},
+            "groups": groups, "pair_summaries": pair_summaries, "scientific_validation": False,
+            "limitations": ["组内对照只使用原始训练输入；要求整组处于同一保存评价折，且其余全部原始训练输入严格不变。",
+                            "每个输入水平先聚合全部原行，再比较排序后相邻的不同水平；重复记录保留，不生成逐行笛卡尔积。",
+                            "每种精确低值/高值组合分别逐组等权平均，不跨不同输入间隔合并；逐行权重与逐组权重不同。",
+                            "端点行可用于相邻两对；端点计数不能跨类型相加视为独立行，成对数不等于独立样本数。",
+                            "声明组不自动等于独立实验单位；保存的观察与预测变化不证明因果、显著性或科学有效性。"]}
+
+
+def inspect_saved_oof(workspace, action_id, columns=(), *, within_group_column=None):
     """Derive a standalone diagnostic of an explicit completed registered raw Ridge action.
 
     This reader preserves the producer identity and permits an unchanged historical
@@ -188,7 +282,12 @@ def inspect_saved_oof(workspace, action_id, columns=()):
     _require(type(columns) in (tuple, list) and all(type(name) is str and name in binding["training"]["feature_columns"]
              for name in columns), "Profiles require raw numeric source columns used by this action's training.", "INVALID_DIAGNOSTIC_COLUMN")
     columns = list(dict.fromkeys(columns))
-    rows, by_id = _rows(analysis, spec, header, original, binding["training"], columns)
+    if within_group_column is not None:
+        _require(type(within_group_column) is str and within_group_column in binding["training"]["feature_columns"],
+                 "Within-group contrasts require a raw numeric source column used by this action's training.", "INVALID_DIAGNOSTIC_COLUMN")
+        _require(bool(binding["training"]["split_group_columns"]),
+                 "Within-group contrasts require declared training split_group_columns.", "NO_DECLARED_DIAGNOSTIC_GROUPS")
+    rows, by_id, full_inputs = _rows(analysis, spec, header, original, binding["training"], columns)
     _check_folds(analysis, by_id)
     metrics, saved = _metrics(rows), analysis["summary"]
     for key in ("candidate_mae", "reference_mae"):
@@ -229,5 +328,7 @@ def inspect_saved_oof(workspace, action_id, columns=()):
                   "逐行平均与逐组等权平均回答不同的加权问题，均不能建立科学有效性。",
                   "输入分桶只描述已评价完整行；边界由原尺度输入决定，不按残差筛选、裁剪或删除行。",
                   *copy.deepcopy(analysis.get("limitations", []))]}
+    if within_group_column is not None:
+        result["within_group"] = _within_group(rows, full_inputs, binding["training"], within_group_column)
     _require(project.status() == state, "Source project changed during diagnostic reading.", "STALE_STATE")
     return result

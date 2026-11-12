@@ -1,5 +1,7 @@
 # 接口索引
 
+保存OOF诊断CLI可明确增加`--within-group-column <原训练数值列>`，API参数为keyword-only `within_group_column=None`。只在请求时增加`within_group`；该列与`--column`输入画像分别选择，默认输出原样。声明组、固定其他训练输入和单保存折条件不足时保留组与原因，见[相邻变化](../../docs/research-design.md#同组原输入的相邻变化)。
+
 只读CLI `inspect_saved_oof.py --workspace <项目> --action-id <已完成Ridge行动> --column <原输入> --output <新目录>`导出`saved-oof-diagnostics-v1`和阅读用Markdown；列可重复／省略，结果保留原行动／设计／工件与全部覆盖，错误沿ResearchError退出。输出在项目外，不向API、Host或当前报告自动回填，见[使用与语义](../../docs/research-design.md#单个已保存验证的只读诊断)。
 
 新`research-plan-context-v2`可捕获`prediction_ranges=[{action_id,check,summary}]`，仅当前设计已完成`random_cv/group_cv`。条目关联原反馈／工件；summary为保存OOF范围或null，字段缺失/null与真实零计数区分。配方外层schema保持，原obs不改；既有无字段v1/v2 prompt不追加说明。`GET /api/project/plan-context.json`继续只读，完整context仍限64KiB，见[字段语义](../../docs/host-model-selection.md#根据真实反馈建议研究计划)。
