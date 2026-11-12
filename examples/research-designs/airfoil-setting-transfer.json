@@ -1,0 +1,18 @@
+{
+  "schema_version": "research-design-resource-v1",
+  "id": "airfoil-setting-transfer",
+  "version": 1,
+  "title": "翼型自噪声：记录工况组合留出基线",
+  "question": "固定五原输入Ridge对未参与训练的四非频率记录值组合预测scaled sound pressure时，保存局部误差如何支持下一步研究？",
+  "claim": "The fixed five-input additive Ridge has lower pooled held-out setting-group MAE than the training-fold target-mean reference on all captured Airfoil Self-Noise records.",
+  "alternatives": [
+    "The four-value exact setting tuples are operator-derived; they do not establish independent runs, original airfoil identities or validity outside the recorded wind tunnel conditions.",
+    "Suction-side displacement thickness is a recorded flow descriptor, not established here as an independently controlled or prospectively available design input.",
+    "Scaled sound-pressure dB errors describe the published response scale, not percentage error, acoustic energy, unscaled sound pressure or a general noise-reduction benefit.",
+    "Pooled MAE may hide adverse folds or setting groups; complete saved errors and genuinely supplied feedback must be distinguished from unread artifact references."
+  ],
+  "checks": ["group_cv", "negative_control"],
+  "sources": ["https://archive.ics.uci.edu/dataset/291/airfoil+self+noise", "https://archive.ics.uci.edu/api/dataset?id=291"],
+  "parent_version": null,
+  "change_reason": "Prospective full1503-row fixed protocol before data download, target inspection or estimator fitting. No transformation, tuning, outcome-dependent regrouping, historical case inclusion or runtime extension."
+}
