@@ -22,6 +22,22 @@
 .venv/Scripts/python.exe scripts/project_experience.py export --memory runs/method-cases --scope scope.json --entry-id <ENTRY_ID> --case-id <CASE_ID> --version 1 --method-card method-card.json --limitations limitations.json --output case.json
 ```
 
+### 显式保存父版对照
+
+固定Ridge原输入的完整行边界与训练入口统一为2,048行；不会为导出截取或抽样。需要比较时，在导入来源记忆时明确指定同一项目的已完成父行动：
+
+```powershell
+.venv/Scripts/python.exe scripts/project_experience.py import-project --memory runs/method-cases --workspace <原项目目录> --action-id <子行动ID> --parent-action-id <父行动ID>
+```
+
+配对协议为`project-saved-oof-parent-comparison-v1`，scope的`inputs_sha256`同时绑定两份原结果；单行动仍使用原算术协议。原生捕获核对两侧行动、工件与历史设计绑定，资源必须显式声明父子版本；原始输入、固定多项式基或固定log1p映射均沿实际协议保留。父子生产代码可以不同，各自身份分别保存。不会搜索较好的父版，也不会在不可比时降级成单结果。
+
+两份完整工件随封套保存。离线读取分别复核全行覆盖、排除、训练／评价划分、训练均值参考及OOF算术，再严格匹配完整行、原坐标、目标、组、折、参考和其余协议。摘要保留明确父版与子版的MAE及差值、相对父版变化、行与组的改善／恶化／持平数，以及两侧负预测、观察／预测范围和低于／高于本批观测范围的计数。组按组内MAE比较，不把行加权结果当组等权结果。
+
+这些紧凑事实进入后续案例context、知识页和成果报告，逐行OOF仍在可下载的完整封套。相对训练均值参考的改善与相对明确父版的改善分别表示；误差降低不覆盖新增负预测或局部恶化。单结果旧快照按其原封存合同核对，导出封套上限仍为4MiB。
+
+可复用的[Concrete方法卡](../examples/research-method-cards/concrete-log-age-tradeoff.json)说明如何同时保留父版收益和局部失败。卡片正文由整理者提供；其文字不会取得数值复核或科学审阅资格。
+
 方法卡复用问题、原理、要求、不适用项、未知项、反馈分支和来源引用。其domain／contract及方法／evaluation必须对应原案例。卡片解释由整理者提供，不转化为执行条件语言。卡片修订可以形成新的案例封套版本，原数值观察仍保持不可变。
 
 `project-experience-bundle-v1`包含原记忆条目、方法卡、限制、case ID／version、`source_inclusion_status=active_at_export`与`scientific_validation=false`，上限4MiB。目标端离线读取时再次核对条目、原工件和算术，不能只凭上传者给出的摘要取得数值。

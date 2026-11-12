@@ -1,5 +1,7 @@
 # 知识、数据与记忆索引
 
+保存OOF案例支持显式父行动配对：完整2,048行边界、两份原工件与各自生产身份、离线全量算术和严格同评价核对。紧凑案例保留父版收益及恶化行／组／负预测，供context、知识页和报告读取；仍是历史类比，不新增本题证据或执行资格。见[配对用法](../../docs/project-experience.md#显式保存父版对照)。
+
 [跨项目方法案例](../../docs/project-experience.md)复用`ResearchMemory`及既有方法卡；保存OOF数值先复核，再显式导入目标项目。来源active仅表示导出时资格，目标自行撤回／恢复；案例进入独立context，不进入本项目原文证据、FTS或执行资格。首版覆盖固定Ridge保存结果，尚非全部领域的统一经验学习。
 
 结构化[方法卡](../../examples/research-method-cards/feedback-driven.example.json)通过`research_recipe.parse_method_card/match_method_card`读取与关联原宿主候选，保留依据、适用／不适用／未知说明、反馈分支和来源定位。文本不执行、不联网获取来源、不等于条件已自动满足；实际查询、未报告条件和下一轮接续见[方法卡设计](../../docs/recipe-research/recipe-design.md)。

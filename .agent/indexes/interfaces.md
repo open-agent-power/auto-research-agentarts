@@ -1,5 +1,7 @@
 # 接口索引
 
+方法案例CLI `import-project`及`ProjectExperienceMemory.import_project`可显式带`--parent-action-id`／keyword-only `parent_action_id`。新配对protocol的scope绑定父子两结果，summary.observation.saved_parent_comparison投影紧凑全量对照；旧单结果字段保持。完整封套仍4MiB，不可比直接拒绝，见[接口语义](../../docs/project-experience.md#显式保存父版对照)。
+
 原始训练绑定可带非空`input_transforms={原训练列:"log1p"}`，与`input_basis`互斥。协议保持`input_basis`／`model_input_terms`两个映射字段，kind为log1p时保存全部source_columns和按原顺序transformed_columns，维度不变；仍用`comparison_kind="fixed_input_basis"`及原`saved_parent_mae`。工作台明确选列、保留无效草稿，域x>-1在原需求预检及执行前验证，见[字段与边界](../../docs/research-design.md#固定log1p原输入变换)。
 
 保存OOF诊断CLI可明确增加`--within-group-column <原训练数值列>`，API参数为keyword-only `within_group_column=None`。只在请求时增加`within_group`；该列与`--column`输入画像分别选择，默认输出原样。声明组、固定其他训练输入和单保存折条件不足时保留组与原因，见[相邻变化](../../docs/research-design.md#同组原输入的相邻变化)。

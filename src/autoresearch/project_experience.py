@@ -7,11 +7,16 @@ import re
 
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from . import method_registry as registry, research_recipe
+from .feature_comparison import compare_feature_pair, _paired_errors
+from .input_basis import protocol as input_protocol
+from .prediction_summary import summarize_oof_range
+from .project_design import MAX_RAW_RECORDS, validate_resource
 from .research_memory import ResearchMemory, observation_id, validate_scope
 from .research_project import ResearchProject
 
 MAX_BUNDLE_BYTES = 4 * 1024 * 1024
 PROTOCOL = "project-saved-oof-arithmetic-v1"
+PARENT_PROTOCOL = "project-saved-oof-parent-comparison-v1"
 BUNDLE_FIELDS = {"schema_version", "id", "version", "record", "method_card", "limitations",
                  "source_inclusion_status", "scientific_validation"}
 ENTRY_FIELDS = {"schema_version", "id", "kind", "scope", "review_status", "numerical_recomputation", "payload", "provenance"}
@@ -59,7 +64,7 @@ def _checked_artifact(action, envelope, origin):
 
 def _checked_rows(analysis):
     rows, exclusions, saved = analysis.get("oof"), analysis.get("exclusions"), analysis.get("summary", {})
-    _require(type(rows) is list and 1 <= len(rows) <= 512 and type(exclusions) is list and type(saved) is dict
+    _require(type(rows) is list and 1 <= len(rows) <= MAX_RAW_RECORDS and type(exclusions) is list and type(saved) is dict
              and saved.get("status") == "computed", "Require complete computable saved OOF rows.")
     by_id = {}
     for row in rows:
@@ -77,7 +82,7 @@ def _checked_rows(analysis):
     _require(all(type(value) is int and value >= 1 for value in excluded)
              and len(excluded) == len(exclusions) == len(set(excluded))
              and set(excluded).isdisjoint(by_id)
-             and type(saved.get("input_n")) is int and 1 <= saved["input_n"] <= 512
+             and type(saved.get("input_n")) is int and 1 <= saved["input_n"] <= MAX_RAW_RECORDS
              and set(excluded) | set(by_id) == set(range(1, saved["input_n"] + 1))
              and saved.get("n") == len(rows) and saved.get("excluded") == len(exclusions),
              "Original OOF coverage and exclusions differ.", "EVIDENCE_CHANGED")
@@ -133,7 +138,76 @@ def _payload(action, envelope, origin):
             "numerical_validation": "saved_oof_arithmetic_only_not_refitting_or_scientific_review"}
 
 
-def derive_project_observation(workspace, action_id):
+def _paired_binding(action, analysis, origin, state=None):
+    binding = action.get("design_binding")
+    _require(type(binding) is dict and type(binding.get("version")) is int
+             and binding == analysis.get("design_binding")
+             and binding.get("project_id") == origin["project_id"]
+             and binding.get("source_snapshot_sha256") == origin["source_snapshot_sha256"]
+             and binding.get("target_column") == origin["source_scope"]["target_column"]
+             and binding.get("prediction_column") is None,
+             "The original action, analysis and project design binding differ.", "EVIDENCE_CHANGED")
+    if state is not None:
+        revisions = [item for item in state.get("design_revisions", []) if item.get("version") == binding["version"]]
+        _require(revisions == [binding], "The action does not match its unique registered historical design.", "EVIDENCE_CHANGED")
+    training, saved = binding.get("training"), analysis["protocol"]
+    _require(type(training) is dict and type(training.get("feature_columns")) is list
+             and training["feature_columns"] and type(training.get("split_group_columns")) is list
+             and saved.get("feature_columns") == training["feature_columns"]
+             and saved.get("split_group_columns") == training["split_group_columns"]
+             and all(type(row["groups"]) is list and len(row["groups"]) == len(training["split_group_columns"])
+                     if training["split_group_columns"] else row["groups"] is None for row in analysis["oof"]),
+             "The original training columns and saved protocol differ.", "EVIDENCE_CHANGED")
+    expected = input_protocol(training)
+    _require({key: saved[key] for key in ("input_basis", "model_input_terms") if key in saved} == expected,
+             "The saved input mapping differs from its declared fixed training mapping.", "EVIDENCE_CHANGED")
+    resource = validate_resource(binding.get("resource"))
+    _require(analysis["check"] in resource["checks"] and type(action.get("evaluation_ref")) is str
+             and 0 < len(action["evaluation_ref"]) <= 1000
+             and all(type(fold.get("model_params")) is dict for fold in analysis["folds"]),
+             "The action must preserve its authorized raw validation and estimator parameters.", "EVIDENCE_CHANGED")
+    group_count = len({tuple(row["groups"] or []) for row in analysis["oof"]}) if training["split_group_columns"] else None
+    _require(analysis["summary"].get("group_count") == group_count,
+             "The saved group count differs from the complete OOF grouping.", "EVIDENCE_CHANGED")
+    return {**analysis, "action_id": action["id"], "status": action["status"]}
+
+
+def _paired_payload(action, artifact, parent, origin, state=None):
+    payload = _payload(action, artifact, origin)
+    _require(type(parent) is dict and set(parent) == {"action_id", "action", "artifact"}
+             and type(parent["action"]) is dict and parent["action_id"] == parent["action"].get("id")
+             and _hash(parent["action"].get("code_identity"))
+             and parent["action_id"] != action["id"], "Select a distinct explicitly saved parent action.", "EVIDENCE_CHANGED")
+    _payload(parent["action"], parent["artifact"], origin)
+    records = [_paired_binding(item, envelope["tool_result"]["result"]["analysis"], origin, state)
+               for item, envelope in ((parent["action"], parent["artifact"]), (action, artifact))]
+    comparison = compare_feature_pair(*records)
+    _require(comparison["status"] == "comparable",
+             "The explicitly selected parent is not the same saved evaluation: " + ", ".join(comparison["reason_codes"]),
+             "EVIDENCE_CHANGED")
+    right = {row["logical_record"]: row for row in records[1]["oof"]}
+    pairs = [(row, right[row["logical_record"]]) for row in records[0]["oof"]]
+    counts = _paired_errors(pairs)
+    comparison["row_summary"] = {key: counts[key] for key in ("n", "improved_rows", "worsened_rows", "tied_rows")}
+    groups = {}
+    if records[1]["protocol"]["split_group_columns"]:
+        for pair in pairs:
+            groups.setdefault(tuple(pair[0]["groups"]), []).append(pair)
+    changes = [_paired_errors(group)["mae_change"] for group in groups.values()]
+    comparison["group_summary"] = ({"group_count": len(changes), "improved_groups": sum(value < 0 for value in changes),
+        "worsened_groups": sum(value > 0 for value in changes), "tied_groups": sum(value == 0 for value in changes)} if groups else None)
+    comparison["prediction_ranges"] = {name: summarize_oof_range(record["oof"])
+                                        for name, record in zip(("baseline", "candidate"), records)}
+    payload["saved_parent_comparison"] = comparison
+    return payload
+
+
+def _result_scope(artifact, parent=None):
+    return (artifact["sha256"] if parent is None else fingerprint({"candidate_result_sha256": artifact["sha256"],
+                                                                  "parent_result_sha256": parent["artifact"]["sha256"]}))
+
+
+def derive_project_observation(workspace, action_id, *, parent_action_id=None):
     project = ResearchProject(workspace)
     before = project.status()
     source = project._source(before)
@@ -142,24 +216,37 @@ def derive_project_observation(workspace, action_id):
     action = next((item for item in before["actions"] if item["id"] == action_id), None)
     _require(action is not None, "Select an action actually saved in the source project.")
     raw = project._artifact(action).read_bytes()
-    envelope = research_recipe.parse_json(raw, maximum=MAX_BUNDLE_BYTES, code="EVIDENCE_CHANGED")
+    envelope = research_recipe.parse_json(raw, maximum=len(raw), code="EVIDENCE_CHANGED")
     origin = {"project_id": before["id"], "state_version": before["state_version"], "snapshot_ref": before["snapshot_ref"],
               "source_snapshot_sha256": before["source_snapshot_sha256"], "source_scope": before["source_scope"],
               "current_project_code_identity": before["code_identity"], "producer_code_identity": action["code_identity"],
               "captured_data_sha256": source["source"]["sha256"]}
-    payload = _payload(action, envelope, origin)
-    scope = {"source_manifest_sha256": before["source_snapshot_sha256"], "inputs_sha256": envelope["sha256"],
-             "analysis_code_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "protocol": PROTOCOL}
+    parent = None
+    if parent_action_id is not None:
+        parent_action = next((item for item in before["actions"] if item["id"] == parent_action_id), None)
+        _require(parent_action is not None, "Select a parent action actually saved in the same source project.")
+        parent_raw = project._artifact(parent_action).read_bytes()
+        parent = {"action_id": parent_action_id, "action": copy.deepcopy(parent_action),
+                  "artifact": research_recipe.parse_json(parent_raw, maximum=len(parent_raw), code="EVIDENCE_CHANGED")}
+    payload = _payload(action, envelope, origin) if parent is None else _paired_payload(action, envelope, parent, origin, before)
+    protocol = PROTOCOL if parent is None else PARENT_PROTOCOL
+    scope = {"source_manifest_sha256": before["source_snapshot_sha256"], "inputs_sha256": _result_scope(envelope, parent),
+             "analysis_code_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "protocol": protocol}
+    action_fields = ("id", "request_id", "command", "status", "request_sha256", "code_identity", "result_sha256", "evaluation_ref")
+    if parent is not None:
+        action_fields += ("design_binding",)
+        parent["action"] = {key: copy.deepcopy(parent["action"][key]) for key in action_fields}
     provenance = {"action_id": action_id, "source_record_sha256": fingerprint(before),
-                  "origin": copy.deepcopy(origin), "action": {key: copy.deepcopy(action[key]) for key in
-                      ("id", "request_id", "command", "status", "request_sha256", "code_identity", "result_sha256", "evaluation_ref")},
+                  "origin": copy.deepcopy(origin), "action": {key: copy.deepcopy(action[key]) for key in action_fields},
                   "artifact": envelope, "recomputation_scope": copy.deepcopy(scope)}
+    if parent is not None:
+        provenance["parent"] = parent
     entry = {"schema_version": "conditional-research-memory-v1", "kind": "fit_observation", "scope": scope,
              "review_status": "derived_not_scientifically_reviewed", "numerical_recomputation": True,
              "payload": payload, "provenance": provenance}
     entry["id"] = observation_id(entry)
     _require(project.status() == before, "Source project changed while deriving an experience.", "STALE_STATE")
-    return {"scope": scope, "entries": [entry], "validation": {"protocol": PROTOCOL, "saved_oof_rows": payload["numerical_summary"]["n"],
+    return {"scope": scope, "entries": [entry], "validation": {"protocol": protocol, "saved_oof_rows": payload["numerical_summary"]["n"],
             "fit_calls": 0, "scientific_validation": False}}
 
 
@@ -170,9 +257,12 @@ def _validate_record(record):
              "Use the original numerically checked project memory record.")
     scope = validate_scope(record["scope"])
     _require(set(scope) == {"source_manifest_sha256", "inputs_sha256", "analysis_code_sha256", "protocol"}
-             and scope["protocol"] == PROTOCOL and observation_id(record) == record["id"], "Project arithmetic memory scope or identity differs.")
+             and scope["protocol"] in (PROTOCOL, PARENT_PROTOCOL) and observation_id(record) == record["id"], "Project arithmetic memory scope or identity differs.")
     provenance = record["provenance"]
-    _require(type(provenance) is dict and set(provenance) == {"action_id", "source_record_sha256", "origin", "action", "artifact", "recomputation_scope"}
+    fields = {"action_id", "source_record_sha256", "origin", "action", "artifact", "recomputation_scope"}
+    if scope["protocol"] == PARENT_PROTOCOL:
+        fields.add("parent")
+    _require(type(provenance) is dict and set(provenance) == fields
              and _hash(provenance["source_record_sha256"]) and provenance["recomputation_scope"] == scope,
              "Use the original project provenance and arithmetic scope.")
     origin, action, artifact = provenance["origin"], provenance["action"], provenance["artifact"]
@@ -187,9 +277,13 @@ def _validate_record(record):
     _require(type(action) is dict and type(artifact) is dict and provenance["action_id"] == action.get("id")
              and action.get("code_identity") == origin["producer_code_identity"]
              and type(action.get("evaluation_ref")) is str and 0 < len(action["evaluation_ref"]) <= 1000
-             and scope["source_manifest_sha256"] == origin["source_snapshot_sha256"]
-             and scope["inputs_sha256"] == artifact.get("sha256"), "Origin result and method identities differ.", "EVIDENCE_CHANGED")
-    _require(_payload(action, artifact, origin) == record["payload"], "Immutable experience values differ from recomputed source observations.", "EVIDENCE_CHANGED")
+             and scope["source_manifest_sha256"] == origin["source_snapshot_sha256"],
+             "Origin result and method identities differ.", "EVIDENCE_CHANGED")
+    parent = provenance.get("parent")
+    payload = (_payload(action, artifact, origin) if scope["protocol"] == PROTOCOL
+               else _paired_payload(action, artifact, parent, origin))
+    _require(scope["inputs_sha256"] == _result_scope(artifact, parent)
+             and payload == record["payload"], "Immutable experience values differ from recomputed source observations.", "EVIDENCE_CHANGED")
 
 
 def validate_bundle(bundle):
@@ -221,7 +315,7 @@ def summary(bundle):
     bundle = validate_bundle(bundle)
     record, payload = bundle["record"], bundle["record"]["payload"]
     provenance, origin = record["provenance"], record["provenance"]["origin"]
-    return {"case_id": bundle["id"], "case_version": bundle["version"], "entry_id": record["id"],
+    result = {"case_id": bundle["id"], "case_version": bundle["version"], "entry_id": record["id"],
             "method_card": bundle["method_card"], "origin_evidence": {**{key: origin[key] for key in
                 ("project_id", "state_version", "snapshot_ref", "source_snapshot_sha256", "producer_code_identity")},
                 "action_id": provenance["action_id"], "result_sha256": provenance["action"]["result_sha256"],
@@ -230,11 +324,17 @@ def summary(bundle):
                 ("check", "protocol", "numerical_summary", "exclusions")},
             "limitations": [*payload["origin_limitations"], *bundle["limitations"]],
             "transfer_scope": "analogy_not_current_evidence", "scientific_validation": False}
+    if "saved_parent_comparison" in payload:
+        result["observation"]["saved_parent_comparison"] = copy.deepcopy(payload["saved_parent_comparison"])
+        parent = provenance["parent"]
+        result["origin_evidence"].update(parent_action_id=parent["action_id"],
+            parent_result_sha256=parent["action"]["result_sha256"], parent_producer_code_identity=parent["action"]["code_identity"])
+    return result
 
 
 class ProjectExperienceMemory(ResearchMemory):
-    def import_project(self, workspace, action_id):
-        return self._import_derived(derive_project_observation(workspace, action_id))
+    def import_project(self, workspace, action_id, *, parent_action_id=None):
+        return self._import_derived(derive_project_observation(workspace, action_id, parent_action_id=parent_action_id))
 
     def export_case(self, scope, entry_id, *, case_id, version, method_card, limitations):
         validate_scope(scope)

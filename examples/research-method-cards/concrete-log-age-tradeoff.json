@@ -1,0 +1,25 @@
+{
+  "schema_version": "research-method-card-v1",
+  "id": "saved-parent-mae-and-local-errors",
+  "version": 1,
+  "scope_match": {"domain": "data", "contract": "tabular-quality-v1"},
+  "method_refs": [{"method_id": "data.ridge-group-validation", "evaluation_ref": "ridge-validation-group_cv-v1"}],
+  "question": "固定输入映射降低整体误差时，哪些局部结果仍限制采用？",
+  "rationale": "Concrete原项目在相同1030行、427个派生配合比组和五折划分下，原始八输入父版MAE为8.355367 MPa，固定log1p(age)子版为5.683875 MPa。712行改善、318行恶化；296组改善、131组恶化；负预测从0增至2。两种结果必须共同保留。",
+  "applicability": {
+    "requires": ["本任务有自身的目标、单位、分组含义和完整保存预测。", "比较明确父版，核对完整行、目标、分组、划分和参考预测一致。"],
+    "not_applicable": ["把Concrete的log1p龄期映射、误差或局部阈值复制为新任务的默认方案。", "只保留整体MAE优势，省略恶化行、恶化组或新负预测。"],
+    "uncertain": ["新任务的适用变换和科学合理范围。", "派生组是否代表独立批次或对象。", "案例是否改善新任务的研究判断。"]
+  },
+  "feedback_branches": [{
+    "id": "parent-gain-with-local-failures",
+    "observed": "原案例相对明确父版的完整行MAE降低31.973%，同时有318行和131组恶化、两条新负预测。",
+    "suggested_next": "阅读本任务自身的完整保存结果和局部误差；保留不利结果，按本任务条件和累计预算决定是否另有获准行动。",
+    "evidence_required": ["本任务目标和单位的原文。", "本任务明确父版、完整保存OOF与划分。", "本任务对局部误差和预测范围的用途要求。"]
+  }],
+  "evaluation": "只提供原条件下的历史观察，不是新任务的证据、科学采用或新执行授权；不创建候选、修改参数或补回额度。",
+  "sources": [
+    {"id": "concrete-parent", "url": "urn:local:autoresearch:project-96fa030595d3429ca5c558072dd04348", "locator": "action-21f145b72c40ffd282868ceb3ce3f754", "note": "原始八输入父v1；原工件完整保留在配对案例封套。"},
+    {"id": "concrete-log-age", "url": "urn:local:autoresearch:project-96fa030595d3429ca5c558072dd04348", "locator": "action-88d874d36dd9bbbe72ee5fb6c5e70432", "note": "固定log1p(age)子v2；数值只经保存OOF算术复核，科学解释未批准。"}
+  ]
+}

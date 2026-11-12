@@ -44,6 +44,32 @@ def _experience_rows(report):
     return rows
 
 
+def _experience_comparison_lines(case):
+    comparison = case["observation"].get("saved_parent_comparison")
+    if comparison is None:
+        return []
+    lines = ["原项目保存的父版对照；以下数值属于来源项目，不是本项目的结果。",
+             *_feature_comparison_lines({"feature_comparisons": [comparison]})]
+    rows, groups = comparison["row_summary"], comparison["group_summary"]
+    lines.append("逐行绝对误差：" + _number(rows["improved_rows"]) + " 改善、"
+                 + _number(rows["worsened_rows"]) + " 恶化、" + _number(rows["tied_rows"])
+                 + " 持平（共 " + _number(rows["n"]) + " 行）。")
+    if groups is not None:
+        lines.append("按声明组 MAE：" + _number(groups["improved_groups"]) + " 改善、"
+                     + _number(groups["worsened_groups"]) + " 恶化、" + _number(groups["tied_groups"])
+                     + " 持平（共 " + _number(groups["group_count"]) + " 组）。")
+    for key, label in (("baseline", "父版"), ("candidate", "候选")):
+        ranges = comparison["prediction_ranges"][key]
+        lines.append(label + "预测 " + _number(ranges["predicted_min"]) + " 至 " + _number(ranges["predicted_max"])
+                     + "；负预测 " + _number(ranges["negative_predictions"]) + "；低于／高于原观察范围 "
+                     + _number(ranges["below_observed_min"]) + "／" + _number(ranges["above_observed_max"]) + "。")
+    origin = case["origin_evidence"]
+    lines.extend(["父版生产代码：" + origin["parent_producer_code_identity"] + "。",
+                  "候选生产代码：" + origin["producer_code_identity"] + "。",
+                  "这些变化仅为保存结果的描述；声明组不自动成为独立样本，不能据此确认本项目收益或科学结论。"])
+    return lines
+
+
 def _report_title(kind, results):
     if kind == "tabular" and any(entry["status"] == "completed"
                                  and entry["command"] in ("data.ridge-random-validation", "data.ridge-group-validation")
@@ -1000,6 +1026,7 @@ def _markdown(report):
                       _markdown_table(["案例", "当前资格", "原项目与目标", "原条件下的数值观察"], _experience_rows(report)), ""])
         for case in report["experience_cases"]:
             lines.extend(["### " + case["case_id"], "", case["method_card"]["question"], "",
+                          *[line + "\n" for line in _experience_comparison_lines(case)],
                           *["- " + item for item in case["limitations"]], ""])
     incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
     lines.append(_markdown_table(["行动", "状态", "真实失败/未知"], [[entry["action_id"], entry["status"], canonical(entry["failure"])] for entry in incomplete]) if incomplete else "保存的行动均完成；这不等于研究问题解决或科学批准。")
@@ -1236,6 +1263,8 @@ def _pdf(report):
               [[row[0] + " / " + row[1], row[2], row[3]] for row in _experience_rows(report)], [.24, .35, .41])
         for case in report["experience_cases"]:
             story.append(p(case["method_card"]["question"], small))
+            for line in _experience_comparison_lines(case):
+                story.append(p(line, small))
             for limit in case["limitations"]:
                 story.append(p("适用限制：" + limit, small))
     h("代码与输入身份")

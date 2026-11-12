@@ -34,6 +34,22 @@ function summaryText(summary: Obj): string {
   return Object.entries(labels).filter(([key]) => typeof summary[key] === "number" && Number.isFinite(summary[key]))
     .map(([key, label]) => label + " " + numeric(summary[key])).join("；");
 }
+function parentComparison(article: HTMLElement, comparison: Obj): void {
+  if (comparison.status !== "comparable") return;
+  const metrics = object(comparison.metrics), rows = object(comparison.row_summary), groups = object(comparison.group_summary);
+  const relative = typeof metrics.relative_improvement === "number" ? numeric(metrics.relative_improvement * 100) + "%" : "未计算";
+  article.append(el("h4", "", "原项目保存的父版对照"),
+    el("p", "", `父版 MAE ${numeric(metrics.baseline_mae)} → 候选 MAE ${numeric(metrics.candidate_mae)}；候选−父版 ${numeric(metrics.mae_change)}；相对父版误差降低 ${relative}。`),
+    el("p", "", `逐行绝对误差：${numeric(rows.improved_rows)} 改善、${numeric(rows.worsened_rows)} 恶化、${numeric(rows.tied_rows)} 持平（共 ${numeric(rows.n)} 行）。`));
+  if (comparison.group_summary !== null)
+    article.append(el("p", "", `按声明组 MAE：${numeric(groups.improved_groups)} 改善、${numeric(groups.worsened_groups)} 恶化、${numeric(groups.tied_groups)} 持平（共 ${numeric(groups.group_count)} 组）。`));
+  const ranges = object(comparison.prediction_ranges);
+  for (const [key, label] of [["baseline", "父版"], ["candidate", "候选"]]) {
+    const range = object(ranges[key]);
+    article.append(el("p", "", `${label}预测 ${numeric(range.predicted_min)} 至 ${numeric(range.predicted_max)}；负预测 ${numeric(range.negative_predictions)}；低于／高于原观察范围 ${numeric(range.below_observed_min)}／${numeric(range.above_observed_max)}。`));
+  }
+  article.append(el("p", "detail-note", "以上只描述原项目的保存对照；误差降低不表示本项目收益或科学确认，声明组也不自动成为独立样本。"));
+}
 
 export function createLocalExperiencePanel(host: Host): {
   element: HTMLElement; setLocked(value: boolean): void; refresh(projectId: string, project: Obj, pendingRequests?: Obj[]): Promise<void>;
@@ -110,6 +126,7 @@ export function createLocalExperiencePanel(host: Host): {
     const summary = object(observation.numerical_summary);
     if ([summary.observed_min, summary.observed_max, summary.predicted_min, summary.predicted_max].every(value => typeof value === "number" && Number.isFinite(value)))
       article.append(el("p", "detail-note", `原观察范围 ${numeric(summary.observed_min)}至${numeric(summary.observed_max)}；保存预测范围 ${numeric(summary.predicted_min)}至${numeric(summary.predicted_max)}。`));
+    parentComparison(article, object(observation.saved_parent_comparison));
     const limits = strings(record.limitations);
     if (limits.length) { const ul = el("ul"); for (const limit of limits) ul.append(el("li", "", limit)); article.append(el("h4", "", "适用边界与反例"), ul); }
     const original = el("details", "local-advanced"); original.append(el("summary", "", "查看方法卡、原协议与出处"));
@@ -123,6 +140,16 @@ export function createLocalExperiencePanel(host: Host): {
       el("p", "", "原输入列：" + strings(protocol.feature_columns).join("、") + "；分组列：" + strings(protocol.split_group_columns).join("、")),
       el("p", "", "模型输入项：" + strings(protocol.model_input_terms).join("、")), el("p", "", "预处理：" + text(protocol.preprocessing)),
       el("p", "", "出处行动：" + text(origin.action_id) + "；原项目版本 " + numeric(origin.state_version)));
+    const comparison = object(observation.saved_parent_comparison);
+    if (comparison.status === "comparable") {
+      for (const [key, label] of [["baseline_ref", "父版"], ["candidate_ref", "候选"]]) {
+        const reference = object(comparison[key]);
+        original.append(el("p", "", `${label}：项目设计 v${numeric(reference.design_version)}；资源 ${text(reference.resource_id)} v${numeric(reference.resource_version)}；行动 ${text(reference.action_id)}。`),
+          el("p", "", label + "保存的模型输入项：" + strings(reference.model_input_terms ?? reference.feature_columns).join("、")));
+      }
+      original.append(el("p", "detail-note", "父版生产代码：" + text(origin.parent_producer_code_identity)),
+        el("p", "detail-note", "候选生产代码：" + text(origin.producer_code_identity)));
+    }
     const raw = el("details", "local-advanced"); raw.append(el("summary", "", "完整案例记录 JSON"), el("pre", "project-source-text", JSON.stringify(record, null, 2)));
     original.append(raw); article.append(original);
     const actions = el("div", "local-actions"), recordDownload = el("button", "quiet-button", "下载这条案例记录 JSON"); recordDownload.type = "button";

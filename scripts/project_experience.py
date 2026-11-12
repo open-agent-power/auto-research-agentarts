@@ -25,6 +25,7 @@ def main():
     imported.add_argument("--memory", required=True)
     imported.add_argument("--workspace", required=True)
     imported.add_argument("--action-id", required=True)
+    imported.add_argument("--parent-action-id", help="Explicit saved parent action from the same source project")
     exported = commands.add_parser("export")
     for name in ("memory", "scope", "entry-id", "case-id", "method-card", "limitations", "output"):
         exported.add_argument("--" + name, required=True)
@@ -37,7 +38,7 @@ def main():
     try:
         memory = ProjectExperienceMemory(args.memory)
         if args.command == "import-project":
-            result = memory.import_project(args.workspace, args.action_id)
+            result = memory.import_project(args.workspace, args.action_id, parent_action_id=args.parent_action_id)
         elif args.command == "export":
             # The limitations file is a named object, to retain the same strict
             # duplicate/nonfinite JSON handling as the other local inputs.
