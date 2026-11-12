@@ -57,7 +57,7 @@ class LocalHostModelHTTPTests(unittest.TestCase):
         disabled = self.serve(local_workspace=self.manager, allow_local_actions=True)
         self.assertEqual(self.request(disabled, "/api/local-workbench/model")[1], {
             "schema_version": "local-host-model-view-v1", "enabled": False, "project_id": None,
-            "journal": None, "records": []})
+            "journal": None, "records": [], "recipe_validations": [], "platform_runs": [], "plan_reviews": []})
         self.manager.create(self.input_body())
         project, _ = self.manager.binding()
         body = self.model_body(project)

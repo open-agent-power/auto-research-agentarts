@@ -18,7 +18,7 @@ class ConfiguredStudioTests(unittest.TestCase):
      view=fixture_view(); view['protocol']={'candidates':[{'id':'a3','alpha':3},{'id':'a30','alpha':30}]}
      for row,alpha in zip(view['comparisons'],(3,30)): row['alpha']=alpha
      fake=types.ModuleType('autoresearch.configured_iteration_view')
-     fake.load_configured_view=lambda workspace,base:copy.deepcopy(view)
+     fake.load_configured_view=lambda workspace,base,*,native_interface='legacy':copy.deepcopy(view)
      report=types.ModuleType('autoresearch.chemotopo_iteration_report')
      report.read_iteration_artifacts=lambda directory,project:{'report.pdf':b'PDF','reproduction.zip':b'ZIP'}
      with patch.object(studio,'load_publication',return_value=publication),patch.dict(sys.modules,{'autoresearch.configured_iteration_view':fake,'autoresearch.chemotopo_iteration_report':report}):

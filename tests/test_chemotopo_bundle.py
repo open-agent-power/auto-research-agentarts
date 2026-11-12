@@ -4,7 +4,6 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from types import SimpleNamespace
 import zipfile
 
 from autoresearch.chemotopo_bundle import build_handoff
@@ -41,8 +40,7 @@ class HandoffTests(unittest.TestCase):
         (directory/'manifest.json').write_text(json.dumps(manifest))
         post={'schema_version':'p02-postrun-view-v1','iteration_snapshot_sha256':view['snapshot_sha256'],'scientific_validation':False}
         post['snapshot_sha256']=fingerprint(post);raw=canonical(post).encode()
-        mocked=SimpleNamespace(read_postrun_artifacts=lambda path,iteration:{'postrun.json':raw})
-        with patch.dict('sys.modules',{'autoresearch.postrun_view':mocked}), \
+        with patch('autoresearch.postrun_view.read_postrun_artifacts',side_effect=lambda path,iteration:{'postrun.json':raw}), \
              patch('autoresearch.chemotopo_bundle.render_iteration_comparison',return_value=b'<svg/>'):
             result=build_handoff(self.baseline,directory,self.root/'postrun-handoff',postrun_directory=postdir)
             values=load_bundle(result['directory'])

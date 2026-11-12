@@ -29,7 +29,7 @@ class MethodBudgetProjectionTests(unittest.TestCase):
         self.assertIn("null is unknown, not zero", notice)
         for protocol, context in ((host_selection_protocol, selection), (research_plan_proposal, plan), (recipe_change_proposal, change)):
             prompt = protocol.build_prompt(context)
-            self.assertTrue(prompt["system"].endswith(notice))
+            self.assertEqual(prompt["system"].count(notice), 1)
             self.assertIn('"budget_cost"', prompt["prompt"])
         legacy = copy.deepcopy(plan)
         payload = legacy["selection_context"]
@@ -38,7 +38,7 @@ class MethodBudgetProjectionTests(unittest.TestCase):
             condition.pop("budget_cost", None)
         legacy["selection_context"] = seal_context(payload)
         self.assertEqual(budget_cost_notice(legacy["selection_context"]), "")
-        self.assertEqual(research_plan_proposal.build_prompt(legacy)["system"], research_plan_proposal.build_prompt(plan)["system"][:-len(notice)])
+        self.assertEqual(research_plan_proposal.build_prompt(legacy)["system"], research_plan_proposal.build_prompt(plan)["system"].replace(notice, "", 1))
 
     def test_report_captures_current_context_separately_from_historical_host(self):
         before, host = self.project.status(), HostModelSelection(self.project.root).status()
