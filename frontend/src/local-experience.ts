@@ -36,17 +36,18 @@ function summaryText(summary: Obj): string {
 }
 function parentComparison(article: HTMLElement, comparison: Obj): void {
   if (comparison.status !== "comparable") return;
+  const concise = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(Number(value.toPrecision(7))) : "未记录";
   const metrics = object(comparison.metrics), rows = object(comparison.row_summary), groups = object(comparison.group_summary);
-  const relative = typeof metrics.relative_improvement === "number" ? numeric(metrics.relative_improvement * 100) + "%" : "未计算";
+  const relative = typeof metrics.relative_improvement === "number" ? concise(metrics.relative_improvement * 100) + "%" : "未计算";
   article.append(el("h4", "", "原项目保存的父版对照"),
-    el("p", "", `父版 MAE ${numeric(metrics.baseline_mae)} → 候选 MAE ${numeric(metrics.candidate_mae)}；候选−父版 ${numeric(metrics.mae_change)}；相对父版误差降低 ${relative}。`),
+    el("p", "", `父版 MAE ${concise(metrics.baseline_mae)} → 候选 MAE ${concise(metrics.candidate_mae)}；候选−父版 ${concise(metrics.mae_change)}；相对父版误差降低 ${relative}。`),
     el("p", "", `逐行绝对误差：${numeric(rows.improved_rows)} 改善、${numeric(rows.worsened_rows)} 恶化、${numeric(rows.tied_rows)} 持平（共 ${numeric(rows.n)} 行）。`));
   if (comparison.group_summary !== null)
     article.append(el("p", "", `按声明组 MAE：${numeric(groups.improved_groups)} 改善、${numeric(groups.worsened_groups)} 恶化、${numeric(groups.tied_groups)} 持平（共 ${numeric(groups.group_count)} 组）。`));
   const ranges = object(comparison.prediction_ranges);
   for (const [key, label] of [["baseline", "父版"], ["candidate", "候选"]]) {
     const range = object(ranges[key]);
-    article.append(el("p", "", `${label}预测 ${numeric(range.predicted_min)} 至 ${numeric(range.predicted_max)}；负预测 ${numeric(range.negative_predictions)}；低于／高于原观察范围 ${numeric(range.below_observed_min)}／${numeric(range.above_observed_max)}。`));
+    article.append(el("p", "", `${label}预测 ${concise(range.predicted_min)} 至 ${concise(range.predicted_max)}；负预测 ${numeric(range.negative_predictions)}；低于／高于原观察范围 ${numeric(range.below_observed_min)}／${numeric(range.above_observed_max)}。`));
   }
   article.append(el("p", "detail-note", "以上只描述原项目的保存对照；误差降低不表示本项目收益或科学确认，声明组也不自动成为独立样本。"));
 }
