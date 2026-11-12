@@ -254,12 +254,14 @@ function comparison(action: Obj, project: Obj): HTMLElement {
       ? "所列机械检查未见标记项；字段角色、单位与科学资格仍待核对。"
       : "机械检查发现需核对项；保留原记录，不自动填零或删行。"), summary,
       el("p", "detail-note", "重复分组表示同组含多行，不等于独立样本，也不自动判为错误。零值包含在有限值中；空值与声明缺失分别统计。"));
-    wrap.append(resultTable("按声明的数值字段统计 · 保留原始缺失与非法值",
+    const numericTable = resultTable("按声明的数值字段统计 · 保留原始缺失与非法值",
       ["字段", "有限值", "其中零值", "空值", "声明缺失", "非法数字", "非有限", "有限值范围"], objects(profile.numeric_columns).map(column => {
         const counts = object(column.counts);
         return [string(column.name), measured(counts.finite), measured(counts.zero), measured(counts.empty), measured(counts.declared_missing),
           measured(counts.invalid_numeric), measured(counts.nonfinite), typeof column.min === "number" && typeof column.max === "number" ? numeric(column.min) + " ～ " + numeric(column.max) : "未计算"];
-      })), qualityRecordLocations(objects(profile.examples)), details("标记项、原始坐标与分组统计", { flags: profile.flags, examples: profile.examples, record_coordinates: profile.record_coordinates,
+      }));
+    numericTable.classList.add("quality-numeric-table");
+    wrap.append(numericTable, qualityRecordLocations(objects(profile.examples)), details("标记项、原始坐标与分组统计", { flags: profile.flags, examples: profile.examples, record_coordinates: profile.record_coordinates,
         group_columns: groups, key_columns: keys, scope: object(action.method_instance).scope }));
     const duplicates = objects(profile.examples).filter(item => item.kind === "exact_duplicate_row");
     if (duplicates.length) wrap.append(el("p", "detail-note", "完整重复代表定位（不含表头的数据记录）：" + duplicates.map(item =>

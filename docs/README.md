@@ -9,6 +9,7 @@
 - [案例有无的同状态计划比较](research/experience-judgment-pair.md)：只读冻结原生输入、两份原回答与隐藏标签审阅，保留无实质差异和预算表述问题
 - [帆船阻力公开任务](research/yacht-geometry-study.md)：固定协议、计划接续、负预测诊断、同折特征对照及保留的不利结果
 - [Auto MPG年份输入对照](research/auto-mpg-year-study.md)：新课题的同样本、同折比较，逐组误差、计划建议审阅及原名资料接入
+- [混凝土配合比组留出](research/concrete-mixture-study.md)：完整1,030行、容量扩展、固定Ridge基线、反馈计划与实际零拟合负控
 
 - [产品概念与推进主线](research/product-concepts.md)：用户、研究配方、计划、反馈调整、当前差距与下一步取舍；[一手研究依据](research/product-concept-evidence.md)
 - [产品定位与横向调研](research/product-landscape-20261106.md)，比较文献助手、通用Host、科研系统与平台，保留能力取舍及平台候选路径；当前接入安排以提交计划为准

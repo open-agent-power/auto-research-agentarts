@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`project-view.ts`质量数值表复用`resultTable`的语义行表头，仅该表加`quality-numeric-table`。横向滚动固定字段列，使右端有限范围仍能对应材料／目标；≤720px首列140px并保留完整换行。其他结果表及研究状态不变，样式沿既有实色内容token。
+
 `local-model.ts`在原模型操作区显示可展开的方法成本表，当前context须匹配项目／版本／快照，CLI关闭仍可阅读。历史计划分别处理readiness v1／v2，缺成本不猜值；手机局部横向滑动与原表格样式复用，见[方法额度](../../docs/method-budget-costs.md)。
 
 `local-experience.ts`在知识空间提供显式案例导入、原观察／范围／限制、可读方法条件与协议、资格历史及JSON。`project-pages.ts`复用原focus路由直达`#/knowledge?focus=experience`；草稿和原请求恢复仍由`local-workbench.ts`管理。沿既有表单与表面，不另建主题；见[案例用法](../../docs/project-experience.md)。
