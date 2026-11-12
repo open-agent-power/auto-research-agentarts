@@ -209,8 +209,9 @@ export function createLocalModelPanel(host: Host): {
   const materialDrafts = new Map<string, MaterialRequest[]>();
   let suppliedPreview: Obj | null = null, materialRevision = 0, materialBusy = false;
   const materialRequests = (): MaterialRequest[] => materialDrafts.get(projectId) ?? [];
+  const actionMethod = (action: Obj): string => text(object(object(action.method_instance).definition_ref).id, "");
   const diagnosticActions = (): Obj[] => objects(project.actions).filter(action => action.status === "completed"
-    && ["data.saved-oof-random-diagnostics", "data.saved-oof-group-diagnostics"].includes(text(action.method_id, ""))
+    && ["data.saved-oof-random-diagnostics", "data.saved-oof-group-diagnostics"].includes(actionMethod(action))
     && typeof action.result_sha256 === "string" && objects(action.observations).some(item => item.kind === "saved_oof_diagnostic"));
   function invalidateMaterials(message = "字段选择已保留；预览时将重新核对完整输入。"): void {
     materialRevision++; materialBusy = false; suppliedPreview = null; materialPreview.replaceChildren();
@@ -223,7 +224,7 @@ export function createLocalModelPanel(host: Host): {
     for (const action of actions) {
       const observation = objects(action.observations).find(item => item.kind === "saved_oof_diagnostic") ?? {};
       const source = object(observation.source_ref), row = el("fieldset", "local-fieldset local-material-choice");
-      const legend = el("legend", "local-label", host.methodTitle(text(action.method_id)) + " · " + text(action.id));
+      const legend = el("legend", "local-label", host.methodTitle(actionMethod(action)) + " · " + text(action.id));
       row.append(legend, el("p", "detail-note", `原设计 v${number(source.design_version)} · 来源验证 ${text(source.action_id)} · ${number(object(observation.row_weighted).n)} 行 / ${number(object(observation.group_weighted).group_count)} 组`));
       const identity = el("details", "local-advanced"); identity.append(el("summary", "", "核对这条诊断的结果身份"),
         el("pre", "project-source-text", JSON.stringify({ action_id: action.id, result_sha256: action.result_sha256, source_ref: source }, null, 2))); row.append(identity);
@@ -595,7 +596,8 @@ export function createLocalModelPanel(host: Host): {
   async function refresh(nextId: string, nextProject: Obj, nextContext: Obj | null): Promise<void> {
     const generation = ++refreshId;
     if (projectId !== nextId || project.snapshot_ref !== nextProject.snapshot_ref)
-      invalidateMaterials("项目或快照已变化，旧预览已作废；原字段选择仍保留，未改选其他诊断。");
+      invalidateMaterials(projectId ? "项目或快照已变化，旧预览已作废；原字段选择仍保留，未改选其他诊断。"
+        : "选择需要供应的完整字段，再预览本次输入。");
     if (projectId !== nextId) {
       records = []; view = {}; reason.value = ""; limit.value = "1"; cap.value = "0.10"; usage.replaceChildren(); savedRequests();
     }
