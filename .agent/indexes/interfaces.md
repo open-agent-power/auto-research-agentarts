@@ -1,5 +1,7 @@
 # 接口索引
 
+只读CLI `inspect_saved_oof.py --workspace <项目> --action-id <已完成Ridge行动> --column <原输入> --output <新目录>`导出`saved-oof-diagnostics-v1`和阅读用Markdown；列可重复／省略，结果保留原行动／设计／工件与全部覆盖，错误沿ResearchError退出。输出在项目外，不向API、Host或当前报告自动回填，见[使用与语义](../../docs/research-design.md#单个已保存验证的只读诊断)。
+
 新`research-plan-context-v2`可捕获`prediction_ranges=[{action_id,check,summary}]`，仅当前设计已完成`random_cv/group_cv`。条目关联原反馈／工件；summary为保存OOF范围或null，字段缺失/null与真实零计数区分。配方外层schema保持，原obs不改；既有无字段v1/v2 prompt不追加说明。`GET /api/project/plan-context.json`继续只读，完整context仍限64KiB，见[字段语义](../../docs/host-model-selection.md#根据真实反馈建议研究计划)。
 
 选择context的条件新增可选`budget_cost={local_tool_calls,evidence_reads,estimator_fits}`；前两项为非负整数，拟合可null。readiness有捕获值时为`plan-readiness-v2`并含`method_budget_costs`，无值旧v1不变。报告`execution_conditions`为当前，`plan_reviews`为原Host冻结条件，完整依据在`input.selection_context`；见[字段与语义](../../docs/method-budget-costs.md)。
