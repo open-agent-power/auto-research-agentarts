@@ -1,0 +1,17 @@
+{
+  "schema_version": "research-design-resource-v1",
+  "id": "energy-geometry-transfer",
+  "version": 1,
+  "title": "建筑制冷负荷：模拟几何描述组合留出基线",
+  "question": "固定八原输入线性Ridge对未参与训练的几何描述组合预测制冷负荷时，误差与局部失配如何影响下一步研究？",
+  "claim": "The fixed numeric-coded additive Ridge baseline has lower pooled held-out geometry-group MAE than its training-fold target-mean reference on the captured simulated records.",
+  "alternatives": [
+    "Orientation and glazing-distribution integers are category codes; treating them as numeric imposes unverified order, distance and linear effects that scaling does not repair.",
+    "Exact equality of five published geometry parameters defines operator-derived groups, not certified original building identities or independent real buildings.",
+    "Pooled MAE may mask worse groups or local ranges; saved target scale has no unit confirmed by the captured official metadata."
+  ],
+  "checks": ["group_cv", "negative_control"],
+  "sources": ["https://archive.ics.uci.edu/dataset/242/energy+efficiency", "https://archive.ics.uci.edu/api/dataset?id=242"],
+  "parent_version": null,
+  "change_reason": "Prospective complete768-row Y2-only fixed baseline; no Y1 input, outcome-driven grouping, transformation, tuning or runtime extension."
+}
