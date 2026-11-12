@@ -1,0 +1,23 @@
+{
+  "schema_version": "research-design-resource-v1",
+  "id": "concrete-mixture-transfer",
+  "version": 2,
+  "title": "混凝土抗压强度：固定 log1p 龄期对照",
+  "question": "只将龄期改为 ln(1+age_days)，相同配合比组留出下的完整保存误差相对原始八输入父版如何变化，哪些局部失败仍保留？",
+  "claim": "在相同来源、完整评价行、声明组、原五折及训练均值参考下，该唯一固定龄期映射候选的保存OOF MAE低于明确父资源v1。",
+  "alternatives": [
+    "保存组内龄期变化的误差可能与固定加性线性龄期表达有关，也可能含未记录条件、记录重复和采样组成差异。",
+    "固定变换改变输入空间和有效正则化；保持八维和alpha1不表示两版模型等价。",
+    "总体MAE改善仍可能伴随不利龄期、配合比组、负预测或范围问题。",
+    "当前候选由已见保存反馈选定，相同数据对照不能替代独立实验室、批次或总体外验。"
+  ],
+  "checks": ["group_cv"],
+  "sources": [
+    "https://archive.ics.uci.edu/ml/datasets/concrete+compressive+strength",
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Readme.txt",
+    "原项目保存的完整1030行基线、427声明组及565个组内相邻龄期比较；固定log1p是操作者检验假设，不是来源声明的物理定律。"
+  ],
+  "parent_version": 1,
+  "comparison_kind": "fixed_input_basis",
+  "change_reason": "依据完整保存反馈预先限定唯一age→ln(1+age_days)候选；保持其他七输入、原行／组／折、训练折Scaler和Ridge alpha1，不进行函数、参数、特征或划分搜索。"
+}

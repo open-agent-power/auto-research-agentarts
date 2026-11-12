@@ -7,7 +7,7 @@ type Host = {
   submit(name: string, body: Obj): Promise<Obj | null>;
   announce(message: string, error?: boolean): void;
 };
-type Draft = { resource: string; prediction: string; reason: string; improvement: string; features: string[]; groups: string[]; fitLimit: number; inputBasis: string };
+type Draft = { resource: string; prediction: string; reason: string; improvement: string; features: string[]; groups: string[]; fitLimit: number; inputBasis: string; transformColumns: string[] };
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(object) : [];
 const words = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
@@ -40,10 +40,17 @@ const percent = (value: unknown): string => typeof value === "number" && Number.
 const measure = (value: unknown): string => typeof value === "number" ? numeric(value) : "未计算";
 const basisTitle = (value: unknown): string => {
   const kind = typeof value === "string" ? value : object(value).kind;
+  if (kind === "log1p") {
+    const columns = words(object(value).transformed_columns);
+    return "固定log1p变换" + (columns.length ? "（" + columns.map(column => column + " → log1p(" + column + ")").join("、") + "）" : "");
+  }
   return kind === "univariate_cubic" ? "固定单列三次基" : kind === undefined || kind === "raw" ? "直接输入" : text(kind);
 };
-const previewTerms = (columns: string[], basis: string): string[] => basis === "univariate_cubic"
-  ? columns.length === 1 ? [columns[0], columns[0] + "^2", columns[0] + "^3"] : [] : columns;
+const trainingBasis = (training: Obj): string => "input_transforms" in training ? "log1p" : text(training.input_basis, "raw");
+const transformedColumns = (training: Obj): string[] => Object.keys(object(training.input_transforms));
+const previewTerms = (columns: string[], basis: string, transformed: string[] = []): string[] => basis === "univariate_cubic"
+  ? columns.length === 1 ? [columns[0], columns[0] + "^2", columns[0] + "^3"] : []
+  : basis === "log1p" ? columns.map(column => transformed.includes(column) ? "log1p(" + column + ")" : column) : columns;
 const savedTerms = (protocol: Obj): string[] => "input_basis" in protocol ? words(protocol.model_input_terms) : words(protocol.feature_columns);
 const comparisonTitle = (record: Obj): string => record.comparison_kind === "fixed_input_basis" ? "同评价划分的输入基对照" : "同协议特征对照";
 
@@ -237,13 +244,16 @@ export function createResearchDesignPanel(host: Host): {
   splitGroups.append(el("legend", "local-label", "用于分组拆分的声明字段"), groupOptions); trainingColumns.append(features, splitGroups);
   const fitLimit = el("input"); fitLimit.type = "number"; fitLimit.min = "1"; fitLimit.max = "40"; fitLimit.step = "1"; fitLimit.value = "20";
   const inputBasis = el("select"), basisNote = el("p", "detail-note"), trainingProtocol = el("p", "detail-note");
-  for (const [value, label] of [["raw", "直接使用所选CSV列"], ["univariate_cubic", "固定单列三次基（x、x²、x³）"]]) {
+  for (const [value, label] of [["raw", "直接使用所选CSV列"], ["univariate_cubic", "固定单列三次基（x、x²、x³）"], ["log1p", "固定log1p变换"]]) {
     const option = el("option", "", label); option.value = value; inputBasis.append(option);
   }
+  const transforms = el("fieldset", "local-fieldset research-design-columns"), transformOptions = el("div", "research-design-column-options");
+  transforms.append(el("legend", "local-label", "使用log1p的原CSV列（从所选训练列中选择）"), transformOptions);
+  transforms.hidden = true; transforms.disabled = true;
   basisNote.setAttribute("role", "status"); basisNote.setAttribute("aria-live", "polite");
   training.hidden = true;
   training.append(el("p", "detail-note", "明确选择特征与分组。目标字段和已声明分组字段不进入特征；执行需至少10条完整记录、2个完整组。"), trainingColumns,
-    field("模型输入映射", inputBasis), basisNote,
+    field("模型输入映射", inputBasis), transforms, basisNote,
     field("累计 fit 尝试上限", fitLimit), el("p", "detail-note", "上限为1至40次，默认20。每折包含标准化器与Ridge各1次fit，两类合计2次。累计已用与预留沿项目保存，调整设计继续读取原消耗。"),
     trainingProtocol);
   const fitBudget = el("div", "research-design-fit-budget"); fitBudget.hidden = true;
@@ -278,7 +288,7 @@ export function createResearchDesignPanel(host: Host): {
     if (!value) {
       const saved = catalog.project_id === projectId ? object(object(catalog.binding).training) : {};
       value = { resource: "", prediction: "", reason: "", improvement: "", features: words(saved.feature_columns), groups: words(saved.split_group_columns),
-        fitLimit: typeof saved.fit_limit === "number" ? saved.fit_limit : 20, inputBasis: saved.input_basis === "univariate_cubic" ? "univariate_cubic" : "raw" }; drafts.set(projectId, value);
+        fitLimit: typeof saved.fit_limit === "number" ? saved.fit_limit : 20, inputBasis: trainingBasis(saved), transformColumns: transformedColumns(saved) }; drafts.set(projectId, value);
     }
     return value;
   };
@@ -291,11 +301,18 @@ export function createResearchDesignPanel(host: Host): {
     const raw = rawDesign(selected() ?? {}), fit = fitLimit.valueAsNumber, budget = object(catalog.budget);
     const minimumFit = Math.max(1, typeof budget.fit_limit === "number" ? budget.fit_limit : 1); fitLimit.min = String(minimumFit);
     const columns = [...featureOptions.querySelectorAll<HTMLInputElement>("input:checked")].map(input => input.value), featureCount = columns.length;
-    const cubic = inputBasis.value === "univariate_cubic", validBasis = !cubic || featureCount === 1;
-    inputBasis.setCustomValidity(validBasis ? "" : "固定单列三次基要求恰好选择1个原CSV数值列。");
-    basisNote.textContent = !validBasis ? "固定单列三次基要求恰好选择1个原CSV数值列，当前已选择 " + featureCount + " 列。请调整原CSV列选择后再保存。"
+    const cubic = inputBasis.value === "univariate_cubic", log = inputBasis.value === "log1p";
+    const transformed = drafts.get(projectId)?.transformColumns ?? [], missingTransforms = transformed.filter(column => !columns.includes(column));
+    const validBasis = (!cubic || featureCount === 1) && (!log || transformed.length > 0 && !missingTransforms.length);
+    transforms.hidden = !raw || !log; transforms.disabled = !raw || !log;
+    const basisError = cubic && featureCount !== 1 ? "固定单列三次基要求恰好选择1个原CSV数值列，当前已选择 " + featureCount + " 列。请调整原CSV列选择后再保存。"
+      : log && missingTransforms.length ? "已选log1p变换列 " + missingTransforms.join("、") + " 不在当前训练输入中。请恢复这些训练列，或恢复后取消对应变换，再保存。"
+        : log && !transformed.length ? "请至少选择1个训练输入列进行固定log1p变换。" : "";
+    inputBasis.setCustomValidity(basisError);
+    basisNote.textContent = basisError || (log ? "固定log1p变换 · " + transformed.map(column => column + " → log1p(" + column + ")").join("、")
+      + "；模型输入项 " + previewTerms(columns, inputBasis.value, transformed).join("、") + "。先按原尺度变换，再在各训练折标准化；所选变换列须满足 x > -1，执行前校验。"
       : cubic ? "固定映射预览 · 原CSV列 " + columns[0] + " → 模型输入项 " + previewTerms(columns, inputBasis.value).join("、") + "（按原尺度展开，无常数列）。"
-        : "直接输入 · 原CSV列与模型输入项相同：" + (columns.join("、") || "尚未选择") + "。";
+        : "直接输入 · 原CSV列与模型输入项相同：" + (columns.join("、") || "尚未选择") + "。");
     for (const input of featureOptions.querySelectorAll<HTMLInputElement>("input")) input.disabled = featureCount >= (cubic ? 1 : 16) && !input.checked;
     const trainingReady = featureCount > 0 && featureCount <= 16 && groupOptions.querySelectorAll("input:checked").length > 0
       && validBasis && Number.isInteger(fit) && fit >= minimumFit && fit <= 40;
@@ -306,6 +323,12 @@ export function createResearchDesignPanel(host: Host): {
     importButton.disabled = importFields.disabled || !importedResource;
     for (const button of libraryChoices) button.disabled = !editable;
   }
+  function showTransformColumns(): void {
+    const saved = draft(), available = saved.features;
+    columnChecks(transformOptions, available, saved.transformColumns, values => {
+      saved.transformColumns = [...saved.transformColumns.filter(column => !available.includes(column)), ...values]; controls();
+    });
+  }
   function showSelection(): void {
     copy.replaceChildren(); const resource = selected();
     const raw = rawDesign(resource ?? {}); training.hidden = !raw; predictionField.hidden = raw; prediction.required = !raw; fitLimit.required = raw; fitLimit.disabled = !raw;
@@ -315,8 +338,9 @@ export function createResearchDesignPanel(host: Host): {
     if (raw) {
       const saved = draft(), groupColumns = words(catalog.group_columns);
       columnChecks(featureOptions, words(catalog.numeric_columns).filter(column => column !== catalog.target_column && !groupColumns.includes(column)), saved.features,
-        values => { draft().features = values; controls(); });
+        values => { draft().features = values; showTransformColumns(); controls(); });
       columnChecks(groupOptions, groupColumns, saved.groups, values => { draft().groups = values; controls(); }); fitLimit.value = String(saved.fitLimit); inputBasis.value = saved.inputBasis;
+      showTransformColumns();
       trainingProtocol.textContent = "按设计执行" + words(resource?.checks).filter(check => ["random_cv", "group_cv"].includes(check)).map(check => checkNames[check]).join("、")
         + "，Ridge alpha 为1；输入映射后，在各训练折内单独拟合标准化器与模型。";
     }
@@ -358,8 +382,8 @@ export function createResearchDesignPanel(host: Host): {
     assessment.replaceChildren(); const value = object(catalog.assessment), bound = binding(), resource = object(bound.resource);
     const raw = rawDesign(resource), boundTraining = object(bound.training);
     bindingNote.textContent = text(resource.id, "") ? "已采用 " + text(resource.title, text(resource.id)) + " v" + String(resource.version)
-      + (raw ? " · 原CSV列 " + words(boundTraining.feature_columns).join("、") + " · 输入映射 " + basisTitle(boundTraining.input_basis)
-        + " · 模型输入项 " + previewTerms(words(boundTraining.feature_columns), text(boundTraining.input_basis, "raw")).join("、")
+      + (raw ? " · 原CSV列 " + words(boundTraining.feature_columns).join("、") + " · 输入映射 " + basisTitle({ kind: trainingBasis(boundTraining), transformed_columns: transformedColumns(boundTraining) })
+        + " · 模型输入项 " + previewTerms(words(boundTraining.feature_columns), trainingBasis(boundTraining), transformedColumns(boundTraining)).join("、")
         + " · 拆分组 " + words(boundTraining.split_group_columns).join("、")
         : " · 保存预测列 " + text(bound.prediction_column)) + " · 项目设计修订 " + String(bound.version)
       : "尚未绑定研究设计。选择库内版本、核对输入声明并填写采用理由。";
@@ -475,7 +499,8 @@ export function createResearchDesignPanel(host: Host): {
     const body = { project_id: projectId, expected_state_version: project.state_version, resource_id: resource.id, resource_version: resource.version, reason: reason.value.trim() };
     void host.submit("design-bind", rawDesign(resource) ? { ...body, prediction_column: null,
       training: { feature_columns: draft().features, split_group_columns: draft().groups, fit_limit: fitLimit.valueAsNumber,
-        ...(inputBasis.value === "univariate_cubic" ? { input_basis: "univariate_cubic" } : {}) } }
+        ...(inputBasis.value === "univariate_cubic" ? { input_basis: "univariate_cubic" }
+          : inputBasis.value === "log1p" ? { input_transforms: Object.fromEntries(draft().transformColumns.map(column => [column, "log1p"])) } : {}) } }
       : { ...body, prediction_column: prediction.value });
   });
   improveForm.addEventListener("submit", event => {

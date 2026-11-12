@@ -16,17 +16,23 @@ def _reference(record):
 
 
 def _fixed_basis_protocols_match(baseline, candidate):
+    from .contracts import ResearchError
     from .input_basis import protocol
 
     left, right = baseline["protocol"], candidate["protocol"]
     columns = left["feature_columns"]
     left_training = baseline["design_binding"].get("training", {})
     right_training = candidate["design_binding"].get("training", {})
-    if (len(columns) != 1 or right["feature_columns"] != columns
-            or left_training.get("feature_columns") != columns or "input_basis" in left_training
-            or right_training.get("feature_columns") != columns or right_training.get("input_basis") != "univariate_cubic"):
+    if (right["feature_columns"] != columns or left_training.get("feature_columns") != columns
+            or any(key in left_training for key in ("input_basis", "input_transforms"))
+            or right_training.get("feature_columns") != columns):
         return False
-    expected = protocol(right_training)
+    try:
+        expected = protocol(right_training)
+    except ResearchError:
+        return False
+    if not expected:
+        return False
     fields = ("input_basis", "model_input_terms")
     if any(key in left or right.get(key) != expected[key] for key in fields):
         return False

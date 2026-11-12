@@ -501,6 +501,12 @@ def _prediction_notes(report):
     return notes[-6:]
 
 
+def _log1p_description(basis):
+    mapping = "、".join(column + " → log1p(" + column + ")" for column in basis["transformed_columns"])
+    return ("固定log1p变换：" + mapping + "；其余原CSV列直接输入，输入维数不变；"
+            "先按原尺度变换，再在各训练折内拟合标准化；变换列原值须满足 x > -1")
+
+
 def _design_rows(state):
     revisions = state.get("design_revisions", [])
     if not revisions:
@@ -514,6 +520,10 @@ def _design_rows(state):
     if binding.get("training", {}).get("input_basis") == "univariate_cubic":
         fields.extend([["固定输入映射", "原尺度单列展开为一次、二次、三次项，无常数列；之后按训练折标准化"],
                        ["模型输入项", "、".join(input_basis.protocol(binding["training"])["model_input_terms"])]])
+    elif "input_transforms" in binding.get("training", {}):
+        metadata = input_basis.protocol(binding["training"])
+        fields.extend([["固定输入映射", _log1p_description(metadata["input_basis"])],
+                       ["模型输入项", "、".join(metadata["model_input_terms"])]])
     return [["研究设计", resource["title"]], ["资源与项目绑定版本", f"{resource['id']} v{resource['version']} / 绑定v{binding['version']}"],
             ["研究问题", resource["question"]], ["待检验判断", resource["claim"]],
             ["可替代解释或方法", "；".join(resource["alternatives"])],
@@ -552,6 +562,11 @@ def _raw_validation_lines(report):
             if analysis["protocol"].get("input_basis", {}).get("kind") == "univariate_cubic":
                 lines.append("原尺度单列先展开一次、二次、三次项，无常数列，再在训练折拟合标准化；模型输入项："
                              + "、".join(analysis["protocol"]["model_input_terms"]) + "。未裁剪预测或变换目标。")
+            elif analysis["protocol"].get("input_basis", {}).get("kind") == "log1p":
+                protocol = analysis["protocol"]
+                lines.append("原CSV输入列：" + "、".join(protocol["feature_columns"]) + "；"
+                             + _log1p_description(protocol["input_basis"]) + "；保存的模型输入项："
+                             + "、".join(protocol["model_input_terms"]) + "。未裁剪预测或变换目标。")
             prediction_range = prediction_summary.summarize_oof_range(analysis["oof"])
             if prediction_range is not None:
                 lines.append("保存预测范围 " + _number(prediction_range["predicted_min"]) + "—" + _number(prediction_range["predicted_max"])
@@ -577,6 +592,8 @@ def _feature_comparison_lines(report):
     for comparison in report["feature_comparisons"]:
         left, right = comparison["baseline_ref"], comparison["candidate_ref"]
         fixed_basis = comparison.get("comparison_kind") == "fixed_input_basis"
+        log_basis = fixed_basis and any(reference.get("input_basis", {}).get("kind") == "log1p"
+                                        for reference in (left, right))
         lines.append("同评价划分的输入基对照。" if fixed_basis else "同协议特征对照。")
         for label, reference in (("父版本", left), ("候选版本", right)):
             lines.append(label + "：项目设计v" + str(reference["design_version"]) + "，资源 "
@@ -584,8 +601,15 @@ def _feature_comparison_lines(report):
                          + "，输入 " + "、".join(reference["feature_columns"]) + "，行动 " + reference["action_id"] + "。")
             if fixed_basis:
                 lines.append(label + "保存的模型输入项：" + "、".join(reference.get("model_input_terms", [])) + "。")
+                if log_basis:
+                    basis = reference.get("input_basis", {})
+                    description = (_log1p_description(basis) if basis.get("kind") == "log1p" else
+                                   "固定单列三次基，原尺度展开一次、二次、三次项，无常数列，再在训练折拟合标准化"
+                                   if basis.get("kind") == "univariate_cubic" else "直接输入，原CSV列与模型输入项相同")
+                    lines.append(label + "输入映射：" + description + "。")
         if fixed_basis:
-            lines.append("固定Ridge超参数与评价划分，明确比较原单列输入和一次/二次/三次基；输入空间及有效正则化随之改变。")
+            lines.append("固定Ridge超参数与评价划分，明确比较直接输入与指定列的固定log1p变换；输入维数不变，输入尺度及有效正则化随之改变。"
+                         if log_basis else "固定Ridge超参数与评价划分，明确比较原单列输入和一次/二次/三次基；输入空间及有效正则化随之改变。")
         if comparison["status"] != "comparable":
             lines.append("不能形成此版本对照：" + "、".join(comparison["reason_codes"]) + "。未生成误差比较成绩。")
             continue

@@ -57,7 +57,7 @@ def _training(payload, training):
     from . import tabular_quality_adapter as tabular, numeric_association_adapter as numeric
     require = tabular._require
     fields = {"feature_columns", "split_group_columns", "fit_limit"}
-    require(type(training) is dict and fields <= set(training) <= fields | {"input_basis"},
+    require(type(training) is dict and fields <= set(training) <= fields | {"input_basis", "input_transforms"},
             "INVALID_TRAINING", "Declare features, split groups and the cumulative fit limit.")
     spec, _, (column_names, rows, _) = tabular._checked(payload)
     features, groups = training["feature_columns"], training["split_group_columns"]
