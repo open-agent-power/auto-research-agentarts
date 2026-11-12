@@ -1,0 +1,65 @@
+{
+  "baseline_commit": "5d497c8ae22100953f66c3c5b54746ca87e09f01",
+  "observed_at_utc": "2026-11-12T13:36:20.027698+00:00",
+  "gate": "G0",
+  "gate_status": "blocked",
+  "blockers": [
+    "worker_cpu_memory_pid_enforcement",
+    "upstream_isolated_runtime_smoke_unexecuted"
+  ],
+  "regression": {
+    "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -m unittest discover -s tests -v",
+    "exit_code": 0,
+    "tests": 1111,
+    "passed": 1092,
+    "skipped": 19,
+    "duration_seconds": 163.424,
+    "log_path": "runs/g0-baseline/final-regression.log",
+    "log_sha256": "74dd1a371e60098483e808642ee9da70793bbd29e44abdf62de027fde672f136",
+    "kind": "engineering_regression_not_G1_scientific_case",
+    "production_code_modified": false
+  },
+  "resource_probe": {
+    "status": "blocked",
+    "exit_code": 2,
+    "raw_sha256": "dabc567ddd5b6f8eb4df9211a83c85038afcb3542086320eb4ee6ce19ab639d4",
+    "passed_assertions": 7,
+    "failed_assertions": [
+      "worker_cpu_quota_1",
+      "worker_memory_512m",
+      "worker_pid_limit_128"
+    ],
+    "script_sha256": "1dee2921a4ccf410c025e1a094d047eed26ecc225603a1c5dac5f477cd66f5c3"
+  },
+  "upstream": {
+    "repositories_pinned": 8,
+    "initial_ast_paths": 27,
+    "ast_pass": 26,
+    "ast_missing": 1,
+    "runtime_smoke": "not_executed"
+  },
+  "G1": {
+    "status": "not_started",
+    "task": "P0-CONCRETE-CLOUD-001",
+    "original_rows": 1030,
+    "original_sha256": "8d4b15b6fc68cd932d745cbd663d5ceae66dd54422e99c1e4865f2936ab7e2af",
+    "real_research_fits": 0,
+    "product_api_sends": 0
+  },
+  "developer_agent_cost": "unknown",
+  "github_delivery": {
+    "status": "blocked",
+    "branch": "codex/execution-pack-v2-g0",
+    "push_succeeded": false,
+    "pull_request_created": false,
+    "repository_role": "admin/push reported by read API",
+    "write_error": "HTTP403 Resource not accessible by integration",
+    "channels_tested": [
+      "git_https",
+      "git_using_gh_credential_helper",
+      "gh_rest_create_tree",
+      "github_connector_create_tree"
+    ],
+    "required_action": "Authorize repository Contents write for the GitHub integration, then push prepared branch"
+  }
+}

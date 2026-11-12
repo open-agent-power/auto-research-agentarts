@@ -1,0 +1,9 @@
+{
+  "source": "user-uploaded Autonomous-Research-Lab-Master-Execution-Pack-v2.zip",
+  "sha256": "085fe808637ca0416339839ea0005ef0e9abde250dcc7e9bc80c8fa9195d763a",
+  "extracted_path": "/workspace/Autonomous-Research-Lab-Master-Execution-Pack-v2",
+  "tracked_copy": "docs/execution/pack-v2",
+  "checksums_verified": true,
+  "repository_baseline": "5d497c8ae22100953f66c3c5b54746ca87e09f01",
+  "received_at_utc": "2026-11-12T13:27:41.993302+00:00"
+}

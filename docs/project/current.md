@@ -1,0 +1,23 @@
+# 当前接续
+
+## 当前目标与停点
+
+执行 Master Execution Pack v2。G0审计交付已完成、独立审查已收齐，**G0仍BLOCKED**。G1–G6未开始；没有后台研究进程或定时任务。
+
+## 本轮事实
+
+- 原包23文件已解压并校验，主仓库基线`5d497c8ae22100953f66c3c5b54746ca87e09f01`；工作分支`codex/execution-pack-v2-g0`。
+- 30行能力/验证矩阵、8上游固定版本及源码/许可审查、旧资产缺失清单、Concrete官方1030行与无损输入、评价协议已保存。
+- 两处测试可移植性问题已修；最终完整回归1111项：1092通过、19明确跳过，exit0。原两轮失败日志保留；测试通过不等于真实课题或Gate通过。
+- Docker实测要求1CPU/512MiB/128PID，实际仍4CPU/16GiB/PID max。rootless无cgroup delegation；其余7项隔离检查通过但不能抵消这3项失败。
+- 上游只有静态/源码检查，隔离runtime smoke独立未完成。旧研究账本与私有运行资产未收到，不宣称恢复。
+
+## GitHub交付状态
+
+本地提交已准备，但Git传输、gh REST写入和GitHub连接器均返回403 `Resource not accessible by integration`。GitHub API显示账号拥有admin/push角色，但当前集成写入请求未获授权。没有远程分支或PR成功创建，不宣称已推送。需为此仓库连接授予Contents写入权限后，执行`git push -u origin codex/execution-pack-v2-g0`。已另交付Git bundle、补丁、日志和公开数据证据包。
+
+## 下一动作
+
+由平台提供可强制CPU/RAM/PID与磁盘合同的Worker，再用唯一新输出目录重跑`python scripts/verify_cloud_resources.py --output runs/g0-resources-recheck-<唯一编号>`。完成拟用上游最小隔离PoC并独立复核G0后，沿现有ResearchProject/ProjectController按冻结课题协议执行两轮、观察驱动修订、报告、复现与接续。
+
+[任务板](../execution/README.md) · [G0验收](../execution/g0/G0-review.md) · [基线](../execution/g0/baseline-verification.md) · [本轮复盘](../execution/SPRINT-001.md)。原始日志在ignored `runs/`，公开数据在`/workspace/work/g0-data-research/`；另交付证据包。当前用户权限不能修复平台cgroup委派。

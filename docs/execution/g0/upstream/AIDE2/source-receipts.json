@@ -1,0 +1,115 @@
+{
+  "retrieved_at": "2026-11-12T13:30:51.616Z",
+  "sources": [
+    {
+      "url": "https://arxiv.org/html/2609.26457v1",
+      "version": "v1, 2026-09-22",
+      "metadata": {
+        "title": "Recursive self-improvement of AI research agents",
+        "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
+        "language": "en",
+        "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png",
+        "scrapeId": "01a1cfef-5229-744c-8ea6-59cfd7590c75",
+        "sourceURL": "https://arxiv.org/html/2609.26457v1",
+        "url": "https://arxiv.org/html/2609.26457v1",
+        "statusCode": 200,
+        "contentType": "text/html; charset=utf-8",
+        "proxyUsed": "basic",
+        "cacheState": "hit",
+        "cachedAt": "2026-11-12T09:20:57.094Z",
+        "creditsUsed": 1,
+        "concurrencyLimited": false
+      },
+      "content_characters": 125950,
+      "full_text_inspected": true
+    },
+    {
+      "url": "https://www.weco.ai/blog/first-evidence-of-recursive-self-improvement",
+      "metadata": {
+        "og:title": "AIDE²: First Evidence of Recursive Self-Improvement | Weco AI",
+        "og:site_name": "Weco AI",
+        "publishedTime": "2026-07-14",
+        "twitter:description": "We ran autoresearch on autoresearch: an outer loop rewriting its own research agent for 100 unattended steps. In eight days it discovered agents that beat our two years of hand-tuning on held-out benchmarks, and taught itself to reward hack less.",
+        "next-size-adjust": "",
+        "twitter:title": "AIDE²: First Evidence of Recursive Self-Improvement | Weco AI",
+        "twitter:image": "https://www.weco.ai/assets/blogs/first-evidence-of-recursive-self-improvement/cover.png?v=2",
+        "ogDescription": "We ran autoresearch on autoresearch: an outer loop rewriting its own research agent for 100 unattended steps. In eight days it discovered agents that beat our two years of hand-tuning on held-out benchmarks, and taught itself to reward hack less.",
+        "ogImage": "https://www.weco.ai/assets/blogs/first-evidence-of-recursive-self-improvement/cover.png?v=2",
+        "ogSiteName": "Weco AI",
+        "msapplication-TileImage": "/ms-icon-144x144.png",
+        "viewport": [
+          "width=device-width, initial-scale=1",
+          "width=device-width"
+        ],
+        "description": "We ran autoresearch on autoresearch: an outer loop rewriting its own research agent for 100 unattended steps. In eight days it discovered agents that beat our two years of hand-tuning on held-out benchmarks, and taught itself to reward hack less.",
+        "article:published_time": "2026-07-14",
+        "title": "AIDE²: First Evidence of Recursive Self-Improvement | Weco AI",
+        "twitter:site": "@WecoAI",
+        "publisher": "Weco AI",
+        "og:image:width": "1200",
+        "og:image:height": "630",
+        "ogTitle": "AIDE²: First Evidence of Recursive Self-Improvement | Weco AI",
+        "og:url": "https://www.weco.ai/blog/first-evidence-of-recursive-self-improvement",
+        "ogUrl": "https://www.weco.ai/blog/first-evidence-of-recursive-self-improvement",
+        "og:description": "We ran autoresearch on autoresearch: an outer loop rewriting its own research agent for 100 unattended steps. In eight days it discovered agents that beat our two years of hand-tuning on held-out benchmarks, and taught itself to reward hack less.",
+        "og:locale": "en_US",
+        "og:image": "https://www.weco.ai/assets/blogs/first-evidence-of-recursive-self-improvement/cover.png?v=2",
+        "theme-color": [
+          "#F2F0E7",
+          "#0d0f18"
+        ],
+        "language": "en",
+        "robots": "index, follow",
+        "og:type": "article",
+        "twitter:card": "summary_large_image",
+        "twitter:creator": "@WecoAI",
+        "creator": "Weco AI",
+        "ogLocale": "en_US",
+        "og:image:alt": "AIDE²: The First Evidence of Recursive Self-Improvement",
+        "llms-txt": "https://www.weco.ai/llms.txt",
+        "favicon": "https://www.weco.ai/android-icon-192x192.png",
+        "scrapeId": "01a1cfee-8d50-7689-934d-1722e9b92d07",
+        "sourceURL": "https://www.weco.ai/blog/first-evidence-of-recursive-self-improvement",
+        "url": "https://www.weco.ai/blog/first-evidence-of-recursive-self-improvement",
+        "statusCode": 200,
+        "contentType": "text/html; charset=utf-8",
+        "proxyUsed": "basic",
+        "cacheState": "hit",
+        "cachedAt": "2026-11-11T15:51:11.968Z",
+        "creditsUsed": 1,
+        "concurrencyLimited": false
+      },
+      "content_characters": 33261,
+      "full_text_inspected": true
+    }
+  ],
+  "code_search": {
+    "query": "\"AIDE2\" \"Weco\" source code GitHub",
+    "id": "01a1cff3-34e9-7366-83d7-9a901ff0af21",
+    "results": [
+      {
+        "url": "https://www.facebook.com/xixidu/videos/we-built-a-recursive-self-improvement-rsi-system-by-running-autoresearch-on-auto/2429607837525567/",
+        "title": "\"We built a recursive self-improvement (RSI) system by running ..."
+      },
+      {
+        "url": "https://arxiv.org/html/2609.11873v3",
+        "title": "The Last AI Built by Humans: Toward Genuine Recursive ..."
+      },
+      {
+        "url": "https://www.linkedin.com/posts/alanjkarp_ai-autoresearch-knowledgemanagement-activity-7507420356333158400-3kiH",
+        "title": "Nvidia's Agora Solves AI Team Duplication with Shared ..."
+      },
+      {
+        "url": "https://medium.com/@adnanmasood/g%C3%B6del-escher-astra-the-strange-loops-of-recursive-self-improvement-d4082ca06447",
+        "title": "Gödel, Escher, Astra: The Strange Loops of Recursive Self- ..."
+      }
+    ],
+    "conclusion": "No official code endpoint returned; non-exhaustive negative evidence"
+  },
+  "feedback": {
+    "initial_search": "accepted",
+    "code_search": "accepted",
+    "paper_scrape": "expired_without_retry",
+    "blog_scrape": "expired_without_retry"
+  }
+}

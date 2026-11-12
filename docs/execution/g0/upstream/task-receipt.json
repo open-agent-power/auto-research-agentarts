@@ -1,0 +1,13 @@
+{
+  "task_id": "G0-R07-R13-upstream",
+  "status": "review",
+  "owner": "upstream_audit",
+  "scope": "Fixed source, license, dependency, architecture and CPU feasibility audit",
+  "code_changed": false,
+  "production_integrations": [],
+  "artifacts": ["upstream-manifest.json", "reuse-matrix.md", "license-security-audit.md", "smoke-test-results.md", "static-checks.json", "AIDE2/source-receipts.json"],
+  "checks": ["8 shallow clones and pinned HEADs", "3 mandatory core source/license reviews plus 5 additional repository reviews", "26 initial AST files and corrected Prime sandbox.py parse", "JSON/TOML parse", "git diff --check"],
+  "cost": {"tokens": null, "currency": null, "amount": null, "provider_model_calls": 0},
+  "limitations": ["No upstream runtime smoke: exact guide is incomplete", "No dependency vulnerability scan", "No frameworks installed or executed", "AIDE2 code release unverified in inspected sources", "Optional SWE-bench/algorithm/OTel extensions not audited in this core batch"],
+  "next_recommendation": "Root keeps upstream runtime smoke as deferred/blocked G0 evidence; no integration until Gate decision and bounded worker prerequisites"
+}

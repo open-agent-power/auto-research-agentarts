@@ -1,5 +1,6 @@
 from io import BytesIO
 from pathlib import Path
+import os
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -84,7 +85,15 @@ class ProjectTests(unittest.TestCase):
             with self.assertRaises(ValueError): module._indexed_spans(b'12345',index)
 
     def test_real_pinned_project_measurements_and_metadata(self):
-        source=Path(__file__).resolve().parents[3]/'references/auto-research/10-chemotopochip/2026-10-31/hMSC_Analysis.cpproj'
+        configured=os.environ.get('CHEMOTOPO_PINNED_PROJECT')
+        if configured is not None:
+            self.assertTrue(configured.strip(), 'CHEMOTOPO_PINNED_PROJECT must name the pinned external project asset.')
+            source=Path(configured).expanduser()
+            self.assertTrue(source.is_file(), 'Configured CHEMOTOPO_PINNED_PROJECT is not an existing file: '+str(source))
+        else:
+            source=Path(__file__).resolve().parents[3]/'references/auto-research/10-chemotopochip/2026-10-31/hMSC_Analysis.cpproj'
+            if not source.is_file():
+                self.skipTest('Pinned external hMSC_Analysis.cpproj asset is not distributed with this repository; set CHEMOTOPO_PINNED_PROJECT to run the real-source check.')
         result=module.inspect_project(source)
         inventory=result['inventory']; self.assertEqual(inventory['object_count'],247)
         measurements=inventory['measurements']; self.assertEqual(len(measurements),1)
