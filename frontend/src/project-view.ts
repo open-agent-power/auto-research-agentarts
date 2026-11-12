@@ -30,6 +30,8 @@ const methodNames: Record<string, string> = {
   "data.prediction-sensitivity": "保存预测的敏感性检查",
   "data.ridge-random-validation": "训练折内拟合与随机五折验证",
   "data.ridge-group-validation": "按声明组拆分训练验证",
+  "data.saved-oof-random-diagnostics": "读取随机验证的保存误差明细",
+  "data.saved-oof-group-diagnostics": "读取分组验证的保存误差明细",
   "data.prediction-negative-control": "预测误差的折内负对照",
   "data.workbook-projection-check": "CSV与工作簿保存值核对",
   "research.source-selection": "补充来源与条件证据",
@@ -217,6 +219,84 @@ function associationSummary(pair: Obj, target: unknown): string {
   return `${label}${relation}，Pearson r = ${numeric(r)}。${counts}`;
 }
 
+function diagnosticTable(caption: string, headings: string[], values: string[][]): HTMLElement {
+  const table = resultTable(caption, headings, values);
+  table.classList.add("diagnostic-table-scroll"); table.tabIndex = 0;
+  table.setAttribute("aria-label", caption + "，可上下及左右滚动");
+  return table;
+}
+
+function diagnosticRows(action: Obj, source: Obj, expectedRows: unknown): HTMLDetailsElement {
+  const panel = el("details", "project-provenance diagnostic-rows"), content = el("div");
+  panel.append(el("summary", "", "查看完整逐行误差"), content);
+  let loading = false, loaded = false;
+  panel.ontoggle = async () => {
+    if (!panel.open || loading || loaded) return;
+    loading = true; content.setAttribute("aria-busy", "true");
+    content.replaceChildren(el("p", "detail-note", "正在读取本次已保存工件，不执行研究…"));
+    try {
+      const response = await fetch("/api/project/artifact/" + encodeURIComponent(string(action.id)),
+        { cache: "no-store", signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const envelope = object(await response.json()), diagnostic = object(object(object(envelope.tool_result).result).diagnostic);
+      const original = object(object(diagnostic.provenance).action);
+      if (envelope.action_id !== action.id || envelope.sha256 !== action.result_sha256
+          || diagnostic.schema_version !== "saved-oof-diagnostics-v1"
+          || original.id !== source.action_id || original.result_sha256 !== source.result_sha256)
+        throw new Error("保存工件与本次诊断或原验证身份不同");
+      const rows = objects(diagnostic.rows);
+      if (rows.length !== expectedRows) throw new Error("逐行工件与已保存评价行数不同");
+      content.replaceChildren(el("p", "detail-note", `全部 ${numeric(rows.length)} 条已评价记录；排除 ${numeric(diagnostic.excluded)} 条，排除原因和原输入见完整 JSON。表内可上下及左右滚动。`),
+        diagnosticTable("完整保存逐行误差", ["数据记录 / 物理结束行", "组", "fold", "观测", "预测", "训练均值参考", "预测减观测"],
+          rows.map(row => [numeric(row.logical_record) + " / " + numeric(row.physical_line_end), words(row.groups).join(" / ") || "未声明",
+            numeric(row.fold), numeric(row.observed), numeric(row.predicted), numeric(row.reference_prediction), numeric(row.residual)])));
+      loaded = true;
+    } catch (error) {
+      content.replaceChildren(el("p", "notice", "未能读取完整逐行工件：" + (error instanceof Error ? error.message : "未知错误")
+        + "。可收起后重新展开读取，或下载本次完整结果 JSON；不会重新执行诊断。"));
+    } finally { loading = false; content.removeAttribute("aria-busy"); }
+  };
+  return panel;
+}
+
+function savedDiagnostic(observation: Obj, action: Obj): HTMLElement {
+  const wrap = el("div", "project-saved-diagnostic"), source = object(observation.source_ref), rows = object(observation.row_weighted);
+  const counts = object(observation.row_error_counts), groups = object(observation.group_weighted), groupCounts = object(observation.group_error_counts);
+  const ranges = object(observation.prediction_ranges), summary = el("dl", "detail-dl");
+  wrap.append(el("p", "detail-note", "读取已保存验证的误差明细；本次新增拟合 0，不是一次新的交叉验证。"),
+    el("p", "", "来源验证行动：" + string(source.action_id) + "；项目设计 v" + numeric(source.design_version)),
+    el("p", "detail-note", "原目标：" + string(source.target_column) + "；原单位声明：" + string(source.target_unit)));
+  for (const [label, value] of [["原输入 / 评价 / 排除", numeric(observation.input_n) + " / " + numeric(rows.n) + " / " + numeric(observation.excluded)],
+    ["按行 MAE / 训练均值参考", numeric(rows.candidate_mae) + " / " + numeric(rows.reference_mae)],
+    ["逐行误差较低 / 较高 / 相同", numeric(counts.improved_rows) + " / " + numeric(counts.worsened_rows) + " / " + numeric(counts.tied_rows)],
+    ["负预测 / 低于下界 / 高于上界", numeric(ranges.negative_predictions) + " / " + numeric(ranges.below_observed_min) + " / " + numeric(ranges.above_observed_max)]] as [string, string][])
+    field(summary, label, value);
+  if (typeof groups.group_count === "number" && groups.group_count > 0) {
+    field(summary, "组等权 MAE / 参考", numeric(groups.candidate_mae) + " / " + numeric(groups.reference_mae));
+    field(summary, "组误差较低 / 较高 / 相同", numeric(groupCounts.improved_groups) + " / " + numeric(groupCounts.worsened_groups) + " / " + numeric(groupCounts.tied_groups));
+  }
+  wrap.append(summary, el("p", "", "观察范围 " + numeric(ranges.observed_min) + " 至 " + numeric(ranges.observed_max)
+    + "；预测范围 " + numeric(ranges.predicted_min) + " 至 " + numeric(ranges.predicted_max) + "。"),
+    el("p", "detail-note", "以下表格保留全部折和组，可上下及左右滚动；较高表示差于该原验证的训练折均值参考，不是父模型比较。"),
+    diagnosticTable("完整评价折误差", ["fold", "训练 / 评价行", "训练 / 评价组", "MAE", "参考 MAE", "平均误差", "负预测"],
+      objects(observation.fold_errors).map(fold => [numeric(fold.fold), numeric(fold.train_n) + " / " + numeric(fold.test_n),
+        numeric(fold.train_group_count) + " / " + numeric(fold.test_group_count), numeric(fold.candidate_mae), numeric(fold.reference_mae),
+        numeric(fold.mean_error), numeric(fold.negative_predictions)])));
+  const allGroups = objects(observation.group_errors);
+  if (allGroups.length) {
+    const groupPanel = el("details", "project-provenance");
+    groupPanel.append(el("summary", "", `查看全部 ${numeric(allGroups.length)} 组误差`),
+      diagnosticTable("完整声明组误差", ["组", "fold", "行", "MAE", "参考 MAE", "平均误差", "负预测"],
+        allGroups.map(group => [words(group.groups).join(" / "), Array.isArray(group.folds) ? group.folds.map(value => numeric(value)).join(" / ") : "未记录",
+          numeric(group.n), numeric(group.candidate_mae), numeric(group.reference_mae), numeric(group.mean_error), numeric(group.negative_predictions)])));
+    wrap.append(groupPanel);
+  } else wrap.append(el("p", "detail-note", "原验证没有声明拆分组，不生成组等权结论。"));
+  wrap.append(diagnosticRows(action, source, rows.n), details("原验证类型与生产身份", { source_check: observation.source_check,
+    group_columns: observation.group_columns, source_ref: source }),
+    el("p", "detail-note", "原组不自动成为独立实验单位；保存误差、负数或超本表范围不证明因果、物理不可能或科学批准。完整原精度见 JSON。"));
+  return wrap;
+}
+
 function comparison(action: Obj, project: Obj): HTMLElement {
   const observations = objects(action.observations);
   if (!observations.length) {
@@ -224,6 +304,8 @@ function comparison(action: Obj, project: Obj): HTMLElement {
     wrap.append(el("p", "empty-state", "此行动尚无已保存观察。缺少结果不能记为成功或零误差。"));
     return wrap;
   }
+  const diagnostic = observations.find(item => item.kind === "saved_oof_diagnostic");
+  if (diagnostic) return savedDiagnostic(diagnostic, action);
   const grouped = observations.filter(item => item.kind === "grouped_oof_residuals");
   if (grouped.length) return resultTable("同一处理规则下，当前候选与化学基线比较",
     ["处理规则", "候选 MAE", "化学基线 MAE", "MAE 差值", "变差组 / 总组数"], grouped.map(observation => {
@@ -751,6 +833,13 @@ export function progressFeedback(action: Obj, source: boolean): string {
   }
   const observations = objects(action.observations);
   if (source) return `已保存 ${observations.length} 条来源观察，原文与定位可在知识页查看。`;
+  const diagnostic = observations.find(item => item.kind === "saved_oof_diagnostic");
+  if (diagnostic) {
+    const rows = object(diagnostic.row_weighted), groups = object(diagnostic.group_error_counts);
+    return `已读取 ${numeric(rows.n)} 条保存 OOF 的完整误差，`
+      + (typeof groups.group_count === "number" && groups.group_count > 0 ? `${numeric(groups.worsened_groups)} 组差于原训练均值参考；` : "原验证未声明拆分组；")
+      + "本次新增拟合 0。";
+  }
   const audit = observations.find(item => item.kind === "tabular_quality_audit");
   if (audit) {
     const profile = object(audit.profile);

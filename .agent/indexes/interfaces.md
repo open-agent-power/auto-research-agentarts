@@ -1,5 +1,7 @@
 # 接口索引
 
+两个`data.saved-oof-*-diagnostics`候选使用原参数`based_on_action_id`／`based_on_result_sha256`指向明确原CV，当前设计冻结于原请求。新obs.kind为`saved_oof_diagnostic`，`source_check/source_ref`区别源CV与本次0fit行动；完整结果`result.diagnostic`。模型小组表全量、大表明确整表引用；新`baseline_decision.conditions_ref`仅复用已提供且完全相同的条件，旧Host／独有recipe条件不改。见[契约](../../docs/research-design.md#原生保存误差诊断)。
+
 方法案例CLI `import-project`及`ProjectExperienceMemory.import_project`可显式带`--parent-action-id`／keyword-only `parent_action_id`。新配对protocol的scope绑定父子两结果，summary.observation.saved_parent_comparison投影紧凑全量对照；旧单结果字段保持。完整封套仍4MiB，不可比直接拒绝，见[接口语义](../../docs/project-experience.md#显式保存父版对照)。
 
 原始训练绑定可带非空`input_transforms={原训练列:"log1p"}`，与`input_basis`互斥。协议保持`input_basis`／`model_input_terms`两个映射字段，kind为log1p时保存全部source_columns和按原顺序transformed_columns，维度不变；仍用`comparison_kind="fixed_input_basis"`及原`saved_parent_mae`。工作台明确选列、保留无效草稿，域x>-1在原需求预检及执行前验证，见[字段与边界](../../docs/research-design.md#固定log1p原输入变换)。

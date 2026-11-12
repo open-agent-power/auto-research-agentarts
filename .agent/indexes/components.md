@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`project-view`在实验行动及画布摘要显示原生保存误差诊断，完整折／组表和按需GET的逐行表均用有界滚动，原CV身份、目标单位与两种加权分别表示；现有原工件下载保留。`project_report`独立读取`result.diagnostic`，不混入训练CV与父比较。见[阅读路径](../../docs/research-design.md#原生保存误差诊断)。
+
 历史方法案例卡和成果报告在有`saved_parent_comparison`时同时显示明确父版差值、行／组改善与恶化、两侧负预测及范围；均值参考与父版分别表示。沿`local-experience.ts`和`project_report._experience_rows`复用既有卡片／报告，不把类比指标合并进当前研究指标。见[案例配对](../../docs/project-experience.md#显式保存父版对照)。
 
 `research-design.ts`在原输入映射表单新增固定log1p与已选原训练列复选框，草稿、绑定恢复、无效选择阻断和真实模型项预览共用原工作流。被取消训练的变换列保留草稿并提示恢复后取消，不静默降为raw；结果／比较／报告区分原CSV、log1p项和父版／均值参考，见[固定映射](../../docs/research-design.md#固定log1p原输入变换)。

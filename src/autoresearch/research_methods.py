@@ -234,6 +234,14 @@ def _domain_methods(project, need):
             eligible = project_design.check_eligible(project, check) and profile.get("rows", 0) <= row_limit
             reason = f"Use the bound {design_kind} design's check after quality feedback; retain adverse results and original group definitions."
             missing = [f"a bound {design_kind} design, completed quality feedback for at most {row_limit} rows and any required preceding comparison or groups"]
+        elif method_id in registry.DIAGNOSTICS:
+            source = project_design.action_for_check(project, registry.DIAGNOSTICS[method_id].check)
+            eligible = source is not None and any(observation.get("summary", {}).get("status") == "computed"
+                                                  for observation in source.get("observations", []))
+            parameters = ({"based_on_action_id": source["id"], "based_on_result_sha256": source["result_sha256"]}
+                          if source else {})
+            reason = "Read all saved row, fold and group errors of this explicitly bound current CV; no fitting or source read."
+            missing = ["a completed computable matching current-design Ridge OOF action"]
         done = [item for item in project.get("actions", []) if item["command"] == method_id
                 and item["status"] == "completed" and item["method_instance"]["parameters"] == parameters
                 and (method_id not in registry.DESIGN_METHODS or item.get("design_binding") == project_design.current(project))]

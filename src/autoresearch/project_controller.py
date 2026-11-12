@@ -225,6 +225,14 @@ class ProjectController:
                                            ("status", "matching_candidate_ids", "missing_information")}
                 context["experience"] = {"schema_version": "project-experience-context-v1", "cases": cases,
                                          "scientific_validation": False}
+        baseline = context["baseline_decision"]
+        fields = project_selection.CONDITION_PROJECTION_FIELDS
+        shared = [{key: copy.deepcopy(option[key]) for key in fields if key in option}
+                  for option in context["conditions"]]
+        if baseline.get("conditions") == shared:
+            baseline.pop("conditions")
+            baseline["conditions_ref"] = {"kind": "provided_selection_context_field", "path": ["conditions"],
+                                          "fields": list(fields)}
         return project_selection.seal_context(context)
 
     def selection_context(self, *, need="next_check"):

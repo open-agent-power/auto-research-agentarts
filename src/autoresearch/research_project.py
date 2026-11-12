@@ -528,7 +528,7 @@ class ResearchProject:
                            "source_snapshot_sha256": project["source_snapshot_sha256"]}
                 if followup:
                     request.update(parameters=dict(parameters), evaluation_ref=registry.evaluation_ref(method_id))
-                if method_id in registry.DESIGN_METHODS:
+                if method_id in registry.DESIGN_METHODS or method_id in registry.DIAGNOSTICS:
                     from . import project_design
                     previous = self._action(con, request_id)
                     binding = previous.get("design_binding") if previous else project_design.current(project)
@@ -567,15 +567,20 @@ class ResearchProject:
                 require(option is not None and option["condition"] == "satisfied" and not option["completed"]
                         and option["parameters"] == parameters, "CONDITION_NOT_SATISFIED", "Saved feedback does not qualify this follow-up.")
                 predecessor = next((a for a in current["actions"] if a["id"] == parameters["based_on_action_id"]), None)
+                predecessor_method = ("data.ridge-random-validation" if registry.DIAGNOSTICS[method_id].check == "random_cv"
+                                      else "data.ridge-group-validation") if method_id in registry.DIAGNOSTICS else primary_id
                 require(predecessor is not None and predecessor["status"] == "completed"
-                        and predecessor["command"] == primary_id
+                        and predecessor["command"] == predecessor_method
                         and predecessor["source_snapshot_sha256"] == project["source_snapshot_sha256"]
                         and predecessor["result_sha256"] == parameters["based_on_result_sha256"]
-                        and predecessor["method_instance"]["evaluation_ref"] == registry.evaluation_ref(primary_id),
+                        and predecessor["method_instance"]["evaluation_ref"] == registry.evaluation_ref(predecessor_method),
                         "EVIDENCE_CHANGED", "The follow-up predecessor identity differs.")
                 self._recover(predecessor)
                 original = json.loads(self._artifact(predecessor).read_bytes())["tool_result"]
-                if method_id == registry.NUMERIC:
+                if method_id in registry.DIAGNOSTICS:
+                    require(binding == project_design.current(project) and predecessor.get("design_binding") == binding,
+                            "CONDITION_NOT_SATISFIED", "The saved CV must belong to the current frozen design.")
+                elif method_id == registry.NUMERIC:
                     require(methods.numeric_feedback_eligible(original["result"]["scope"]),
                             "CONDITION_NOT_SATISFIED", "The verified original result does not qualify numeric association.")
                 elif method_id in registry.DESIGN_METHODS:
@@ -614,7 +619,7 @@ class ResearchProject:
                                           "scope": project["source_scope"]}}
             if followup:
                 action["method_instance"]["input_bindings"].update(parameters)
-            if method_id in registry.DESIGN_METHODS:
+            if method_id in registry.DESIGN_METHODS or method_id in registry.DIAGNOSTICS:
                 action["method_instance"]["input_bindings"].update(
                     design_revision=binding["version"], resource_id=binding["resource"]["id"],
                     resource_version=binding["resource"]["version"], prediction_column=binding["prediction_column"])
@@ -629,7 +634,9 @@ class ResearchProject:
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
             try:
-                if method_id in registry.RIDGE:
+                if method_id in registry.DIAGNOSTICS:
+                    result = primary.execute(self.root, parameters)
+                elif method_id in registry.RIDGE:
                     result = primary.execute(payload, parameters, fit_observer=lambda event: self._record_fit_event(action, event))
                 else:
                     result = primary.execute(payload, parameters) if followup else primary.execute(payload, dimension)

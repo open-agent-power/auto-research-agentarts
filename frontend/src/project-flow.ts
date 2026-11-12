@@ -12,6 +12,7 @@ const methodNames: Record<string, string> = {
   "data.prediction-baseline": "保存预测与公平基线比较", "data.prediction-grouped": "保存预测的分组验证",
   "data.prediction-sensitivity": "保存预测的敏感性检查",
   "data.ridge-random-validation": "训练折内拟合与随机五折验证", "data.ridge-group-validation": "按声明组拆分训练验证",
+  "data.saved-oof-random-diagnostics": "随机验证保存误差诊断", "data.saved-oof-group-diagnostics": "分组验证保存误差诊断",
   "data.prediction-negative-control": "预测误差的折内负对照",
   "materials.saved-steel-audit": "保存钢材模型复核", "software.source-integrity-check": "文件完整性检查",
   "p02.saved-oof-residuals": "保存预测残差诊断", "research.source-selection": "读取来源选区", "p02.source-mapping-check": "读取来源选区",

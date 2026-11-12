@@ -527,6 +527,49 @@ def _prediction_notes(report):
     return notes[-6:]
 
 
+def _saved_diagnostic_sections(report):
+    sections = []
+    for entry in report["action_results"]:
+        tool = entry.get("tool_result") or {}
+        diagnostic = (tool.get("result") or {}).get("diagnostic") or {}
+        if entry["status"] != "completed" or diagnostic.get("schema_version") != "saved-oof-diagnostics-v1":
+            continue
+        observation = next(item for item in tool["observations"] if item.get("kind") == "saved_oof_diagnostic")
+        source, row = observation["source_ref"], observation["row_weighted"]
+        counts, groups = observation["row_error_counts"], observation["group_weighted"]
+        group_counts, ranges = observation["group_error_counts"], observation["prediction_ranges"]
+        lines = ["本次诊断行动：" + entry["action_id"] + "；只读派生原保存结果，新增拟合0，不是新的交叉验证。",
+            "原验证行动：" + source["action_id"] + "；检查 " + observation["source_check"] + "；设计绑定v" + str(source["design_version"])
+                + "；原目标 " + source["target_column"] + "，单位声明 " + source["target_unit"] + "。",
+            "原验证结果身份：" + source["result_sha256"] + "；生产代码：" + source["producer_code_identity"] + "。",
+            "原输入／评价／排除：" + "/".join(_number(value) for value in (observation["input_n"], row["n"], observation["excluded"]))
+                + "；按行MAE " + _number(row["candidate_mae"]) + "，训练折均值参考MAE " + _number(row["reference_mae"]) + "。",
+            "逐行绝对误差较低／较高／相同：" + "/".join(_number(counts[key]) for key in ("improved_rows", "worsened_rows", "tied_rows")) + "。",
+            "组等权MAE " + _number(groups["candidate_mae"]) + "，参考 " + _number(groups["reference_mae"])
+                + "；组误差较低／较高／相同：" + "/".join(_number(group_counts[key]) for key in ("improved_groups", "worsened_groups", "tied_groups")) + "。",
+            "观察范围 " + _number(ranges["observed_min"]) + " 至 " + _number(ranges["observed_max"]) + "；预测范围 "
+                + _number(ranges["predicted_min"]) + " 至 " + _number(ranges["predicted_max"]) + "；负预测／低于下界／高于上界 "
+                + "/".join(_number(ranges[key]) for key in ("negative_predictions", "below_observed_min", "above_observed_max")) + "。",
+            "以下保留完整折与组表；较高表示差于该原验证的训练均值参考，不是父模型比较。逐行记录、排除原因与完整原精度在JSON及输入包保留。",
+            "声明组不自动成为独立实验单位，保存误差、负数或超本表范围不证明因果、物理不可能或科学批准。"]
+        if not groups["group_count"]:
+            lines[5] = "原验证未声明拆分组，不生成组等权结论。"
+        fold_rows = [[_number(fold["fold"]), _number(fold["train_n"]) + "/" + _number(fold["test_n"]),
+            _number(fold["train_group_count"]) + "/" + _number(fold["test_group_count"]),
+            *[_number(fold[key]) for key in ("candidate_mae", "reference_mae", "mean_error", "negative_predictions")]]
+            for fold in observation["fold_errors"]]
+        group_rows = [[" / ".join(group["groups"]), "/".join(_number(value) for value in group["folds"]),
+            *[_number(group[key]) for key in ("n", "candidate_mae", "reference_mae", "mean_error", "negative_predictions")]]
+            for group in observation["group_errors"]]
+        sections.append({"lines": lines, "fold_rows": fold_rows, "group_rows": group_rows,
+                         "cell_limit": max([300, *[len(row[0]) for row in group_rows]])})
+    return sections
+
+
+_DIAGNOSTIC_FOLD_HEADERS = ["fold", "训练/评价行", "训练/评价组", "MAE", "参考MAE", "平均误差", "负预测"]
+_DIAGNOSTIC_GROUP_HEADERS = ["声明组", "fold", "行", "MAE", "参考MAE", "平均误差", "负预测"]
+
+
 def _log1p_description(basis):
     mapping = "、".join(column + " → log1p(" + column + ")" for column in basis["transformed_columns"])
     return ("固定log1p变换：" + mapping + "；其余原CSV列直接输入，输入维数不变；"
@@ -892,9 +935,9 @@ def _selection_citation(hit):
             + "；定位 " + canonical(locator) + "；SHA " + str(source.get("sha256", "未知")))
 
 
-def _markdown_table(headers, rows):
+def _markdown_table(headers, rows, cell_limit=300):
     def cell(value):
-        return _text(value, 300).replace("|", "\\|").replace("\n", " ")
+        return _text(value, cell_limit).replace("|", "\\|").replace("\n", " ")
     return "\n".join(["| " + " | ".join(map(cell, headers)) + " |", "| " + " | ".join("---" for _ in headers) + " |"]
                      + ["| " + " | ".join(map(cell, row)) + " |" for row in rows])
 
@@ -939,6 +982,11 @@ def _markdown(report):
     raw_lines = _raw_validation_lines(report)
     if raw_lines:
         lines.extend(["## 原始数据划分对照", "", *[line + "\n" for line in raw_lines]])
+    for diagnostic in _saved_diagnostic_sections(report):
+        lines.extend(["## 保存OOF的行、折与组误差诊断", "", *[line + "\n" for line in diagnostic["lines"]],
+            _markdown_table(_DIAGNOSTIC_FOLD_HEADERS, diagnostic["fold_rows"]), ""])
+        lines.extend([_markdown_table(_DIAGNOSTIC_GROUP_HEADERS, diagnostic["group_rows"], diagnostic["cell_limit"])
+                      if diagnostic["group_rows"] else "原验证未声明拆分组，不生成组等权结论。", ""])
     feature_lines = _feature_comparison_lines(report)
     if feature_lines:
         lines.extend(["## 研究版本对照", "", *[line + "\n" for line in feature_lines]])
@@ -1062,9 +1110,9 @@ def _pdf(report):
     def h(value):
         story.append(p(value, heading))
 
-    def table(headers, rows, fractions):
-        data = [[p(value, table_style, 240) for value in headers]]
-        data += [[p(value, table_style, 240) for value in row] for row in rows]
+    def table(headers, rows, fractions, cell_limit=240):
+        data = [[p(value, table_style, cell_limit) for value in headers]]
+        data += [[p(value, table_style, cell_limit) for value in row] for row in rows]
         value = Table(data, colWidths=[width * part for part in fractions], repeatRows=1, hAlign="LEFT")
         value.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EDF3EF")),
                                   ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -1125,6 +1173,15 @@ def _pdf(report):
         h("原始数据划分对照")
         for line in raw_lines:
             story.append(p(line, small, 600))
+    for diagnostic in _saved_diagnostic_sections(report):
+        h("保存OOF的行、折与组误差诊断")
+        for line in diagnostic["lines"]:
+            story.append(p(line, small, 600))
+        table(_DIAGNOSTIC_FOLD_HEADERS, diagnostic["fold_rows"], [.07, .16, .16, .14, .16, .17, .14])
+        if diagnostic["group_rows"]:
+            table(_DIAGNOSTIC_GROUP_HEADERS, diagnostic["group_rows"], [.24, .07, .07, .14, .16, .17, .15], diagnostic["cell_limit"])
+        else:
+            story.append(p("原验证未声明拆分组，不生成组等权结论。", small))
     feature_lines = _feature_comparison_lines(report)
     if feature_lines:
         h("研究版本对照")

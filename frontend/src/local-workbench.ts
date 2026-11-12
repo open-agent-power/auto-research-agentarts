@@ -26,6 +26,8 @@ const methodNames: Record<string, string> = {
   "data.prediction-sensitivity": "核对移除样本或组后的比较变化",
   "data.ridge-random-validation": "在训练折内拟合并进行随机五折验证",
   "data.ridge-group-validation": "按声明组拆分并训练验证",
+  "data.saved-oof-random-diagnostics": "读取随机验证的保存误差明细",
+  "data.saved-oof-group-diagnostics": "读取分组验证的保存误差明细",
   "data.prediction-negative-control": "核对实际折内负对照结果",
   "research.source-selection": "读取已登记的来源选区",
   "p02.source-mapping-check": "读取已登记的来源选区",

@@ -16,6 +16,7 @@ CONTEXT_FIELDS = {
     "conditions", "candidates", "blockers", "baseline_decision", "evidence", "scientific_validation",
 }
 OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience"}
+CONDITION_PROJECTION_FIELDS = ("method_id", "condition", "outcome", "completed", "missing_information")
 PROPOSAL_FIELDS = {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
 
 
@@ -102,6 +103,13 @@ def experience_notice(context):
             "the relevant differences and evidence still needed. Case and origin-action IDs are not current "
             "evidence_citation_ids or feedback_action_ids. Cases do not add candidates, change parameters, refill budgets "
             "or authorize execution. Retain adverse observations, uncertainty and the option not to use a case.")
+
+
+def condition_reference_notice(selection):
+    if "conditions_ref" not in selection.get("baseline_decision", {}):
+        return ""
+    return (" The baseline_decision.conditions_ref names the supplied conditions and projected fields in this "
+            "selection context; it is not unread artifact content.")
 
 
 def budget_cost_notice(selection):

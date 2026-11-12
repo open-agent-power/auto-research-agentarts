@@ -107,6 +107,7 @@ body[data-case="p02"] #main-content:focus { outline: none; box-shadow: none; }
 .project-action a,.project-source a{overflow-wrap:anywhere}.project-view summary{cursor:pointer;min-height:44px;line-height:1.7}
 .project-source{border-top:1px solid var(--ar-content-border);padding:18px 0;margin:0}
 .project-source-text{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-height:420px;overflow:auto;font:12px/1.9 var(--ar-font-mono);background:#f6f8f3;border-radius:10px;padding:18px}
+.project-view .diagnostic-table-scroll{max-height:420px;overflow:auto}
 .project-provenance{font-size:12px;line-height:1.8;color:var(--ar-content-muted);overflow-wrap:anywhere}
 .project-provenance pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:12px/1.9 var(--ar-font-mono);background:#f6f8f3;border-radius:10px;padding:18px;color:var(--ar-content-muted)}
 .project-selection-card{padding:22px;border:1px solid var(--ar-content-border);border-radius:14px;margin:14px 0;background:var(--ar-content-surface);min-width:0}
