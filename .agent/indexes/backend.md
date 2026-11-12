@@ -1,5 +1,7 @@
 # 后端索引
 
+`research_plan_proposal`复用`research_design._records`已核验的保存结果，为当前绑定CV捕获v2可选顶层`prediction_ranges`；保持原feedback observations，计划与recipe-change提示共用条件说明。只改两wrapper，不改变core/controller/exporter身份；旧Host无字段不回填，现有离线RSI保留原观察等值与原件检查，不另重算范围。见[Host上下文](../../docs/host-model-selection.md#根据真实反馈建议研究计划)。
+
 原始Ridge设计的`project_design.MAX_RAW_RECORDS=2048`由绑定、adapter与方法资格共用，raw保存OOF负对照沿用同一上限；显式保存预测列检查仍使用`prediction_adapter.MAX_RECORDS=512`。完整1030行Concrete课题触发扩展，不截断数据或改变拟合协议；既有项目须原显式代码登记，不能据容量扩展重置任何用量。见[原始训练边界](../../docs/research-design.md#原始数据的固定模型验证)。
 
 `ProjectController._selection_context`沿原数值／来源执行分支捕获`conditions[].budget_cost`，Ridge复用当前绑定的`_fit_attempts_needed`，无对应设计为null。`plan_readiness`仅复制捕获成本到v2，旧Host保持v1。资格和执行计数不读取成本投影；见[额度需求](../../docs/method-budget-costs.md)。

@@ -10,6 +10,12 @@
 
 新计划context由[research_plan_proposal.py](../src/autoresearch/research_plan_proposal.py)的`build_context(project)`生成，schema为`research-plan-context-v2`。它保留完整原`selection_context`，并供应实际行动反馈的有界投影及`saved_comparisons`。行动ID、请求ID、方法、状态、失败和工件引用保持；数值、协议、范围及实际用量不截断，来源全文和资源正文改用明确原件定位，历史决定改用原行动账本定位。`build_prompt`说明这些引用没有包含原文，`parse_host_response`解析原回答，`build_proposal/validate_proposal`绑定提案。旧v1封存context按原合同验证和重放，不改写成v2。
 
+当前设计有已完成的原始Ridge验证时，v2还捕获可选顶层`prediction_ranges=[{action_id,check,summary}]`。`check`为`random_cv`或`group_cv`，`summary`复用工作台／报告的保存OOF范围计算，含评价行数、观测／预测极值、负预测及低于／高于本批观测范围的计数，固定`scientific_validation=false`。来源经现有保存工件核验；用`action_id`关联原反馈的`artifact_ref`、检查及设计绑定版本，完整行仍在原工件`tool_result.result.analysis.oof`。只捕获当前绑定的验证，原`feedback.observations`保持，历史数值及原件引用继续保留。
+
+缺字段表示没有捕获对应范围，`summary=null`表示没有可描述的保存OOF；二者均不能解释为零。实际计数`0`只描述该批评价行。观测极值描述本批目标，不提供物理或工程允许边界。计划与配方提示仅在捕获此字段时追加同一说明，不改变候选、预算或科学审阅门；无字段的旧v1／v2完整prompt保持原字节。
+
+新配方包沿既有离线RSI读取和原件一致性检查消费这一独立字段。离线reader不会另从OOF重算顶层范围，因此范围原件一致、算术复算和科学解释是不同核对。已有Host不回填；旧pending请求若与当前新构造context不同，沿原freshness检查返回`STALE_SELECTION_CONTEXT`并保留原件及累计名额，同ID不能作为新请求重发。
+
 模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
 
 ### 计划执行条件

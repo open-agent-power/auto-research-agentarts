@@ -89,6 +89,7 @@ def build_prompt(context):
             "prompt": "Propose a recipe revision from this complete frozen context:\n" + canonical(context)}
     prompt["system"] += projection_notice(context["research_context"])
     prompt["system"] += experience_notice(context["research_context"]["selection_context"])
+    prompt["system"] += plan_protocol.prediction_range_notice(context["research_context"])
     prompt["system"] += budget_cost_notice(context["research_context"]["selection_context"])
     return prompt
 

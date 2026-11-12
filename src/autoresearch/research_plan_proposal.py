@@ -38,6 +38,8 @@ def _context(context):
         _require(type(context.get("remaining_questions")) is list
                  and all(type(item) is str for item in context["remaining_questions"]),
                  code, "Retain the current recorded unresolved questions.")
+        if "prediction_ranges" in context:
+            fields.add("prediction_ranges")
     _require(set(context) == fields, code, "Use the exact frozen research plan context fields.")
     host_protocol._context(context["selection_context"])
     feedback = context["feedback"]
@@ -55,7 +57,51 @@ def _context(context):
                  and (item["artifact_ref"] is None or host_protocol._text(item["artifact_ref"], 500)),
                  code, "Use distinct saved feedback identities and their recorded values.")
         known.add(item["action_id"])
+    if "prediction_ranges" in context:
+        _prediction_ranges(context["prediction_ranges"], feedback)
     return context
+
+
+def _prediction_ranges(ranges, feedback):
+    code = "INVALID_PLAN_CONTEXT"
+    _require(type(ranges) is list and bool(ranges), code, "Use captured saved OOF ranges.")
+    by_action = {item["action_id"]: item for item in feedback}
+    known = set()
+    counts = {"negative_predictions", "below_observed_min", "above_observed_max"}
+    bounds = {"observed_min", "observed_max", "predicted_min", "predicted_max"}
+    methods = {"random_cv": "data.ridge-random-validation", "group_cv": "data.ridge-group-validation"}
+    for item in ranges:
+        _require(type(item) is dict and set(item) == {"action_id", "check", "summary"}
+                 and type(item["action_id"]) is str and type(item["check"]) is str
+                 and item["check"] in methods and item["action_id"] in by_action
+                 and item["action_id"] not in known,
+                 code, "Associate each saved OOF range with a distinct CV feedback action.")
+        action = by_action[item["action_id"]]
+        _require(action["status"] == "completed" and action["artifact_ref"] is not None
+                 and action["method_id"] == methods[item["check"]]
+                 and any(observation.get("check") == item["check"]
+                         and observation.get("scientific_validation") is False
+                         for observation in action["observations"]),
+                 code, "Saved OOF ranges must reference matching completed CV observations.")
+        summary = item["summary"]
+        _require(summary is None or (type(summary) is dict
+                 and set(summary) == counts | bounds | {"n", "scientific_validation"}
+                 and summary["scientific_validation"] is False
+                 and type(summary["n"]) is int and summary["n"] > 0
+                 and all(type(summary[key]) is int and 0 <= summary[key] <= summary["n"] for key in counts)
+                 and all(type(summary[key]) in (int, float) for key in bounds)),
+                 code, "Retain the saved OOF range shape, unknown values and no scientific approval.")
+        known.add(item["action_id"])
+
+
+def prediction_range_notice(context):
+    if "prediction_ranges" not in context:
+        return ""
+    return (" prediction_ranges are independent read-only descriptions derived from saved OOF values, linked by action_id "
+            "to feedback artifact_ref, observation check and design_binding.version. They do not change saved observations "
+            "or fit models. An absent or null summary is unknown, not zero; a count of 0 is an actual zero count. "
+            "Observed bounds describe this sample's targets, not physical or engineering limits. Negative predictions "
+            "and counts outside observed bounds grant no scientific approval.")
 
 
 def build_context(project, need="next_check"):
@@ -80,6 +126,16 @@ def build_context(project, need="next_check"):
     context = {"schema_version": "research-plan-context-v2", "selection_context": selection,
                "feedback": feedback, "saved_comparisons": comparisons,
                "remaining_questions": copy.deepcopy((before.get("next_decision") or {}).get("remaining_questions", []))}
+    current_version = (before.get("design_revisions") or [{}])[-1].get("version")
+    current_actions = {action["id"] for action in before["actions"]
+                       if action.get("design_binding", {}).get("version") == current_version}
+    ranges = [{"action_id": record["action_id"], "check": record["check"],
+               "summary": copy.deepcopy(record["prediction_range"])}
+              for record in records if record["check"] in ("random_cv", "group_cv")
+              and record["action_id"] in current_actions
+              and record.get("design_binding", {}).get("version") == current_version]
+    if ranges:
+        context["prediction_ranges"] = ranges
     return _context(context)
 
 
@@ -137,6 +193,7 @@ def build_prompt(context):
             + " Propose a plan from this complete frozen project context:\n" + canonical(context)}
     prompt["system"] += projection_notice(context)
     prompt["system"] += experience_notice(context["selection_context"])
+    prompt["system"] += prediction_range_notice(context)
     prompt["system"] += budget_cost_notice(context["selection_context"])
     return prompt
 

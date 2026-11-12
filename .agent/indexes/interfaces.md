@@ -1,5 +1,7 @@
 # 接口索引
 
+新`research-plan-context-v2`可捕获`prediction_ranges=[{action_id,check,summary}]`，仅当前设计已完成`random_cv/group_cv`。条目关联原反馈／工件；summary为保存OOF范围或null，字段缺失/null与真实零计数区分。配方外层schema保持，原obs不改；既有无字段v1/v2 prompt不追加说明。`GET /api/project/plan-context.json`继续只读，完整context仍限64KiB，见[字段语义](../../docs/host-model-selection.md#根据真实反馈建议研究计划)。
+
 选择context的条件新增可选`budget_cost={local_tool_calls,evidence_reads,estimator_fits}`；前两项为非负整数，拟合可null。readiness有捕获值时为`plan-readiness-v2`并含`method_budget_costs`，无值旧v1不变。报告`execution_conditions`为当前，`plan_reviews`为原Host冻结条件，完整依据在`input.selection_context`；见[字段与语义](../../docs/method-budget-costs.md)。
 
 跨项目方法案例通过`GET /experiences`读取，`POST /experience-import`、`/experience-status`明确导入或改变本地资格，`/experience-resume`仅恢复原manager请求。前缀均为`/api/local-workbench`；原选择／计划／配方回答协议不变，见[案例接口](../../docs/project-experience.md#接口与成果)。
