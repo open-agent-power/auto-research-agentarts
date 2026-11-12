@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from autoresearch.contracts import ResearchError, fingerprint
+from autoresearch import method_registry
 from autoresearch.project_selection import seal_context
 from autoresearch.research_recipe import compile_recipe
 from autoresearch.project_selection_view import read_selection_request, selection_view
@@ -66,6 +67,72 @@ class ProjectSelectionViewTests(unittest.TestCase):
         state["controller_requests"] = state["controller_requests"][1:]
         self.assertEqual(selection_view(state), {"schema_version": "project-selection-view-v1", "available": True,
                                                 "records": [], "total": 0, "omitted": 0})
+
+    def diagnostic_state(self, method="data.saved-oof-group-diagnostics"):
+        """An immutable historical controller fixture; no estimator is executed."""
+        state = self.state(execute=True); parent = state["controller_requests"][0]
+        source_method = ("data.ridge-random-validation" if method_registry.DIAGNOSTICS[method].check == "random_cv"
+                         else "data.ridge-group-validation")
+        binding = {"project_id": state["id"], "version": 1, "source_snapshot_sha256": state["source_snapshot_sha256"],
+                   "resource": {"id": "saved-diagnostic-fixture", "version": 1}, "prediction_column": None,
+                   "training": {"feature_columns": ["x"], "split_group_columns": ["group"], "fit_limit": 10}}
+        producer = {"id": "source-cv", "request_id": "source-validation", "status": "completed", "command": source_method,
+                    "source_snapshot_sha256": state["source_snapshot_sha256"], "result_sha256": "6" * 64,
+                    "design_binding": binding, "method_instance": {"evaluation_ref": method_registry.evaluation_ref(source_method)}}
+        params = {"based_on_action_id": producer["id"], "based_on_result_sha256": producer["result_sha256"]}
+        candidate = {"id": "diagnostic-choice", "method_id": method, "parameters": params,
+                     "evaluation_ref": method_registry.evaluation_ref(method)}
+        context = parent["selection_context"]
+        context = seal_context({**{k: v for k, v in context.items() if k != "context_sha256"},
+                                "domain_scope": {"domain": "data", "contract": "tabular-quality-v1"}, "candidates": [candidate]})
+        parent["selection_context"] = context
+        parent["request"]["proposal"].update(context_sha256=context["context_sha256"],
+                                             choice={"kind": "execute", "candidate_id": candidate["id"]})
+        parent["request_sha256"] = fingerprint(parent["request"])
+        parent["decision"]["next_action"].update(method_id=method, parameters=params)
+        parent["decision_sha256"] = fingerprint(parent["decision"])
+        child_request = {"project_id": state["id"], "command": method, "dimension": None,
+                         "source_snapshot_sha256": state["source_snapshot_sha256"], "parameters": params,
+                         "evaluation_ref": candidate["evaluation_ref"], "design_binding": binding}
+        child = {**child_request, "request_id": parent["child_request_id"], "request_sha256": fingerprint(child_request),
+                 "id": "action-" + fingerprint({"request_id": parent["child_request_id"], **child_request})[:32],
+                 "run_id": state["run_id"], "code_identity": parent["code_identity"], "status": "completed",
+                 "artifact": "artifacts/saved-diagnostic.json", "result_sha256": "7" * 64, "failure": None,
+                 "method_instance": {"definition_ref": {"id": method, "version": "1"}, "parameters": params,
+                     "evaluation_ref": candidate["evaluation_ref"], "input_bindings": {**params, "design_revision": 1,
+                        "resource_id": binding["resource"]["id"], "resource_version": 1, "prediction_column": None,
+                        "training": binding["training"]}}}
+        state["actions"] = [producer, child]
+        # A later binding is legal; history verification must not consult only the current one.
+        state["design_revisions"] = [binding, {**copy.deepcopy(binding), "version": 2}]
+        parent.update(status="completed", result={"child": {key: child[key] for key in
+                      ("id", "request_id", "command", "status", "artifact", "result_sha256", "failure")}})
+        return state
+
+    def test_diagnostic_selection_history_retains_frozen_binding_for_both_checks(self):
+        for method in method_registry.DIAGNOSTICS:
+            with self.subTest(method=method):
+                state = self.diagnostic_state(method)
+                record = selection_view(state)["records"][0]
+                self.assertEqual(record["method_id"], method)
+                self.assertEqual(read_selection_request(state, "selection-1"), state["controller_requests"][0])
+                self.assertEqual(state["actions"][-1]["design_binding"]["version"], 1)
+
+    def test_diagnostic_history_rejects_changed_frozen_binding_and_producer_identity(self):
+        mutations = [
+            lambda s: s["actions"][-1]["method_instance"]["input_bindings"].update(design_revision=2),
+            lambda s: s["actions"][0].update(command="data.ridge-random-validation"),
+            lambda s: s["actions"][0].update(status="failed"),
+            lambda s: s["actions"][0].update(result_sha256="8" * 64),
+            lambda s: s["actions"][0].update(source_snapshot_sha256="9" * 64),
+            lambda s: s["actions"][0].update(design_binding=s["design_revisions"][-1]),
+            lambda s: s["actions"][0]["method_instance"].update(evaluation_ref="wrong-cv"),
+        ]
+        for mutate in mutations:
+            state = self.diagnostic_state(); mutate(state)
+            with self.assertRaises(ResearchError) as caught:
+                selection_view(state)
+            self.assertEqual(caught.exception.code, "EVIDENCE_CHANGED")
 
     def test_download_preserves_original_hash_bound_parent(self):
         state = self.state()

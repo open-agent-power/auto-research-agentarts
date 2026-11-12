@@ -87,7 +87,7 @@ def _verify(state, parent):
                                  and child["method_instance"]["evaluation_ref"] == candidate["evaluation_ref"]
                                  and all(child["method_instance"]["input_bindings"].get(key) == value
                                          for key, value in params.items()))
-                    if candidate["method_id"] in method_registry.DESIGN_METHODS:
+                    if candidate["method_id"] in method_registry.DESIGN_METHODS or candidate["method_id"] in method_registry.DIAGNOSTICS:
                         binding = child["design_binding"]
                         inputs = child["method_instance"]["input_bindings"]
                         _require(binding in state.get("design_revisions", [])
@@ -99,6 +99,17 @@ def _verify(state, parent):
                         child_request["design_binding"] = binding
                         if binding.get("training") is not None:
                             _require(inputs.get("training") == binding["training"])
+                        if candidate["method_id"] in method_registry.DIAGNOSTICS:
+                            source_check = method_registry.DIAGNOSTICS[candidate["method_id"]].check
+                            source_method = ("data.ridge-random-validation" if source_check == "random_cv"
+                                             else "data.ridge-group-validation")
+                            producer = next((item for item in state["actions"] if item["id"] == params["based_on_action_id"]), None)
+                            _require(producer is not None and producer["status"] == "completed"
+                                     and producer["command"] == source_method
+                                     and producer["source_snapshot_sha256"] == child["source_snapshot_sha256"]
+                                     and producer["result_sha256"] == params["based_on_result_sha256"]
+                                     and producer.get("design_binding") == binding
+                                     and producer["method_instance"]["evaluation_ref"] == method_registry.evaluation_ref(source_method))
                         if candidate["method_id"] == "data.prediction-negative-control":
                             reference = child["generated_prediction_ref"]
                             producer = next((item for item in state["actions"] if item["id"] == reference["action_id"]), None)
