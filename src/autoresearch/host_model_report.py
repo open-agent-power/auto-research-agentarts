@@ -169,6 +169,28 @@ def capture_host_models(workspace) -> dict:
     return _capture(workspace, include_assets=True)
 
 
+def supplied_material_summaries(record) -> list:
+    """Read field identities from the frozen input; retain complete values in originals."""
+    context = record.get("context")
+    if type(context) is not dict:
+        return []
+    if "supplied_materials" not in context:
+        context = context.get("research_context")
+    if type(context) is not dict or type(context.get("supplied_materials")) is not list:
+        return []
+    summaries = []
+    for material in context["supplied_materials"]:
+        if type(material) is not dict or type(material.get("fields")) is not dict:
+            continue
+        summary = {key: copy.deepcopy(material[key]) for key in
+                   ("action_id", "result_sha256", "artifact_ref", "producer", "source_ref", "coverage", "scientific_validation")
+                   if key in material}
+        summary["fields"] = {name: {key: copy.deepcopy(field[key]) for key in ("path", "count") if key in field}
+                             for name, field in material["fields"].items() if type(field) is dict}
+        summaries.append(summary)
+    return summaries
+
+
 def host_model_snapshot_sha256(workspace) -> str:
     """Read the same original identities without allocating their Base64 copies."""
     return _capture(workspace, include_assets=False)["snapshot_sha256"]

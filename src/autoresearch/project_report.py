@@ -422,6 +422,26 @@ def _host_request_rows(report):
     return rows
 
 
+def _supplied_material_rows(report):
+    rows = []
+    for record in report["host_models"]["records"]:
+        for material in host_model_report.supplied_material_summaries(record):
+            fields = "; ".join(name + ": " + str(field.get("count", "未记录"))
+                               for name, field in material["fields"].items())
+            rows.extend([["请求 / 诊断行动", record["request_id"] + " / " + material.get("action_id", "未记录")],
+                         ["供应字段 / 保存条数", fields],
+                         ["诊断结果 SHA256", material.get("result_sha256", "未记录")],
+                         ["原诊断原件", material.get("artifact_ref", "未记录")],
+                         ["原诊断生产身份", canonical(material.get("producer", {}))],
+                         ["原验证来源身份", canonical(material.get("source_ref", {}))]])
+    return rows
+
+
+SUPPLIED_MATERIAL_NOTE = ("以下仅列各请求冻结输入实际供应的完整字段、保存条数与原生产身份。"
+                          "完整字段值保留在report.json、input.json及原始context证据中，不在正文重铺明细。"
+                          "供应输入不表示模型已理解或科学评审通过；rows只含当时保存的input_values，不补入原始CSV。")
+
+
 PLAN_REVIEW_NOTE = ("以下条件来自各请求准备时的冻结版本，仅核对执行条件，不判读建议正文。"
                     "当前执行仍须重新检查项目；科学解释仍需审阅。摘要最多列最近3条，完整条件见report.json的plan_reviews。")
 
@@ -1063,6 +1083,10 @@ def _markdown(report):
                   _markdown_table(["请求 / CLI自报路由", "请求状态 / 实际控制器结果", "报告估值USD"], _host_request_rows(report))
                   if report["host_models"]["records"] else "尚无宿主模型请求；其他外部选择的未知用量按上表单列。", "", HOST_MODEL_NOTE,
                   "", "宿主模型证据快照：`" + report["host_models"]["snapshot_sha256"] + "`。", ""])
+    material_rows = _supplied_material_rows(report)
+    if material_rows:
+        lines.extend(["## 冻结输入供应的保存字段", "", SUPPLIED_MATERIAL_NOTE, "",
+                      _markdown_table(["记录项", "冻结保存值"], material_rows, cell_limit=2000), ""])
     if report["plan_reviews"]:
         lines.extend(["## 计划执行条件", "", PLAN_REVIEW_NOTE, "",
                       _markdown_table(["记录项", "请求准备时的条件"], _plan_review_rows(report)), ""])
@@ -1305,6 +1329,11 @@ def _pdf(report):
     else:
         story.append(p("尚无宿主模型请求；其他外部选择的未知用量按上表单列。", small))
     story.append(p(HOST_MODEL_NOTE, small))
+    material_rows = _supplied_material_rows(report)
+    if material_rows:
+        h("冻结输入供应的保存字段")
+        story.append(p(SUPPLIED_MATERIAL_NOTE, small))
+        table(["记录项", "冻结保存值"], material_rows, [.26, .74], cell_limit=2000)
     if report["plan_reviews"]:
         h("计划执行条件")
         story.append(p(PLAN_REVIEW_NOTE, small))

@@ -11,6 +11,7 @@ from .project_selection import _hash, _text
 from .research_project import ResearchProject, safe_path, write_bytes_once
 from .research_recipe import compile_recipe, parse_json
 from .source_evidence_adapter import _read_file
+from .saved_materials import normalize_requests
 
 MAX_VALIDATION_BYTES = 2 * 1024 * 1024
 
@@ -22,7 +23,7 @@ def _require(condition, code, message):
 
 def propose_recipe_change(current_version, trace, goal, *, workspace, request_id,
                           decision_limit, cli_budget_usd, reason, provider="delegated",
-                          executable=None, response_file=None):
+                          executable=None, response_file=None, saved_materials=None):
     """Prepare or resume one original Host request and return its saved recipe candidate.
 
     Delegated requests return prepared until the caller supplies the original answer.
@@ -39,18 +40,24 @@ def propose_recipe_change(current_version, trace, goal, *, workspace, request_id
             raise
         previous = None
     if previous is None:
-        context = protocol.build_context(journal.project, current_version, goal)
+        selectors = normalize_requests(saved_materials)
+        materials = {"saved_materials": selectors} if selectors else {}
+        context = protocol.build_context(journal.project, current_version, goal, **materials)
     else:
         _require(previous.get("purpose") == "recipe", "IDEMPOTENCY_CONFLICT",
                  "The original request belongs to another model purpose.")
         context = previous["context"]
+        original = previous["prepare_specification"].get("saved_materials", [])
+        _require(saved_materials is None or normalize_requests(saved_materials) == original,
+                 "IDEMPOTENCY_CONFLICT", "The original saved material selectors are fixed.")
+        materials = {"saved_materials": original} if original else {}
     _require(trace == context["research_context"], "STALE_SELECTION_CONTEXT",
              "Use the actual complete research feedback frozen for this request.")
     record = journal.prepare(request_id=request_id, provider=provider,
         expected_state_version=context["research_context"]["selection_context"]["state_version"],
         decision_limit=decision_limit, cli_budget_usd=cli_budget_usd, reason=reason,
         executable=executable, purpose="recipe", current_recipe=current_version,
-        improvement_goal=goal)
+        improvement_goal=goal, **materials)
     if provider == "delegated":
         if response_file is not None:
             record = journal.import_response(request_id=request_id, response_file=response_file)

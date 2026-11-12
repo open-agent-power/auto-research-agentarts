@@ -1,5 +1,7 @@
 # 后端索引
 
+`saved_materials`按显式action／诊断结果SHA选择完整保存groups／folds／rows，核对诊断及原CV封套、来源和历史设计，直接复制原值；不重新inspect或关联原输入。plan／recipe非空请求生成v3，最终64KiB全量校验，超限明确失败；默认旧context/prompt原字节保持。Host specification／freshness／same-ID、readonly preview、report与RSI导出读取共用冻结内容，见[字段供应](../../docs/research-design.md#明确供应保存诊断字段)。
+
 原生保存OOF诊断复用`inspect_saved_oof`，两个check-specific方法独立注册于`DIAGNOSTICS/FOLLOWUP`，不进训练check或默认顺序。原CV/结果SHA与当前设计进入请求身份，trusted workspace只在执行端传入；工具1／fit0／来源0，computed资格、原ID／unknown／换设计恢复沿原账本。完整结果为`result.diagnostic`，不冒充CV；见[原生诊断](../../docs/research-design.md#原生保存误差诊断)。
 
 `input_basis`新增显式selected-column log1p，`project_design`接`training.input_transforms`并沿原绑定需求预检验证完整案例域；Ridge共用映射／元数据和原2fit/折计数。`feature_comparison`将原`fixed_input_basis`门扩至精确声明log1p，仍只接受同原列的raw父版、同完整评价及除映射两字段之外相同协议；沿原父MAE assessment，见[固定log1p](../../docs/research-design.md#固定log1p原输入变换)。

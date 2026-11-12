@@ -8,7 +8,7 @@ MAX_INLINE_DIAGNOSTIC_GROUP_BYTES = 8192
 
 
 def projection_notice(context):
-    if context["schema_version"] != "research-plan-context-v2":
+    if context["schema_version"] not in ("research-plan-context-v2", "research-plan-context-v3"):
         return ""
     notice = (" This v2 research context projects retained feedback. Historical next_decision entries are exact "
             "saved-action references, not included decisions. Source exact_text_ref and resource_ref identify fields "
@@ -28,6 +28,13 @@ def projection_notice(context):
                    "complete retained rows/folds/groups, not additional model-read text. Comparisons use that CV's "
                    "training-fold mean reference, not a parent model; adverse groups and ranges do not establish "
                    "physical impossibility, sample independence or scientific approval.")
+    if context["schema_version"] == "research-plan-context-v3":
+        notice = notice.replace("This v2 research context", "This v3 research context")
+        notice += (" supplied_materials contains complete original saved diagnostic fields selected explicitly by action_id "
+                   "and result_sha256. Only fields actually included there are supplied: other diagnostic_ref and "
+                   "group_errors_ref fields remain unread references. Counts describe complete saved fields, never ranked "
+                   "examples or recomputed tables. Rows contain only saved input_values; missing original inputs were not "
+                   "joined from CSV or invented. These supplied values establish no scientific approval.")
     return notice
 
 

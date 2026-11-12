@@ -536,11 +536,24 @@ def load_saved_export(directory):
             observations = [dict(observation, id=item["action_id"] + ":observation:" + str(index),
                                  action_id=item["action_id"])
                             for index, observation in enumerate(envelope["tool_result"]["observations"])]
-            if context["research_context"]["schema_version"] == "research-plan-context-v2":
+            if context["research_context"]["schema_version"] in ("research-plan-context-v2", "research-plan-context-v3"):
                 observations = project_observations(observations, item["artifact_ref"])
             _require(envelope["action_id"] == item["action_id"]
                      and observations == item["observations"],
                      "Export feedback differs from the original saved artifact.")
+    feedback = {item["action_id"]: item for item in context["research_context"]["feedback"]}
+    for material in context["research_context"].get("supplied_materials", []):
+        envelope = artifacts[material["artifact_ref"]]
+        source = material["source_ref"]
+        original_cv = artifacts[feedback[source["action_id"]]["artifact_ref"]]
+        diagnostic = envelope["tool_result"]["result"]["diagnostic"]
+        _require(envelope["sha256"] == material["result_sha256"]
+                 and envelope["code_identity"] == material["producer"]["code_identity"]
+                 and original_cv["sha256"] == source["result_sha256"]
+                 and original_cv["code_identity"] == source["producer_code_identity"]
+                 and all(field["value"] == diagnostic[name] and field["count"] == len(diagnostic[name])
+                         for name, field in material["fields"].items()),
+                 "Export supplied materials differ from the original complete saved fields or producer identities.")
     outcome = validation["controller_outcome"]
     if validation["status"] == "completed":
         child = outcome["result"]["child"]

@@ -14,6 +14,7 @@ from .contracts import ResearchError, canonical, identifier
 from .project_controller import ProjectController
 from .research_project import ResearchProject, safe_path, write_bytes_once
 from .source_evidence_adapter import _read_file
+from .saved_materials import normalize_requests
 
 PENDING = {"prepared", "sending", "unknown", "received"}
 MAX_STATE_BYTES = 2 * 1024 * 1024
@@ -73,11 +74,12 @@ class HostModelSelection:
 
     def _fresh(self, record):
         purpose = record.get("purpose", "selection")
+        specification = record["prepare_specification"]
+        materials = {"saved_materials": specification["saved_materials"]} if specification.get("saved_materials") else {}
         if purpose == "recipe":
-            specification = record["prepare_specification"]
-            current = recipe_protocol.build_context(self.project, specification["current_recipe"], specification["improvement_goal"])
+            current = recipe_protocol.build_context(self.project, specification["current_recipe"], specification["improvement_goal"], **materials)
         elif purpose == "plan":
-            current = plan_protocol.build_context(self.project)
+            current = plan_protocol.build_context(self.project, **materials)
         else:
             current = ProjectController(self.project.root).selection_context()
         _require(current == record["context"], "STALE_SELECTION_CONTEXT",
@@ -90,11 +92,14 @@ class HostModelSelection:
         write_bytes_once(folder / "prompt.json", canonical(record["prompt"]).encode("utf-8"))
 
     def prepare(self, *, request_id, provider, expected_state_version, decision_limit, cli_budget_usd,
-                reason, executable=None, purpose="selection", current_recipe=None, improvement_goal=None):
+                reason, executable=None, purpose="selection", current_recipe=None, improvement_goal=None,
+                saved_materials=None):
         identifier(request_id)
         _require(purpose in ("selection", "plan", "recipe"), "INVALID_REQUEST", "Choose a selection, plan or recipe request purpose.")
         _require(purpose == "recipe" or (current_recipe is None and improvement_goal is None),
                  "INVALID_REQUEST", "Recipe input and improvement goal belong to recipe requests.")
+        selectors = normalize_requests(saved_materials)
+        _require(purpose != "selection" or not selectors, "INVALID_REQUEST", "Saved materials belong to plan or recipe requests.")
         _require(provider in ("claude_cli", "delegated") and type(decision_limit) is int and 1 <= decision_limit <= 8,
                  "INVALID_REQUEST", "Choose claude_cli/delegated and a prospective decision limit from 1 to 8.")
         _require(type(cli_budget_usd) in (int, float) and math.isfinite(cli_budget_usd) and 0 < cli_budget_usd <= 0.10,
@@ -116,6 +121,8 @@ class HostModelSelection:
             specification["purpose"] = purpose
         if purpose == "recipe":
             specification.update(current_recipe=copy.deepcopy(current_recipe), improvement_goal=improvement_goal)
+        if selectors:
+            specification["saved_materials"] = selectors
         with self._writer():
             state = self._load()
             old = state["requests"].get(request_id)
@@ -128,11 +135,12 @@ class HostModelSelection:
             _require(len(state["requests"]) < decision_limit, "HOST_DECISION_LIMIT", "The cumulative host decision limit is exhausted.")
             _require(not any(r["status"] in PENDING for r in state["requests"].values()),
                      "HOST_SELECTION_PENDING", "Resolve the original pending/unknown request; do not start another decision.")
+            materials = {"saved_materials": selectors} if selectors else {}
             if purpose == "recipe":
-                context = recipe_protocol.build_context(self.project, current_recipe, improvement_goal)
+                context = recipe_protocol.build_context(self.project, current_recipe, improvement_goal, **materials)
                 selection = context["research_context"]["selection_context"]
             elif purpose == "plan":
-                context = plan_protocol.build_context(self.project)
+                context = plan_protocol.build_context(self.project, **materials)
                 selection = context["selection_context"]
             else:
                 context = ProjectController(self.project.root).selection_context()

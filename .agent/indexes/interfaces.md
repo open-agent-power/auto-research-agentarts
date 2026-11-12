@@ -1,6 +1,6 @@
 # 接口索引
 
-Airfoil首次原生计划已实际请求106组、1503行及原输入对应；当前已通过原工件与操作者全表交付落实，但没有新的模型读取记录。`group_errors_ref`／`diagnostic_ref`仍是引用，Host准备时尚无按本次请求统一供应保存字段的入口；不能把UI已能读全表写成模型已读。见[实际停点](../../docs/research/airfoil-noise-study.md#两份首次计划与实际等待)，后续接线保留原64KiB、完整字段、生产身份与旧prompt原字节。
+后续Host plan／recipe可明确带`saved_materials`数组，按诊断action／结果SHA读取完整groups／folds／rows，非空生成v3独立`supplied_materials`，默认v2与旧prompt保持。CLI prepare／advance及只读preview、plan HTTP与GET预览共用校验；same-ID先返原封存记录，不能更换字段或扩grant。完整最终context仍64KiB，超限整次拒绝。Airfoil此前的实际[等待与全文未读记录](../../docs/research/airfoil-noise-study.md#两份首次计划与实际等待)不追溯改写，见[新入口](../../docs/host-model-selection.md#选择后续输入中的保存字段)。
 
 两个`data.saved-oof-*-diagnostics`候选使用原参数`based_on_action_id`／`based_on_result_sha256`指向明确原CV，当前设计冻结于原请求。新obs.kind为`saved_oof_diagnostic`，`source_check/source_ref`区别源CV与本次0fit行动；完整结果`result.diagnostic`。模型小组表全量、大表明确整表引用；新`baseline_decision.conditions_ref`仅复用已提供且完全相同的条件，旧Host／独有recipe条件不改。见[契约](../../docs/research-design.md#原生保存误差诊断)。
 

@@ -629,7 +629,8 @@ class LocalWorkbench:
         return self._model_command(body, executable=executable, resume=False)
 
     def model_plan_advance(self, body, *, executable):
-        _body(body, ("request_id", "project_id", "expected_state_version", "decision_limit", "cli_budget_usd", "reason"))
+        fields = ("request_id", "project_id", "expected_state_version", "decision_limit", "cli_budget_usd", "reason")
+        _body(body, (*fields, "saved_materials") if type(body) is dict and "saved_materials" in body else fields)
         return self._model_command(body, executable=executable, resume=False, purpose="plan")
 
     def model_plan_adopt(self, body):
@@ -679,9 +680,10 @@ class LocalWorkbench:
                          and record["prepare_specification"]["executable"] == executable,
                          "CONFIG_CHANGED", "Resume requires the original host-selected CLI.")
             else:
+                materials = {"saved_materials": body["saved_materials"]} if purpose == "plan" and "saved_materials" in body else {}
                 record = journal.prepare(request_id=body["request_id"], provider="claude_cli", executable=executable,
                     expected_state_version=body["expected_state_version"], decision_limit=body["decision_limit"],
-                    cli_budget_usd=body["cli_budget_usd"], reason=body["reason"], purpose=purpose)
+                    cli_budget_usd=body["cli_budget_usd"], reason=body["reason"], purpose=purpose, **materials)
             record = journal.request(request_id=body["request_id"])
             if record["status"] == "received":
                 record = journal.consume(request_id=body["request_id"])

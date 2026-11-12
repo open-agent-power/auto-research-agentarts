@@ -20,6 +20,8 @@ from .project_selection_view import selection_view, read_selection_request
 from .research_project import ResearchProject, safe_path
 from .host_model_report import host_model_report_current
 from .research_plan_proposal import build_context as build_plan_context
+from .research_recipe import parse_json
+from .saved_materials import normalize_requests
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
 MAX_REPORT_TOTAL_BYTES = 128 * 1024 * 1024
@@ -517,9 +519,36 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                                  "text/csv": ".csv", "text/tab-separated-values": ".tsv"}.get(source["media_type"], ".bin")
                     return self.send_data(200, assets[source_id], "application/octet-stream", source_id + extension)
                 if parsed.path == "/api/project/plan-context.json":
-                    _require(not parsed.query, "INVALID_QUERY", "Read the current saved plan and feedback context.")
-                    _bound_state(project, iteration_snapshot)
-                    return self.send_json(200, build_plan_context(project), "plan-context.json")
+                    try:
+                        values = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True,
+                                          max_num_fields=2, errors="strict")
+                    except (ValueError, UnicodeError):
+                        raise ResearchError("INVALID_QUERY", "Use saved_materials and an optional snapshot_ref once.") from None
+                    _require(set(values) <= {"saved_materials", "snapshot_ref"}
+                             and all(len(items) == 1 for items in values.values()),
+                             "INVALID_QUERY", "Use saved_materials and an optional snapshot_ref once.")
+                    before = _bound_state(project, iteration_snapshot)
+                    expected = values.get("snapshot_ref", [before["snapshot_ref"]])[0]
+                    _require(re.fullmatch(r"[a-f0-9]{64}", expected) is not None,
+                             "INVALID_QUERY", "Use one full project snapshot identity.")
+                    _require(expected == before["snapshot_ref"], "STALE_STATE", "Project snapshot changed.")
+                    materials = {}
+                    if "saved_materials" in values:
+                        raw = values["saved_materials"][0].encode("utf-8")
+                        _require(len(raw) <= 65536, "INVALID_QUERY", "Saved material selectors exceed their input limit.")
+                        selectors = parse_json(b'{"requests":' + raw + b'}', maximum=65550,
+                                               code="INVALID_QUERY")
+                        _require(set(selectors) == {"requests"}, "INVALID_QUERY",
+                                 "Use one strict saved material selector JSON value.")
+                        materials["saved_materials"] = normalize_requests(selectors["requests"])
+                    context = build_plan_context(project, **materials)
+                    after = _bound_state(project, iteration_snapshot)
+                    selection = context["selection_context"]
+                    _require(selection["snapshot_ref"] == before["snapshot_ref"] == after["snapshot_ref"]
+                             and selection["project_id"] == before["id"]
+                             and selection["state_version"] == before["state_version"],
+                             "STALE_STATE", "Project changed while preparing the plan preview.")
+                    return self.send_json(200, context, "plan-context.json")
                 if parsed.path == "/api/project/selection-context.json":
                     try:
                         values = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True, max_num_fields=1)
@@ -577,7 +606,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     return self.project_error(404, "PROJECT_ROUTE_NOT_FOUND", "Unknown read-only project route.")
                 return super().do_GET()
             except ResearchError as error:
-                status = (409 if error.code in {"REPORT_STALE", "STALE_STATE", "TASK_NOT_AVAILABLE", "WORKBENCH_RESTART_REQUIRED"} else 400 if error.code in {"INVALID_QUERY", "INVALID_REQUEST"}
+                status = (409 if error.code in {"REPORT_STALE", "STALE_STATE", "TASK_NOT_AVAILABLE", "WORKBENCH_RESTART_REQUIRED"}
+                          or (parsed.path == "/api/project/plan-context.json" and error.code in {"EVIDENCE_CHANGED", "CODE_CHANGED", "STALE_SELECTION_CONTEXT"})
+                          else 400 if error.code in {"INVALID_QUERY", "INVALID_REQUEST", "INVALID_SAVED_MATERIALS", "INVALID_PLAN_CONTEXT"}
                           else 404 if error.code in {"ARTIFACT_NOT_FOUND", "ARTIFACT_NOT_AVAILABLE", "PROJECT_NOT_FOUND"} else 500)
                 # Error messages are fixed here; an OS/SQL exception never exposes local paths.
                 return self.project_error(status, error.code,

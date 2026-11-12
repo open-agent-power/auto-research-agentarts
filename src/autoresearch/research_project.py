@@ -26,12 +26,13 @@ def _source_metadata(receipt):
 def code_identity():
     from . import project_recipe, recipe_improvement
     from . import project_model_protocol
-    from . import project_design, plan_feedback, project_experience, project_experience_binding
+    from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
                         "recipe_improvement": hashlib.sha256(Path(recipe_improvement.__file__).read_bytes()).hexdigest(),
                         "plan_feedback": hashlib.sha256(Path(plan_feedback.__file__).read_bytes()).hexdigest(),
+                        "saved_materials": hashlib.sha256(Path(saved_materials.__file__).read_bytes()).hexdigest(),
                         "project_design": hashlib.sha256(Path(project_design.__file__).read_bytes()).hexdigest(),
                         "project_experience": hashlib.sha256(Path(project_experience.__file__).read_bytes()).hexdigest(),
                         "project_experience_binding": hashlib.sha256(Path(project_experience_binding.__file__).read_bytes()).hexdigest(),

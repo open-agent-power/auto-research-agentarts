@@ -2,6 +2,8 @@
 import { el } from "./dom";
 
 type Obj = Record<string, unknown>;
+type MaterialField = "groups" | "folds" | "rows";
+type MaterialRequest = { action_id: string; result_sha256: string; fields: MaterialField[] };
 type Host = {
   read(url: string): Promise<Obj>;
   canCheckPlanFacts(): boolean;
@@ -36,7 +38,39 @@ const factFields: Record<string, string> = { "plan.question": "本轮问题", "p
 const factMetrics: Record<string, string> = { baseline_mae: "父版本 MAE", candidate_mae: "候选 MAE", mae_change: "候选减父版本 MAE",
   relative_improvement: "相对改善比例（非百分数）", baseline_negative_predictions: "父版本负预测数量", candidate_negative_predictions: "候选负预测数量" };
 const factOrders: Record<string, string> = { candidate_lower: "候选 MAE 更低", baseline_lower: "父版本 MAE 更低", equal: "两版 MAE 相同" };
+const materialFields: Record<MaterialField, string> = { groups: "完整组明细", folds: "完整折明细", rows: "完整逐行明细" };
 type FactDraft = { field: string; start: number; end: number; quote: string; comparison: string; kind: string; order: string; metric: string; value: string; open: boolean };
+
+function suppliedMaterials(context: Obj): Obj[] {
+  return objects(("supplied_materials" in context ? context : object(context.research_context)).supplied_materials);
+}
+function materialSummary(context: Obj): HTMLElement {
+  const wrap = el("div", "local-supplied-materials");
+  for (const material of suppliedMaterials(context)) {
+    const producer = object(material.producer), source = object(material.source_ref);
+    const fields = Object.entries(object(material.fields)).map(([name, value]) => `${name} ${number(object(value).count)} 条`);
+    wrap.append(el("p", "", `${text(material.action_id)} · ${fields.join("；")}`),
+      el("p", "detail-note", `${text(producer.method_id)} · 原设计 v${number(producer.design_version)} · 来源验证 ${text(source.action_id)}`));
+    const provenance = el("details", "local-advanced");
+    provenance.append(el("summary", "", "核对供应字段与原生产身份"), el("pre", "project-source-text", JSON.stringify({
+      action_id: material.action_id, result_sha256: material.result_sha256, artifact_ref: material.artifact_ref,
+      producer: material.producer, source_ref: material.source_ref,
+      fields: Object.fromEntries(Object.entries(object(material.fields)).map(([name, value]) => [name, { path: object(value).path, count: object(value).count }])),
+      coverage: material.coverage, scientific_validation: material.scientific_validation,
+    }, null, 2))); wrap.append(provenance);
+  }
+  return wrap;
+}
+function recordReading(record: Obj): Obj {
+  const context = object(record.context), nested = object(context.research_context);
+  if (!suppliedMaterials(context).length) return record;
+  const original = "supplied_materials" in context ? context : nested;
+  const summary = { ...original, supplied_materials: suppliedMaterials(context).map(material => ({ ...material,
+    fields: Object.fromEntries(Object.entries(object(material.fields)).map(([name, value]) => [name, { path: object(value).path, count: object(value).count }])),
+  })) };
+  return { ...record, context: "supplied_materials" in context ? summary : { ...context, research_context: summary },
+    prompt: { ...object(record.prompt), prompt: "完整提示原文见下载的原请求 JSON。" } };
+}
 
 function factSelect(options: Record<string, string>, selected: string): HTMLSelectElement {
   const control = el("select");
@@ -151,7 +185,17 @@ export function createLocalModelPanel(host: Host): {
   const grid = el("div", "local-form-grid"); grid.append(field("累计决策限额", limit), field("CLI配置阈值（USD，至多0.10）", cap));
   fields.append(grid, field("本次范围与理由", reason), grantNote);
   const start = el("button", "action-button primary", "用模型选择并执行一步"); start.type = "submit";
-  form.append(field("这次请模型做什么", purpose), fields, start, el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
+  const materials = el("details", "local-advanced local-model-materials"), materialChoices = el("div"), materialPreview = el("div");
+  const materialStatus = el("p", "detail-note"); materialStatus.setAttribute("role", "status"); materialStatus.setAttribute("aria-live", "polite");
+  const previewMaterials = el("button", "action-button", "预览实际供应输入"), saveInput = el("button", "quiet-button", "下载供应后的输入 JSON");
+  const saveRequests = el("button", "quiet-button", "下载字段选择 JSON");
+  for (const button of [previewMaterials, saveInput, saveRequests]) button.type = "button";
+  const materialActions = el("div", "local-actions"); materialActions.append(previewMaterials, saveInput, saveRequests);
+  materials.append(el("summary", "", "为这次计划提供保存明细（可选）"),
+    el("p", "detail-note", "逐项勾选原诊断的完整字段。预览只读取保存结果，不创建模型请求，也不占决策名额。"),
+    materialChoices, materialActions, materialStatus, materialPreview,
+    el("p", "detail-note", "逐行字段仅含当时保存的 input_values，可能为空，不会补入原始 CSV。字段选择 JSON 可供 CLI 的 --saved-materials 使用。"));
+  form.append(field("这次请模型做什么", purpose), materials, fields, start, el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
   const history = el("div", "local-model-history local-batch-history"); section.append(status, usage, currentCosts, form, history);
   const planHistory = el("section", "local-panel local-plan-proposals content-section"); planHistory.hidden = true;
   const improvement = el("section", "local-panel local-improvement content-section"); improvement.hidden = true;
@@ -162,6 +206,58 @@ export function createLocalModelPanel(host: Host): {
   const decisionButtons: { button: HTMLButtonElement; record: Obj; rejectReason?: HTMLTextAreaElement }[] = [];
   const rejectDrafts = new Map<string, string>();
   const factDrafts = new Map<string, FactDraft>();
+  const materialDrafts = new Map<string, MaterialRequest[]>();
+  let suppliedPreview: Obj | null = null, materialRevision = 0, materialBusy = false;
+  const materialRequests = (): MaterialRequest[] => materialDrafts.get(projectId) ?? [];
+  const diagnosticActions = (): Obj[] => objects(project.actions).filter(action => action.status === "completed"
+    && ["data.saved-oof-random-diagnostics", "data.saved-oof-group-diagnostics"].includes(text(action.method_id, ""))
+    && typeof action.result_sha256 === "string" && objects(action.observations).some(item => item.kind === "saved_oof_diagnostic"));
+  function invalidateMaterials(message = "字段选择已保留；预览时将重新核对完整输入。"): void {
+    materialRevision++; materialBusy = false; suppliedPreview = null; materialPreview.replaceChildren();
+    materialStatus.className = "detail-note"; materialStatus.textContent = message;
+  }
+  function renderMaterialChoices(): void {
+    materialChoices.replaceChildren();
+    const actions = diagnosticActions(), selected = materialRequests();
+    if (!actions.length) materialChoices.append(el("p", "empty-state", "当前项目还没有已完成的原生保存误差诊断。"));
+    for (const action of actions) {
+      const observation = objects(action.observations).find(item => item.kind === "saved_oof_diagnostic") ?? {};
+      const source = object(observation.source_ref), row = el("fieldset", "local-fieldset local-material-choice");
+      const legend = el("legend", "local-label", host.methodTitle(text(action.method_id)) + " · " + text(action.id));
+      row.append(legend, el("p", "detail-note", `原设计 v${number(source.design_version)} · 来源验证 ${text(source.action_id)} · ${number(object(observation.row_weighted).n)} 行 / ${number(object(observation.group_weighted).group_count)} 组`));
+      const identity = el("details", "local-advanced"); identity.append(el("summary", "", "核对这条诊断的结果身份"),
+        el("pre", "project-source-text", JSON.stringify({ action_id: action.id, result_sha256: action.result_sha256, source_ref: source }, null, 2))); row.append(identity);
+      const counts = { groups: object(observation.group_weighted).group_count, folds: objects(observation.fold_errors).length, rows: object(observation.row_weighted).n };
+      const options = el("div", "local-material-fields");
+      for (const name of Object.keys(materialFields) as MaterialField[]) {
+        const check = el("input"); check.type = "checkbox";
+        check.checked = selected.some(item => item.action_id === action.id && item.result_sha256 === action.result_sha256 && item.fields.includes(name));
+        const label = el("label", "local-checkbox"); label.append(check, el("span", "", `${materialFields[name]} · ${number(counts[name])} 条`));
+        check.addEventListener("change", () => {
+          const current = materialRequests().filter(item => item.action_id !== action.id || item.result_sha256 !== action.result_sha256);
+          const previous = materialRequests().find(item => item.action_id === action.id && item.result_sha256 === action.result_sha256)?.fields ?? [];
+          const chosen = (Object.keys(materialFields) as MaterialField[]).filter(field => field === name ? check.checked : previous.includes(field));
+          if (chosen.length) current.push({ action_id: text(action.id), result_sha256: text(action.result_sha256), fields: chosen });
+          materialDrafts.set(projectId, current); invalidateMaterials(); controls();
+        }); options.append(label);
+      }
+      row.append(options); materialChoices.append(row);
+    }
+    for (const request of selected.filter(item => !actions.some(action => action.id === item.action_id && action.result_sha256 === item.result_sha256))) {
+      const stale = el("div", "local-material-choice"), remove = el("button", "quiet-button", "移除此选择"); remove.type = "button";
+      stale.append(el("p", "notice error", `原选择 ${request.action_id} 的结果身份已不可用，请核对后移除；不会替换成其他诊断。`),
+        el("p", "detail-note", `${request.result_sha256} · ${request.fields.join("、")}`), remove);
+      remove.addEventListener("click", () => { materialDrafts.set(projectId, materialRequests().filter(item => item !== request)); invalidateMaterials(); renderMaterialChoices(); controls(); });
+      materialChoices.append(stale);
+    }
+  }
+  function materialControls(): void {
+    materials.hidden = purpose.value !== "plan";
+    const ready = !!projectId && typeof project.snapshot_ref === "string" && !loading && materialRequests().length > 0;
+    previewMaterials.disabled = !ready || materialBusy;
+    previewMaterials.textContent = materialBusy ? "正在组装完整输入…" : "预览实际供应输入";
+    saveInput.disabled = !suppliedPreview || materialBusy; saveRequests.disabled = !materialRequests().length;
+  }
   const grant = (): Obj => object(object(view.journal).grant);
   const pending = (): boolean => records.some(record => pendingStates.has(text(record.status, "")));
   const enabled = (): boolean => loaded && view.enabled === true && view.project_id === projectId;
@@ -182,15 +278,17 @@ export function createLocalModelPanel(host: Host): {
   function controls(): void {
     const fixed = Object.keys(grant()).length > 0;
     fields.disabled = locked || loading || !enabled() || !projectId || fixed;
-    purpose.disabled = locked || loading || !enabled() || !projectId || pending();
+    purpose.disabled = loading || !projectId;
     start.textContent = purpose.value === "plan" ? "让模型建议研究计划" : "用模型选择并执行一步";
     const validCap = Number(cap.value) > 0 && Number(cap.value) <= 0.10;
-    start.disabled = !available() || !validCap || !reason.value.trim();
+    const staleMaterials = purpose.value === "plan" && materialRequests().some(request => !diagnosticActions().some(action => action.id === request.action_id && action.result_sha256 === request.result_sha256));
+    start.disabled = !available() || !validCap || !reason.value.trim() || staleMaterials;
     for (const { button, body } of resumeButtons) button.disabled = locked && body.request_id !== allowedRequestId || loading || !canResume(body);
     for (const { button, record, rejectReason } of decisionButtons) {
       const selected = object(object(record.context).selection_context);
       button.disabled = locked && record.request_id !== allowedRequestId || loading || record.status !== "proposed" || (rejectReason ? !rejectReason.value.trim() : selected.context_sha256 !== context?.context_sha256);
     }
+    materialControls();
   }
 
   function methodBudgetCosts(methods: Obj[]): HTMLElement {
@@ -376,9 +474,9 @@ export function createLocalModelPanel(host: Host): {
     if (typeof counts.delegated_outputs_received === "number" && counts.delegated_outputs_received > 0)
       usage.append(el("p", "detail-note", `另有${counts.delegated_outputs_received}份外部原回答导入；模型与用量的核验状态见对应记录，现金结算未知。`));
   }
-  function download(record: Obj, suffix = ""): void {
+  function download(record: Obj | MaterialRequest[], suffix = ""): void {
     const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], { type: "application/json;charset=utf-8" }));
-    const link = el("a"); link.href = url; link.download = text(record.request_id, text(record.host_request_id, "model-request")).replace(/[^A-Za-z0-9_.-]/g, "_") + suffix + ".json";
+    const link = el("a"); link.href = url; link.download = text(object(record).request_id, text(object(record).host_request_id, "model-request")).replace(/[^A-Za-z0-9_.-]/g, "_") + suffix + ".json";
     link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function improvementSummary(record: Obj, originalCard: HTMLDetailsElement): void {
@@ -458,6 +556,8 @@ export function createLocalModelPanel(host: Host): {
       if (outcome.status && !isPlan) card.append(el("p", "notice", "控制器结果：" + (outcomes[text(outcome.status)] ?? text(outcome.status))));
       if (error.code) card.append(el("p", "notice error", "原错误：" + text(error.code) + " · " + text(error.message)));
       if (pendingStates.has(text(record.status, ""))) card.append(el("p", "detail-note", "保留原ID核对。未知请求不会重新发送模型，刷新只读已保存状态。"));
+      if (suppliedMaterials(object(record.context)).length) card.append(el("h4", "", "这份冻结输入供应的保存字段"), materialSummary(object(record.context)),
+        el("p", "detail-note", "以上来自该请求冻结输入，不表示模型已理解或科学评审通过。完整字段值和提示原文保留在原请求 JSON。"));
       const actions = el("div", "local-actions");
       if (isPlan) planSuggestion(record, card, actions);
       if ((record.provider === "claude_cli" || isPlan && record.provider === "delegated") && resumableStates.has(text(record.status, "")) && (!isPlan || pendingStates.has(text(record.status, "")))) {
@@ -468,8 +568,8 @@ export function createLocalModelPanel(host: Host): {
       }
       const save = el("button", "quiet-button", "下载原请求 JSON"); save.type = "button"; save.addEventListener("click", () => download(record)); actions.append(save);
       card.append(actions);
-      const raw = el("details", "local-advanced"); raw.append(el("summary", "", "上下文、回答与完整记录"),
-        el("pre", "project-source-text", JSON.stringify(record, null, 2)));
+      const raw = el("details", "local-advanced"); raw.append(el("summary", "", suppliedMaterials(object(record.context)).length ? "上下文摘要、回答与记录" : "上下文、回答与完整记录"),
+        el("pre", "project-source-text", JSON.stringify(recordReading(record), null, 2)));
       if (platformRuns.length) raw.append(el("h4", "", "保存的平台控制台摘录"), el("pre", "project-source-text", JSON.stringify(platformRuns, null, 2)));
       card.append(raw); (isPlan ? planHistory : history).append(card);
       if (isRecipe && improvement.hidden && Object.keys(object(record.proposal)).length) improvementSummary(record, card);
@@ -494,10 +594,13 @@ export function createLocalModelPanel(host: Host): {
   }
   async function refresh(nextId: string, nextProject: Obj, nextContext: Obj | null): Promise<void> {
     const generation = ++refreshId;
+    if (projectId !== nextId || project.snapshot_ref !== nextProject.snapshot_ref)
+      invalidateMaterials("项目或快照已变化，旧预览已作废；原字段选择仍保留，未改选其他诊断。");
     if (projectId !== nextId) {
       records = []; view = {}; reason.value = ""; limit.value = "1"; cap.value = "0.10"; usage.replaceChildren(); savedRequests();
     }
     projectId = nextId; project = nextProject; context = nextContext; loading = true; loaded = false;
+    renderMaterialChoices();
     currentMethodCosts();
     improvement.hidden = true;
     status.textContent = "正在读取模型请求记录…"; controls();
@@ -518,14 +621,41 @@ export function createLocalModelPanel(host: Host): {
     } finally { if (generation === refreshId) { loading = false; controls(); } }
   }
   form.addEventListener("submit", event => {
-    event.preventDefault(); if (!available() || !form.reportValidity() || !context) return;
+    event.preventDefault(); if (start.disabled || !available() || !form.reportValidity() || !context) return;
     const fixed = grant(), decisionLimit = Number(fixed.decision_limit ?? limit.value), cliBudget = Number(fixed.cli_budget_usd ?? cap.value), actualReason = text(fixed.reason, reason.value.trim());
     if (!Number.isInteger(decisionLimit) || decisionLimit < 1 || decisionLimit > 8 || !(cliBudget > 0 && cliBudget <= 0.10) || !actualReason.trim()) {
       host.announce("请填写1至8次累计决策、至多0.10USD的正数CLI配置阈值及范围理由。", true); return;
     }
     void host.submit(purpose.value === "plan" ? "model-plan-advance" : "model-advance", { project_id: projectId, expected_state_version: context.state_version,
-      decision_limit: decisionLimit, cli_budget_usd: cliBudget, reason: actualReason });
+      decision_limit: decisionLimit, cli_budget_usd: cliBudget, reason: actualReason,
+      ...(purpose.value === "plan" && materialRequests().length ? { saved_materials: materialRequests() } : {}) });
   });
+  previewMaterials.addEventListener("click", () => { void (async () => {
+    if (previewMaterials.disabled) return;
+    const revision = ++materialRevision, id = projectId, snapshot = text(project.snapshot_ref, ""), requests = JSON.stringify(materialRequests());
+    materialBusy = true; suppliedPreview = null; materialPreview.replaceChildren(); materialStatus.textContent = "正在读取并核对所选完整字段…"; materialControls();
+    try {
+      const preview = await host.read("/api/project/plan-context.json?saved_materials=" + encodeURIComponent(requests) + "&snapshot_ref=" + encodeURIComponent(snapshot));
+      if (revision !== materialRevision || id !== projectId || snapshot !== project.snapshot_ref) return;
+      const selection = object(preview.selection_context), supplied = suppliedMaterials(preview);
+      if (preview.schema_version !== "research-plan-context-v3" || selection.project_id !== id || selection.snapshot_ref !== snapshot
+        || supplied.length !== materialRequests().length || !materialRequests().every(request => supplied.some(material => material.action_id === request.action_id
+          && material.result_sha256 === request.result_sha256 && Object.keys(object(material.fields)).length === request.fields.length
+          && request.fields.every(name => { const field = object(object(material.fields)[name]); return Array.isArray(field.value) && field.count === field.value.length; }))))
+        throw Error("返回输入的项目、快照或完整字段身份不符，请只读刷新后重新核对。");
+      suppliedPreview = preview;
+      materialStatus.className = "notice"; materialStatus.textContent = "完整输入已组装，可下载核对；尚未创建或发送模型请求。";
+      materialPreview.append(materialSummary(preview));
+    } catch (error) {
+      if (revision !== materialRevision) return;
+      const message = error instanceof Error ? error.message : "读取失败";
+      materialStatus.className = "notice error";
+      materialStatus.textContent = (message.includes("INVALID_PLAN_CONTEXT") ? "无法组装完整输入，请核对是否超过 64 KiB 上限。" : "完整输入预览失败：" + message + "。")
+        + "选择已保留；没有截断字段或换成简表。可减少勾选字段后重新预览。";
+    } finally { if (revision === materialRevision) { materialBusy = false; materialControls(); } }
+  })(); });
+  saveInput.addEventListener("click", () => { if (suppliedPreview) download(suppliedPreview, "-supplied-input"); });
+  saveRequests.addEventListener("click", () => { if (materialRequests().length) download(materialRequests(), "-saved-materials"); });
   for (const control of [limit, cap, reason]) control.addEventListener("input", controls);
   purpose.addEventListener("change", () => { controls(); statusText(); });
   controls();

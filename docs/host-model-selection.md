@@ -4,6 +4,24 @@
 
 `scripts/run_host_selection.py` 把真实项目 context 交给已安装的 Claude CLI，保存原始回答，再通过原 `ProjectController.advance_selection` 最多执行一个候选行动。也可以导入子代理回答。选择用途下，模型只选候选或等待，不能提供工具参数、增加额度或批准科学结论。完整选择协议见[选择提案](project-selection.md)，已有实跑见[外部模型验证](external-model-validation.md)。
 
+## 选择后续输入中的保存字段
+
+计划和配方建议可显式传`saved_materials=[{action_id,result_sha256,fields:[...]}]`，字段限保存诊断的完整`groups`、`folds`、`rows`。非空请求使用v3研究上下文，完整原值、覆盖及生产身份一起封存；未选择仍走原v2。历史工件按其原设计读取，原ID、旧输入与原回答保持。[字段语义及大小边界](research-design.md#明确供应保存诊断字段)。
+
+把选择数组保存为JSON后，可以先只读准备输入：
+
+```powershell
+.venv/Scripts/python.exe scripts/run_host_selection.py preview `
+  --workspace <existing-project-root> --purpose plan `
+  --saved-materials <selectors.json> --output <new-preview-directory>
+```
+
+配方预览使用`--purpose recipe --current-recipe <recipe.json> --improvement-goal <goal>`。预览直接构造并校验context／原生prompt，输出至明确的新目录，不调用Host `prepare`，不写项目或占决策额度。工作台计划模式的字段选择、预览及下载同样只GET；`/api/project/plan-context.json`可带`saved_materials=<JSON编码>`和当前`snapshot_ref`，过期、身份不符或完整输入超限均明确失败，选择保留。
+
+正式`prepare`或`advance`使用同一个`--saved-materials`参数，网页`model-plan-advance`使用同名可选字段。选择描述进入`prepare_specification`；同ID先核原描述并返回旧封存输入，不按当前设计重建。实际准备仍遵守原grant、pending和额度，已有满额不能因为增加材料而扩限。恢复只提交原ID，不另传材料；普通选择和continuation默认不自动附加字段。
+
+冻结记录、报告和RSI读取的是那次实际供应内容。只读预览、准备、发送、理解及科学采用是不同状态，不能把准备中的字段写成模型已经阅读或形成收益。
+
 ## 根据真实反馈建议研究计划
 
 `prepare`和`advance`支持`--purpose plan`，默认用途为`selection`。计划请求与选择请求使用同一份累计grant，`decision_limit`、`cli_budget_usd`和原授权`reason`沿用原值。准备一次计划请求也占一个决策名额。CLI的`advance`会取得一次回答并消费为计划建议，`advance-batch`仍用于候选行动选择。

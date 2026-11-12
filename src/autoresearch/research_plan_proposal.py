@@ -8,6 +8,7 @@ from .project_controller import ProjectController
 from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice
 from .plan_readiness import assess_plan_readiness
 from .plan_feedback import decision_reference, project_observations, projection_notice
+from . import saved_materials as material_protocol
 
 
 MAX_CONTEXT_BYTES = host_protocol.MAX_CONTEXT_BYTES
@@ -24,12 +25,14 @@ def _require(condition, code, message):
 
 def _context(context):
     code = "INVALID_PLAN_CONTEXT"
+    if type(context) is dict and context.get("schema_version") == "research-plan-context-v3":
+        material_protocol.require_complete_size(context, MAX_CONTEXT_BYTES, code)
     _json_value(context, MAX_CONTEXT_BYTES, code)
     _require(type(context) is dict and context.get("schema_version") in
-             ("research-plan-context-v1", "research-plan-context-v2"),
+             ("research-plan-context-v1", "research-plan-context-v2", "research-plan-context-v3"),
              code, "Use the complete frozen research plan context.")
     fields = {"schema_version", "selection_context", "feedback"}
-    if context["schema_version"] == "research-plan-context-v2":
+    if context["schema_version"] in ("research-plan-context-v2", "research-plan-context-v3"):
         fields.update(("saved_comparisons", "remaining_questions"))
         _require(type(context.get("saved_comparisons")) is list
                  and all(type(item) is dict and item.get("scientific_validation") is False
@@ -40,6 +43,8 @@ def _context(context):
                  code, "Retain the current recorded unresolved questions.")
         if "prediction_ranges" in context:
             fields.add("prediction_ranges")
+    if context["schema_version"] == "research-plan-context-v3":
+        fields.add("supplied_materials")
     _require(set(context) == fields, code, "Use the exact frozen research plan context fields.")
     host_protocol._context(context["selection_context"])
     feedback = context["feedback"]
@@ -59,6 +64,8 @@ def _context(context):
         known.add(item["action_id"])
     if "prediction_ranges" in context:
         _prediction_ranges(context["prediction_ranges"], feedback)
+    if context["schema_version"] == "research-plan-context-v3":
+        material_protocol.validate_supplied(context)
     return context
 
 
@@ -104,7 +111,8 @@ def prediction_range_notice(context):
             "and counts outside observed bounds grant no scientific approval.")
 
 
-def build_context(project, need="next_check"):
+def build_context(project, need="next_check", *, saved_materials=None):
+    requests = material_protocol.normalize_requests(saved_materials)
     before = project.status()
     selection = ProjectController(project.root).selection_context(need=need)
     feedback = [{"action_id": action["id"], "request_id": action["request_id"],
@@ -136,6 +144,11 @@ def build_context(project, need="next_check"):
               and record.get("design_binding", {}).get("version") == current_version]
     if ranges:
         context["prediction_ranges"] = ranges
+    if requests:
+        context["schema_version"] = "research-plan-context-v3"
+        context["supplied_materials"] = material_protocol.materialize(project, before, requests)
+        _require(project.status()["snapshot_ref"] == before["snapshot_ref"],
+                 "STALE_STATE", "Project changed while supplying saved materials.")
     return _context(context)
 
 

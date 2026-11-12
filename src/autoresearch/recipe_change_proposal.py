@@ -5,6 +5,7 @@ import copy
 from . import host_selection_protocol as host_protocol
 from . import research_plan_proposal as plan_protocol
 from . import research_recipe
+from .saved_materials import normalize_requests, require_complete_size
 from .contracts import ResearchError, canonical
 from .plan_feedback import projection_notice
 from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice
@@ -26,6 +27,9 @@ def _feedback_ids(context):
 
 def _context(context):
     code = "INVALID_RECIPE_CHANGE_CONTEXT"
+    if (type(context) is dict and type(context.get("research_context")) is dict
+            and context["research_context"].get("schema_version") == "research-plan-context-v3"):
+        require_complete_size(context, MAX_CONTEXT_BYTES, code)
     _json_value(context, MAX_CONTEXT_BYTES, code)
     _require(type(context) is dict
              and set(context) == {"schema_version", "research_context", "current_recipe", "improvement_goal"}
@@ -46,9 +50,11 @@ def _context(context):
     return context
 
 
-def build_context(project, current_recipe, improvement_goal):
+def build_context(project, current_recipe, improvement_goal, *, saved_materials=None):
     current = research_recipe.validate_recipe(current_recipe)
-    research = plan_protocol.build_context(project, need=current["need"])
+    selectors = normalize_requests(saved_materials)
+    materials = {"saved_materials": selectors} if selectors else {}
+    research = plan_protocol.build_context(project, need=current["need"], **materials)
     return _context({"schema_version": "recipe-change-context-v1", "research_context": research,
                      "current_recipe": current, "improvement_goal": improvement_goal})
 
