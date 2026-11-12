@@ -1,18 +1,21 @@
+"""Pure Python body for an AgentArts Code node; no model or network calls."""
+
+import hashlib
+import json
+import math
+
+
+def _correlation(samples):
+    xs = [sample["water_contact_angle_deg"] for sample in samples]
+    ys = [sample["cell_seeding_efficiency_24h_pct"] for sample in samples]
+    mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
+    numerator = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    denominator = math.sqrt(sum((x - mx) ** 2 for x in xs) *
+                            sum((y - my) ** 2 for y in ys))
+    return None if denominator == 0 else numerator / denominator
+
+
 def main(args: dict) -> dict:
-    # Pure calculation; no model, network or filesystem access.
-    import hashlib
-    import json
-    import math
-
-    def _correlation(samples):
-        xs = [sample["water_contact_angle_deg"] for sample in samples]
-        ys = [sample["cell_seeding_efficiency_24h_pct"] for sample in samples]
-        mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
-        numerator = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
-        denominator = math.sqrt(sum((x - mx) ** 2 for x in xs) *
-                                sum((y - my) ** 2 for y in ys))
-        return None if denominator == 0 else numerator / denominator
-
     raw = args.get("query")
     if not isinstance(raw, str) or len(raw.encode("utf-8")) > 32768:
         raise ValueError("query must be a JSON string no larger than 32 KiB")
