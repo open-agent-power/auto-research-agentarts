@@ -91,7 +91,7 @@ def output_boundaries(archive):
     trees += [REPO/'runs/g5-native-cases-20261113-01'/kind for kind in ('retrieval','scheduling')]
     files=[Path(p) for p in freeze['protected']]
     files += [Path(row['source_path']) for name,row in archive.entries.items() if name.startswith(prefix)]
-    trees += [REPO/name for name in ('src','scripts','docs','frontend','tests','examples','deploy','.agent','.git')]
+    trees += [REPO/name for name in ('src','scripts','docs','frontend','tests','examples','deploy','.agent','.git','work')]
     return trees,files
 
 
@@ -512,9 +512,10 @@ def self_test():
     oldcase=REPO/'runs/cloud-concrete-local-20261113-01'
     archive_name=REPO/'runs/sprint-005-delivery/native-cpu-reproduction-evidence.zip'
     scratch=REPO.parent/'work'/'saved-model-arithmetic-preflight-only-uncreated'
-    forbidden_trees=[oldcase,REPO/'src']
+    forbidden_trees=[oldcase,REPO/'src',REPO/'work']
     for target in (oldcase/'arithmetic-preflight-must-not-exist',
                    REPO/'src/autoresearch/arithmetic-preflight-must-not-exist',
+                   REPO/'work/study-source-0ceb274/arithmetic-preflight-must-not-exist',
                    archive_name/'nested-output',scratch/'..'/'escaped-output'):
         require(not target.exists(),'Preflight fixture target must start absent')
         try:checked_output(target,archive_name,forbidden_trees,[])
