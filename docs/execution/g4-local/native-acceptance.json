@@ -1,0 +1,86 @@
+{
+  "candidate_searches": 0,
+  "cpu_seconds": 1.896047064,
+  "criteria": {
+    "correctness": true,
+    "integrity": true,
+    "source_latency": true,
+    "target_no_adverse_slowdown": true
+  },
+  "execution_mode": "exact_reviewed_native_pure_microfunctions",
+  "fits": 0,
+  "limitation": "Single-host native helper timing only, not full adapter/CV/research benefit, OS isolation, sealed RSI or production promotion",
+  "native_compilations": 2,
+  "native_helper_calls": 636,
+  "product_model_calls": 0,
+  "request": {
+    "freeze_sha256": "98da939f8204d25ba4f6f222a082855041060f6d91b1ca2a700fad417f083964",
+    "request_id": "g4-native-confirmation-001",
+    "review_sha256": "3891763779795f2b96b32f7b0d133e9e622b2e8bca38acc141c3d2591c62952e"
+  },
+  "resources": {
+    "address_space": [
+      1073741824,
+      1073741824
+    ],
+    "cpu": [
+      120,
+      130
+    ],
+    "file_bytes": [
+      33554432,
+      33554432
+    ],
+    "threads": 1,
+    "wall_seconds": 180
+  },
+  "schema_version": "g4-native-confirmation-result-v1",
+  "status": "accepted_for_future_review",
+  "timing_summary": {
+    "concrete": {
+      "baseline_median_ns": 2195510.5,
+      "candidate_median_ns": 84442.5,
+      "median_saved_ns": 2111068.0,
+      "paired_saving_median_ns": 2105014.5,
+      "speedup": 26.00006513307872
+    },
+    "real-estate": {
+      "baseline_median_ns": 613071.0,
+      "candidate_median_ns": 33010.0,
+      "median_saved_ns": 580061.0,
+      "paired_saving_median_ns": 582255.5,
+      "speedup": 18.572281126931234
+    },
+    "slump": {
+      "baseline_median_ns": 74247.0,
+      "candidate_median_ns": 8207.0,
+      "median_saved_ns": 66040.0,
+      "paired_saving_median_ns": 66064.0,
+      "speedup": 9.046789326184964
+    }
+  },
+  "vm_prequalification_calls": 6,
+  "wall_seconds": 1.900492380002106,
+  "source_module_sha256": "ec965e31c7b148c24f11910d93ecc03e474504333548156a23575a39cf269711",
+  "native_result_sha256": "3145b23e43e36d3ea2e0de92fa4336cf037466609f9ae76b8e46b510cc9ae1a0",
+  "freeze_sha256": "98da939f8204d25ba4f6f222a082855041060f6d91b1ca2a700fad417f083964",
+  "native_result_independent_checks": 84,
+  "native_capability_independent_checks": 24,
+  "integration_independent_checks": 30,
+  "pure_group_tests": 8,
+  "full_engineering_regression": {
+    "ran": 1164,
+    "passed": 1145,
+    "skipped": 19,
+    "failed": 0,
+    "errors": 0,
+    "actual_engineering_fixture_fits": "performed_count_not_instrumented",
+    "receipt_sha256": "8241da13bfa50aa6413d00065097d603e279c3840fc24e59227ca3a7ba48a3ca"
+  },
+  "real_research_fits_added": 0,
+  "real_research_total_attempts_retained": 50,
+  "historical_case_files_unchanged": 292,
+  "old_source_pin": "0ceb274",
+  "production_module_integrated": true,
+  "original_full_g4_gate_passed": false
+}

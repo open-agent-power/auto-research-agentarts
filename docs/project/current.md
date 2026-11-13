@@ -36,3 +36,13 @@
 下一轮root集成G4-L代码候选；research_task实现固定纯计算能力解释器/协议，resource_audit实现评测器，repo_audit与independent_review独立审查，upstream_audit补G3派生图。仅独立worktree修改真实分组编码纯helper，0研究fit/API；先冻结/审查再执行单候选，可reject/inconclusive。不自动晋级生产，不迁移旧研究项目，不声称sealed或多代RSI。
 
 每轮完成后验证并直接推送main、说明改动/实测/限制，再继续可独立任务。不会创建无人值守定时任务、采购服务或发送产品模型API。
+
+## Sprint 004 已完成，G5原生接线推进中
+
+[本轮报告](../execution/SPRINT-004.md)：单候选分组代码完成解释器/原生/生产集成三段独审，main采用精确已审helper；原生Concrete微函数中位2.195511→0.084443ms，仅局部组件，无CV/科学增益主张。8纯分组回归+全量1164项(1145pass/19skip)通过；工程夹具确有fit，三真实课题仍累计50estimator、292旧文件保持。
+
+旧服务18830现在从`work/study-source-0ceb274`启动，PID6265，actions/model关闭；新main对旧case返回CODE_CHANGED，未升级其producer。实际旧研究重放用原源码/依赖；新源码不能替换其历史身份。G4的full/sealed/多代RSI仍未通过，可信本地改进如实继续。
+
+全新clean依赖环境已准备：`/workspace/work/g6-clean-20261113-01/venv`，NumPy2.5.4/sklearn1.9.1，sources/reports安装/HTTP/PDF smoke通过；旧研究venv/sklearn1.8未变。等待当前source commit对应wheel与三完整分组/fold的零拟合兼容核对。
+
+下一原生检索合同root已接受，允许generic小fixture但真实SciFact必须冻结原5183/1109/80-80-300覆盖；followup通用source完整性校验可读原字节，诊断本身不重排/不重新用qrels评分。resource_audit拥有新retrieval_adapter/lexical/tests；root拥有registry/methods/step/report集成，待独审再执行新2tools/0fit/API case。旧standalone全部冻结，不把接线新case当搜索重置。

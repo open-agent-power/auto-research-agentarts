@@ -84,6 +84,11 @@ def _fit(estimator, x, y, *, index, fold, name, observer):
         observer({**event, "status": "completed"})
 
 
+
+def encode_groups(labels):
+    lookup = {label: index for index, label in enumerate(dict.fromkeys(labels))}
+    return [lookup[label] for label in labels]
+
 class RidgeValidationAdapter:
     ADAPTER_VERSION = ADAPTER_VERSION
 
@@ -123,8 +128,7 @@ class RidgeValidationAdapter:
                     **input_basis.protocol(training)}
         oof, folds = [], []
         if count:
-            labels = list(dict.fromkeys(row["groups"] for row in rows))
-            group_ids = np.array([labels.index(row["groups"]) for row in rows])
+            group_ids = np.array(encode_groups([row["groups"] for row in rows]))
             splitter = KFold(5, shuffle=True, random_state=11) if self.check == "random_cv" else GroupKFold(count)
             predicted, references, membership = np.empty(len(rows)), np.empty(len(rows)), np.empty(len(rows), dtype=int)
             for fold, (train, test) in enumerate(splitter.split(x, y, group_ids) if self.check == "group_cv" else splitter.split(x), 1):

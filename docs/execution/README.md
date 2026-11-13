@@ -10,7 +10,7 @@
 | G1 真实研究闭环 | 原Gate依赖保持；获批G1-L已verified | [两轮真实切片与恢复](g1-local/results.md)，不宣称原G0通过 |
 | G2 动态协作 | 原Gate未通过；G2-L已verified | [模块/真实无收益对照](g2-local/results.md)，保留single；无模型Agent研究收益 |
 | G3 跨课题方法改进 | 原Gate未通过；G3-L已verified | [两目标闭环/语义拒绝/恢复](g3-local/results.md)，无记忆因果增益声明 |
-| G4 隔离代码级 RSI | blocked | 受保护评价器、真实候选差异、晋级/拒绝 |
+| G4 隔离代码级 RSI | 原Gate未通过；G4-L已集成verified | [独立原生微函数/源码集成](g4-local/native-results.md)，非OS/sealed/多代RSI |
 | G5 RAG/算法迁移 | 原Gate未通过；G5-L已verified | [两类CPU对照](g5-local/results.md)，尚未原生RAG接线 |
 | G6 发布交接 | 原Gate未通过；G6-L打包verified | [离线wheel安装](g6-local/results.md)，非全新依赖/runtime/正式发布 |
 
@@ -56,3 +56,7 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint 003：扩大可信本地范围后的结果
 
 用户最新[决定](local-continuation.json)取代上文历史G2+限制，允许受控本地继续，原隔离失败不再重复询问。[本轮报告](SPRINT-003.md)和[独立审查](SPRINT-003-review.md)记录实际G2/G3/G5/G6局部结果、失败/恢复/负结果及未通过的完整Gate。下一轮G4-L纯计算能力边界与代码候选准备中。
+
+## Sprint 004：代码候选的实际闭环
+
+[报告](SPRINT-004.md)与[原生/集成验收](g4-local/native-acceptance.json)记录真实helper差异、固定原生确认、源码集成及1164工程回归。旧研究292文件/50fit保持，旧服务固定原source。G6全新依赖环境已准备；G5同原生框架接线正在实施，未执行前不标已完成。

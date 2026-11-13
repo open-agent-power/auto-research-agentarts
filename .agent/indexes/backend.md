@@ -1,5 +1,7 @@
 # 后端索引
 
+Ridge分组编码使用独立`encode_groups`首次出现字典映射，保留原整数ID/NumPy与GroupKFold语义；原生微函数确认和8纯回归/1164工程回归已核，[结果](../../docs/execution/g4-local/native-results.md)。源码身份改变，旧研究固定0ceb274服务/账本，不自动upgrade或重训。
+
 独立`agent_tasks.AgentTaskLedger`为可信host分析任务提供ProjectRef固定绑定、DAG、事务claim/同ID恢复、attempt/result绑定协调和一致状态快照；与科研fit/source预算分离，无模型传输或任意执行。默认single；本地保存证据对照没有多线程收益，见[合同](../../docs/execution/g2-local/contract.md)与[结果](../../docs/execution/g2-local/results.md)。
 
 `saved_materials`按显式action／诊断结果SHA选择完整保存groups／folds／rows，核对诊断及原CV封套、来源和历史设计，直接复制原值；不重新inspect或关联原输入。plan／recipe非空请求生成v3，最终64KiB全量校验，超限明确失败；默认旧context/prompt原字节保持。Host specification／freshness／same-ID、readonly preview、report与RSI导出读取共用冻结内容，见[字段供应](../../docs/research-design.md#明确供应保存诊断字段)。
