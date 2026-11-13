@@ -8,11 +8,13 @@
 
 ## 最新汇报入口
 
-Sprint010 已于北京时间2026-11-14 04:45:53实际接续。继承云盘、origin、494原件/421完整路径与8固定参考checkout均核对；独有owner `root-sprint010-20261114T0446`。本轮独立 ArguAna 来源/语义/原始配对审计已完成，新相关性原生接头和报告已实现并经工程检查，真实目标排名/评分尚未执行。唯一研究output固定 `runs/g5-retrieval-transfer-20261114-01`，study lineage `g5-arguana-source-arm-transfer-v1`，共享claim在 `.agent/autonomy/studies/`；任何unknown只恢复该处原请求，不换目录或重置额度。
+Sprint010 已于北京时间2026-11-14 04:45:53实际接续并完成独立ArguAna真实对照。实现/研究源码 `250954e98024844e102352aac8666859e4f761be`，producer `867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30`，clean pin `/workspace/work/arguana-transfer-source-250954e`。已有获审的一次attempt完成，唯一study `g5-arguana-source-arm-transfer-v1`，output `runs/g5-retrieval-transfer-20261114-01`；共享claim保留，禁止重跑driver/新ID/目录重开额度。实际项目 `project-0940a2e0cbd841e58677d2ecd99a33e2` 已在原manager，state13/waiting、3plans、2tools/reserved0、0fit/model/source。精确原ID恢复body、路径与预算在steps/relocation，旧case/source pins/50estimator不改。
 
-输入 `source.json` 为15686699B、SHA `d20458472f460eec731e15c292b5b1229e3c30f35896e9e1ef1cac8d722f634c`，位于 `/workspace/work/g5-arguana-transfer-inputs-20261114-01`。来源/选样完整身份见[审计](../execution/g5-local/retrieval-transfer-source-audit.json)。策略 v2 SHA `f7c3b5172d44cca6c721f050a5524a360c6f4d88f7d81159593755dcb9bd9a96`，source-only冻结 Recall20 规则；等臂固定TF-IDF负对照不识别记忆因果收益。先提交源码、freeze、独审原freeze后再运行一次2tool/0fit/model/source课题，原SciFact/调度/50estimator保持。
+完整8,674doc/1,406query/1,406qrels保留；SHA程序分区80/80/300，946原query不评价。test Recall20 BM250.746667→TF-IDF0.896667、nDCG0.396192→0.503379，但仍43test nDCGloss/2Recall20loss，全部460的186混合坏例保留；2条缺正例test均0。候选与fixedTFIDF对照同臂，记忆增量按构造0，无因果收益/显著性/通用性/自动采用。原始许可/映射及负证据见[来源审计](../execution/g5-local/retrieval-transfer-source-audit.json)，新对照[结果](../execution/g5-local/retrieval-transfer-results.md)／[精确机器索引](../execution/g5-local/retrieval-transfer-results.json)，本轮[Sprint010](../execution/SPRINT-010.md)。
 
-本轮[Sprint009](../execution/SPRINT-009.md)从北京时间01:47实际接续，已实现保存不利查询GET/界面，完成原件/HTTP/桌面手机验证，并继续独立安装和CLI窄修。每次触发无论成功、失败、无进展或lease占用均final报告；最新实际时间、commit、活动执行状态和下次计划见[最新报告](latest-report.md)／[机器报告](latest-report.json)。单个3小时任务仍继承原云盘；本轮触发标记01:46:53，下次计划04:47:27，平台run/result与通知送达仍unknown，不能据标记推断完成或送达。
+新packet15686699B/SHA `d20458472f460eec731e15c292b5b1229e3c30f35896e9e1ef1cac8d722f634c` 位于 `/workspace/work/g5-arguana-transfer-inputs-20261114-01`；policy v2 `f7c3b5172d44cca6c721f050a5524a360c6f4d88f7d81159593755dcb9bd9a96`，freeze `15b06d4828caf86ec1bb7db5d53692ebafc9a97559e81a346032fbd0cd65e81d`。源码pin250的只读server18840以原manager运行，无写/模型开关。7原ID重放、7GET/4报告2行动附件SHA、572科研文件前后保持；五页双尺寸真实16截图/20browserGET已通过。方法名fallback随后以 `944b5aef970765f7993bbff758b5dc70728ac50f` 窄修并fast-forward合main；独立clean展示树 `/workspace/work/arguana-ui-labels-20261114`、只读18841仍指原manager，4受影响页面实测及限定独审通过，174科研Python字节与core8670身份不变。
+
+上一轮[Sprint009](../execution/SPRINT-009.md)已完成citation保存查询阅读器、独立安装和CLI窄修。每次触发无论成功、失败、无进展或lease占用均final报告；本轮实际时间、commit、活动执行状态及下次计划见[最新报告](latest-report.md)／[机器报告](latest-report.json)。单个3小时任务仍继承原云盘；本轮观察到04:45:36触发标记，下次计划07:47:27（均北京时间），平台run/result与通知送达仍unknown，不能据标记推断完成或送达。
 
 ## 已完成的真实证据
 
@@ -49,7 +51,7 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 随后继续验证新wheel与标准venv；保留pip target两脚本RECORD路径不自洽、0ac可选runtime帮助缺SDK退出1的负结果。完整23分发项独立安装原生读取通过；CLI帮助窄修`8a394e3`延迟导入SDK，原adapter字节不变，8项针对性测试通过；[安装物与准确阶段范围](../execution/g6-local/reader-release.md)记录最终wheel/安装结果。帮助可用不等于SDK/cloud runtime集成通过，原完整Gate保持。
 
-下一可独立工作转向G5剩余跨任务策略迁移的最小预注册：先审查独立检索任务的数据许可、语义、大小与对照可行性，冻结baseline/candidate/评价/预算并独审后才执行。旧SciFact/调度只读，不能复制旧项目、换ID或重置额度；保持0模型/API切片，不把已有已知公开结果或工程检查冒充新研究收益。
+原独立检索预注册与一次真实对照已由Sprint010推进，状态以上述最新入口为准。下一可做增量：为新relevance合同原186坏例接入按需逐query阅读与正确语义；先核保存工件/source SHA、预算和同ID恢复，不重新排名/评分或重开研究项目。旧citation专用阅读器尚未支持该新合同，不能把旧验收算作本案阅读通过。后续方法经验自动资格/选臂与生成式RAG仍未完成；不要将固定TFIDF选择结果标为记忆能力提升。
 
 ## 最新交付与凭据恢复
 

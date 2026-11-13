@@ -44,3 +44,9 @@ Sprint009从01:47实际接续，读取器0acb05e已实现并经真实HTTP/浏览
 
 
 Sprint010：2026-11-14 04:45:53在继承盘实际接续；ArguAna官方Webis/Zenodo CC BY 4.0与106MB原ZIP、BEIR全量文本/配对已审计，5缺正例/1298同ID自文本保留，NFCorpus学术限定未采用。新增独立relevance合同/registry/report/summary，旧citation/lexical与source pins不改；来源prepared并无真实targetranking/score。唯一样本选择arguana-transfer-v1 SHA 80/80/300，原1406query/全8674doc/1406qrels保留；唯一study g5-arguana-source-arm-transfer-v1/output runs/g5-retrieval-transfer-20261114-01。只有正式源码commit+exactfreeze独审批准后才一次2tools；候选等同fixedTFIDF control的结构零不称memorygain。以current和latest-report继续，未知状态不换ID/目录/预算。
+
+
+Sprint010实际一次研究已完成：source250954e/core867075eb…，unique g5-arguana-source-arm-transfer-v1/output g5-retrieval-transfer-20261114-01/project0940a2e0cbd841e58677d2ecd99a33e2，state13/3plans/waiting/2tools/0reserves/0fit/model/source。testR20 .746667→.896667/nDCG .396192→.503379，仍43nDCG亏损/2R20亏损，all186混合坏例与2缺正例全0保留；candidate=fixedTFIDF无memorycausalgain。原7ID重放+7GET/6附件及572科研文件保持，五页/16截图通过；方法名两label在独立UI树修复，不改变250科研pin。下一增量newrelevance保存坏例queryreader，不能套旧citation语义或重跑预算。详见current/results及latest-report，不从本段缩略SHA启动命令。
+
+
+同轮继续修复实际UI fallback：仅2个methodName映射/bundle，commit944b5aef970765f7993bbff758b5dc70728ac50f已ff合main；clean工作树/workspace/work/arguana-ui-labels-20261114及只读18841指同manager，4受影响页实测/限定独审通过，174Py/core8670/13manager文件保持。旧250科研pin与18840不动，不能把UI后置提交冒作原研究源码。

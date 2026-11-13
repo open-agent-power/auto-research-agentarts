@@ -1,0 +1,591 @@
+{
+  "allowance": {
+    "evidence_reads": 0,
+    "fits": 0,
+    "local_tools": 2,
+    "models": 0
+  },
+  "automatic_promotion": false,
+  "candidate_equals_source_free_fixed_tfidf_control": true,
+  "causal_memory_benefit": "not_identifiable",
+  "development_token_currency_costs": null,
+  "failures_preserved": [
+    "NFCorpus academic-only licence not adopted; official source HTTP403 and first bounded archive/member/decode/mapping audit failures retained.",
+    "Missing pytest initial command failed; existing unittest used without installing packages.",
+    "First freeze preparation rejected a hand-entered wrong full commit before project/output creation; same output prepared using actual Git HEAD.",
+    "Browser01 strict selector matched two details summaries; harness corrected with original failure kept.",
+    "Independent post-run reviewer was found interrupted and resumed on the same original evidence; research attempt completed and was never rerun.",
+    "UI build node_modules symlink omitted dependency notices; local copied dependencies rebuilt correctly before commit, without installing/downloading.",
+    "UI browser01 harness assumed a public code_identity field and stopped after one GET; corrected external source check in02."
+  ],
+  "freeze": {
+    "bytes": 157199,
+    "path": "runs/g5-retrieval-transfer-20261114-01/freeze.json",
+    "sha256": "15b06d4828caf86ec1bb7db5d53692ebafc9a97559e81a346032fbd0cd65e81d"
+  },
+  "guard_call_counts": {
+    "network": 0,
+    "ridge_fit": 0,
+    "scaler_fit": 0,
+    "source_extraction": 0
+  },
+  "guard_counts_scope": "Only the bounded child after runtime imports and guard installation; free public source acquisition and loopback verification are separate network activity.",
+  "historical_research_estimator_attempts": 50,
+  "initial_admission_review": {
+    "bytes": 2017,
+    "path": "runs/sprint-010-independent-20261114/approved-run-review.json",
+    "sha256": "f5025115a3f3c85b789d802c08120f5a58501381a2e41c089bc4b7976d948273"
+  },
+  "limits": {
+    "address_space_bytes": 1073741824,
+    "cpu_hard_seconds": 130,
+    "cpu_soft_seconds": 120,
+    "file_bytes": 33554432,
+    "minimum_disk_free_bytes": 5368709120,
+    "threads": 1,
+    "wall_seconds": 180
+  },
+  "memory_incremental_difference_by_construction": 0.0,
+  "native_report_manifest": {
+    "files": {
+      "input.json": {
+        "bytes": 15693607,
+        "sha256": "c6ecd29cfe755ca0e3e267d2ea4fd6eb798048545b7ed63177bcb43efffb38d6"
+      },
+      "report.json": {
+        "bytes": 19320692,
+        "sha256": "0dd2c45d674a381ed5a1cb2df7f158a88c65500875fb462553ab42a0fdd9f1b8"
+      },
+      "report.md": {
+        "bytes": 13837,
+        "sha256": "7bad61f87a6f7476a4d190368c47bd6bcfc5febdf3c4b56ae0566219894f729f"
+      },
+      "report.pdf": {
+        "bytes": 20877,
+        "sha256": "50039337fe8bdfc0f851be9ec5fea7c21edeae9dca705fbf07ff0f5b19c94a2f"
+      }
+    },
+    "host_model_snapshot_sha256": "a0a60ee3d576e8450e42246a2f6de28ba01caa4ac77708b1c9423a06525c3916",
+    "project_id": "project-0940a2e0cbd841e58677d2ecd99a33e2",
+    "project_snapshot_ref": "1c9b6f923d9da2f0434d2d1926ed102d8878d0f6e0760f50d939f3ce3ed95c13",
+    "schema_version": "project-report-export-v1",
+    "scientific_validation": false,
+    "source_manifest": [
+      {
+        "bytes": 15686699,
+        "name": "source.json",
+        "role": "registered_input",
+        "sha256": "d20458472f460eec731e15c292b5b1229e3c30f35896e9e1ef1cac8d722f634c",
+        "snapshot_sha256": "2009bdb93024f7f2928876f0f26260f71df7f0164c6187691a0a1fae12b57a9e"
+      },
+      {
+        "bytes": 17669,
+        "name": "embedded:spec.json",
+        "role": "embedded_cpu_spec",
+        "sha256": "c49d0b51e97a4243358014a04cc26ac41b37a1e33c2e71c53d1598d0991fd9e0"
+      },
+      {
+        "asset_role": "corpus",
+        "attribution": "Henning Wachsmuth, Shahbaz Syed, Benno Stein; ArguAna Counterargs; CC BY 4.0; BEIR archived representation with declared procedural split.",
+        "bytes": 9829628,
+        "license_note": "CC BY 4.0; preserve authorship, official version DOI and changes notice.",
+        "name": "embedded:corpus.jsonl",
+        "notice": "Verified embedded bytes only; licence/provenance declarations are not independently established by report export.",
+        "provenance_claim": {
+          "archive_sha256": "cfdf79adce27a401b3cd3ea267903134dbfab2c6afeb95d7fe5724a00bf7557b",
+          "qrels_semantics": "positive_relevance_binary_projection",
+          "selection_sha256": "af6fc30f6802c08ed964a4ebb2ac94eddb2f10cb072f25e045849e202425a56d",
+          "source_receipt_sha256": "c40e97347774c5986f9b5a0f1d0e3d6a025bc26b5465051d46b7f2f8dff66b67"
+        },
+        "role": "embedded_cpu_original",
+        "sha256": "0627982cec4ee896df6dc98604ef6b499c83fd87a19eaaeb3f23b88bbef6cbce",
+        "url": "https://doi.org/10.5281/zenodo.3973258"
+      },
+      {
+        "asset_role": "queries",
+        "attribution": "Henning Wachsmuth, Shahbaz Syed, Benno Stein; ArguAna Counterargs; CC BY 4.0; BEIR archived representation with declared procedural split.",
+        "bytes": 1805776,
+        "license_note": "CC BY 4.0; best-counterargument positive relevance labels, not citation or support/refute claims.",
+        "name": "embedded:queries.jsonl",
+        "notice": "Verified embedded bytes only; licence/provenance declarations are not independently established by report export.",
+        "provenance_claim": {
+          "archive_sha256": "cfdf79adce27a401b3cd3ea267903134dbfab2c6afeb95d7fe5724a00bf7557b",
+          "qrels_semantics": "positive_relevance_binary_projection",
+          "selection_sha256": "af6fc30f6802c08ed964a4ebb2ac94eddb2f10cb072f25e045849e202425a56d",
+          "source_receipt_sha256": "c40e97347774c5986f9b5a0f1d0e3d6a025bc26b5465051d46b7f2f8dff66b67"
+        },
+        "role": "embedded_cpu_original",
+        "sha256": "f8b7c903f95d9a2d291de3915a8fac25085e9db679f19f59fea4145bfd1df618",
+        "url": "https://doi.org/10.5281/zenodo.3973258"
+      },
+      {
+        "asset_role": "train_qrels",
+        "attribution": "Henning Wachsmuth, Shahbaz Syed, Benno Stein; ArguAna Counterargs; CC BY 4.0; BEIR archived representation with declared procedural split.",
+        "bytes": 10896,
+        "license_note": "CC BY 4.0; best-counterargument positive relevance labels, not citation or support/refute claims.",
+        "name": "embedded:qrels-train.tsv",
+        "notice": "Verified embedded bytes only; licence/provenance declarations are not independently established by report export.",
+        "provenance_claim": {
+          "archive_sha256": "cfdf79adce27a401b3cd3ea267903134dbfab2c6afeb95d7fe5724a00bf7557b",
+          "qrels_semantics": "positive_relevance_binary_projection",
+          "selection_sha256": "af6fc30f6802c08ed964a4ebb2ac94eddb2f10cb072f25e045849e202425a56d",
+          "source_receipt_sha256": "c40e97347774c5986f9b5a0f1d0e3d6a025bc26b5465051d46b7f2f8dff66b67"
+        },
+        "role": "embedded_cpu_original",
+        "sha256": "5fe96bee925845dbe95b4362f45fc9b66b1a4c02e25e078ef17e8d5feca2f378",
+        "url": "https://doi.org/10.5281/zenodo.3973258"
+      },
+      {
+        "asset_role": "test_qrels",
+        "attribution": "Henning Wachsmuth, Shahbaz Syed, Benno Stein; ArguAna Counterargs; CC BY 4.0; BEIR archived representation with declared procedural split.",
+        "bytes": 85426,
+        "license_note": "CC BY 4.0; best-counterargument positive relevance labels, not citation or support/refute claims.",
+        "name": "embedded:qrels-test.tsv",
+        "notice": "Verified embedded bytes only; licence/provenance declarations are not independently established by report export.",
+        "provenance_claim": {
+          "archive_sha256": "cfdf79adce27a401b3cd3ea267903134dbfab2c6afeb95d7fe5724a00bf7557b",
+          "qrels_semantics": "positive_relevance_binary_projection",
+          "selection_sha256": "af6fc30f6802c08ed964a4ebb2ac94eddb2f10cb072f25e045849e202425a56d",
+          "source_receipt_sha256": "c40e97347774c5986f9b5a0f1d0e3d6a025bc26b5465051d46b7f2f8dff66b67"
+        },
+        "role": "embedded_cpu_original",
+        "sha256": "f9823c9ee416d090878a4c9c5e2a3e1db80844502d7ae15ff7b58d841c3f6455",
+        "url": "https://doi.org/10.5281/zenodo.3973258"
+      },
+      {
+        "asset_role": "license",
+        "attribution": "Henning Wachsmuth, Shahbaz Syed, Benno Stein; ArguAna Counterargs; CC BY 4.0; BEIR archived representation with declared procedural split.",
+        "bytes": 686,
+        "license_note": "CC BY 4.0; best-counterargument positive relevance labels, not citation or support/refute claims.",
+        "name": "embedded:license.md",
+        "notice": "Verified embedded bytes only; licence/provenance declarations are not independently established by report export.",
+        "provenance_claim": {
+          "archive_sha256": "cfdf79adce27a401b3cd3ea267903134dbfab2c6afeb95d7fe5724a00bf7557b",
+          "qrels_semantics": "positive_relevance_binary_projection",
+          "selection_sha256": "af6fc30f6802c08ed964a4ebb2ac94eddb2f10cb072f25e045849e202425a56d",
+          "source_receipt_sha256": "c40e97347774c5986f9b5a0f1d0e3d6a025bc26b5465051d46b7f2f8dff66b67"
+        },
+        "role": "embedded_cpu_original",
+        "sha256": "2c08720e443976f1c6e455b59c4a742b3ab079751298f7b84a3f921343220151",
+        "url": "https://doi.org/10.5281/zenodo.3973258"
+      },
+      {
+        "action_id": "action-10c22434d83192e0ede775220b0382cb",
+        "bytes": 1462975,
+        "name": "artifacts/action-10c22434d83192e0ede775220b0382cb.json",
+        "result_sha256": "6746152230d985c163c97622c601e2319f45f24d7388f3769e66ebea20b3bab7",
+        "role": "completed_action_artifact",
+        "sha256": "db2c2ce5b31276ae81f200780b546a0ee8ebaf99afbb30f062b741677b8c8b1d"
+      },
+      {
+        "action_id": "action-0bcdb1cb6a5e9df5dff9d18765b99c41",
+        "bytes": 308262,
+        "name": "artifacts/action-0bcdb1cb6a5e9df5dff9d18765b99c41.json",
+        "result_sha256": "223aabb5c9022c9767564a10c51696f4eb8a4cf2b614342d22608c9319f28b2e",
+        "role": "completed_action_artifact",
+        "sha256": "857b821102c87032df90a299ba4bf8f7e63e48ecf1302677094d85e5cbcd650e"
+      }
+    ]
+  },
+  "new_engineering_estimator_fits": 0,
+  "new_research_fits": 0,
+  "packet_sha256": "d20458472f460eec731e15c292b5b1229e3c30f35896e9e1ef1cac8d722f634c",
+  "policy_sha256": "f7c3b5172d44cca6c721f050a5524a360c6f4d88f7d81159593755dcb9bd9a96",
+  "post_run_independent_review": {
+    "bytes": 9920,
+    "path": "runs/sprint-010-independent-20261114/post-run-review.json",
+    "sha256": "513598cce2945fd897d3ae27e43ffdfb5ea8afb1ee18726c8d46ce2a7acb02d1"
+  },
+  "post_run_review_groups": 18,
+  "pre_run_admission_checks": 703,
+  "predeclared_primary_objective": "test Recall@20, TF-IDF minus BM25 sign at +/-1e-12; descriptive only",
+  "preservation": {
+    "old_citation_adapter_and_lexical_source_unchanged": true,
+    "original_494_files_equal": true,
+    "original_three_roots_421_file_path_sets_equal": true
+  },
+  "primary_objective_conclusion": {
+    "candidate_minus_baseline": 0.15,
+    "conclusion": "local_coverage_transfer_supported",
+    "hypothesis_test_performed": false,
+    "objective": "test recall@20",
+    "rule": "delta>1e-12 supports local coverage transfer; abs(delta)<=1e-12 no improvement; delta<-1e-12 negative transfer",
+    "scope": "This procedural query subset only; no automatic promotion, significance or generality claim."
+  },
+  "primary_objective_delta": 0.15,
+  "product_model_api_calls": 0,
+  "project_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+  "python_executable": "/workspace/auto-research-agentarts/.venv/bin/python",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "raw_attempt_final": {
+    "bytes": 62,
+    "path": "runs/g5-retrieval-transfer-20261114-01/attempt-final.json",
+    "sha256": "d019c045474fd18e799ca1cdb0858ada79e04cb5d72076ba5668297e79a3062e"
+  },
+  "raw_result": {
+    "bytes": 8566,
+    "path": "runs/g5-retrieval-transfer-20261114-01/result.json",
+    "sha256": "1e62723c5a1d331c7f4674100b23836f3a5a98c2949ab99303f17f9946296599"
+  },
+  "real_workbench_browser_verification": {
+    "all_screenshots_viewed": true,
+    "browser_gets": 20,
+    "five_pages": true,
+    "independent_api_gets": 10,
+    "interpretation": "GET-only saved presentation, not scientific correctness or new research.",
+    "post_or_page_errors": 0,
+    "receipt": {
+      "bytes": 13632,
+      "path": "runs/sprint-010-relevance-report-20261114/real-browser-02/receipt.json",
+      "sha256": "dca5be44291b63df5f576263f0c78191922d70849b7a9bfd9f86276cb9f52006"
+    },
+    "screenshots": 16,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        390,
+        844
+      ]
+    ]
+  },
+  "recorded_at_utc": "2026-11-13T21:15:15.575306+00:00",
+  "review_status": "passed_independent_saved_evidence_review_not_gold_rescoring",
+  "runtime_dependencies": {
+    "numpy": "2.5.4",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.17.0"
+  },
+  "saved_policy_projection": {
+    "bytes": 284289,
+    "path": "runs/g5-retrieval-transfer-20261114-01/saved-policy-projection.json",
+    "sha256": "11e72761d4551fcb3fa5e0cfc6b68ac48768e9492e9131154e07e92a7fc3683b"
+  },
+  "saved_recovery_and_http_verification": {
+    "http_gets": 7,
+    "http_posts": 0,
+    "original_actions": 2,
+    "original_reports": 4,
+    "product_modules_from_scientific_pin": 99,
+    "rank_score_fit_model_dispatch_new_projects": 0,
+    "receipt": {
+      "bytes": 1387,
+      "path": "runs/sprint-010-recovery-20261114/result.json",
+      "sha256": "701be18354146cbd7c7365f954810430101ea373511f5845c4534869b658f601"
+    },
+    "same_id_replays": 7,
+    "scientific_files_unchanged": 572
+  },
+  "saved_summary": {
+    "adverse": {
+      "any_metric_loss": 63,
+      "baseline_only_incomplete": 81,
+      "both_recall20_incomplete": 42,
+      "candidate_only_incomplete": 5,
+      "no_metric_loss_but_incomplete": 123,
+      "total": 186
+    },
+    "audit_action_id": "action-0bcdb1cb6a5e9df5dff9d18765b99c41",
+    "audit_result_sha256": "223aabb5c9022c9767564a10c51696f4eb8a4cf2b614342d22608c9319f28b2e",
+    "budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "evidence_reads_reserved": 0,
+      "evidence_reads_used": 0,
+      "existing_cash_cap_cny": 5,
+      "fit_attempts_used": 0,
+      "fit_limit": 0,
+      "fits_completed": 0,
+      "fits_reserved": 0,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "g5-arguana-source-arm-transfer-v1",
+      "local_tool_call_limit": 2,
+      "local_tool_calls_reserved": 0,
+      "local_tool_calls_used": 2,
+      "local_tool_dispatches": 2,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "preprocessing_fits": 0,
+      "preprocessing_fits_completed": 0,
+      "ridge_fits_completed": 0
+    },
+    "candidate_equals_source_free_control": true,
+    "limitations": [
+      "Positive source grades 1/2 are retained; metrics use a grade>0 binary relevance projection.",
+      "Binary nDCG is not canonical graded BEIR nDCG; unjudged documents are treated as nonrelevant operationally.",
+      "Identical query/document IDs are excluded before selecting the top 20; index statistics remain unchanged.",
+      "Missing positive document IDs remain in the relevance denominator and cannot be retrieved; none are silently dropped.",
+      "Input provenance and licence metadata are host declarations; capture does not independently verify their truth.",
+      "Original metadata is opaque and never supplied to ranking or scoring.",
+      "Public labels and same-user procedural separation are not sealed evaluation or scientific validation."
+    ],
+    "memory_incremental_difference": 0.0,
+    "primary_action_id": "action-10c22434d83192e0ede775220b0382cb",
+    "primary_file_sha256": "db2c2ce5b31276ae81f200780b546a0ee8ebaf99afbb30f062b741677b8c8b1d",
+    "primary_result_sha256": "6746152230d985c163c97622c601e2319f45f24d7388f3769e66ebea20b3bab7",
+    "project_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+    "project_id": "project-0940a2e0cbd841e58677d2ecd99a33e2",
+    "project_root": "/workspace/auto-research-agentarts/runs/g5-retrieval-transfer-20261114-01/manager/projects/8ac431dceaa72d506249738877b0331e8725bf79719bcf879cb52fd7f69dd658",
+    "schema_version": "saved-transfer-summary-v1",
+    "selected_missing_positive_queries": [
+      {
+        "metrics": {
+          "mrr@10": 0.0,
+          "ndcg@10": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 0.0,
+          "recall@5": 0.0
+        },
+        "query_id": "test-education-ufsdfkhbwu-con03a",
+        "split": "test"
+      },
+      {
+        "metrics": {
+          "mrr@10": 0.0,
+          "ndcg@10": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 0.0,
+          "recall@5": 0.0
+        },
+        "query_id": "test-society-asfhwapg-con04a",
+        "split": "test"
+      }
+    ],
+    "source_commit": "250954e98024844e102352aac8666859e4f761be",
+    "splits": {
+      "dev": {
+        "arms": {
+          "bm25": {
+            "metrics": {
+              "mrr@10": 0.35780257936507937,
+              "ndcg@10": 0.4300953002884327,
+              "recall@10": 0.6625,
+              "recall@20": 0.75,
+              "recall@5": 0.5125
+            },
+            "queries": 80
+          },
+          "tfidf_cosine": {
+            "metrics": {
+              "mrr@10": 0.4351488095238095,
+              "ndcg@10": 0.522846608957428,
+              "recall@10": 0.8,
+              "recall@20": 0.8875,
+              "recall@5": 0.6625
+            },
+            "queries": 80
+          }
+        },
+        "paired_candidate_minus_baseline": {
+          "mrr@10": {
+            "losses": 6,
+            "mean": 0.07734623015873016,
+            "ties": 43,
+            "wins": 31
+          },
+          "ndcg@10": {
+            "losses": 6,
+            "mean": 0.09275130866899534,
+            "ties": 43,
+            "wins": 31
+          },
+          "recall@10": {
+            "losses": 2,
+            "mean": 0.1375,
+            "ties": 65,
+            "wins": 13
+          },
+          "recall@20": {
+            "losses": 2,
+            "mean": 0.1375,
+            "ties": 65,
+            "wins": 13
+          },
+          "recall@5": {
+            "losses": 0,
+            "mean": 0.15,
+            "ties": 68,
+            "wins": 12
+          }
+        }
+      },
+      "test": {
+        "arms": {
+          "bm25": {
+            "metrics": {
+              "mrr@10": 0.3186428571428571,
+              "ndcg@10": 0.3961916838309697,
+              "recall@10": 0.6433333333333333,
+              "recall@20": 0.7466666666666667,
+              "recall@5": 0.5
+            },
+            "queries": 300
+          },
+          "tfidf_cosine": {
+            "metrics": {
+              "mrr@10": 0.41835714285714287,
+              "ndcg@10": 0.5033793456959811,
+              "recall@10": 0.7766666666666666,
+              "recall@20": 0.8966666666666666,
+              "recall@5": 0.61
+            },
+            "queries": 300
+          }
+        },
+        "paired_candidate_minus_baseline": {
+          "mrr@10": {
+            "losses": 43,
+            "mean": 0.09971428571428571,
+            "ties": 140,
+            "wins": 117
+          },
+          "ndcg@10": {
+            "losses": 43,
+            "mean": 0.10718766186501144,
+            "ties": 140,
+            "wins": 117
+          },
+          "recall@10": {
+            "losses": 6,
+            "mean": 0.13333333333333333,
+            "ties": 248,
+            "wins": 46
+          },
+          "recall@20": {
+            "losses": 2,
+            "mean": 0.15,
+            "ties": 251,
+            "wins": 47
+          },
+          "recall@5": {
+            "losses": 12,
+            "mean": 0.11,
+            "ties": 243,
+            "wins": 45
+          }
+        }
+      },
+      "validation": {
+        "arms": {
+          "bm25": {
+            "metrics": {
+              "mrr@10": 0.28329365079365076,
+              "ndcg@10": 0.3550679218375849,
+              "recall@10": 0.5875,
+              "recall@20": 0.6625,
+              "recall@5": 0.4375
+            },
+            "queries": 80
+          },
+          "tfidf_cosine": {
+            "metrics": {
+              "mrr@10": 0.34058531746031745,
+              "ndcg@10": 0.4486107160013227,
+              "recall@10": 0.8,
+              "recall@20": 0.9125,
+              "recall@5": 0.575
+            },
+            "queries": 80
+          }
+        },
+        "paired_candidate_minus_baseline": {
+          "mrr@10": {
+            "losses": 9,
+            "mean": 0.05729166666666667,
+            "ties": 37,
+            "wins": 34
+          },
+          "ndcg@10": {
+            "losses": 9,
+            "mean": 0.09354279416373779,
+            "ties": 37,
+            "wins": 34
+          },
+          "recall@10": {
+            "losses": 1,
+            "mean": 0.2125,
+            "ties": 61,
+            "wins": 18
+          },
+          "recall@20": {
+            "losses": 1,
+            "mean": 0.25,
+            "ties": 58,
+            "wins": 21
+          },
+          "recall@5": {
+            "losses": 3,
+            "mean": 0.1375,
+            "ties": 63,
+            "wins": 14
+          }
+        }
+      }
+    },
+    "state_version": 13,
+    "summary_new_fits": 0,
+    "summary_new_gold_scoring_calls": 0,
+    "summary_new_ranking_calls": 0,
+    "usage": {
+      "corpus_records": 8674,
+      "index_builds": 1,
+      "index_seconds": 1.0737292559933849,
+      "model_calls": 0,
+      "native_fits": 0,
+      "query_pairs": 460,
+      "ranking_calls": 920,
+      "scoring_calls": 920
+    }
+  },
+  "schema_version": "g5-retrieval-transfer-results-v1",
+  "scope_limits": [
+    "Known public data; procedural hash subset, not official or sealed holdout.",
+    "Index/lexical metrics reused, no LLM or upstream runtime integration claim.",
+    "Candidate/control equality proves no incremental memory contrast, even though the chosen fixed arm improves this target aggregate.",
+    "Global fixed study claim coordinates cooperating same-user executors; not an OS boundary.",
+    "No claim of scientific significance, automatic adoption, full Gate or multi-generation RSI."
+  ],
+  "selection_sha256": "af6fc30f6802c08ed964a4ebb2ac94eddb2f10cb072f25e045849e202425a56d",
+  "shared_study_claim": ".agent/autonomy/studies/g5-arguana-source-arm-transfer-v1.json",
+  "source_commit": "250954e98024844e102352aac8666859e4f761be",
+  "source_pin": "/workspace/work/arguana-transfer-source-250954e",
+  "source_pins_final_check": {
+    "bytes": 1023,
+    "path": "runs/sprint-010-start-20261114/source-pins-final.json",
+    "sha256": "0145c27eaf3ed39ce5ce662bdf0c68e1ce1ad2432d8b4cbd275e3b6c5a1994f1"
+  },
+  "source_snapshot_sha256": "2009bdb93024f7f2928876f0f26260f71df7f0164c6187691a0a1fae12b57a9e",
+  "study_id": "g5-arguana-source-arm-transfer-v1",
+  "study_output": "runs/g5-retrieval-transfer-20261114-01",
+  "ui_label_increment": {
+    "affected_pages_four_screenshots": 4,
+    "browser_gets": 20,
+    "browser_receipt": {
+      "bytes": 72981,
+      "path": "runs/sprint-010-relevance-report-20261114/label-fix-browser-02/receipt.json",
+      "sha256": "8f57f0e6b212b6be2e24ce135463b4ced820d73200b00f1dd2158be488593238"
+    },
+    "clean_worktree": "/workspace/work/arguana-ui-labels-20261114",
+    "commit": "944b5aef970765f7993bbff758b5dc70728ac50f",
+    "independent_api_gets": 10,
+    "independent_review": {
+      "bytes": 4297,
+      "path": "runs/sprint-010-source-audit-20261114/ui-label-independent.json",
+      "sha256": "34a1e840800efab4c9ba204542810ca37f1f70f6370ce9e28a8c143519e4917a"
+    },
+    "readonly_port": 18841,
+    "research_code_identity_unchanged": true,
+    "scientific_python_files_unchanged": 174,
+    "validation": {
+      "bytes": 1439,
+      "path": "runs/sprint-010-relevance-report-20261114/label-fix-build/validation.json",
+      "sha256": "ae9187694143f0c1099d6055f235e9934f1179bb4c101aab01a67ab0cbe2c4e6"
+    }
+  }
+}

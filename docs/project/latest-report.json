@@ -1,75 +1,112 @@
 {
-  "schema_version": "lab-latest-report-v1",
-  "round": "Sprint009",
-  "started_at_local": "2026-11-14T01:47:07+08:00",
-  "work_verification_finished_at_local": "2026-11-14T02:44:56.302456+08:00",
-  "observed_at_local": "2026-11-14T02:44:56.302456+08:00",
-  "timezone": "Asia/Shanghai",
-  "status": "work_and_independent_verification_complete",
-  "repository_head_at_start": "76d86fc2a3c8aa517f9c1de420c45e58288de705",
-  "reader_source_commit": "0acb05e253f543ea2483e383c7e2358c81c422bd",
-  "final_delivery_source_commit": "8a394e316009a035cd5ac2de5fd2f00a3ca0fe79",
-  "research_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
-  "completed": [
-    "ImplementedboundedsavedqueryGETandexplicitUIreader",
-    "Validatedreal59HTTPGETand4browsercontexts92GET/36screenshots;all133rows/samples/documents/order/focus/errorstates",
-    "Built0acwheelandverifiedinstalledsavedreadswitholddeps;keptactualtargetRECORDandCLIlimitations",
-    "VerifiedseparatepurestandardvenvRECORDswithoutclaimingruntime",
-    "Acquired21officialpinnedwheels+bundledpip+product,thenofflineinstalledexact23totaldistributionsinnewstandardvenv;originaloptionalCLIhelpfailedretained",
-    "FixedlazyoptionalruntimeCLIhelp;new8awheelinstalledofflinewith22cachednonproductpins,actualCLIhelp0/0andmissingSDKrun2/nativeHTTPpassed"
-  ],
-  "verification": {
-    "new_reader_tests": 17,
-    "existing_http_tests": 5,
-    "runtime_cli_tests": 8,
-    "source_http_gets": 59,
-    "real_browser_gets": 92,
-    "screenshots": 36,
-    "installed_final_gets": 12,
-    "final_product_files": 179,
-    "installed_distributions_total": 23,
-    "site_package_origins_total": 998,
-    "product_origins": 98,
-    "thirdparty_origins": 900,
-    "real_project_screenshots": 34,
-    "isolated_client_fixture_screenshots": 2
+  "active_executors_at_capture": {
+    "collaboration_tasks_running": 0,
+    "development_finalizer": "root holding lease to save/commit/push this report",
+    "lease_owner": "root-sprint010-20261114T0446",
+    "note": "Final response reports actual release observation; do not infer future ownership from this historical capture.",
+    "release_after_delivery": true,
+    "release_receipt": "runs/sprint-010-start-20261114/lease-release.json",
+    "research_worker": false
   },
-  "final_wheel": {
-    "bytes": 1224468,
-    "sha256": "e2941f74f2e93ba15a6f4eda7e8e53c9d539f99f39ac6e030f146b32fc8aa563",
-    "directory": "/workspace/work/g6-reader-cli-fixed-20261114"
+  "automation_evidence": {
+    "bytes": 435,
+    "path": "runs/sprint-010-start-20261114/automation-observation-final.json",
+    "sha256": "618bff5582997f65ca8af1340d402a50ba28979ff746592b3f8aa9593d59d1da"
   },
-  "usage": {
-    "new_research_fits": 0,
+  "automation_run_result": "unknown",
+  "blockers": [],
+  "budget": {
+    "development_tokens_money": "unknown",
+    "historical_research_estimator_attempts_unchanged": 50,
+    "local_tools_reserved": 0,
+    "local_tools_used": 2,
+    "network_scope": "Public source acquisition and loopback verification occurred; not a whole-session zero-network claim.",
     "new_engineering_estimator_fits": 0,
-    "product_model_service_api_calls": 0,
-    "historical_estimator_attempts_unchanged": 50,
-    "protected_originals_unchanged": 494,
-    "complete_case_file_paths_unchanged": 421,
-    "development_tokens_money": "unknown"
+    "new_product_model_api_calls": 0,
+    "new_research_fits": 0,
+    "new_source_extractions": 0
+  },
+  "completed": [
+    "Independent official ArguAna CC-BY4 source/license/full-text/1401-present-pair audit; NFCorpus academic-only not adopted.",
+    "Native relevance adapter/registry/project-controller-workbench/report/summary; original citation/lexical unchanged.",
+    "One independently approved frozen460-query fixed-pair study,920rankings/920metrics,3plans/2tools/waiting/native4reports.",
+    "7 original-ID guarded replays and7GET verify4reports+2actions with exact bytes;572scientificfiles unchanged.",
+    "Real desktop/mobile five-page16screenshots, then2methodname mapping fix+four affected-page screenshots with independent review."
+  ],
+  "end_time": "2026-11-14T05:30:58.893485+08:00",
+  "evidence_index": {
+    "bytes": 24248,
+    "path": "docs/execution/g5-local/retrieval-transfer-results.json",
+    "sha256": "379f48e6e6958857448ce490bc7844d4c6b6203f795f1dae09d21e732bd9fc8a"
   },
   "failures_retained": [
-    "PlaywrightbarestringpredicateCSPfailurecorrectedtestonly",
-    "OldpiptargettwoRECORDscriptpaths",
-    "Old0acoptionalCLIhelpSDKimportfailure",
-    "ReviewerHTTPnegativecount/metadataoriginlabelcorrectionsandlegacydescriptorsretained",
-    "Transientexecutionchannelrecoveryinterruptedagents;resumedexistingartifactswithoutrecreatinghistory"
+    "NFCorpus academic-only licence not adopted; official source HTTP403 and first bounded archive/member/decode/mapping audit failures retained.",
+    "Missing pytest initial command failed; existing unittest used without installing packages.",
+    "First freeze preparation rejected a hand-entered wrong full commit before project/output creation; same output prepared using actual Git HEAD.",
+    "Browser01 strict selector matched two details summaries; harness corrected with original failure kept.",
+    "Independent post-run reviewer was found interrupted and resumed on the same original evidence; research attempt completed and was never rerun.",
+    "UI build node_modules symlink omitted dependency notices; local copied dependencies rebuilt correctly before commit, without installing/downloading.",
+    "UI browser01 harness assumed a public code_identity field and stopped after one GET; corrected external source check in02."
   ],
-  "remaining_limits": [
-    "SDK/cloudruntimeexecutionnotacceptedbyCLIhelp",
-    "No newscience/hiddenevaluation/refit/OSsealed/multigeneration/fullGateclaims"
-  ],
-  "evidence_index": {
-    "path": "docs/execution/g5-local/saved-reader-verification.json",
-    "bytes": 14746,
-    "sha256": "1330edd36085eeee008911363ae9d505b428d6d47203bcd0eca784869b31ed3a"
+  "independent_review": {
+    "bytes": 9920,
+    "path": "runs/sprint-010-independent-20261114/post-run-review.json",
+    "sha256": "513598cce2945fd897d3ae27e43ffdfb5ea8afb1ee18726c8d46ce2a7acb02d1"
   },
-  "next_task": "G5independentretrievaltasklicense/semantics/inputcaps/strategytransferbaselinecandidate/evaluator/budgetpreregistrationandreviewsbeforeexecution;neverresetoldSciFactcases",
-  "next_planned_trigger_local": "2026-11-14T04:47:27+08:00",
-  "platform_recorded_run": null,
-  "platform_recorded_result": null,
+  "next_planned_trigger_time": "2026-11-14T07:47:27+08:00",
+  "next_task": "Extend saved adverse-query reader to the distinct relevance contract with original source/action SHA and same-ID safeguards; no rerank/rescore/new project or budget reset.",
   "notification_delivery": "unknown",
-  "active_executor_at_observation": "root holds lease while publishing; release after exact remotehead andhandoff verification; no permanentworkerclaimed",
-  "no_new_user_decision": true,
-  "publication_receipt": "runs/sprint-009-start-20261114/push-receipt.json; exact containing Git revision confirmed at publication"
+  "project_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+  "remaining_limits": [
+    "Public procedural subset, not official BEIR full benchmark/hidden/sealed evaluation.",
+    "Equal-arm fixed TF-IDF control does not identify memory causal gain; source-only rule is host-frozen, no automatic learned policy/runtime integration.",
+    "Saved arithmetic review did not rerank or rescore raw gold.",
+    "Existing generic CSV/Ridge design hints and citation-only query reader remain product boundaries.",
+    "No new-code full wheel/clean-install/full Gate/OS/multigeneration RSI claim."
+  ],
+  "schema_version": "project-trigger-report-v2",
+  "source_commit": "250954e98024844e102352aac8666859e4f761be",
+  "source_pin": "/workspace/work/arguana-transfer-source-250954e",
+  "sprint": "010",
+  "start_time": "2026-11-14T04:45:53+08:00",
+  "status": "implementation_research_ui_validation_and_independent_review_completed; delivery_finalization",
+  "study": {
+    "all_adverse_mixed": 186,
+    "all_any_metric_loss": 63,
+    "all_no_metric_loss_but_incomplete": 123,
+    "candidate_equals_fixed_tfidf_control": true,
+    "causal_memory_benefit": "not_identifiable",
+    "id": "g5-arguana-source-arm-transfer-v1",
+    "memory_incremental_difference_by_construction": 0.0,
+    "output": "runs/g5-retrieval-transfer-20261114-01",
+    "primary_recall20_baseline": 0.7466666666666667,
+    "primary_recall20_candidate": 0.8966666666666666,
+    "primary_recall20_delta": 0.15,
+    "project_id": "project-0940a2e0cbd841e58677d2ecd99a33e2",
+    "selected_missing_positives_retained_zero": 2,
+    "state_version": 13,
+    "status": "waiting",
+    "test_ndcg_baseline": 0.3961916838309697,
+    "test_ndcg_candidate": 0.5033793456959811,
+    "test_ndcg_loss_queries": 43,
+    "test_recall20_loss_queries": 2
+  },
+  "time_scope": "Work/evidence and report capture; following git delivery and lease release receipts are saved separately.",
+  "timezone": "Asia/Shanghai",
+  "ui_commit": "944b5aef970765f7993bbff758b5dc70728ac50f",
+  "ui_pin": "/workspace/work/arguana-ui-labels-20261114",
+  "verification": {
+    "label_fix_affected_screenshots": 4,
+    "new_adapter_tests": 9,
+    "new_native_project_tests": 2,
+    "new_report_tests": 6,
+    "old_complete_case_file_paths": 421,
+    "old_protected_files": 494,
+    "post_run_saved_review_groups": 18,
+    "pre_run_admission_checks": 703,
+    "real_five_page_screenshots": 16,
+    "recovery_http_gets": 7,
+    "same_id_replays": 7,
+    "source_pins_clean": 7
+  }
 }
