@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 
@@ -202,7 +203,7 @@ class ProjectExperienceTests(unittest.TestCase):
         for name, value in (("scope", self.scope), ("card", self.card()), ("limitations", {"limitations": bundle["limitations"]})):
             (folder / (name + ".json")).write_text(canonical(value), encoding="utf-8")
         product = Path(__file__).parents[1]
-        argv = [str(product / ".venv/Scripts/python.exe"), "scripts/project_experience.py", "export", "--memory", str(self.memory.root),
+        argv = [sys.executable, "scripts/project_experience.py", "export", "--memory", str(self.memory.root),
                 "--scope", str(folder / "scope.json"), "--entry-id", self.entry["id"], "--case-id", "fixture-case", "--version", "1",
                 "--method-card", str(folder / "card.json"), "--limitations", str(folder / "limitations.json"), "--output", str(folder / "case.json")]
         result = subprocess.run(argv, cwd=product, capture_output=True, check=True)

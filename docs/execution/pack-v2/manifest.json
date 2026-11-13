@@ -1,0 +1,109 @@
+{
+  "name": "Autonomous Research Lab Master Execution Pack",
+  "version": "2.0",
+  "created": "2026-11-12",
+  "primary_repo": "open-agent-power/auto-research-agentarts",
+  "confirmed_environment": {
+    "os": "Debian 13.6",
+    "arch": "x86_64",
+    "cpu_quota": 4,
+    "ram_gib": 16,
+    "disk_free_gib_approx": 30,
+    "gpu": false,
+    "python": "3.12.14",
+    "node": "24.22.1",
+    "git": "2.52.0",
+    "docker": "29.9.2"
+  },
+  "upstream_references": [
+    {
+      "name": "Karpathy autoresearch",
+      "url": "https://github.com/karpathy/autoresearch",
+      "role": "fixed-budget experiment loop"
+    },
+    {
+      "name": "Sakana AI Scientist",
+      "url": "https://github.com/SakanaAI/AI-Scientist",
+      "role": "research stages/templates/experiment execution"
+    },
+    {
+      "name": "Agent Laboratory",
+      "url": "https://github.com/SamuelSchmidgall/AgentLaboratory",
+      "role": "research workflow and AgentRxiv"
+    },
+    {
+      "name": "Prime Agent",
+      "url": "https://github.com/PrimeIntellect-ai/prime",
+      "role": "mutable Harness and RLM"
+    },
+    {
+      "name": "OpenHands",
+      "url": "https://github.com/All-Hands-AI/OpenHands",
+      "role": "optional coding worker"
+    },
+    {
+      "name": "OpenHands Benchmarks",
+      "url": "https://github.com/All-Hands-AI/benchmarks",
+      "role": "evaluation harness"
+    },
+    {
+      "name": "SWE-bench",
+      "url": "https://github.com/SWE-bench/SWE-bench",
+      "role": "software issue benchmark"
+    },
+    {
+      "name": "OpenTelemetry Demo",
+      "url": "https://github.com/open-telemetry/opentelemetry-demo",
+      "role": "IT operations simulation"
+    },
+    {
+      "name": "BEIR",
+      "url": "https://github.com/beir-cellar/beir",
+      "role": "RAG retrieval benchmark"
+    },
+    {
+      "name": "Ragas",
+      "url": "https://github.com/explodinggradients/ragas",
+      "role": "RAG evaluation"
+    },
+    {
+      "name": "Optuna",
+      "url": "https://github.com/optuna/optuna",
+      "role": "optimization baseline"
+    },
+    {
+      "name": "Nevergrad",
+      "url": "https://github.com/facebookresearch/nevergrad",
+      "role": "black-box optimization baseline"
+    },
+    {
+      "name": "DEAP",
+      "url": "https://github.com/DEAP/deap",
+      "role": "evolutionary optimization"
+    }
+  ],
+  "files": [
+    "00-charter/PRODUCT_CHARTER.md",
+    "01-product/RECIPE_EVIDENCE_MEMORY.md",
+    "01-product/RESEARCH_LIFECYCLE.md",
+    "02-architecture/REFERENCE_ARCHITECTURE.md",
+    "02-architecture/TWO_LEVEL_RSI.md",
+    "03-reference-projects/CLONE_AND_AUDIT_GUIDE.md",
+    "03-reference-projects/REFERENCE_CATALOG.md",
+    "04-benchmarks/BENCHMARK_MASTER_PLAN.md",
+    "04-benchmarks/SCENARIO_TASKS.md",
+    "05-agent-organization/AGENT_DEVELOPMENT_OS.md",
+    "05-agent-organization/AGENT_ORGANIZATION.md",
+    "05-agent-organization/SPRINT_RESEARCH_REVIEW.md",
+    "05-agent-organization/TASK_CONTRACT.md",
+    "06-roadmap/PHASE_DELIVERABLES_AND_GATES.md",
+    "07-task-management/INITIAL_TASK_BACKLOG.md",
+    "08-cloud/RESOURCE_AND_RUNTIME_PLAN.md",
+    "09-delivery/FINAL_DELIVERY_MANIFEST.md",
+    "10-templates/ACCEPTANCE_RECORD_TEMPLATE.md",
+    "10-templates/SPRINT_REPORT_TEMPLATE.md",
+    "11-open-questions/G0_DECISIONS.md",
+    "README.md"
+  ],
+  "principle": "Research workbench first; agents and runtimes are replaceable means; real research evidence and two-level improvement are core."
+}

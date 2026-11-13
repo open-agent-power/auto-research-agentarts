@@ -1,0 +1,228 @@
+{
+  "timestamp_utc": "2026-11-12T13:26:36.343296+00:00",
+  "kind": "static_parsing_only",
+  "isolated_interpreter": "python -I; upstream code was never imported or executed",
+  "results": [
+    {
+      "repo": "autoresearch",
+      "commit": "228791fb499afffb54b46200aca536f79142f117",
+      "files": [
+        {
+          "path": "train.py",
+          "exists": true,
+          "sha256": "2954175f4ac42ad65164aef40910ef953789abcd05a5cc886ac9ba5a00814414",
+          "parse": "pass"
+        },
+        {
+          "path": "prepare.py",
+          "exists": true,
+          "sha256": "4f2ba9cbb8ba8c4a3d35be405a913e2f3be3af9aea103ed52ef7b2a662058150",
+          "parse": "pass"
+        }
+      ],
+      "worktree_clean": true,
+      "pyproject.toml": "parse_pass"
+    },
+    {
+      "repo": "AI-Scientist",
+      "commit": "1de1dbc1f4ee2c5f61e9c94348d55eb51d7fa2eb",
+      "files": [
+        {
+          "path": "launch_scientist.py",
+          "exists": true,
+          "sha256": "5c5ef5dc2b25f0565457a7c974f3679ff98651967c3f1cf2dcb6c05352bb32dc",
+          "parse": "pass"
+        },
+        {
+          "path": "ai_scientist/generate_ideas.py",
+          "exists": true,
+          "sha256": "3d0404f6b25b6e0de80dd009351cbbd58526f43f10aae830d7b0d22790bcd224",
+          "parse": "pass"
+        },
+        {
+          "path": "ai_scientist/perform_experiments.py",
+          "exists": true,
+          "sha256": "85361e35a9575a88a242e0a338143b2d2e8a07f917c996c293458329abcb87bf",
+          "parse": "pass"
+        },
+        {
+          "path": "ai_scientist/perform_review.py",
+          "exists": true,
+          "sha256": "903380395f0f28993e432ab2abd59f300010fc8e9057b1aedeb54c4396dca004",
+          "parse": "pass"
+        },
+        {
+          "path": "ai_scientist/perform_writeup.py",
+          "exists": true,
+          "sha256": "38076e780843f5f99f82bc7a61a18ccdd9e94906c962462dc77d2220fd3a82db",
+          "parse": "pass"
+        },
+        {
+          "path": "templates/grokking/experiment.py",
+          "exists": true,
+          "sha256": "64778130aea88e0081fdc51b1b0f86a05ad076ae1e247b3d1d5a21a0f009b11d",
+          "parse": "pass"
+        }
+      ],
+      "worktree_clean": true
+    },
+    {
+      "repo": "AgentLaboratory",
+      "commit": "d9017d90e329112d2a80b7712f37ee9094d2cd27",
+      "files": [
+        {
+          "path": "agents.py",
+          "exists": true,
+          "sha256": "d8d1eda040eb1fa897d84596a1b36f277e83da75433c1a9ac2d9efe5be5c749a",
+          "parse": "pass"
+        },
+        {
+          "path": "ai_lab_repo.py",
+          "exists": true,
+          "sha256": "799a3c078d835cd632487f52ed5b8e9f155bb9514ca104a30442ecfbcb7765ff",
+          "parse": "pass"
+        },
+        {
+          "path": "inference.py",
+          "exists": true,
+          "sha256": "9f34099f0f1e7e548c7798887d9b33da6cfeef552d16e720fce343db423a5b2e",
+          "parse": "pass"
+        },
+        {
+          "path": "tools.py",
+          "exists": true,
+          "sha256": "171b36dd2507add4acb3c4608d2acc5f9d9cd7bc4631264d23efd40c3c816d23",
+          "parse": "pass"
+        },
+        {
+          "path": "mlesolver.py",
+          "exists": true,
+          "sha256": "cc110f2b07642532cca11bd8cbf74becfc41016c7f876c16f6d40379ec59882c",
+          "parse": "pass"
+        },
+        {
+          "path": "papersolver.py",
+          "exists": true,
+          "sha256": "8c16d68577570fbf6332d3f070e5aec975ed3fd3e1440918940f16eb8911366c",
+          "parse": "pass"
+        },
+        {
+          "path": "utils.py",
+          "exists": true,
+          "sha256": "ea23c00695613ab346ac6646f69dbf2b0972efda7c1cafeccd5ffdb4f5f439c8",
+          "parse": "pass"
+        }
+      ],
+      "worktree_clean": true
+    },
+    {
+      "repo": "prime",
+      "commit": "565415d1cfa33b2e9dbdde5e3a34d433fdda68f7",
+      "files": [
+        {
+          "path": "packages/prime/src/prime_cli/main.py",
+          "exists": true,
+          "sha256": "ae735ab1d0e8196dc0301214ad80f9faef6551f072a6664245018c0e59078aa2",
+          "parse": "pass"
+        },
+        {
+          "path": "packages/prime/src/prime_cli/commands/sandbox.py",
+          "exists": true,
+          "sha256": "04d55f2e2653e10d8a1932b3347fc29f37b993d1ddbafc4f0d986a3194ece165",
+          "parse": "pass"
+        },
+        {
+          "path": "packages/prime-sandboxes/src/prime_sandboxes/client.py",
+          "exists": false
+        }
+      ],
+      "worktree_clean": true,
+      "pyproject.toml": "parse_pass"
+    },
+    {
+      "repo": "OpenHands",
+      "commit": "d58ca3dcdf95c5847f1888de6d5e0600b53b718c",
+      "files": [],
+      "worktree_clean": true,
+      "package.json": "parse_pass"
+    },
+    {
+      "repo": "software-agent-sdk",
+      "commit": "7543710639b697e461772c77e4d27217a089f8c5",
+      "files": [
+        {
+          "path": "openhands-workspace/openhands/workspace/docker/workspace.py",
+          "exists": true,
+          "sha256": "c35c74999cc81c4039c666f43b1929f5e176f5af5ec48c23302907c50d6d8fa5",
+          "parse": "pass"
+        },
+        {
+          "path": "openhands-sdk/openhands/sdk/conversation/state.py",
+          "exists": true,
+          "sha256": "e2e535312444b96adb401ff1f22f2bb4cc1d3d69281d4538e4e78461f8014789",
+          "parse": "pass"
+        },
+        {
+          "path": "openhands-agent-server/openhands/agent_server/docker_runtime/registry.py",
+          "exists": true,
+          "sha256": "cce8fb9e9398496c25bbf301b505d28daed0840ecda92754608f913256002d14",
+          "parse": "pass"
+        }
+      ],
+      "worktree_clean": true,
+      "pyproject.toml": "parse_pass"
+    },
+    {
+      "repo": "beir",
+      "commit": "ef83d29307061c65d04b035b4f4e7c18bd8374af",
+      "files": [
+        {
+          "path": "beir/retrieval/evaluation.py",
+          "exists": true,
+          "sha256": "f346bd20f258e552895e438257e3cc91308b65e0b1ee6c09422e987084bc3bd0",
+          "parse": "pass"
+        },
+        {
+          "path": "beir/retrieval/search/lexical/bm25_search.py",
+          "exists": true,
+          "sha256": "f0c056b8145f6104b7f23be34fdeb3f2926fc9ae5b58eb8b6709b3f0b43cc8d0",
+          "parse": "pass"
+        },
+        {
+          "path": "beir/datasets/data_loader.py",
+          "exists": true,
+          "sha256": "bcb39af11b73861eda44f3083b399ba78c46ef11c25d56d8e195572af0be336f",
+          "parse": "pass"
+        }
+      ],
+      "worktree_clean": true,
+      "pyproject.toml": "parse_pass"
+    },
+    {
+      "repo": "ragas",
+      "commit": "298b68274234c060deacab3cf5fb52aa3a20e885",
+      "files": [
+        {
+          "path": "src/ragas/metrics/_context_precision.py",
+          "exists": true,
+          "sha256": "baaf3981986602754ccbaef2936b6ac8e6d6551cab86477e64170683d74a4716",
+          "parse": "pass"
+        },
+        {
+          "path": "src/ragas/metrics/_context_recall.py",
+          "exists": true,
+          "sha256": "154a260678839c3f3d7dcf15f38820e36a3514b492245fdc899e93b946554ada",
+          "parse": "pass"
+        },
+        {
+          "path": "src/ragas/evaluation.py",
+          "exists": true,
+          "sha256": "79fdbacf1229e5cf1d0d17963ce00b7dd90f6f7e4692a683bc7b3845e2dd88f4",
+          "parse": "pass"
+        }
+      ],
+      "worktree_clean": true,
+      "pyproject.toml": "parse_pass"
+    }
+  ]
+}

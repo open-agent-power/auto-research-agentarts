@@ -5,6 +5,7 @@
 | 想了解什么 | 入口 |
 |---|---|
 | 产品目标、系统组成和当前边界 | [产品与系统架构](architecture.md) |
+| Master Execution Pack v2 云端执行与接续 | [当前接续](project/current.md)、[阶段任务与验收](execution/README.md) |
 | 当前进度、未完成事项 | [当前进度](current-progress.md)（完整 ICT 工作区本机文件） |
 | 当前主线与优先方向 | [项目计划](plan.md)（完整 ICT 工作区本机文件） |
 | 如何启动与使用 | [产品 README](../README.md)、[本地工作台](local-workbench.md)、[项目使用](project-slice.md) |

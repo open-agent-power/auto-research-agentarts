@@ -1,0 +1,7 @@
+{
+  "path": "/workspace/references/upstream/prime/packages/prime-sandboxes/src/prime_sandboxes/sandbox.py",
+  "sha256": "5de8f4fa3c37b4e3565409a5f4c7f71d2cbcec23532147d34a64129b15bf3cad",
+  "parse": "pass",
+  "kind": "static_only",
+  "execution": "none"
+}

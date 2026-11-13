@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+  "repositories": [
+    {
+      "repo": "autoresearch",
+      "url": "https://github.com/karpathy/autoresearch",
+      "commit": "228791fb499afffb54b46200aca536f79142f117",
+      "default_branch_at_retrieval": "master",
+      "license": "MIT declared in README only; no LICENSE file at pinned HEAD",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/autoresearch",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "README.md": "3958fd4195ac2f98ed35c4eaa4f3028a335165ee24945e96426c408d25793a41",
+        "pyproject.toml": "675c150a9e0769f0e39a43eb7d836934266fa348d6e2403521f1ff99f9b9f1af",
+        "uv.lock": "03174c5cce6387418c5b6cc9bbe8f71ad0ae1e1d6fedeaecae5cdcf7321da0a3"
+      },
+      "reuse_decision": "inspiration_only",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "train.py": "2954175f4ac42ad65164aef40910ef953789abcd05a5cc886ac9ba5a00814414",
+        "prepare.py": "4f2ba9cbb8ba8c4a3d35be405a913e2f3be3af9aea103ed52ef7b2a662058150",
+        "program.md": "86cf987a5c381e46eefe0d0a82765223fd766d8d7acdc2afacfbbce15ecacece"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "AI-Scientist",
+      "url": "https://github.com/SakanaAI/AI-Scientist",
+      "commit": "1de1dbc1f4ee2c5f61e9c94348d55eb51d7fa2eb",
+      "default_branch_at_retrieval": "main",
+      "license": "The AI Scientist Source Code License 1.0, December 2025 (use-restricted)",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/AI-Scientist",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "9c82e554a54dfcf2550b452801475a36f9cb909ede00b03e492089e4836a7462",
+        "README.md": "8300593c7febe85681e6e054c88423934efc838fc3054d857f3b0665f52b4c7b",
+        "requirements.txt": "1e6dd936e701e7f78e479901e8dc989d4fc9d6ae458b7a2739ce299db918aa54"
+      },
+      "reuse_decision": "inspiration_only",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "launch_scientist.py": "5c5ef5dc2b25f0565457a7c974f3679ff98651967c3f1cf2dcb6c05352bb32dc",
+        "ai_scientist/generate_ideas.py": "3d0404f6b25b6e0de80dd009351cbbd58526f43f10aae830d7b0d22790bcd224",
+        "ai_scientist/perform_experiments.py": "85361e35a9575a88a242e0a338143b2d2e8a07f917c996c293458329abcb87bf",
+        "ai_scientist/perform_review.py": "903380395f0f28993e432ab2abd59f300010fc8e9057b1aedeb54c4396dca004",
+        "ai_scientist/perform_writeup.py": "38076e780843f5f99f82bc7a61a18ccdd9e94906c962462dc77d2220fd3a82db",
+        "templates/grokking/experiment.py": "64778130aea88e0081fdc51b1b0f86a05ad076ae1e247b3d1d5a21a0f009b11d",
+        "templates/grokking/prompt.json": "33cd2b7e9ba7431aaaada817ee709cbb3bdb6f041f9574f377a35c9142c7dd30",
+        "templates/grokking/seed_ideas.json": "f6be68a474f474293c3646ffbc0491a44a1c15b65e95f14303316c3e577f9209"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "AgentLaboratory",
+      "url": "https://github.com/SamuelSchmidgall/AgentLaboratory",
+      "commit": "d9017d90e329112d2a80b7712f37ee9094d2cd27",
+      "default_branch_at_retrieval": "main",
+      "license": "MIT",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/AgentLaboratory",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "bf38a159d01e82d58f986c2d6dd06e03ba0b9cd59a6d286dd94109aac358e583",
+        "README.md": "8e1d25ccec75959f18d9326656cba4cf041b7e45eb06a2c0d8999ef516a2edeb",
+        "requirements.txt": "8c9f6a532faf44c83aafe64a2e00add6fa7db9757bdb954309bf9e474a68b390"
+      },
+      "reuse_decision": "inspiration_only",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "agents.py": "d8d1eda040eb1fa897d84596a1b36f277e83da75433c1a9ac2d9efe5be5c749a",
+        "ai_lab_repo.py": "799a3c078d835cd632487f52ed5b8e9f155bb9514ca104a30442ecfbcb7765ff",
+        "inference.py": "9f34099f0f1e7e548c7798887d9b33da6cfeef552d16e720fce343db423a5b2e",
+        "tools.py": "171b36dd2507add4acb3c4608d2acc5f9d9cd7bc4631264d23efd40c3c816d23",
+        "mlesolver.py": "cc110f2b07642532cca11bd8cbf74becfc41016c7f876c16f6d40379ec59882c",
+        "papersolver.py": "8c16d68577570fbf6332d3f070e5aec975ed3fd3e1440918940f16eb8911366c",
+        "utils.py": "ea23c00695613ab346ac6646f69dbf2b0972efda7c1cafeccd5ffdb4f5f439c8"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "prime",
+      "url": "https://github.com/PrimeIntellect-ai/prime",
+      "commit": "565415d1cfa33b2e9dbdde5e3a34d433fdda68f7",
+      "default_branch_at_retrieval": "main",
+      "license": "MIT",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/prime",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "afffda20025a0a8d24df838d6ab8c408c4bdb7823bcdc7671caca17c7960f39e",
+        "README.md": "5935a9fdb36975bcb9fe4c066b2f802e4a71ec067c4932ed7e6aa85b4660575b",
+        "pyproject.toml": "5e50ab08deb83879dba9cf3aca1346330c52fcd9c758220768474bc1a020a1cf",
+        "uv.lock": "b2de06b8ec775787dc81d8cdc72df7414cdd311a0e94c021f1aeccbbacdea93a"
+      },
+      "reuse_decision": "reject",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "packages/prime/src/prime_cli/main.py": "ae735ab1d0e8196dc0301214ad80f9faef6551f072a6664245018c0e59078aa2",
+        "packages/prime/src/prime_cli/commands/sandbox.py": "04d55f2e2653e10d8a1932b3347fc29f37b993d1ddbafc4f0d986a3194ece165",
+        "packages/prime-sandboxes/src/prime_sandboxes/sandbox.py": "5de8f4fa3c37b4e3565409a5f4c7f71d2cbcec23532147d34a64129b15bf3cad"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "OpenHands",
+      "url": "https://github.com/All-Hands-AI/OpenHands",
+      "commit": "d58ca3dcdf95c5847f1888de6d5e0600b53b718c",
+      "default_branch_at_retrieval": "main",
+      "license": "MIT",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/OpenHands",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "e1d1fa9f3a8d7bef24449d488fcd8f00f8f272cac297bb9bed161eb6175b876a",
+        "README.md": "86361418e329ce000239cd73de1cfd802c7f2d528727890e735b31b801344227",
+        "package.json": "63fb6d54866d68076f00f7e983872797979748d7c3308f7e9e76e4dded5761b6",
+        "package-lock.json": "980ecd4c1546e51cc5393194153854e2e201694de6c7ea3fe0378eb0c6a80ad3"
+      },
+      "reuse_decision": "inspiration_only",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {},
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "software-agent-sdk",
+      "url": "https://github.com/OpenHands/software-agent-sdk",
+      "commit": "7543710639b697e461772c77e4d27217a089f8c5",
+      "default_branch_at_retrieval": "main",
+      "license": "MIT",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/software-agent-sdk",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "14a9b631c658eee682c6c2973525fbdf808c3457176bc47513052c559cc5ce86",
+        "README.md": "95094c9745c7cc58136d4eaa1688fb6038aafefec2be05344293f6df7e55dbf8",
+        "pyproject.toml": "2f05e78fa4bdd24e4f7b6910c72e2f425ddbcd83cced35ca99134a81853ae69e",
+        "uv.lock": "17889fda95558e3ac1a643dfa281f5769f5226756d59e8c373d6b13f1dece10a"
+      },
+      "reuse_decision": "wrap_with_adapter",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "openhands-workspace/openhands/workspace/docker/workspace.py": "c35c74999cc81c4039c666f43b1929f5e176f5af5ec48c23302907c50d6d8fa5",
+        "openhands-sdk/openhands/sdk/conversation/state.py": "e2e535312444b96adb401ff1f22f2bb4cc1d3d69281d4538e4e78461f8014789",
+        "openhands-agent-server/openhands/agent_server/docker_runtime/registry.py": "cce8fb9e9398496c25bbf301b505d28daed0840ecda92754608f913256002d14",
+        "openhands-sdk/pyproject.toml": "24421c23e7a6d8eea6c953d3f7dcb48158842064df29916b644f2baa5d04fb84",
+        "openhands-workspace/pyproject.toml": "704ba6779ded878c38b1f99139f8650d644730aaadc185195ab581574151d60f",
+        "openhands-agent-server/openhands/agent_server/config.py": "0b064821b213e6da12a0e8e81bb7bee614bd072b960ccd9c5c377b3d6249caaf"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "beir",
+      "url": "https://github.com/beir-cellar/beir",
+      "commit": "ef83d29307061c65d04b035b4f4e7c18bd8374af",
+      "default_branch_at_retrieval": "main",
+      "license": "Apache-2.0",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/beir",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "d4c454f2506fb94fd17f71498fd66177546a570676cbe85b48a64a9e98596794",
+        "README.md": "d030c5374d29194e6c23ded13314dc6964b253c137cbcf606765a4222f4bc4e1",
+        "pyproject.toml": "a2e3fcd6d6b286a10817c613fa7aee1d3ff9094ed3993dec5c2a938afb6fe163"
+      },
+      "reuse_decision": "wrap_with_adapter",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "beir/retrieval/evaluation.py": "f346bd20f258e552895e438257e3cc91308b65e0b1ee6c09422e987084bc3bd0",
+        "beir/retrieval/search/lexical/bm25_search.py": "f0c056b8145f6104b7f23be34fdeb3f2926fc9ae5b58eb8b6709b3f0b43cc8d0",
+        "beir/datasets/data_loader.py": "bcb39af11b73861eda44f3083b399ba78c46ef11c25d56d8e195572af0be336f",
+        "examples/retrieval/evaluation/lexical/evaluate_bm25.py": "303165f48703407086cdef26f82767593f75a03f2e5a1feb400889acaf9e940f"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    },
+    {
+      "repo": "ragas",
+      "url": "https://github.com/explodinggradients/ragas",
+      "commit": "298b68274234c060deacab3cf5fb52aa3a20e885",
+      "default_branch_at_retrieval": "main",
+      "license": "Apache-2.0",
+      "retrieved_at": "2026-11-12T13:29:31.253446+00:00",
+      "local_path": "/workspace/references/upstream/ragas",
+      "checkout": "depth=1",
+      "file_sha256": {
+        "LICENSE": "664b930830f291c2936ab30bcd6ef9ca6c9c7384cc475ae0c526156a27d5a6c6",
+        "README.md": "af20b2258507b12bf930e897b63ee5bb87aac4a4696da078ea5a3c29addb6db7",
+        "pyproject.toml": "11b24f8114f922ea5d028d65dffabd941e2d11fc732d499afdcfe0e20a998101"
+      },
+      "reuse_decision": "wrap_with_adapter",
+      "runtime_status": "not_installed_not_executed",
+      "evidence_status": "source_read_and_static_checks",
+      "reviewed_source_sha256": {
+        "src/ragas/metrics/_context_precision.py": "baaf3981986602754ccbaef2936b6ac8e6d6551cab86477e64170683d74a4716",
+        "src/ragas/metrics/_context_recall.py": "154a260678839c3f3d7dcf15f38820e36a3514b492245fdc899e93b946554ada",
+        "src/ragas/evaluation.py": "79fdbacf1229e5cf1d0d17963ce00b7dd90f6f7e4692a683bc7b3845e2dd88f4"
+      },
+      "runtime_smoke_status": "deferred_not_run"
+    }
+  ],
+  "papers": [
+    {
+      "title": "Recursive self-improvement of AI research agents",
+      "id": "arXiv:2609.26457v1",
+      "url": "https://arxiv.org/html/2609.26457v1",
+      "version_date": "2026-09-22",
+      "code_status": "No AIDE2 source repository linked in inspected full paper or official Weco post; not established as unavailable everywhere",
+      "reuse_decision": "inspiration_only",
+      "runtime_status": "not_reproduced"
+    }
+  ],
+  "scope_notes": {
+    "core_source_requirement": "three mandatory core clones and reading complete",
+    "guide_runtime_smoke": "not satisfied; independent deferred/blocked item, not waived by static parse",
+    "optional_extensions": "SWE-bench/Pro, OpenTelemetry, Optuna/Nevergrad/DEAP not cloned or audited; outside current P0 core batch",
+    "integration": "none"
+  }
+}
