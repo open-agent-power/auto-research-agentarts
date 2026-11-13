@@ -179,6 +179,11 @@ export function createLocalEvidencePanel(host: Host): {
     if (!draft) { taskStatus.textContent = "先创建或选择项目，再执行检查产生实际取证任务。"; taskText.textContent = "尚无活动项目。"; return; }
     draftHost.append(draft.files, field("本次仍未解决的问题（可选，每行一条）", draft.questions));
     fileStatus.textContent = draft.sources.length ? `本项目资料草稿保留${draft.sources.length}份来源；草稿仅在当前页面内存保留。` : "请选择实际资料文件；登记与读取分开进行。";
+    if (nextProject.evidence_task_available === false) {
+      taskStatus.textContent = "当前暂无取证任务；已有研究记录和候选仍可查看。";
+      taskText.textContent = "本项目目前没有待补充资料的任务。";
+      loadingTask = false; controls(); return;
+    }
     taskStatus.textContent = "正在只读核对当前取证任务…";
     try {
       const value = await host.read("/api/project/evidence-task.json"); if (token !== refreshId || active !== projectId) return;

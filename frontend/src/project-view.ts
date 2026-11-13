@@ -35,6 +35,10 @@ const methodNames: Record<string, string> = {
   "data.prediction-negative-control": "预测误差的折内负对照",
   "data.workbook-projection-check": "CSV与工作簿保存值核对",
   "research.source-selection": "补充来源与条件证据",
+  "research.retrieval-fixed-pair": "固定引用检索对照",
+  "research.retrieval-saved-error-audit": "检索保存结果诊断",
+  "research.weighted-interval-fixed-pair": "合成区间调度对照",
+  "research.weighted-interval-saved-audit": "调度保存结果审计",
 };
 const policyNames: Record<string, string> = {
   recorded_equal_batch: "保留零值 · 批次等权", recorded_equal_section: "保留零值 · 分区等权",

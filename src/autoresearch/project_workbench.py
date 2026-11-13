@@ -140,6 +140,7 @@ def _projection(project, state, report=None):
     view.update(schema_version="active-project-view-v1", goal=state["registration"]["goal"],
                 primary_method=method_registry.primary_id(state), domain_scope=state["source_scope"], report=capability,
                 selection_history=selection_view(state), registered_evidence=registered,
+                evidence_task_available=bool(state.get("evidence_task_ref")),
                 method_options=research_methods.match_methods(state), scientific_validation=False)
     revisions = state.get("plan_revisions", [])
     view["research_plan"] = {"current": revisions[-1] if revisions else None, "revisions": revisions}

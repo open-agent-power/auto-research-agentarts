@@ -7,6 +7,7 @@ import unittest
 import test_local_evidence as evidence_fixtures
 import test_local_workbench_http as http_fixtures
 from autoresearch import source_evidence_adapter as reader
+from autoresearch.local_workbench import LocalWorkbench
 
 
 class LocalEvidenceHTTPTests(unittest.TestCase):
@@ -15,6 +16,31 @@ class LocalEvidenceHTTPTests(unittest.TestCase):
     serve = http_fixtures.LocalWorkbenchHTTPTests.serve
     request = http_fixtures.LocalWorkbenchHTTPTests.request
     session = http_fixtures.LocalWorkbenchHTTPTests.session
+
+    def test_projection_marks_no_evidence_task_without_changing_the_project(self):
+        manager = LocalWorkbench(self.root / "unstarted")
+        manager.create(evidence_fixtures.fixtures.LocalWorkbenchTests.create_body(self))
+        project, _ = manager.binding()
+        before = project.db.read_bytes()
+        self.assertFalse(project.status().get("evidence_task_ref"))
+        server = self.serve(workspace=project.root)
+        status, view = self.request(server, "/api/project")
+        self.assertEqual(status, 200)
+        self.assertIs(view["evidence_task_available"], False)
+        status, unavailable = self.request(server, "/api/project/evidence-task.json")
+        self.assertEqual((status, unavailable["code"]), (409, "TASK_NOT_AVAILABLE"))
+        self.assertEqual(project.db.read_bytes(), before)
+
+    def test_projection_marks_an_actual_bound_evidence_task_available(self):
+        expected = self.project.status()["evidence_task_ref"]
+        before = self.project.db.read_bytes()
+        server = self.serve(workspace=self.project.root)
+        status, view = self.request(server, "/api/project")
+        self.assertEqual(status, 200)
+        self.assertIs(view["evidence_task_available"], True)
+        status, task = self.request(server, "/api/project/evidence-task.json")
+        self.assertEqual((status, task["task_ref"]), (200, expected))
+        self.assertEqual(self.project.db.read_bytes(), before)
 
     def test_task_registration_receipt_and_original_are_project_bound_without_extraction(self):
         server = self.serve(local_workspace=self.manager, allow_local_actions=True)
