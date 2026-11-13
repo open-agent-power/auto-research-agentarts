@@ -266,6 +266,52 @@ def normalize(value):
     return value
 
 
+def processor_probe_launcher(real_popen, binary, observation):
+    """Only the exact real stdlib uname probe, once; no caller process options."""
+    def launch(argv, *args, **kwargs):
+        valid = (type(argv) is list and argv == ['uname', '-p'] and all(type(x) is str for x in argv)
+                 and not args and set(kwargs) == {'stdout', 'stderr', 'text', 'encoding'}
+                 and type(kwargs.get('stdout')) is int and kwargs['stdout'] == subprocess.PIPE
+                 and type(kwargs.get('stderr')) is int and kwargs['stderr'] == subprocess.DEVNULL
+                 and kwargs.get('text') is True and type(kwargs.get('encoding')) is str and kwargs['encoding'] == 'utf8'
+                 and not observation['processes'])
+        if not valid:
+            observation['blocked_subprocess_calls'] += 1
+            raise AssertionError('Dependency bootstrap permits only one exact stdlib uname -p probe')
+        record = {'argv': list(argv), 'resolved_executable': str(binary), 'returncode': None, 'stdout': None}
+        observation['processes'].append(record)
+        process = real_popen(argv, **{**kwargs, 'executable': str(binary)})
+        communicate = process.communicate
+        def observed_communicate(*call_args, **call_kwargs):
+            result = communicate(*call_args, **call_kwargs)
+            record['stdout'] = result[0]
+            record['returncode'] = process.returncode
+            return result
+        process.communicate = observed_communicate
+        return process
+    return launch
+
+
+def warm_real_processor(observation):
+    import platform
+    from unittest.mock import patch
+    resolved = shutil.which('uname', path='/usr/bin:/bin')
+    require(resolved is not None, 'System uname is unavailable')
+    binary = Path(resolved).resolve()
+    require(binary in {Path('/usr/bin/uname').resolve(), Path('/bin/uname').resolve()}, 'Unexpected uname system binary')
+    observation.update({'phase': 'external_dependency_metadata_bootstrap', 'processes': [],
+                        'blocked_subprocess_calls': 0, 'system_binary': str(binary),
+                        'system_binary_sha256': sha(read(binary)), 'processor_value': None})
+    launcher = processor_probe_launcher(subprocess.Popen, binary, observation)
+    with patch.object(subprocess, 'Popen', new=launcher):
+        # Warm the actual stdlib cache in this same interpreter. No platform value is invented.
+        observation['processor_value'] = platform.processor()
+    require(type(observation['processor_value']) is str and len(observation['processes']) <= 1
+            and all(item['returncode'] == 0 for item in observation['processes']), 'Actual processor probe failed')
+    observation['allowed_subprocess_calls'] = len(observation['processes'])
+    observation['cache_already_warm'] = not observation['processes']
+
+
 def check_prepared(root):
     raw = read(root/'prepared.json')
     prepared = parse(raw)
@@ -332,9 +378,10 @@ def recovery_child(root):
     require(not any(name == 'autoresearch' or name.startswith('autoresearch.') for name in sys.modules), 'No prior product import allowed')
     payload, target = root/'payload', root/'target'
     before = tree(payload)
-    guards = {name: 0 for name in ('original_repository_case_packet_or_product_storage', 'network_or_subprocess',
+    guards = {name: 0 for name in ('original_repository_case_packet_or_product_storage', 'bootstrap_network', 'network_or_subprocess',
                                   'fit', 'new_compute_create_export_or_model')}
-    accesses, imports, records = set(), {}, []
+    accesses, imports, records, bootstrap = set(), {}, [], {}
+    phase = ['bootstrap']
     def deny(name):
         def fail(*args, **kwargs):
             guards[name] = guards.get(name, 0)+1
@@ -380,10 +427,17 @@ def recovery_child(root):
             for module, name, function in ((builtins, 'open', guarded_open), (Path, 'open', guarded_path_open),
                                            (os, 'open', guarded_os_open), (sqlite3, 'connect', guarded_connect)):
                 guard.enter_context(patch.object(module, name, new=function))
+            def blocked_network(*args, **kwargs):
+                return deny('bootstrap_network' if phase[0] == 'bootstrap' else 'network_or_subprocess')(*args, **kwargs)
             for module, names in ((socket.socket, ('connect', 'connect_ex', 'sendto')),
-                                  (socket, ('create_connection', 'getaddrinfo')), (subprocess, ('Popen',))):
+                                  (socket, ('create_connection', 'getaddrinfo'))):
                 for name in names:
-                    guard.enter_context(patch.object(module, name, side_effect=deny('network_or_subprocess')))
+                    guard.enter_context(patch.object(module, name, side_effect=blocked_network))
+            warm_real_processor(bootstrap)
+            bootstrap['network_calls'] = guards['bootstrap_network']
+            save(root/'dependency-bootstrap.json', bootstrap)
+            phase[0] = 'saved_recovery'
+            guard.enter_context(patch.object(subprocess, 'Popen', side_effect=deny('network_or_subprocess')))
             from sklearn.linear_model import Ridge
             from sklearn.preprocessing import StandardScaler
             guard.enter_context(patch.object(Ridge, 'fit', side_effect=deny('fit')))
@@ -469,13 +523,14 @@ def recovery_child(root):
                                    'records': records, 'module_origins': origins, 'import_finder_origins': imports,
                                    'package_file_count': 177, 'package_sha256_matches_archive_wheel_and_git': True,
                                    'guard_call_counts': guards, 'actual_archive_case_accesses': sorted(accesses),
+                                   'dependency_bootstrap': bootstrap, 'saved_recovery_phase_subprocess_calls': guards['network_or_subprocess'],
                                    'archive_payload_unchanged': tree(payload) == before,
                                    'dependency_environment': str(DEPS), 'dependencies_supplied_by_zip': False,
                                    'new_scientific_compute_fit_model_source_network_or_report': 0,
                                    'limitations': 'Same-host cooperative file/import/API guards, not OS isolation; existing external clean dependencies reused; saved recovery is not scientific refit reproduction or full G6.'})
     except BaseException as error:
         save(root/'recovery-error.json', {'type': type(error).__name__, 'message': str(error), 'guards': guards,
-                                         'completed_saved_replays': len(records), 'automatic_retry': False})
+                                         'dependency_bootstrap': bootstrap, 'completed_saved_replays': len(records), 'automatic_retry': False})
         raise
     finally:
         sys.meta_path.remove(finder)
