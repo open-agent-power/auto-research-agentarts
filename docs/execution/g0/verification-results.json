@@ -83,14 +83,15 @@
     "base_branch": "main"
   },
   "continuation_decision": {
-    "status": "needs_user_decision",
+    "status": "accepted_trusted_local_only",
     "proposal": "docs/execution/g0/LOCAL_EXECUTION_DECISION.md",
-    "answer": null,
+    "answer": "继续推进",
     "read_only_preflight": "runs/g0-decision-review-20261113/preflight-reviewed.json",
     "read_only_preflight_sha256": "99fec1df203d4f60a9f220ec2cbc2b84335b437d7f2db760962dab387ddddc03",
     "input_hashes_unchanged": true,
     "new_research_fits": 0,
     "new_product_model_sends": 0,
-    "original_G0_unchanged": true
+    "original_G0_unchanged": true,
+    "authorization": "docs/execution/g1-local/authorization.json"
   }
 }

@@ -2,7 +2,7 @@
 
 ## 当前目标与停点
 
-执行 Master Execution Pack v2。G0审计交付已完成、独立审查已收齐，**G0仍BLOCKED**。G1–G6未开始；没有后台研究进程或定时任务。
+执行 Master Execution Pack v2。G0审计交付已完成、独立审查已收齐，**G0仍BLOCKED**。经用户批准的G1-L可信本地切片开始；G2–G6未开始，没有无人值守模型后台或定时任务。
 
 ## 本轮事实
 
@@ -16,14 +16,14 @@
 
 2026-11-13（Asia/Shanghai）用户完成组织授权后，已确认`open-agent-power`组织的安装包含目标仓库、Contents/Pull requests写权限。分支`codex/execution-pack-v2-g0`已成功推送，首个成功远程提交`257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4`；[PR #1](https://github.com/open-agent-power/auto-research-agentarts/pull/1)已按用户明确指示于2026-11-13合并至`main`，合并提交`269388af8f6d0a3330e5ea0e668459c428071367`。先前403保留为历史失败，当前GitHub交付阻塞已解除。G0资源及上游runtime两个阻塞保持。
 
-## 当前决策节点
+## 当前执行
 
-本轮只读恢复复核确认环境限制未改变，输入哈希一致；未启动容器资源复测、研究项目或fit。已形成经资源审计及独立审查的[可信本地先行方案](../execution/g0/LOCAL_EXECUTION_DECISION.md)，状态为`needs_user_decision`。原任务包要求先过Gate，故需明确决定是否修订顺序：A允许有限可信本地研究先行、隔离门和G2+保持未通过；B保持原顺序等可用Worker。一般性的“继续推进”不当作选项A的回答。
+用户在明确可信本地方案后回复“继续推进”，已按语境接受方案A，[授权记录](../execution/g1-local/authorization.json)固定6工具/20fit/1来源/0产品模型及API发送。原G0隔离门与上游runtime阻塞保持，G2+不解锁。
+
+当前实现固定案例宿主runner，复用现有manager/controller，按阶段冻结请求ID与原参数。先执行基线与保存诊断，再由本次真实观察生成计划v2，决定唯一log1p候选或明确等待；独立成员只读重算并核验恢复。不得把历史MAE放入新观察。
 
 ## 下一动作
 
-在用户回答前仅完成独立的接口/评价准备，不创建研究项目或fit。若批准A，按方案和原课题协议推进；若选择B，按以下原资源恢复路径接续。
-
-由平台提供可强制CPU/RAM/PID与磁盘合同的Worker，再用唯一新输出目录重跑`python scripts/verify_cloud_resources.py --output runs/g0-resources-recheck-<唯一编号>`。完成拟用上游最小隔离PoC并独立复核G0后，沿现有ResearchProject/ProjectController按冻结课题协议执行两轮、观察驱动修订、报告、复现与接续。
+完成runner冻结与阶段执行、独立算术和重放、原生报告和可恢复包，按实测更新本轮结果。案例原始工件存ignored runs，源码/协议和摘要可推送main；每轮完成后继续授权范围内工作。
 
 [任务板](../execution/README.md) · [G0验收](../execution/g0/G0-review.md) · [基线](../execution/g0/baseline-verification.md) · [本轮复盘](../execution/SPRINT-001.md)。原始日志在ignored `runs/`，公开数据在`/workspace/work/g0-data-research/`；另交付证据包。当前用户权限不能修复平台cgroup委派。

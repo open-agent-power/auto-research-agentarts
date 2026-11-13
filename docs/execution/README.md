@@ -44,3 +44,5 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 只读恢复复核表明Docker资源问题未改变，可信输入哈希一致。已向用户提出[具体执行顺序修订](g0/LOCAL_EXECUTION_DECISION.md)，当前`needs_user_decision`，不修改原G0结果，不启动拟合。G0允许的接口与评价准备可独立继续；收到明确选择后再实施对应路径。
 
 已核对[现有原生接口合同](g0/NATIVE_INTERFACE_FREEZE.md)：真实字段、输入/计划/方法绑定、精确候选、累计预算、来源登记与读取、报告与恢复路径。该文件仅为G0独立准备，不创建新API，也不授权研究执行。
+
+本地先行决定已接受：用户对具体推荐方案回复“继续推进”，[授权](g1-local/authorization.json)记录方案A及累计范围。此前needs_user_decision为历史状态；原G0仍blocked，G2+仍受限。
