@@ -202,4 +202,3 @@ existing trusted-local continuation, with its own explicit 2-action lineage,
 standalone study remains frozen; new implementation and input identities are
 committed/reviewed before this native case executes. Later algorithm integration
 needs its own exact task contract and fixed workload, not a renamed retrieval result.
-
