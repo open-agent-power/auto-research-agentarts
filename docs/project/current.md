@@ -47,6 +47,8 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 原77MB包没有含全部UCI原下载，已单独补齐209918字节/37成员/34payload的[原件补充包](../execution/g6-local/originals-supplement.json)，三原下载/CSV/许可/转换SHA链均核对，旧ZIP身份不变。11项新时间复核有正式receipt。494原件与完整路径集保持，历史源码pin/协议不改。
 
+[Sprint006增量交接包](../execution/delivery-sprint-006.json)已核验：`runs/sprint-006-delivery/sprint006-handover-followup.zip` 7,863,599字节，SHA`f51a25b0ea22a7eeae28e53ea0d7147a50e675ce3a1bd141b9132d84ddbf3efb`，177成员，独立1214文件检查＋6 bundle检查通过，source tip903458e。含新结果/失败/审查与UCI补包，仍需旧77MB研究数据包和外部依赖，不能整体rerun旧driver。
+
 ## 历史项目与服务
 
 旧Concrete `runs/cloud-concrete-local-20261113-01/manager`，RealEstate/Slump `runs/g3-local-transfer-20261113-01/{real-estate,slump}/manager`；state分别32/33/24，研究estimator分别20/20/10。原源码冻结 `0ceb274`，旧只读服务18830由 `work/study-source-0ceb274` 启动，actions/models关闭。新main对旧case为CODE_CHANGED，不能upgrade、迁移producer、重拟合或重建其预算。原/新路径独立恢复与原件哈希见对应Sprint报告。

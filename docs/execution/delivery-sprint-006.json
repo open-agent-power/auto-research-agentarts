@@ -1,0 +1,60 @@
+{
+  "schema_version": "sprint006-delivery-index-v1",
+  "status": "created_verified_and_independently_checked",
+  "archive_path": "/workspace/auto-research-agentarts/runs/sprint-006-delivery/sprint006-handover-followup.zip",
+  "archive_bytes": 7863599,
+  "archive_sha256": "f51a25b0ea22a7eeae28e53ea0d7147a50e675ce3a1bd141b9132d84ddbf3efb",
+  "zip_members": 177,
+  "allowlisted_files": 173,
+  "source_bundle_tip": "903458e9605e3936c24d06f9bba1ceb47c6eb01d",
+  "parent_study_archive_required": true,
+  "parent_archive_sha256": "e320404532fe80fd085ec1dbe07cf6e1abda6d8212a00f8295baa3c9371a1a58",
+  "included_uci_supplement_sha256": "1930516373006e6cb44b00d8d43fc512dcc82e44890680b066560f0b013a1cc7",
+  "create_receipt_sha256": "6acbf69a2367f59f9d4954ca297764c397e1ad8386d2dcdca86f311392fe8777",
+  "archive_manifest_sha256": "0e6ebfce2bdedb50b0b05d70b244290a460a7f525fc862df0bedd6e4fa52b758",
+  "independent_review_sha256": "a0f94a82e9798b0ee04f300783262144301c612caf33133a8a05d182e50b5254",
+  "independent_file_checks": 1214,
+  "independent_git_bundle_checks": 6,
+  "old_files_unchanged": 494,
+  "failed_attempt01_control_files_unchanged": 6,
+  "old_archives_unchanged": true,
+  "evidence": {
+    "archive_recovery": {
+      "original_request_replays": 8,
+      "product_modules_from_archive_target": 97,
+      "product_files": 177,
+      "complete_target_files": 187,
+      "payload_members": 930,
+      "bootstrap_uname_subprocesses": 1,
+      "saved_recovery_subprocesses": 0,
+      "new_research_fit_model_source_or_report": 0,
+      "failed_attempt01_preserved": true
+    },
+    "saved_parameters": {
+      "cv_versions": 5,
+      "fold_models": 25,
+      "rows": 2991,
+      "max_prediction_abs_diff": 1.4210854715202004e-14,
+      "absolute_tolerance": 1e-10,
+      "relative_tolerance": 1e-12,
+      "negative_row_kept": 689,
+      "independent_output_checks": 33282,
+      "new_estimator_fits": 0
+    },
+    "uci_originals": {
+      "archive_bytes": 209918,
+      "zip_members": 37,
+      "payload_files": 34,
+      "original_conversion_input_receipts_and_archived_csv_linked": true
+    }
+  },
+  "dependency_mirror_or_full_G6_claimed": false,
+  "new_research_requests_fit_or_model_apis_by_packager": 0,
+  "cost_tokens_currency": null,
+  "known_limits": [
+    "Original77MB study archive remains required",
+    "Existing clean1.8 dependency environment is a separate prerequisite",
+    "Saved-parameter arithmetic is not retraining or coefficient optimality proof",
+    "No original OS/sealed/multigeneration RSI acceptance implied"
+  ]
+}
