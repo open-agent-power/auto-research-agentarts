@@ -1,5 +1,7 @@
 # 后端索引
 
+`saved_retrieval_reader`只读校验并投影已完成引用检索工件；分页25、两臂各20、source/action/result和audit前驱绑定。原研究codeidentity及预算不变；不调用rank/score/fit/controller。入口与真实验证见[阅读器](../../docs/saved-retrieval-reader.md)。
+
 Ridge分组编码使用独立`encode_groups`首次出现字典映射，保留原整数ID/NumPy与GroupKFold语义；原生微函数确认和8纯回归/1164工程回归已核，[结果](../../docs/execution/g4-local/native-results.md)。源码身份改变，旧研究固定0ceb274服务/账本，不自动upgrade或重训。
 
 独立`agent_tasks.AgentTaskLedger`为可信host分析任务提供ProjectRef固定绑定、DAG、事务claim/同ID恢复、attempt/result绑定协调和一致状态快照；与科研fit/source预算分离，无模型传输或任意执行。默认single；本地保存证据对照没有多线程收益，见[合同](../../docs/execution/g2-local/contract.md)与[结果](../../docs/execution/g2-local/results.md)。

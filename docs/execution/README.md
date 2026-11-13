@@ -74,3 +74,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint 008：补齐每次触发汇报与下步输入
 
 [Sprint008](SPRINT-008.md)修正单个既有3小时任务的无进展/失败也需汇报规则，统一北京时间，新增[持久报告](../project/latest-report.md)；真实回读不等于未来通知送达证明。并完成保存不利查询原输入/定位审计，下一有界GET阅读器未实现，不补算缺失检索分数。[输入契约](g5-local/adverse-reader-contract.md)。
+
+
+## Sprint 009：保存证据阅读与独立安装
+
+[Sprint009](SPRINT-009.md)实现原不利查询分页/原文定位，真实原项目HTTP、桌面/手机五页和异常状态检查通过；继续安装物验证并处理实际可选CLI帮助缺陷。原数据、负结果、预算与producer保持。[阅读器](../saved-retrieval-reader.md)、[精确证据索引](g5-local/saved-reader-verification.json)、[分阶段安装物验证](g6-local/reader-release.md)。安装/帮助可用不代表云runtime、重训、隔离或完整G6通过。

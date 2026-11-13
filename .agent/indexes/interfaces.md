@@ -1,5 +1,7 @@
 # 接口索引
 
+新增GET `/api/project/retrieval-adverse.json`和`retrieval-query.json`，严格绑定project_id/snapshot_ref/action_id，读取前后核当前项目；分页/查询参数、1MiB响应及错误边界见[保存查询接口](../../docs/saved-retrieval-reader.md#只读http接口)。不接受客户端路径或研究执行参数。
+
 后续Host plan／recipe可明确带`saved_materials`数组，按诊断action／结果SHA读取完整groups／folds／rows，非空生成v3独立`supplied_materials`，默认v2与旧prompt保持。CLI prepare／advance及只读preview、plan HTTP与GET预览共用校验；same-ID先返原封存记录，不能更换字段或扩grant。完整最终context仍64KiB，超限整次拒绝。Airfoil此前的实际[等待与全文未读记录](../../docs/research/airfoil-noise-study.md#两份首次计划与实际等待)不追溯改写，见[新入口](../../docs/host-model-selection.md#选择后续输入中的保存字段)。
 
 两个`data.saved-oof-*-diagnostics`候选使用原参数`based_on_action_id`／`based_on_result_sha256`指向明确原CV，当前设计冻结于原请求。新obs.kind为`saved_oof_diagnostic`，`source_check/source_ref`区别源CV与本次0fit行动；完整结果`result.diagnostic`。模型小组表全量、大表明确整表引用；新`baseline_decision.conditions_ref`仅复用已提供且完全相同的条件，旧Host／独有recipe条件不改。见[契约](../../docs/research-design.md#原生保存误差诊断)。

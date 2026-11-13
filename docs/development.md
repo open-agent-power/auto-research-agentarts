@@ -72,3 +72,6 @@ P02、C01与钢材专项保留各自的数据、账本和结论。C01验证器�
 
 
 CPU保存观察展示沿`frontend/src/cpu-results.ts`→`project-view.ts`，同一reader用于实验记录和保存成果摘要。只投影原值，不提交请求；局部手机表格在`styles.css`，构建生成web资产。[真实验收](execution/g5-local/cpu-results-ui.md)区分语义夹具、浏览器检查与未增加的科学执行。
+
+
+保存不利查询阅读由`saved_retrieval_reader.py`校验工件和原输入，`project_workbench.py`提供快照绑定GET，`retrieval-reader.ts`显式分页与阅读。模块不进入科研registry/identity或执行链；[接口/限制](saved-retrieval-reader.md)、[安装物验证](execution/g6-local/reader-release.md)。

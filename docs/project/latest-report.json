@@ -1,93 +1,75 @@
 {
   "schema_version": "lab-latest-report-v1",
-  "observed_at_local": "2026-11-14T00:12:29.565964+08:00",
+  "round": "Sprint009",
+  "started_at_local": "2026-11-14T01:47:07+08:00",
+  "work_verification_finished_at_local": "2026-11-14T02:44:56.302456+08:00",
+  "observed_at_local": "2026-11-14T02:44:56.302456+08:00",
   "timezone": "Asia/Shanghai",
-  "round": "Sprint008",
-  "started_at_local": "2026-11-14T00:07:10+08:00",
-  "repository_head_at_evidence_read": "2ea6c0a157fe9b508b7a16b32d36ae385e9af327",
-  "product_ui_source_commit": "7633792a6e817efe32ec0750e0846be43fdb55f6",
-  "last_previous_push_at_local": "2026-11-13T23:15:44+08:00",
-  "cause_of_gap": "Prior round ended and released lease; waits for next3hour task; no continuousworker in gap. Nextscheduledtime hadnot arrived when userasked.",
+  "status": "work_and_independent_verification_complete",
+  "repository_head_at_start": "76d86fc2a3c8aa517f9c1de420c45e58288de705",
+  "reader_source_commit": "0acb05e253f543ea2483e383c7e2358c81c422bd",
+  "final_delivery_source_commit": "8a394e316009a035cd5ac2de5fd2f00a3ca0fe79",
+  "research_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
   "completed": [
-    "Updated SAME existing automation: alwaysreport on eachtrigger, includingnofit/nochanges/failure/busylease",
-    "Kept3hourcadence and inheritedcloud; correcteddefaulttimezone toAsia/Shanghai; exactpromptreadbackverified",
-    "Addedpersistent latestreport contract without inventing deliveryack",
-    "Auditedall133adversequeryrows and savedrank/doc/query/qrelidentity fornextboundedreader"
+    "ImplementedboundedsavedqueryGETandexplicitUIreader",
+    "Validatedreal59HTTPGETand4browsercontexts92GET/36screenshots;all133rows/samples/documents/order/focus/errorstates",
+    "Built0acwheelandverifiedinstalledsavedreadswitholddeps;keptactualtargetRECORDandCLIlimitations",
+    "VerifiedseparatepurestandardvenvRECORDswithoutclaimingruntime",
+    "Acquired21officialpinnedwheels+bundledpip+product,thenofflineinstalledexact23totaldistributionsinnewstandardvenv;originaloptionalCLIhelpfailedretained",
+    "FixedlazyoptionalruntimeCLIhelp;new8awheelinstalledofflinewith22cachednonproductpins,actualCLIhelp0/0andmissingSDKrun2/nativeHTTPpassed"
   ],
-  "current_execution_at_observation": "root owns lease duringthisround; doesnotestablishcontinuousworkerafterround",
-  "next_planned_trigger_local": "2026-11-14T01:47:27+08:00",
-  "next_trigger_is_due_at_observation": false,
-  "platform_run_record": null,
-  "platform_latest_result_record": null,
-  "phone_notification_delivery": "unknown",
-  "same_task_no_duplicate": true,
-  "new_product_code": false,
-  "reader_ui_or_http_endpoint_implemented": false,
-  "adverse_contract": {
-    "counts": {
-      "adverse": 133,
-      "metric_loss": 60,
-      "no_metric_loss_both_incomplete": 65,
-      "no_metric_loss_baseline_only_incomplete": 8,
-      "no_metric_loss_other": 0,
-      "no_metric_loss_total": 73,
-      "rank_rows": 920,
-      "per_query_metric_rows": 920,
-      "ranked_doc_locator_checks": 18400,
-      "original_queries": 1109,
-      "original_documents": 5183
-    },
-    "sample_query_ids": [
-      "762",
-      "1397",
-      "495"
-    ],
-    "retrieval_score_boundary": "Per-document retrievalscores notsaved; onlystoredordinalranks and perquerymetrics; qrelscore iscited-document relevance label.",
-    "receipt": {
-      "path": "runs/sprint-008-adverse-reader-contract-20261114/receipt.json",
-      "bytes": 2592,
-      "sha256": "069043b48d082412057afe5c874882ba0bcca93e9ea15fb86c5cb547df382b75"
-    },
-    "contract": {
-      "path": "runs/sprint-008-adverse-reader-contract-20261114/contract.json",
-      "bytes": 5203,
-      "sha256": "614e89aba0f56046c42c1b1b0ad9c19604bf2c4e80dcea15298647da6fa09ab8"
-    },
-    "qrel_readback": {
-      "path": "runs/sprint-008-adverse-reader-contract-20261114/qrel-readback.json",
-      "bytes": 2958,
-      "sha256": "fb99dc2736600d5cd5d6062f356e94c5b67002dad651e8adcd96059d6fa20a1d"
-    },
-    "qrel_lookup_reads": 6,
-    "distinct_qrel_tsv_rows": 3
+  "verification": {
+    "new_reader_tests": 17,
+    "existing_http_tests": 5,
+    "runtime_cli_tests": 8,
+    "source_http_gets": 59,
+    "real_browser_gets": 92,
+    "screenshots": 36,
+    "installed_final_gets": 12,
+    "final_product_files": 179,
+    "installed_distributions_total": 23,
+    "site_package_origins_total": 998,
+    "product_origins": 98,
+    "thirdparty_origins": 900,
+    "real_project_screenshots": 34,
+    "isolated_client_fixture_screenshots": 2
   },
-  "protected_originals_unchanged": 494,
+  "final_wheel": {
+    "bytes": 1224468,
+    "sha256": "e2941f74f2e93ba15a6f4eda7e8e53c9d539f99f39ac6e030f146b32fc8aa563",
+    "directory": "/workspace/work/g6-reader-cli-fixed-20261114"
+  },
   "usage": {
     "new_research_fits": 0,
-    "new_engineering_fits": 0,
-    "product_model_api_calls": 0,
-    "new_ranking_scoring_solving": 0,
+    "new_engineering_estimator_fits": 0,
+    "product_model_service_api_calls": 0,
     "historical_estimator_attempts_unchanged": 50,
+    "protected_originals_unchanged": 494,
+    "complete_case_file_paths_unchanged": 421,
     "development_tokens_money": "unknown"
   },
-  "evidence": [
-    {
-      "path": "runs/sprint-008-report-repair-20261114/automation-readback.json",
-      "bytes": 844,
-      "sha256": "5e0f8c04d1308fea343809644a7008472194acc5d7359f17a84b1ead4b4d8868"
-    },
-    {
-      "path": "runs/sprint-008-report-repair-20261114/protected-before.json",
-      "bytes": 113345,
-      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
-    },
-    {
-      "path": "runs/sprint-008-report-repair-20261114/protected-after.json",
-      "bytes": 113345,
-      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
-    }
+  "failures_retained": [
+    "PlaywrightbarestringpredicateCSPfailurecorrectedtestonly",
+    "OldpiptargettwoRECORDscriptpaths",
+    "Old0acoptionalCLIhelpSDKimportfailure",
+    "ReviewerHTTPnegativecount/metadataoriginlabelcorrectionsandlegacydescriptorsretained",
+    "Transientexecutionchannelrecoveryinterruptedagents;resumedexistingartifactswithoutrecreatinghistory"
   ],
-  "next_task": "Implement bounded saved-adverse-query GET reader fromoriginalproject/action/sourcebindings;25adverserowsfirstpage and40armrankrowsperquery areproposals, notimplementedlimits. No rerank/rescore/newIDs/project/budget.",
-  "need_user_decision": false,
-  "work_verification_finished_at_local": "2026-11-14T00:17:45.751323+08:00"
+  "remaining_limits": [
+    "SDK/cloudruntimeexecutionnotacceptedbyCLIhelp",
+    "No newscience/hiddenevaluation/refit/OSsealed/multigeneration/fullGateclaims"
+  ],
+  "evidence_index": {
+    "path": "docs/execution/g5-local/saved-reader-verification.json",
+    "bytes": 14746,
+    "sha256": "1330edd36085eeee008911363ae9d505b428d6d47203bcd0eca784869b31ed3a"
+  },
+  "next_task": "G5independentretrievaltasklicense/semantics/inputcaps/strategytransferbaselinecandidate/evaluator/budgetpreregistrationandreviewsbeforeexecution;neverresetoldSciFactcases",
+  "next_planned_trigger_local": "2026-11-14T04:47:27+08:00",
+  "platform_recorded_run": null,
+  "platform_recorded_result": null,
+  "notification_delivery": "unknown",
+  "active_executor_at_observation": "root holds lease while publishing; release after exact remotehead andhandoff verification; no permanentworkerclaimed",
+  "no_new_user_decision": true,
+  "publication_receipt": "runs/sprint-009-start-20261114/push-receipt.json; exact containing Git revision confirmed at publication"
 }

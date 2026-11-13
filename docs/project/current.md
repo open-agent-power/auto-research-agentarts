@@ -8,7 +8,7 @@
 
 ## 最新汇报入口
 
-本轮[Sprint008](../execution/SPRINT-008.md)已修正同一3小时任务：使用北京时间，每次触发均final汇报，失败/无进展/lease占用也不静默；持lease者更新[最新报告](latest-report.md)和[机器报告](latest-report.json)。2026-11-14 00:06核对时，前轮23:15已完成，下一计划01:47尚未到，轮间没有常驻执行；平台run/result/通知送达仍unknown，不能声称已确认漏跑或已送达。
+本轮[Sprint009](../execution/SPRINT-009.md)从北京时间01:47实际接续，已实现保存不利查询GET/界面，完成原件/HTTP/桌面手机验证，并继续独立安装和CLI窄修。每次触发无论成功、失败、无进展或lease占用均final报告；最新实际时间、commit、活动执行状态和下次计划见[最新报告](latest-report.md)／[机器报告](latest-report.json)。单个3小时任务仍继承原云盘；本轮触发标记01:46:53，下次计划04:47:27，平台run/result与通知送达仍unknown，不能据标记推断完成或送达。
 
 ## 已完成的真实证据
 
@@ -41,7 +41,11 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 最终两案五页在1440×900和390×844实测，38截图、80浏览器GET／0POST／错误、4原行动下载＋8报告HTTP读取；API、494保护文件及三根完整421路径集保持。36原件＋63编译语义检查和807项最终独审通过。01/02/03手机布局缺口及02服务启动失败保留，只有04最终完整看图和末列文字边界通过。[UI验收](../execution/g5-local/cpu-results-ui.md)与[精确身份/预算](../execution/g5-local/cpu-results-ui.json)可接续。历史50estimator不变，本轮无新研究/工程fit或产品模型/API；开发成本unknown，非科研收益或原完整Gate通过。
 
-不利query输入已在Sprint008完成[真实审计](../execution/g5-local/adverse-reader-contract.md)：两原行动133行一致，实际核原query/doc/qrels定位，60loss+73noloss（65两臂不全/8仅baseline不全）。投影仍只有133总数，不能将完整工件细分写成现有observation字段。输入没有逐document检索分数，只保存原序位与per-query指标。下一步实现有界按需GET reader及UI，校验project/action/source身份、原定位和加载上限；尚未实现，不重排/重算/新建项目/换ID/扩额。
+不利query阅读已在Sprint009实际实现，读取器源码`0acb05e`，旧科研codeidentity3945ed0f…保持；[用法/接口](../saved-retrieval-reader.md)、[精确输入/源码/证据](../execution/g5-local/saved-reader-verification.json)。25条分页、按需原query/两臂top20/原文/指标/行与SHA，133分类来自完整原工件，不补算缺失的检索分数。两案五页和手机指标末列实际看图通过，59HTTP与36截图（含2张隔离异常夹具）/92浏览器GET、源码/工件限定独审805项通过。固定只读源 `/workspace/work/native-cpu-ui-0acb05e`，原manager，端口18838/18839；旧0ceb/8e8/e638/763 pin与494原件/421路径集/50历史estimator保持。只读服务冷启动可能需按同源同manager重开，不重跑研究。
+
+随后继续验证新wheel与标准venv；保留pip target两脚本RECORD路径不自洽、0ac可选runtime帮助缺SDK退出1的负结果。完整23分发项独立安装原生读取通过；CLI帮助窄修`8a394e3`延迟导入SDK，原adapter字节不变，8项针对性测试通过；[安装物与准确阶段范围](../execution/g6-local/reader-release.md)记录最终wheel/安装结果。帮助可用不等于SDK/cloud runtime集成通过，原完整Gate保持。
+
+下一可独立工作转向G5剩余跨任务策略迁移的最小预注册：先审查独立检索任务的数据许可、语义、大小与对照可行性，冻结baseline/candidate/评价/预算并独审后才执行。旧SciFact/调度只读，不能复制旧项目、换ID或重置额度；保持0模型/API切片，不把已有已知公开结果或工程检查冒充新研究收益。
 
 ## 最新交付与凭据恢复
 

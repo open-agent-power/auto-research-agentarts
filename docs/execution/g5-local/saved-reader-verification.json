@@ -1,0 +1,403 @@
+{
+  "schema_version": "saved-retrieval-reader-delivery-v1",
+  "recorded_at_utc": "2026-11-13T18:44:56.301432+00:00",
+  "baseline_commit": "76d86fc2a3c8aa517f9c1de420c45e58288de705",
+  "source_commit": "0acb05e253f543ea2483e383c7e2358c81c422bd",
+  "readonly_checkout": "/workspace/work/native-cpu-ui-0acb05e",
+  "readonly_ports": {
+    "retrieval": 18838,
+    "scheduling": 18839
+  },
+  "scientific_source_commit": "8e8a206ed0b71479a6e774e36ed91fdb06e21c22",
+  "research_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+  "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+  "original_input_and_actions": [
+    {
+      "path": "runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-f2291951a00d194f4069b2b40a9c8a00.json",
+      "bytes": 800067,
+      "sha256": "51a423bd1ddb0f203d04fb98c28a903b51156c7d088a4c2cd2e8b58f4ba69c5e"
+    },
+    {
+      "path": "runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-6f6cf23eaa4fb3922931cae1d95ef14f.json",
+      "bytes": 260108,
+      "sha256": "9f136cfea13efcf5056cec72a3ce4715dc54b12e0c4e4b7c42151039d1c0aece"
+    },
+    {
+      "path": "runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/source.json",
+      "bytes": 11128187,
+      "sha256": "546a09773bc8e77aa7f034ca58753394f6a75c3ecf610e3c66c3f24eea2ab51b"
+    }
+  ],
+  "input_assets": {
+    "corpus": {
+      "bytes": 8106566,
+      "file_name": "corpus.jsonl",
+      "sha256": "dec31c8182f3d744c7d2c09423756fd1d17cbef75808db13ba01cc0aab4d1ac6"
+    },
+    "license": {
+      "bytes": 542,
+      "file_name": "license.md",
+      "sha256": "56ee69bc639cbab8f0b2e4b67091ec5e9390aa99a1d65f0a35e4274686c9a806"
+    },
+    "queries": {
+      "bytes": 209731,
+      "file_name": "queries.jsonl",
+      "sha256": "8ff84a7c903f722981cd8d595c022660140c51867b27608a6d4910db86080313"
+    },
+    "test_qrels": {
+      "bytes": 5389,
+      "file_name": "qrels-test.tsv",
+      "sha256": "0864bb985e0ca2367ba217977e72004d549054b2b06666ed9d4825ac7c21284c"
+    },
+    "train_qrels": {
+      "bytes": 14502,
+      "file_name": "qrels-train.tsv",
+      "sha256": "a53f2114831916c096b6c37d9e54da68cef4efdcdbd5ed46533601af972acf1d"
+    }
+  },
+  "code": [
+    {
+      "path": "src/autoresearch/saved_retrieval_reader.py",
+      "bytes": 13433,
+      "sha256": "50fabd6aecc7b657bd443b10bec66ad0e94a46999d51cf594bdb42b70909c163"
+    },
+    {
+      "path": "src/autoresearch/project_workbench.py",
+      "bytes": 46078,
+      "sha256": "7750169ed0191b4994165b5a34ff7e59f1f0315b587b06845e200dd9903be221"
+    },
+    {
+      "path": "frontend/src/retrieval-reader.ts",
+      "bytes": 16755,
+      "sha256": "893a027700686c11e929ca3492e80bdcddc4445cad376ee30c6509f8541539fa"
+    },
+    {
+      "path": "frontend/src/cpu-results.ts",
+      "bytes": 8767,
+      "sha256": "0313fed5c7a2b9da829492e6c5cb12e3c45d69cc27239ac67cbbee004187df13"
+    },
+    {
+      "path": "frontend/src/project-view.ts",
+      "bytes": 91570,
+      "sha256": "30c7d9260dcbaf1df164b8f5bd96b4f4f032f7dc84692749feabf9fa3ad25fc0"
+    },
+    {
+      "path": "frontend/src/styles.css",
+      "bytes": 95571,
+      "sha256": "9e8bad726fb453d8f91b41dbad1ee0c164e605748c87317ac00162909506505a"
+    },
+    {
+      "path": "tests/test_saved_retrieval_reader.py",
+      "bytes": 17236,
+      "sha256": "4281a60208d792db616b832036c7fd1e3cdb7639e6031a195c75b2f7da90930c"
+    },
+    {
+      "path": "src/autoresearch/web/app.js",
+      "bytes": 1128727,
+      "sha256": "13e834271b28761b7bfdb47b029ee4bee077d6f8b6f5ac8661d0402d579dfb20"
+    },
+    {
+      "path": "src/autoresearch/web/app.css",
+      "bytes": 96236,
+      "sha256": "2aacc34ed2f89c84fc4ac6a29948c396e0b5c0da4f7762dd7bec67d533fb3d8a"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "runs/sprint-009-start-20261114/source-pin.json",
+      "bytes": 114,
+      "sha256": "19a0533bfce88d07d68456ea60ef39e86fe1ca5a73b93e5a131ee6465de8048a"
+    },
+    {
+      "path": "runs/sprint-009-start-20261114/runtime-identity.json",
+      "bytes": 194,
+      "sha256": "8e35a8a81ec1212103295a8018ea01c49a46e4ae893508aeaa2eabd366110f95"
+    },
+    {
+      "path": "runs/sprint-009-start-20261114/engineering-validation.json",
+      "bytes": 881,
+      "sha256": "aff47c19d49bb426aea23db8950f5a4393833cc59e536af5c613c45ece532add"
+    },
+    {
+      "path": "runs/sprint-009-start-20261114/reference-check.json",
+      "bytes": 875,
+      "sha256": "2cbead16ee2017747536e25509befafc93524d31ec19602c4c3c7cd3c71c8c05"
+    },
+    {
+      "path": "runs/sprint-009-start-20261114/protected-before.json",
+      "bytes": 113345,
+      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
+    },
+    {
+      "path": "runs/sprint-009-start-20261114/protected-after.json",
+      "bytes": 113345,
+      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
+    },
+    {
+      "path": "runs/sprint-009-start-20261114/path-sets-before.json",
+      "bytes": 26050,
+      "sha256": "b69690e127b44b9812fa4781ac8a1cdd5bcfc4212245275ae320d8cecbd65767"
+    },
+    {
+      "path": "runs/sprint-009-reader-tests-20261114/receipt.json",
+      "bytes": 461,
+      "sha256": "7b2fbb20c7b2caccd0fb07e39aa69596076c1287fe4b3760f2091b823849c137"
+    },
+    {
+      "path": "runs/sprint-009-frontend-check-20261114/receipt.json",
+      "bytes": 1677,
+      "sha256": "c9d7828f824cc9b1f14c5c92f1405a26141e4580262a22dca027dcfc8a748423"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/expected.json",
+      "bytes": 357002,
+      "sha256": "067adeb4910055b0d7126b7c200ef15bf63a57347f4168529c32c3493d8a18a2"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/direct-review.json",
+      "bytes": 22540,
+      "sha256": "ca1c1f7d7b82cc6488f34caf7a806c91840d5218adaa1dfc174c23501167d1bc"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/http-review.json",
+      "bytes": 28396,
+      "sha256": "8416326b3246b72d50e73155c4c826eeabb1b5f4e44f06c4e4e7aade287e88e0"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/frontend-review.json",
+      "bytes": 5166,
+      "sha256": "92d0a63a90f52b17d9a3c300e8aecc0912b6006ee7e033637738e9fd3081364c"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/final-review.json",
+      "bytes": 128689,
+      "sha256": "226b460b22cef52b46fae67a044a4fe2dcc77a372a63e9340d8fbc26e224555a"
+    },
+    {
+      "path": "runs/sprint-009-http-20261114-01/receipt.json",
+      "bytes": 106780,
+      "sha256": "b9656e94ba7198ab03cd0f055294f021f7ed9a573c6682a137ff401adc7fc76a"
+    },
+    {
+      "path": "runs/sprint-009-http-20261114-01/verify_saved_reader_http.py",
+      "bytes": 8845,
+      "sha256": "32a92e0f62eceaa7b9bbe7339cfab5b6a86a7a835cf51b0b25de047c749d93d8"
+    },
+    {
+      "path": "runs/sprint-009-browser-20261114-01/receipt.json",
+      "bytes": 2640,
+      "sha256": "181f274b785f3738004f11a884bb260b8c95ac80c73be448d592652021175b02"
+    },
+    {
+      "path": "runs/sprint-009-browser-20261114-02/receipt.json",
+      "bytes": 51004,
+      "sha256": "a4fec76a88185c777390fd75341bf2b4c5d72c869e9c465ad1b4ed424230325d"
+    },
+    {
+      "path": "runs/sprint-009-browser-20261114-02/root-visual-review.json",
+      "bytes": 944,
+      "sha256": "617457bf94cda8c9fb8d6efba2c88a3710b638a3a6f614e36899866ddc187fd4"
+    },
+    {
+      "path": "runs/sprint-009-browser-20261114-02/verify_saved_reader_browser_v2.py",
+      "bytes": 14591,
+      "sha256": "60a80b509b9509c4ba6e4ba73d584df7e0a78bea95dd2d0b7b913500c9f06797"
+    },
+    {
+      "path": "runs/sprint-009-reader-wheel-20261114/receipt.json",
+      "bytes": 6710,
+      "sha256": "babe30b81082aa26eb31da620c6e589e487efd22a617f34543e47c41aa3f5901"
+    },
+    {
+      "path": "runs/sprint-009-standard-record-20261114/receipt.json",
+      "bytes": 1289,
+      "sha256": "fc9254cf91ce6edc7c0a6e65bb273c5aeec7dc4ae9c79fe9c0ca49f10f801019"
+    },
+    {
+      "path": "runs/sprint-009-clean-install-20261114/receipt.json",
+      "bytes": 9917,
+      "sha256": "e617a415e18df839b2773f7875ecd27b31cbaf00eb673bb8447030ce2208c4fd"
+    },
+    {
+      "path": "runs/sprint-009-cli-fixed-install-20261114/receipt.json",
+      "bytes": 10691,
+      "sha256": "703d554323851f34ccef2cee4d8b039975528c8e05a6eead79b75310a239cb93"
+    },
+    {
+      "path": "runs/sprint-009-runtime-cli-author-check-20261114/receipt.json",
+      "bytes": 2057,
+      "sha256": "0b32f26b1d3e103feed036c83db4a3f5cb75cec8569c39cebb98ef4aae274451"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/wheel-review.json",
+      "bytes": 202217,
+      "sha256": "d4d269b400bf68633a781476f41420479233d5469da5304dba03cffa59cc887f"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/standard-record-review.json",
+      "bytes": 49122,
+      "sha256": "980059b48098307bfb80db158e93dec84b96ed5818f92067f13bd1996bf5817b"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/clean-install-review.json",
+      "bytes": 1041274,
+      "sha256": "0cd23a05230f5cdbfcda62dbc2cd72776bcadcb0dc850b1fce171b0ad2b022d5"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/runtime-cli-source-review.json",
+      "bytes": 2916,
+      "sha256": "350f70297b9681c71a4d085b66d3952f87ecf98da61e2d66c058e0aec4df2f64"
+    },
+    {
+      "path": "runs/sprint-009-independent-20261114/cli-fixed-install-review.json",
+      "bytes": 1109073,
+      "sha256": "60b557a108f91c9b5d81bb86d800ea2c1a48091d7ce527beec7a32f46f3a2930"
+    }
+  ],
+  "engineering": {
+    "new_saved_fixture_tests": 17,
+    "existing_http_gate_tests": 5,
+    "fit_rank_score_dispatch_in_new_reader_tests": 0,
+    "frontend": "format/lint/build passed;build includes tsc --noEmit",
+    "runtime_cli_tests": 8
+  },
+  "actual_http": {
+    "gets": 59,
+    "status_counts": {
+      "200": 33,
+      "400": 18,
+      "404": 4,
+      "409": 4
+    },
+    "checks": 1500,
+    "list_pages": 12,
+    "unique_adverse_rows": 133,
+    "sample_detail_reads": 6,
+    "ordered_doc_reads": 240,
+    "original_api_unchanged": true,
+    "research_dispatches": 0
+  },
+  "actual_browser": {
+    "contexts": 4,
+    "five_page_checks": 20,
+    "screenshots": 36,
+    "real_context_gets": 92,
+    "reader_gets": 32,
+    "real_context_post_block_page_http_errors": 0,
+    "client_state_fixtures": [
+      "http409",
+      "binding-mismatch",
+      "detached-before-response"
+    ],
+    "full133_order_both_sizes": true,
+    "sample_query_ids": [
+      "762",
+      "1397",
+      "495"
+    ],
+    "audit_query_read": true,
+    "original_doc_and_return_focus": true,
+    "phone_metric_terminal_range_checked": true,
+    "real_project_screenshots": 34,
+    "isolated_client_fixture_screenshots": 2
+  },
+  "independent_checks": {
+    "direct_saved_projection": 655,
+    "recorded_http": 671,
+    "frontend_static": 15,
+    "final_reader_files_browser": 805,
+    "wheel_target": 2385,
+    "standard_record": 759,
+    "old_exact_clean": 14772,
+    "runtime_cli_source": 19,
+    "final_cli_fixed_install": 15471
+  },
+  "preserved_failures": [
+    "Browser01 harness bare-string Playwright wait violated existingCSP;functionpredicate fixed,productCSPunchanged",
+    "Reviewer HTTPnegativecount expectation corrected30to26 without newrequest/datachanges",
+    "AuthorinitialTypeScriptdoc.textunknown and testNameError fixedbeforefinalvalidation"
+  ],
+  "usage": {
+    "new_research_fits": 0,
+    "new_engineering_estimator_fits": 0,
+    "product_model_api_calls": 0,
+    "new_ranking_scoring_solving_or_report_generation": 0,
+    "protected_originals": 494,
+    "complete_case_paths": 421,
+    "historical_estimator_attempts": 50,
+    "development_tokens_money": "unknown"
+  },
+  "scope": "Saved bounded evidence reading only;no newscientificgain/fullGates/OSisolation/multigeneration claims",
+  "delivery_source_commit": "8a394e316009a035cd5ac2de5fd2f00a3ca0fe79",
+  "reader_source_unchanged_in_delivery": true,
+  "delivery_cli_code": [
+    {
+      "path": "src/autoresearch/runtime_cli.py",
+      "bytes": 1569,
+      "sha256": "652bf0f18a9729468e62617bb4ec8e5eceade5b1be2d752ac5b6e088067ff7f5"
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 764,
+      "sha256": "35a07d9653b5bb560f62515d92bd2d7818db33b8f3f970f6e44091722151145e"
+    },
+    {
+      "path": "tests/test_runtime_cli.py",
+      "bytes": 6354,
+      "sha256": "a60c1501616555cc45f7f40b4d35c611a11cb785771a7244f9d301764aa9c7b9"
+    }
+  ],
+  "continued_installation_stages": {
+    "old_reader_wheel": {
+      "source_commit": "0acb05e253f543ea2483e383c7e2358c81c422bd",
+      "bytes": 1223545,
+      "sha256": "dadf9baec9f8acf79e7ed8bd9758af14b4812aa64f1573cba67c5a668ddbea76",
+      "target_record_script_path_discrepancies": 2
+    },
+    "standard_record_only": {
+      "record_rows": 188,
+      "scope": "No dependencies/productimport/CLIrun;metadataonly"
+    },
+    "old_exact_clean_install": {
+      "distributions": 23,
+      "product_files": 178,
+      "record_rows": 6732,
+      "site_origins_total": 998,
+      "product_origins": 98,
+      "thirdparty_origins": 900,
+      "native_help_exit": 0,
+      "old_runtime_help_exit": 1,
+      "old_negative_retained": true
+    },
+    "final_cli_fixed_install": {
+      "source_commit": "8a394e316009a035cd5ac2de5fd2f00a3ca0fe79",
+      "wheel_bytes": 1224468,
+      "wheel_sha256": "e2941f74f2e93ba15a6f4eda7e8e53c9d539f99f39ac6e030f146b32fc8aa563",
+      "product_files": 179,
+      "all_previous178_reader_ui_adapter_unchanged": true,
+      "distributions": 23,
+      "nonproduct_pins": 22,
+      "record_rows": 6733,
+      "site_origins_total": 998,
+      "product_origins": 98,
+      "thirdparty_origins": 900,
+      "cli_exit_codes": [
+        0,
+        0,
+        2
+      ],
+      "installed_gets": 12,
+      "state_version": 13,
+      "tools_used": 2,
+      "new_dependency_downloads": 0,
+      "scope": "Defaultlocalinstalledreader and optionalCLIhelp/missingdependencybehavior only;notSDKcloudruntime/refit/fullG6"
+    }
+  },
+  "next_task": "G5independentretrievalstrategy-transferpreregistration:license/semantics/inputcaps/baseline-candidate/evaluator/budgetreview before any newstudy;no oldSciFact/projectquotareset.",
+  "remaining_boundaries": [
+    "OldpiptargettwoRECORDscriptpathsretainactualdiscrepancy;standardvenvprovenseparately",
+    "Old0acruntimehelpSDKimportexit1retained;new8ahelp0/missingSDKrun2only,nocloudSDKruntimeexecutionaccepted",
+    "OriginalfullG0/G5/G6,OS/sealed,modelrefitandmultigenerationRSIremainunverified",
+    "Data/Protocol/Alloldbudgetsunchanged;newstudyrequiresseparateindependentpreregistration"
+  ]
+}

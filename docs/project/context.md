@@ -38,3 +38,6 @@ Sprint007已完成两CPU领域保存结果阅读，源码7633792，原state13/3p
 
 
 Sprint008回应用户追问汇报：北京时间00:06检查，前轮23:15推送后等待下一次01:47，尚未超时。原任务轮间无常驻执行；平台run/result仍null、投递unknown。已工具更新并回读同任务/3小时间隔不变/时区AsiaShanghai，新增每次触发无论成功/失败/无进展/lease忙均final报告；持有lease时保存latest-report.md/json。并已真实审计133不利query、920保存rank/metric及18400定位；缺逐doc检索分数，GET/UI仍待实现。494原件保持，新fit/API0，金额tokenunknown。以current和最新报告接续，不把配置修正说成已证明未来触发/投递。
+
+
+Sprint009从01:47实际接续，读取器0acb05e已实现并经真实HTTP/浏览器限定验收；原输入、预算、sourceidentity保持。之后继续独立23分发项安装，0ac原生CLI帮助/本地保存读取通过但可选runtime帮助缺SDK退出1；保留该负结果和piptarget2RECORD路径边界，窄修8a394e3帮助入口延迟SDK，原runtime.py不改。全部最终安装物/依赖/CLI/HTTP精确scope见reader-release及latest-report。API不补算原件没有的分数，0新fit/模型服务，开发成本unknown；原OS/sealed/多代RSI/完整Gate不扩大。下一任务先做独立检索任务许可/语义/预算与跨任务策略对照预注册，不重置旧案例。
