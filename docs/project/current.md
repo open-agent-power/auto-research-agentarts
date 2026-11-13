@@ -14,7 +14,7 @@
 
 ## GitHub交付状态
 
-本地提交已准备，但Git传输、gh REST写入和GitHub连接器均返回403 `Resource not accessible by integration`。GitHub API显示账号拥有admin/push角色，但当前集成写入请求未获授权。没有远程分支或PR成功创建，不宣称已推送。需为此仓库连接授予Contents写入权限后，执行`git push -u origin codex/execution-pack-v2-g0`。已另交付Git bundle、补丁、日志和公开数据证据包。
+2026-11-13（Asia/Shanghai）用户完成组织授权后，已确认`open-agent-power`组织的安装包含目标仓库、Contents/Pull requests写权限。分支`codex/execution-pack-v2-g0`已成功推送，首个成功远程提交`257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4`；[草稿PR #1](https://github.com/open-agent-power/auto-research-agentarts/pull/1)已创建。先前403保留为历史失败，当前GitHub交付阻塞已解除。G0资源及上游runtime两个阻塞保持。
 
 ## 下一动作
 

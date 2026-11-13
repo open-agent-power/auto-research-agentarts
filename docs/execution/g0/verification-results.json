@@ -48,18 +48,34 @@
   },
   "developer_agent_cost": "unknown",
   "github_delivery": {
-    "status": "blocked",
+    "status": "pushed_with_draft_pr",
     "branch": "codex/execution-pack-v2-g0",
-    "push_succeeded": false,
-    "pull_request_created": false,
-    "repository_role": "admin/push reported by read API",
-    "write_error": "HTTP403 Resource not accessible by integration",
-    "channels_tested": [
-      "git_https",
-      "git_using_gh_credential_helper",
-      "gh_rest_create_tree",
-      "github_connector_create_tree"
-    ],
-    "required_action": "Authorize repository Contents write for the GitHub integration, then push prepared branch"
+    "push_succeeded": true,
+    "first_verified_pushed_commit": "257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4",
+    "pull_request_created": true,
+    "pull_request_url": "https://github.com/open-agent-power/auto-research-agentarts/pull/1",
+    "verified_at_utc": "2026-11-13T00:47:27.390689+00:00",
+    "installation_account": "open-agent-power",
+    "repository_authorized": true,
+    "permissions": {
+      "contents": "write",
+      "pull_requests": "write"
+    },
+    "historical_failure": {
+      "status": "blocked",
+      "branch": "codex/execution-pack-v2-g0",
+      "push_succeeded": false,
+      "pull_request_created": false,
+      "repository_role": "admin/push reported by read API",
+      "write_error": "HTTP403 Resource not accessible by integration",
+      "channels_tested": [
+        "git_https",
+        "git_using_gh_credential_helper",
+        "gh_rest_create_tree",
+        "github_connector_create_tree"
+      ],
+      "required_action": "Authorize repository Contents write for the GitHub integration, then push prepared branch"
+    },
+    "required_action": null
   }
 }

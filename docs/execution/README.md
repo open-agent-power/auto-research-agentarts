@@ -37,4 +37,4 @@
 
 最终完整工程回归：1111项，1092通过、19跳过，exit0；详见[机器回执](g0/verification-results.json)。G0仍因资源和上游runtime条件阻塞。
 
-GitHub交付：本地提交就绪；Git、gh REST和GitHub连接器写入均403（集成缺写入授权），**未成功推送或创建PR**。需要修复此仓库的Contents写入授权后重试；不影响本地Git bundle和证据包交付。
+GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution-pack-v2-g0`并创建[草稿PR #1](https://github.com/open-agent-power/auto-research-agentarts/pull/1)。首个成功远程提交为`257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4`；历史403记录保留，GitHub写入阻塞已解除。G0资源隔离及上游runtime验证仍未通过。
