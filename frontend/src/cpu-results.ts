@@ -67,7 +67,10 @@ function schedulingSummary(observation: Obj, table: ResultTable): HTMLElement {
     const counts = object(bySplit[name]);
     return [splitName(name), numeric(counts.cases), numeric(counts.faster), numeric(counts.tie), numeric(counts.slower)];
   });
-  if (countRows.length) wrap.append(table("按保存的候选计时分类", ["划分", "任务数", "更快", "持平", "更慢"], countRows));
+  if (countRows.length) {
+    const counts = table("按保存的候选计时分类", ["划分", "任务数", "更快", "持平", "更慢"], countRows);
+    counts.classList.add("cpu-split-counts"); wrap.append(counts);
+  }
   const caseTable = (caption: string, rows: Obj[]): HTMLElement => table(caption,
     ["任务", "作业数", "扫描基线（ms）", "二分候选（ms）", "候选 − 基线（ms）", "基线 / 候选", "目标值 / 完整排程"], rows.map(row => {
       const times = object(row.median_seconds), difference = row.candidate_minus_baseline_seconds;
