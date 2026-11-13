@@ -1,0 +1,65 @@
+{
+  "schema_version": "g4-local-acceptance-v1",
+  "status": "verified_closed_interpreter_slice",
+  "original_full_g4_gate_passed": false,
+  "baseline_wrapper_commit": "37b70c2",
+  "candidate_commit": "58ee7c1",
+  "fixed_evaluation_commit": "7846ec5",
+  "baseline_manifest_sha256": "af504f90ca10d75ec7bf5207e7f5c9031650ddc4f09802c395f482daff8e19c8",
+  "result_sha256": "090be45b48bd72dd412941c322281f69d3f9b32b936f4c5d023beed5e5df5499",
+  "local_decision": "accepted_for_future_review",
+  "candidate_attempts": 1,
+  "timing_rows": 600,
+  "timing_summary": {
+    "concrete": {
+      "baseline_median_ns": 324674036.0,
+      "candidate_median_ns": 8459437.5,
+      "median_saved_ns": 316214598.5,
+      "paired_saving_median_ns": 316139933.0,
+      "speedup": 38.380097494662024
+    },
+    "real-estate": {
+      "baseline_median_ns": 93353959.0,
+      "candidate_median_ns": 3877003.0,
+      "median_saved_ns": 89476956.0,
+      "paired_saving_median_ns": 89310529.5,
+      "speedup": 24.078897798118806
+    },
+    "slump": {
+      "baseline_median_ns": 12827928.5,
+      "candidate_median_ns": 1195987.5,
+      "median_saved_ns": 11631941.0,
+      "paired_saving_median_ns": 11581354.5,
+      "speedup": 10.72580482655546
+    }
+  },
+  "criteria": {
+    "correctness": true,
+    "historical_files_unchanged": true,
+    "source_latency": true,
+    "target_no_adverse_slowdown": true
+  },
+  "wall_seconds": 52.94410333600172,
+  "cpu_seconds": 52.913958607999994,
+  "capability_tests_passed": 29,
+  "independent_capability_checks_passed": 28,
+  "independent_result_checks_passed": 40,
+  "result_review": {
+    "path": "runs/g4-local-total-review/review.json",
+    "sha256": "1f22954a30c360952cf5e0d5483d0ce19917d1af28b31978c7d1e736abcaeec8"
+  },
+  "program_fits": 0,
+  "program_model_api_calls": 0,
+  "protected_case_file_counts": {
+    "concrete": 101,
+    "real-estate": 101,
+    "slump": 90
+  },
+  "native_production_promoted": false,
+  "interpretation": "Interpreter latency only; native-helper confirmation is a separate later experiment.",
+  "limitations": [
+    "No same-user OS isolation or sealed hidden tasks",
+    "No native/CV/end-to-end performance or scientific-gain claim",
+    "No autonomous multigeneration RSI"
+  ]
+}

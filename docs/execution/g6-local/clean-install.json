@@ -1,0 +1,119 @@
+{
+  "schema_version": "g6-clean-install-v1",
+  "status": "passed_after_verifier_html_expectation_correction",
+  "venv": "/workspace/work/g6-clean-20261113-01/venv",
+  "system_site_packages": false,
+  "wheel_path": "/workspace/work/g6-local-release-20261113-01/source/dist/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "3b454d45ed7b37166cdcc74544e28e4b053c190b61cca0e305394abf2e5262c1",
+  "wheel_source_commit": "0ceb2742825a9e95b373260fb39950fcbb48af1b",
+  "final_release_wheel_installed": false,
+  "install_index": "https://pypi.org/simple",
+  "dependency_installs": {
+    "base": {
+      "exit_code": 0,
+      "success": true,
+      "pip_report": "base-pip-report.json",
+      "network_download_indicated": true,
+      "resolution_failure": false
+    },
+    "sources": {
+      "exit_code": 0,
+      "success": true,
+      "pip_report": "sources-pip-report.json",
+      "network_download_indicated": true,
+      "resolution_failure": false
+    },
+    "reports": {
+      "exit_code": 0,
+      "success": true,
+      "pip_report": "reports-pip-report.json",
+      "network_download_indicated": true,
+      "resolution_failure": false
+    },
+    "native_smoke": {
+      "exit_code": 1,
+      "success": false
+    }
+  },
+  "versions": {
+    "fonttools": "4.68.0",
+    "charset-normalizer": "3.5.2",
+    "agentarts-autoresearch": "0.1.0",
+    "kiwisolver": "1.5.1",
+    "matplotlib": "3.11.2",
+    "reportlab": "4.4.9",
+    "packaging": "26.3",
+    "contourpy": "1.4.0",
+    "tzdata": "2026.6",
+    "narwhals": "2.28.0",
+    "scikit-learn": "1.9.1",
+    "python-dateutil": "4.0.0",
+    "cycler": "0.12.1",
+    "pyparsing": "3.3.3",
+    "cloudpickle": "3.1.2",
+    "pypdf": "6.10.0",
+    "scipy": "1.18.1",
+    "h5py": "3.16.0",
+    "pip": "25.0.1",
+    "pillow": "13.0.0",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.8.0",
+    "numpy": "2.5.4"
+  },
+  "initial_result_sha256": "60062abb070d024eb7f0aa4696a0413eb132f66a2a36f0f6657f7fb3d6abbd8c",
+  "initial_manifest_sha256": "7072073788886056b14a64e782b7a66eaa729c36d03adf012adf111630f5dbc9",
+  "followup_receipt": "followup-html-expectation/receipt.json",
+  "followup_receipt_sha256": "b78852f63a41a7b72f69b62af4ca83b6a21b006f88dff65469d5c94986f876b4",
+  "followup_manifest_sha256": "f6064bc231e05ce96d9a43fe83a6919ea6180b15c6e74ec5e6f3592ed6e4624f",
+  "followup_native_smoke_sha256": "bc037f88479d71fef46a785039fcb75c37b7dd429935e1787dffbf6b1ed4dd42",
+  "regenerated_pdf": {
+    "sha256": "98ce2f25324a77566921566e599147dcac299951adb90c9f3e60157d776af14d",
+    "bytes": 97430,
+    "pages": 28,
+    "input": "saved report dictionary only, no recollection or refit"
+  },
+  "checks": {
+    "pip_check_exit": 0,
+    "cli_help": true,
+    "native_http_get": {
+      "/": 200,
+      "/app.js": 200,
+      "/app.css": 200,
+      "/api/project": 200,
+      "/api/project/report.json": 200,
+      "/api/project/report.md": 200,
+      "/api/project/report.pdf": 200,
+      "/api/project/input.json": 200
+    },
+    "native_http_post": 405,
+    "copy_only_project_readonly": true,
+    "copy_project_files_unchanged": 16,
+    "original_project_equal_to_copy": true,
+    "concrete_original101_match_previous_frozen_hashes": true,
+    "fit_guard_attempts": 0,
+    "nonlocal_network_attempts_during_product_smoke": 0
+  },
+  "cost": {
+    "dependency_network_downloads": true,
+    "product_model_api_calls": 0,
+    "new_fits": 0,
+    "currency": null,
+    "development_tokens": null
+  },
+  "failures_preserved": [
+    {
+      "phase": "initial native smoke",
+      "exit_code": 1,
+      "cause": "Verifier expected raw HTML but server injects project-binding body attributes; no product failure",
+      "file": "native-report-smoke.txt",
+      "sha256": "1f4ad791dd663d38702ded07e6d6e667f09ce2456bbe5c136c76a59df2bbb7e7"
+    }
+  ],
+  "limitations": [
+    "No AgentArts optional runtime install or calls",
+    "No clean OS/container resource acceptance",
+    "No original study version/environment or numerical refit reproduction",
+    "No final-main wheel installed yet",
+    "No PDF full-page visual inspection"
+  ]
+}

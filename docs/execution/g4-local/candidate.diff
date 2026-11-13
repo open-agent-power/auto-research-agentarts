@@ -1,0 +1,9 @@
+diff --git a/src/autoresearch/ridge_validation_adapter.py b/src/autoresearch/ridge_validation_adapter.py
+index 8be13b1..a0887c9 100644
+--- a/src/autoresearch/ridge_validation_adapter.py
++++ b/src/autoresearch/ridge_validation_adapter.py
+@@ -89,2 +89,2 @@ def encode_groups(labels):
+-    unique = list(dict.fromkeys(labels))
+-    return [unique.index(label) for label in labels]
++    lookup = {label: index for index, label in enumerate(dict.fromkeys(labels))}
++    return [lookup[label] for label in labels]
