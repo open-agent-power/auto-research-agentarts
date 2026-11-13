@@ -16,7 +16,7 @@ reports = ["reportlab==4.4.9", "matplotlib==3.11.2", "pypdf==6.10.0"]
 
 [project.scripts]
 autoresearch = "autoresearch.cli:main"
-autoresearch-runtime = "autoresearch.runtime:main"
+autoresearch-runtime = "autoresearch.runtime_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
