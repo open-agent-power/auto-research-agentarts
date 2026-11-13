@@ -38,6 +38,8 @@ const methodNames: Record<string, string> = {
   "research.source-selection": "补充来源与条件证据",
   "research.retrieval-fixed-pair": "固定引用检索对照",
   "research.retrieval-saved-error-audit": "检索保存结果诊断",
+  "research.relevance-fixed-pair": "固定相关性检索对照",
+  "research.relevance-saved-error-audit": "相关性检索保存结果诊断",
   "research.weighted-interval-fixed-pair": "合成区间调度对照",
   "research.weighted-interval-saved-audit": "调度保存结果审计",
 };
