@@ -40,3 +40,5 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python scripts/verify_concret
 ## 图表与报告
 
 原生导出为report JSON/Markdown/PDF、input JSON及manifest；完整source、OOF与系数保留在项目工件。图表是只读保存结果的派生视图，脚本`plot_concrete_reproduction.py`输出PNG/SVG及来源/输出SHA，包含负预测及年龄覆盖稀疏性。它不修改研究状态、不执行fit，也不构成外部科学验证。
+
+已生成归档`runs/g1-local-delivery/concrete-reproduction.zip`，280条目、ZIP CRC及逐文件SHA全核验；包含的代码main为`ab1e9da`，研究冻结仍为`5d36424`。其后归档清单/Worker接入说明等元数据提交不改变归档内研究身份。[归档清单](delivery-manifest.json)保存SHA与大小。

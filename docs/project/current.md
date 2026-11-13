@@ -18,6 +18,10 @@
 
 原始公开数据：`/workspace/work/g0-data-research/`；独立证据：`runs/g1-local-verification/`、`runs/g1-local-review/`、`runs/g1-local-ui/`；新路径恢复：`runs/g1-local-restored/`。只读工作台在云电脑`http://127.0.0.1:18830/`，模型/写操作关闭。
 
+## 已完成交付
+
+复现归档`runs/g1-local-delivery/concrete-reproduction.zip`已生成，约19.5MB/280条目，包含完整Git bundle、原/恢复case、公开数据/许可、独立检查、界面与图表，ZIP CRC与每文件SHA全核验；[清单](../execution/g1-local/delivery-manifest.json)保留身份。新Worker[主机接入/验收包](../../deploy/worker/README.md)及无副作用封装已准备并通过语法/帮助/已存在目录拒绝检查，未发生远程部署或采购。
+
 ## 下一阶段与阻塞
 
 本课题仅为已见公开数据的表达对照，不是领域批准、未见任务收益、自主模型runtime或RSI。保留全部坏结果，下一研究需要独立数据和新范围，不能自动追加fit。

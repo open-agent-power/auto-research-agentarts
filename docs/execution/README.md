@@ -50,3 +50,5 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint 002 结果
 
 获批本地G1切片已技术验收：[结果](g1-local/results.md)、[验收](g1-local/acceptance.json)、[复盘](SPRINT-002.md)、[恢复](g1-local/reproduction.md)。两轮MAE8.383388→5.702073MPa，313行/129组恶化、负值1保留；5工具/20estimator尝试/1来源/0产品模型，独立算术3252项及原/新路径29请求重放通过。原G0/G2+不变。
+
+恢复归档已核验并记录[身份](g1-local/delivery-manifest.json)。为下一阶段准备的[Worker主机接入/验收包](../../deploy/worker/README.md)只运行既有有界探针、不安装或部署服务；实际可接入主机仍缺失，原G0保持阻塞。

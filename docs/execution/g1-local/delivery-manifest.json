@@ -1,0 +1,8 @@
+{
+  "archive": "/workspace/auto-research-agentarts/runs/g1-local-delivery/concrete-reproduction.zip",
+  "sha256": "67f6c766a9bce3e2e6d70c89c76ef6cf442162bee211c38f4658e4d25c3bbbe6",
+  "bytes": 19474268,
+  "entries": 280,
+  "checks": "ZIP CRC and every included file SHA verified; Git bundle complete history verified",
+  "commit": "ab1e9da215a8331b1df002d7721f76375c532394"
+}
