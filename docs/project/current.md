@@ -6,6 +6,10 @@
 
 每轮先核同一云盘与仓库，使用 [自动推进规程](../execution/AUTONOMY.md) 和 `scripts/project_autonomy_guard.py` 协调租约；不得覆盖其他轮次的未提交改动。研究 unknown 只按原 ID 恢复，不新发或重置预算。不得采购、增加付费模型/API或向他人发消息。开发 token/金额未知，不能写0。
 
+## 最新汇报入口
+
+本轮[Sprint008](../execution/SPRINT-008.md)已修正同一3小时任务：使用北京时间，每次触发均final汇报，失败/无进展/lease占用也不静默；持lease者更新[最新报告](latest-report.md)和[机器报告](latest-report.json)。2026-11-14 00:06核对时，前轮23:15已完成，下一计划01:47尚未到，轮间没有常驻执行；平台run/result/通知送达仍unknown，不能声称已确认漏跑或已送达。
+
 ## 已完成的真实证据
 
 | 轮次 | 结果及边界 | 入口 |
@@ -37,7 +41,7 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 最终两案五页在1440×900和390×844实测，38截图、80浏览器GET／0POST／错误、4原行动下载＋8报告HTTP读取；API、494保护文件及三根完整421路径集保持。36原件＋63编译语义检查和807项最终独审通过。01/02/03手机布局缺口及02服务启动失败保留，只有04最终完整看图和末列文字边界通过。[UI验收](../execution/g5-local/cpu-results-ui.md)与[精确身份/预算](../execution/g5-local/cpu-results-ui.json)可接续。历史50estimator不变，本轮无新研究/工程fit或产品模型/API；开发成本unknown，非科研收益或原完整Gate通过。
 
-下一可独立增量：已有artifact不利query的按需阅读与精确定位。先核原query/doc/action引用及加载边界，再复用reader用GET展示；投影只有133总数，不硬编码60/73，不重排/重算/新建项目/换ID/扩额。平台14:45UTC触发标记存在但run/result仍null、投递unknown，不据标记推断完成。
+不利query输入已在Sprint008完成[真实审计](../execution/g5-local/adverse-reader-contract.md)：两原行动133行一致，实际核原query/doc/qrels定位，60loss+73noloss（65两臂不全/8仅baseline不全）。投影仍只有133总数，不能将完整工件细分写成现有observation字段。输入没有逐document检索分数，只保存原序位与per-query指标。下一步实现有界按需GET reader及UI，校验project/action/source身份、原定位和加载上限；尚未实现，不重排/重算/新建项目/换ID/扩额。
 
 ## 最新交付与凭据恢复
 

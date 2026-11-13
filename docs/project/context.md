@@ -35,3 +35,6 @@ Sprint006实测闭合：新target从归档8原ID恢复，01依赖平台探测失
 
 
 Sprint007已完成两CPU领域保存结果阅读，源码7633792，原state13/3plans/2tools与50历史fit保持，无新增研究/工程fit或产品模型调用。最终桌面+手机五页、38截图、80GET、12下载/读取及末列文字范围实测通过，独立36+63语义/807最终检查。01/02/03视觉缺口与调度启动失败保留，04才完整通过。新只读18836/18837由独立固定checkout服务原manager，旧源码pin clean。下一步已有artifact不利query按需精确阅读，见current及cpu-results-ui.json；平台14:45UTC标记仍无run/result详情。
+
+
+Sprint008回应用户追问汇报：北京时间00:06检查，前轮23:15推送后等待下一次01:47，尚未超时。原任务轮间无常驻执行；平台run/result仍null、投递unknown。已工具更新并回读同任务/3小时间隔不变/时区AsiaShanghai，新增每次触发无论成功/失败/无进展/lease忙均final报告；持有lease时保存latest-report.md/json。并已真实审计133不利query、920保存rank/metric及18400定位；缺逐doc检索分数，GET/UI仍待实现。494原件保持，新fit/API0，金额tokenunknown。以current和最新报告接续，不把配置修正说成已证明未来触发/投递。

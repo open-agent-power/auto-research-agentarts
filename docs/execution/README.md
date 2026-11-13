@@ -69,3 +69,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint 007：CPU结果的实际阅读
 
 [Sprint007](SPRINT-007.md)完成两领域保存宏指标、负结果与原行动入口。两个真实已有项目的桌面/手机五页、下载、只读状态和末列文字范围实测，独立审查通过，失败原件保留。这是展示增量，不是新排名、拟合或科研收益；[验收与恢复](g5-local/cpu-results-ui.md)、[精确身份与预算](g5-local/cpu-results-ui.json)。
+
+
+## Sprint 008：补齐每次触发汇报与下步输入
+
+[Sprint008](SPRINT-008.md)修正单个既有3小时任务的无进展/失败也需汇报规则，统一北京时间，新增[持久报告](../project/latest-report.md)；真实回读不等于未来通知送达证明。并完成保存不利查询原输入/定位审计，下一有界GET阅读器未实现，不补算缺失检索分数。[输入契约](g5-local/adverse-reader-contract.md)。

@@ -1,0 +1,93 @@
+{
+  "schema_version": "lab-latest-report-v1",
+  "observed_at_local": "2026-11-14T00:12:29.565964+08:00",
+  "timezone": "Asia/Shanghai",
+  "round": "Sprint008",
+  "started_at_local": "2026-11-14T00:07:10+08:00",
+  "repository_head_at_evidence_read": "2ea6c0a157fe9b508b7a16b32d36ae385e9af327",
+  "product_ui_source_commit": "7633792a6e817efe32ec0750e0846be43fdb55f6",
+  "last_previous_push_at_local": "2026-11-13T23:15:44+08:00",
+  "cause_of_gap": "Prior round ended and released lease; waits for next3hour task; no continuousworker in gap. Nextscheduledtime hadnot arrived when userasked.",
+  "completed": [
+    "Updated SAME existing automation: alwaysreport on eachtrigger, includingnofit/nochanges/failure/busylease",
+    "Kept3hourcadence and inheritedcloud; correcteddefaulttimezone toAsia/Shanghai; exactpromptreadbackverified",
+    "Addedpersistent latestreport contract without inventing deliveryack",
+    "Auditedall133adversequeryrows and savedrank/doc/query/qrelidentity fornextboundedreader"
+  ],
+  "current_execution_at_observation": "root owns lease duringthisround; doesnotestablishcontinuousworkerafterround",
+  "next_planned_trigger_local": "2026-11-14T01:47:27+08:00",
+  "next_trigger_is_due_at_observation": false,
+  "platform_run_record": null,
+  "platform_latest_result_record": null,
+  "phone_notification_delivery": "unknown",
+  "same_task_no_duplicate": true,
+  "new_product_code": false,
+  "reader_ui_or_http_endpoint_implemented": false,
+  "adverse_contract": {
+    "counts": {
+      "adverse": 133,
+      "metric_loss": 60,
+      "no_metric_loss_both_incomplete": 65,
+      "no_metric_loss_baseline_only_incomplete": 8,
+      "no_metric_loss_other": 0,
+      "no_metric_loss_total": 73,
+      "rank_rows": 920,
+      "per_query_metric_rows": 920,
+      "ranked_doc_locator_checks": 18400,
+      "original_queries": 1109,
+      "original_documents": 5183
+    },
+    "sample_query_ids": [
+      "762",
+      "1397",
+      "495"
+    ],
+    "retrieval_score_boundary": "Per-document retrievalscores notsaved; onlystoredordinalranks and perquerymetrics; qrelscore iscited-document relevance label.",
+    "receipt": {
+      "path": "runs/sprint-008-adverse-reader-contract-20261114/receipt.json",
+      "bytes": 2592,
+      "sha256": "069043b48d082412057afe5c874882ba0bcca93e9ea15fb86c5cb547df382b75"
+    },
+    "contract": {
+      "path": "runs/sprint-008-adverse-reader-contract-20261114/contract.json",
+      "bytes": 5203,
+      "sha256": "614e89aba0f56046c42c1b1b0ad9c19604bf2c4e80dcea15298647da6fa09ab8"
+    },
+    "qrel_readback": {
+      "path": "runs/sprint-008-adverse-reader-contract-20261114/qrel-readback.json",
+      "bytes": 2958,
+      "sha256": "fb99dc2736600d5cd5d6062f356e94c5b67002dad651e8adcd96059d6fa20a1d"
+    },
+    "qrel_lookup_reads": 6,
+    "distinct_qrel_tsv_rows": 3
+  },
+  "protected_originals_unchanged": 494,
+  "usage": {
+    "new_research_fits": 0,
+    "new_engineering_fits": 0,
+    "product_model_api_calls": 0,
+    "new_ranking_scoring_solving": 0,
+    "historical_estimator_attempts_unchanged": 50,
+    "development_tokens_money": "unknown"
+  },
+  "evidence": [
+    {
+      "path": "runs/sprint-008-report-repair-20261114/automation-readback.json",
+      "bytes": 844,
+      "sha256": "5e0f8c04d1308fea343809644a7008472194acc5d7359f17a84b1ead4b4d8868"
+    },
+    {
+      "path": "runs/sprint-008-report-repair-20261114/protected-before.json",
+      "bytes": 113345,
+      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
+    },
+    {
+      "path": "runs/sprint-008-report-repair-20261114/protected-after.json",
+      "bytes": 113345,
+      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
+    }
+  ],
+  "next_task": "Implement bounded saved-adverse-query GET reader fromoriginalproject/action/sourcebindings;25adverserowsfirstpage and40armrankrowsperquery areproposals, notimplementedlimits. No rerank/rescore/newIDs/project/budget.",
+  "need_user_decision": false,
+  "work_verification_finished_at_local": "2026-11-14T00:17:45.751323+08:00"
+}
