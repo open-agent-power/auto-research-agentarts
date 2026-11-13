@@ -48,7 +48,7 @@
   },
   "developer_agent_cost": "unknown",
   "github_delivery": {
-    "status": "pushed_with_draft_pr",
+    "status": "merged",
     "branch": "codex/execution-pack-v2-g0",
     "push_succeeded": true,
     "first_verified_pushed_commit": "257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4",
@@ -76,6 +76,10 @@
       ],
       "required_action": "Authorize repository Contents write for the GitHub integration, then push prepared branch"
     },
-    "required_action": null
+    "required_action": null,
+    "pull_request_state": "merged",
+    "merged_at_utc": "2026-11-13T00:49:12Z",
+    "merge_commit": "269388af8f6d0a3330e5ea0e668459c428071367",
+    "base_branch": "main"
   }
 }
