@@ -1,6 +1,6 @@
 {
   "schema_version": "sprint-005-delivery-index-v1",
-  "status": "verified_local_delivery_pending_git_cli_authentication",
+  "status": "verified_delivery_published",
   "archive_path": "/workspace/auto-research-agentarts/runs/sprint-005-delivery/native-cpu-reproduction-evidence.zip",
   "archive_bytes": 77407847,
   "archive_sha256": "e320404532fe80fd085ec1dbe07cf6e1abda6d8212a00f8295baa3c9371a1a58",
@@ -30,10 +30,12 @@
   ],
   "scope": "Source, complete saved cases, public originals/licenses, preserved failures, independent reviews, true read-only videos and purpose-specific clean wheel; not a dependency mirror, scientific refit or full original Gates.",
   "github_publication": {
-    "state": "blocked_by_expired_cloud_cli_token",
-    "last_pushed_main": "0c197e8c2cbd14a899b8097d476cdb93053380e3",
-    "cloud_changes_committed": true,
-    "known_error": "gh auth status reports GH_TOKEN invalid; Git remote rejected username/token",
-    "permission": "Existing user authorization to push/merge persists; credential renewal is needed, not new development approval."
+    "state": "published",
+    "ordinary_fast_forward_push_verified": true,
+    "verified_delivery_commit": "477aae3f89e130f06d497d12d83d8d459def6955",
+    "previous_remote_main": "0c197e8c2cbd14a899b8097d476cdb93053380e3",
+    "prior_credential_error_preserved": "gh auth status reports GH_TOKEN invalid; Git remote rejected username/token",
+    "authentication_observation": "Inherited cloud resume had a valid CLI session. Original commits were pushed unchanged; token values were not logged.",
+    "permission": "Existing user push/merge authorization used; no additional approval requested."
   }
 }

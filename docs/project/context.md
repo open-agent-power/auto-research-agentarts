@@ -28,3 +28,5 @@
 Sprint003已得到G2无收益对照、G3两目标闭环及负控、G5两类CPU对照、G6离线打包证据；Sprint004完成G4-L有限helper候选及源码集成。最新G5原生两领域从`8e8a206`各执行2tools/0fit/API、3plans waiting，独立9910检查；后置UI`e638b5f`只改只读projection与标签，科研codeidentity保持。新G6 clean1.8产品安装/保存接续继续；以[current](current.md)和对应原始freeze为准。不把用户接受隔离限制解释为sealed通过或模型API/采购授权。
 
 用户要求安排云端周期检查（3h或6h），root选择3h并已创建/启用、readback核同一继承cloud/workspace。平台调度与持续24h模型进程不同，首次执行待验；lease协调本轮与定时轮，不改研究预算。参考库8个固定checkout再次核验全clean/匹配manifest。
+
+继承环境恢复的Sprint006已实际普通push成功并回读main=`477aae3`，上轮token失效不再是当前阻塞；原失败及冻结提交身份保持，不需重复索要登录/Worker授权。平台已有11:43UTC run-time marker，但run/result详情未返回，完成状态不推断。本轮聚焦archive-only保存接续、2991保存参数预测算术（先固定协议再算）、UCI原下载独立补充包；0fit/0model，不重写已验收77MB ZIP或历史课题。

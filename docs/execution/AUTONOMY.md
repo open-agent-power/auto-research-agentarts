@@ -13,6 +13,8 @@
 7. 不新增采购、付费模型/API或外发消息。既有明确0模型/API切片保持；新增研究先冻结范围、预算和评价，旧case与服务source pin保持。只有需要用户选择的新真实阻塞才提问，其余可独立工作继续。
 8. 每一大轮更新current/context/Sprint和证据入口，必要检查通过再推送。报告本轮完成、实际测试/结果、尚存边界、下步与具体决策项；时间不足先保存可接续状态。结束清理自己的lease，不删失败原件。
 
+凭据恢复实测：上轮GH_TOKEN曾失效，此次继承环境恢复后的新CLI会话已普通推送成功。先用新进程实际验证登录，不把过往401当永久无权限；无需重复索要既有开发/推送授权。保留失败记录和所有原Git提交SHA，禁止因远端落后reset本地或用新的commit元数据冒充冻结源。
+
 ## 参考项目的真实状态
 
 云端参考目录`/workspace/references/upstream/`及`/workspace/references/manifest.json`已存在。2026-11-13再次核对8仓库均为真实Git checkout、HEAD与固定清单一致、工作树clean：autoresearch、AI-Scientist、AgentLaboratory、prime、OpenHands、software-agent-sdk、beir、ragas。核验原件`runs/autonomy-setup-20261113/reference-check.json`。

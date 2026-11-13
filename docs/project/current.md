@@ -35,11 +35,13 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 下一可独立增量：核验本轮完整复现归档与原件许可清单，补独立离线重开演练与首次定时轮次实际记录；若能从保存系数进行完整预测算术复核，应先冻结0fit/0model独立范围，不重训或重置旧课题。后续仍直接验证后推送main；原隔离问题不重复询问。
 
-## 最新交付与真实外部阻塞
+## 最新交付与凭据恢复
 
 [Sprint005](../execution/SPRINT-005.md)已闭合；[复现包索引](../execution/delivery-sprint-005.json)对应77,407,847字节ZIP、930成员、源bundle tip `e97c0a6`、独立2864检查/494文件保护，均通过。归档已完成，不需重复生成或重跑研究。
 
-本轮普通push被GitHub拒绝，`gh auth status`确认环境GH_TOKEN invalid；最后成功远程main仍`0c197e8`，本地已领先且完整保存，禁止reset到旧远程。用户原先的push/merge授权仍有效，实际需要更新CLI凭据；连接的GitHub应用账户读取可用，但其create_commit缺少原作者/日期参数，不能保持科研冻结commit身份，不用新SHA替代旧记录。恢复凭据后先只读核remote HEAD再普通push；技术授权失败不能假报成功，也不能重复索要已接受的Worker/开发批准。其余本地G6接续可独立继续。
+上轮普通push因GH_TOKEN invalid失败，记录保持。此次继承云环境恢复后，新CLI会话实测有效，已普通fast-forward推送并远端回读确认main为`477aae3f89e130f06d497d12d83d8d459def6955`；所有8e8/e638/e97冻结提交原身份发布，无需用户重新登录。后续凭据可能过期时先用新进程实际检查，不把历史失败当永久阻塞、不重置本地领先提交，也不以新Git元数据替换原冻结SHA。
+
+Sprint006正在推进：从77MB归档独立重开两个native manager，只用已有DB和原ID，明确复用已有clean1.8依赖、不是从ZIP离线安装所有依赖；另审出旧5个CV工件确存25fold系数/缩放参数，共2991个OOF值，可预登记独立公式重建（0fit/model），不训练补造参数。补充原77MB未纳入的UCI原下载，采用单独补充包，不改旧ZIP。
 
 ## 历史项目与服务
 
@@ -47,6 +49,6 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 ## 平台定时与参考库
 
-已设置单个每3小时平台任务，回读确认enabled并继承同一cloud环境(`/workspace`)；首次真实定时执行仍待验。手机无需常开来触发；平台环境/授权失效必须如实记录。它检查成果、对照原计划、实际继续开发验证及推送，不只是提醒。配置保存于ignored `.agent/autonomy/automation.json`。
+已设置单个每3小时平台任务，enabled且继承同一cloud环境(`/workspace`)。本轮回读出现`2026-11-13T11:43:24.792602+00:00`触发时间标记，下个计划时点为14:47:27UTC；last_run/result详情仍null，不能据此标平台完成/投递成功。本轮已实际恢复云盘、领取lease并完成原提交推送，独立记录工作证据。手机无需常开来触发；状态配置位于ignored `.agent/autonomy/automation.json`，不公开私密ID。
 
 云端 `/workspace/references/upstream/` 的 autoresearch、AI-Scientist、AgentLaboratory、prime、OpenHands、software-agent-sdk、beir、ragas 共8个真实Git checkout已再核HEAD=manifest且clean。机制与许可研究见[G0复用矩阵](../execution/g0/upstream/reuse-matrix.md)，当前选择性自研适配；完整上游runtime未全部接入。BEIR数据/固定指标实际使用；Prime地址为服务CLI，AIDE²未定位源码，不能声称复现。
