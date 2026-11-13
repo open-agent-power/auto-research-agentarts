@@ -1,6 +1,7 @@
 /** Read saved active-project facts; this page never submits research commands. */
 import { $, el, field, numeric, safeUrl } from "./dom";
 import { recipeName, recipeOrder, recipeReason } from "./local-recipe";
+import { cpuResultSummary } from "./cpu-results";
 
 type Obj = Record<string, unknown>;
 const isObject = (value: unknown): value is Obj => !!value && typeof value === "object" && !Array.isArray(value);
@@ -307,6 +308,11 @@ function comparison(action: Obj, project: Obj): HTMLElement {
     const wrap = el("div", "project-comparison");
     wrap.append(el("p", "empty-state", "此行动尚无已保存观察。缺少结果不能记为成功或零误差。"));
     return wrap;
+  }
+  const cpu = cpuResultSummary(observations, resultTable);
+  if (cpu) {
+    cpu.append(details("此方法的完整观察记录", observations));
+    return cpu;
   }
   const diagnostic = observations.find(item => item.kind === "saved_oof_diagnostic");
   if (diagnostic) return savedDiagnostic(diagnostic, action);
