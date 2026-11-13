@@ -11,8 +11,8 @@
 | G2 动态协作 | 原Gate未通过；G2-L已verified | [模块/真实无收益对照](g2-local/results.md)，保留single；无模型Agent研究收益 |
 | G3 跨课题方法改进 | 原Gate未通过；G3-L已verified | [两目标闭环/语义拒绝/恢复](g3-local/results.md)，无记忆因果增益声明 |
 | G4 隔离代码级 RSI | 原Gate未通过；G4-L已集成verified | [独立原生微函数/源码集成](g4-local/native-results.md)，非OS/sealed/多代RSI |
-| G5 RAG/算法迁移 | 原Gate未通过；G5-L已verified | [两类CPU对照](g5-local/results.md)，尚未原生RAG接线 |
-| G6 发布交接 | 原Gate未通过；G6-L打包verified | [离线wheel安装](g6-local/results.md)，非全新依赖/runtime/正式发布 |
+| G5 RAG/算法迁移 | 原Gate未通过；G5-L原生两领域已运行 | [原生检索/调度](g5-local/native-results.md)、[独立9910项](g5-local/native-results-independent.md)，citation检索不生成答案；无完整/sealed声明 |
+| G6 发布交接 | 原Gate未通过；G6-L分层核验继续 | [实际安装/版本边界](g6-local/runtime-reproduction-boundary.md)，当前产品clean1.8安装与保存接续推进，不称完整科研重现或正式发布 |
 
 ## 当前任务契约
 

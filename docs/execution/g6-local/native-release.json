@@ -1,0 +1,1055 @@
+{
+  "schema_version": "g6-native-release-summary-v1",
+  "status": "exact_snapshot_clean_install_saved_native_recovery_verified",
+  "source_commit": "e638b5f3782d12a7b54bb9ede5596e5c4d9726cf",
+  "source_archive": "4bb83c9d00577c82f47b2973070cc59926f61acd55ad2acd7a2af5b054cf6003",
+  "verifier": {
+    "path": "/workspace/auto-research-agentarts/scripts/verify_native_release.py",
+    "bytes": 20659,
+    "sha256": "057c462fcb40e62cf39cfa7fabdb8bd518c8e021f0bc8ac28a3b0df9fff4c578"
+  },
+  "wheel": {
+    "name": "agentarts_autoresearch-0.1.0-py3-none-any.whl",
+    "sha256": "574a83edc7eadb7d338bb43facd5c84b423e8494598d2ac5aadd3633e9d65295",
+    "bytes": 1212193
+  },
+  "package_file_count": 177,
+  "package_identity_manifest": {
+    "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/package-files.json",
+    "bytes": 18987,
+    "sha256": "8e0d6eaa4b0d97035f5ede69123fe8f20648eeebd4a996cd1132cd8d9624be86"
+  },
+  "clean_venv": "/workspace/work/g6-native-release-20261113-01/venv",
+  "system_site_packages": false,
+  "observed_pin_count": 18,
+  "observed_pins": {
+    "numpy": "2.5.4",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0",
+    "h5py": "3.16.0",
+    "reportlab": "4.4.9",
+    "matplotlib": "3.10.8",
+    "pypdf": "6.21.4",
+    "joblib": "1.5.3",
+    "threadpoolctl": "3.6.0",
+    "pillow": "13.0.0",
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.61.1",
+    "kiwisolver": "1.4.9",
+    "packaging": "26.3",
+    "pyparsing": "3.3.2",
+    "python-dateutil": "4.0.0",
+    "charset-normalizer": "3.5.2"
+  },
+  "complete_installed_closure": [
+    {
+      "name": "agentarts-autoresearch",
+      "version": "0.1.0",
+      "requires": [
+        "numpy<3,>=1.26",
+        "scikit-learn<2,>=1.5",
+        "agentarts-sdk==0.1.8; extra == \"runtime\"",
+        "h5py==3.16.0; extra == \"sources\"",
+        "reportlab==4.4.9; extra == \"reports\"",
+        "matplotlib==3.11.2; extra == \"reports\"",
+        "pypdf==6.10.0; extra == \"reports\""
+      ]
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "requires": []
+    },
+    {
+      "name": "contourpy",
+      "version": "1.3.3",
+      "requires": [
+        "numpy>=1.25",
+        "furo; extra == \"docs\"",
+        "sphinx>=7.2; extra == \"docs\"",
+        "sphinx-copybutton; extra == \"docs\"",
+        "bokeh; extra == \"bokeh\"",
+        "selenium; extra == \"bokeh\"",
+        "contourpy[bokeh,docs]; extra == \"mypy\"",
+        "bokeh; extra == \"mypy\"",
+        "docutils-stubs; extra == \"mypy\"",
+        "mypy==1.17.0; extra == \"mypy\"",
+        "types-Pillow; extra == \"mypy\"",
+        "contourpy[test-no-images]; extra == \"test\"",
+        "matplotlib; extra == \"test\"",
+        "Pillow; extra == \"test\"",
+        "pytest; extra == \"test-no-images\"",
+        "pytest-cov; extra == \"test-no-images\"",
+        "pytest-rerunfailures; extra == \"test-no-images\"",
+        "pytest-xdist; extra == \"test-no-images\"",
+        "wurlitzer; extra == \"test-no-images\""
+      ]
+    },
+    {
+      "name": "cycler",
+      "version": "0.12.1",
+      "requires": [
+        "ipython ; extra == 'docs'",
+        "matplotlib ; extra == 'docs'",
+        "numpydoc ; extra == 'docs'",
+        "sphinx ; extra == 'docs'",
+        "pytest ; extra == 'tests'",
+        "pytest-cov ; extra == 'tests'",
+        "pytest-xdist ; extra == 'tests'"
+      ]
+    },
+    {
+      "name": "fonttools",
+      "version": "4.61.1",
+      "requires": [
+        "lxml>=4.0; extra == \"lxml\"",
+        "brotli>=1.0.1; platform_python_implementation == \"CPython\" and extra == \"woff\"",
+        "brotlicffi>=0.8.0; platform_python_implementation != \"CPython\" and extra == \"woff\"",
+        "zopfli>=0.1.4; extra == \"woff\"",
+        "unicodedata2>=17.0.0; python_version <= \"3.14\" and extra == \"unicode\"",
+        "lz4>=1.7.4.2; extra == \"graphite\"",
+        "scipy; platform_python_implementation != \"PyPy\" and extra == \"interpolatable\"",
+        "munkres; platform_python_implementation == \"PyPy\" and extra == \"interpolatable\"",
+        "pycairo; extra == \"interpolatable\"",
+        "matplotlib; extra == \"plot\"",
+        "sympy; extra == \"symfont\"",
+        "xattr; sys_platform == \"darwin\" and extra == \"type1\"",
+        "skia-pathops>=0.5.0; extra == \"pathops\"",
+        "uharfbuzz>=0.45.0; extra == \"repacker\"",
+        "lxml>=4.0; extra == \"all\"",
+        "brotli>=1.0.1; platform_python_implementation == \"CPython\" and extra == \"all\"",
+        "brotlicffi>=0.8.0; platform_python_implementation != \"CPython\" and extra == \"all\"",
+        "zopfli>=0.1.4; extra == \"all\"",
+        "unicodedata2>=17.0.0; python_version <= \"3.14\" and extra == \"all\"",
+        "lz4>=1.7.4.2; extra == \"all\"",
+        "scipy; platform_python_implementation != \"PyPy\" and extra == \"all\"",
+        "munkres; platform_python_implementation == \"PyPy\" and extra == \"all\"",
+        "pycairo; extra == \"all\"",
+        "matplotlib; extra == \"all\"",
+        "sympy; extra == \"all\"",
+        "xattr; sys_platform == \"darwin\" and extra == \"all\"",
+        "skia-pathops>=0.5.0; extra == \"all\"",
+        "uharfbuzz>=0.45.0; extra == \"all\""
+      ]
+    },
+    {
+      "name": "h5py",
+      "version": "3.16.0",
+      "requires": [
+        "numpy>=1.21.2"
+      ]
+    },
+    {
+      "name": "joblib",
+      "version": "1.5.3",
+      "requires": []
+    },
+    {
+      "name": "kiwisolver",
+      "version": "1.4.9",
+      "requires": []
+    },
+    {
+      "name": "matplotlib",
+      "version": "3.10.8",
+      "requires": [
+        "contourpy>=1.0.1",
+        "cycler>=0.10",
+        "fonttools>=4.22.0",
+        "kiwisolver>=1.3.1",
+        "numpy>=1.23",
+        "packaging>=20.0",
+        "pillow>=8",
+        "pyparsing>=3",
+        "python-dateutil>=2.7",
+        "meson-python<0.17.0,>=0.13.1; extra == \"dev\"",
+        "pybind11!=2.13.3,>=2.13.2; extra == \"dev\"",
+        "setuptools_scm>=7; extra == \"dev\"",
+        "setuptools>=64; extra == \"dev\""
+      ]
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.4",
+      "requires": []
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "requires": []
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0",
+      "requires": [
+        "furo; extra == \"docs\"",
+        "olefile; extra == \"docs\"",
+        "sphinx>=8.2; extra == \"docs\"",
+        "sphinx-autobuild; extra == \"docs\"",
+        "sphinx-copybutton; extra == \"docs\"",
+        "sphinx-inline-tabs; extra == \"docs\"",
+        "sphinxext-opengraph; extra == \"docs\"",
+        "olefile; extra == \"fpx\"",
+        "olefile; extra == \"mic\"",
+        "arro3-compute; extra == \"test-arrow\"",
+        "arro3-core; extra == \"test-arrow\"",
+        "nanoarrow; extra == \"test-arrow\"",
+        "pyarrow; extra == \"test-arrow\"",
+        "coverage>=7.4.2; extra == \"tests\"",
+        "defusedxml; extra == \"tests\"",
+        "markdown2; extra == \"tests\"",
+        "olefile; extra == \"tests\"",
+        "packaging; extra == \"tests\"",
+        "psutil; (sys_platform == \"linux\" or sys_platform == \"darwin\") and extra == \"tests\"",
+        "pytest; extra == \"tests\"",
+        "pytest-cov; extra == \"tests\"",
+        "pytest-timeout; extra == \"tests\"",
+        "pytest-xdist; extra == \"tests\"",
+        "setuptools; extra == \"tests\"",
+        "trove-classifiers>=2024.10.12; extra == \"tests\"",
+        "defusedxml; extra == \"xmp\""
+      ]
+    },
+    {
+      "name": "pip",
+      "version": "25.0.1",
+      "requires": []
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.3.2",
+      "requires": [
+        "railroad-diagrams ; extra == \"diagrams\"",
+        "jinja2 ; extra == \"diagrams\""
+      ]
+    },
+    {
+      "name": "pypdf",
+      "version": "6.21.4",
+      "requires": [
+        "typing_extensions >= 4.0; python_version < '3.11'",
+        "brotli>=1.2.0 ; extra == \"brotli\"",
+        "cryptography>3.0 ; extra == \"crypto\"",
+        "PyCryptodome ; extra == \"cryptodome\"",
+        "flit ; extra == \"dev\"",
+        "pip-tools ; extra == \"dev\"",
+        "pre-commit ; extra == \"dev\"",
+        "pytest-cov ; extra == \"dev\"",
+        "pytest-socket ; extra == \"dev\"",
+        "pytest-timeout ; extra == \"dev\"",
+        "pytest-xdist ; extra == \"dev\"",
+        "wheel ; extra == \"dev\"",
+        "myst_parser ; extra == \"docs\"",
+        "sphinx ; extra == \"docs\"",
+        "sphinx_rtd_theme ; extra == \"docs\"",
+        "fonttools ; extra == \"fonts\"",
+        "arabic-reshaper ; extra == \"full\"",
+        "brotli>=1.2.0 ; extra == \"full\"",
+        "cryptography>3.0 ; extra == \"full\"",
+        "fonttools ; extra == \"full\"",
+        "Pillow>=8.0.0 ; extra == \"full\"",
+        "python-bidi ; extra == \"full\"",
+        "Pillow>=8.0.0 ; extra == \"image\"",
+        "arabic-reshaper ; extra == \"rtl-text\"",
+        "python-bidi ; extra == \"rtl-text\""
+      ]
+    },
+    {
+      "name": "python-dateutil",
+      "version": "4.0.0",
+      "requires": [
+        "tzdata"
+      ]
+    },
+    {
+      "name": "reportlab",
+      "version": "4.4.9",
+      "requires": [
+        "pillow>=9.0.0",
+        "charset-normalizer",
+        "rl_accel<1.1,>=0.9.0; extra == \"accel\"",
+        "rl_renderPM<4.1,>=4.0.3; extra == \"renderpm\"",
+        "rlPyCairo<1,>=0.2.0; extra == \"pycairo\"",
+        "freetype-py<2.4,>=2.3.0; extra == \"pycairo\"",
+        "rlbidi; extra == \"bidi\"",
+        "uharfbuzz; extra == \"shaping\""
+      ]
+    },
+    {
+      "name": "scikit-learn",
+      "version": "1.8.0",
+      "requires": [
+        "numpy>=1.24.1",
+        "scipy>=1.10.0",
+        "joblib>=1.3.0",
+        "threadpoolctl>=3.2.0",
+        "numpy>=1.24.1; extra == \"build\"",
+        "scipy>=1.10.0; extra == \"build\"",
+        "cython>=3.1.2; extra == \"build\"",
+        "meson-python>=0.17.1; extra == \"build\"",
+        "numpy>=1.24.1; extra == \"install\"",
+        "scipy>=1.10.0; extra == \"install\"",
+        "joblib>=1.3.0; extra == \"install\"",
+        "threadpoolctl>=3.2.0; extra == \"install\"",
+        "matplotlib>=3.6.1; extra == \"benchmark\"",
+        "pandas>=1.5.0; extra == \"benchmark\"",
+        "memory_profiler>=0.57.0; extra == \"benchmark\"",
+        "matplotlib>=3.6.1; extra == \"docs\"",
+        "scikit-image>=0.22.0; extra == \"docs\"",
+        "pandas>=1.5.0; extra == \"docs\"",
+        "seaborn>=0.13.0; extra == \"docs\"",
+        "memory_profiler>=0.57.0; extra == \"docs\"",
+        "sphinx>=7.3.7; extra == \"docs\"",
+        "sphinx-copybutton>=0.5.2; extra == \"docs\"",
+        "sphinx-gallery>=0.17.1; extra == \"docs\"",
+        "numpydoc>=1.2.0; extra == \"docs\"",
+        "Pillow>=10.1.0; extra == \"docs\"",
+        "pooch>=1.8.0; extra == \"docs\"",
+        "sphinx-prompt>=1.4.0; extra == \"docs\"",
+        "sphinxext-opengraph>=0.9.1; extra == \"docs\"",
+        "plotly>=5.18.0; extra == \"docs\"",
+        "polars>=0.20.30; extra == \"docs\"",
+        "sphinx-design>=0.6.0; extra == \"docs\"",
+        "sphinxcontrib-sass>=0.3.4; extra == \"docs\"",
+        "pydata-sphinx-theme>=0.15.3; extra == \"docs\"",
+        "sphinx-remove-toctrees>=1.0.0.post1; extra == \"docs\"",
+        "towncrier>=24.8.0; extra == \"docs\"",
+        "matplotlib>=3.6.1; extra == \"examples\"",
+        "scikit-image>=0.22.0; extra == \"examples\"",
+        "pandas>=1.5.0; extra == \"examples\"",
+        "seaborn>=0.13.0; extra == \"examples\"",
+        "pooch>=1.8.0; extra == \"examples\"",
+        "plotly>=5.18.0; extra == \"examples\"",
+        "matplotlib>=3.6.1; extra == \"tests\"",
+        "pandas>=1.5.0; extra == \"tests\"",
+        "pytest>=7.1.2; extra == \"tests\"",
+        "pytest-cov>=2.9.0; extra == \"tests\"",
+        "ruff>=0.11.7; extra == \"tests\"",
+        "mypy>=1.15; extra == \"tests\"",
+        "pyamg>=5.0.0; extra == \"tests\"",
+        "polars>=0.20.30; extra == \"tests\"",
+        "pyarrow>=12.0.0; extra == \"tests\"",
+        "numpydoc>=1.2.0; extra == \"tests\"",
+        "pooch>=1.8.0; extra == \"tests\"",
+        "conda-lock==3.0.1; extra == \"maintenance\""
+      ]
+    },
+    {
+      "name": "scipy",
+      "version": "1.17.0",
+      "requires": [
+        "numpy<2.7,>=1.26.4",
+        "pytest>=8.0.0; extra == \"test\"",
+        "pytest-cov; extra == \"test\"",
+        "pytest-timeout; extra == \"test\"",
+        "pytest-xdist; extra == \"test\"",
+        "asv; extra == \"test\"",
+        "mpmath; extra == \"test\"",
+        "gmpy2; extra == \"test\"",
+        "threadpoolctl; extra == \"test\"",
+        "scikit-umfpack; extra == \"test\"",
+        "pooch; extra == \"test\"",
+        "hypothesis>=6.30; extra == \"test\"",
+        "array-api-strict>=2.3.1; extra == \"test\"",
+        "Cython; extra == \"test\"",
+        "meson; extra == \"test\"",
+        "ninja; sys_platform != \"emscripten\" and extra == \"test\"",
+        "sphinx<8.2.0,>=5.0.0; extra == \"doc\"",
+        "intersphinx_registry; extra == \"doc\"",
+        "pydata-sphinx-theme>=0.15.2; extra == \"doc\"",
+        "sphinx-copybutton; extra == \"doc\"",
+        "sphinx-design>=0.4.0; extra == \"doc\"",
+        "matplotlib>=3.5; extra == \"doc\"",
+        "numpydoc; extra == \"doc\"",
+        "jupytext; extra == \"doc\"",
+        "myst-nb>=1.2.0; extra == \"doc\"",
+        "pooch; extra == \"doc\"",
+        "jupyterlite-sphinx>=0.19.1; extra == \"doc\"",
+        "jupyterlite-pyodide-kernel; extra == \"doc\"",
+        "linkify-it-py; extra == \"doc\"",
+        "tabulate; extra == \"doc\"",
+        "click<8.3.0; extra == \"dev\"",
+        "spin; extra == \"dev\"",
+        "mypy==1.10.0; extra == \"dev\"",
+        "typing_extensions; extra == \"dev\"",
+        "types-psutil; extra == \"dev\"",
+        "pycodestyle; extra == \"dev\"",
+        "ruff>=0.12.0; extra == \"dev\"",
+        "cython-lint>=0.12.2; extra == \"dev\""
+      ]
+    },
+    {
+      "name": "setuptools",
+      "version": "84.2.1",
+      "requires": [
+        "pytest!=8.1.*,>=6; extra == \"test\"",
+        "virtualenv>=13.0.0; extra == \"test\"",
+        "wheel>=0.44.0; extra == \"test\"",
+        "pip>=19.1; extra == \"test\"",
+        "packaging>=26.3; extra == \"test\"",
+        "jaraco.envs>=2.2; extra == \"test\"",
+        "pytest-xdist>=3; extra == \"test\"",
+        "jaraco.path>=3.7.2; extra == \"test\"",
+        "build[virtualenv]>=1.0.3; extra == \"test\"",
+        "filelock>=3.4.0; extra == \"test\"",
+        "ini2toml[lite]>=0.14; extra == \"test\"",
+        "tomli-w>=1.0.0; extra == \"test\"",
+        "pytest-timeout; extra == \"test\"",
+        "pytest-perf; sys_platform != \"cygwin\" and extra == \"test\"",
+        "jaraco.develop>=7.21; (python_version >= \"3.9\" and sys_platform != \"cygwin\") and extra == \"test\"",
+        "pytest-home>=0.5; extra == \"test\"",
+        "pytest-subprocess; extra == \"test\"",
+        "pyproject-hooks!=1.1; extra == \"test\"",
+        "jaraco.test>=5.5; extra == \"test\"",
+        "sphinx>=3.5; extra == \"doc\"",
+        "jaraco.packaging>=9.3; extra == \"doc\"",
+        "rst.linker>=1.9; extra == \"doc\"",
+        "furo; extra == \"doc\"",
+        "sphinx-lint; extra == \"doc\"",
+        "jaraco.tidelift>=1.4; extra == \"doc\"",
+        "pygments-github-lexers==0.0.5; extra == \"doc\"",
+        "sphinx-favicon; extra == \"doc\"",
+        "sphinx-inline-tabs; extra == \"doc\"",
+        "sphinx-reredirects; extra == \"doc\"",
+        "sphinxcontrib-towncrier; extra == \"doc\"",
+        "sphinx-notfound-page<2,>=1; extra == \"doc\"",
+        "pyproject-hooks!=1.1; extra == \"doc\"",
+        "towncrier<24.7; extra == \"doc\"",
+        "packaging>=26.3; extra == \"core\"",
+        "more_itertools>=8.8; extra == \"core\"",
+        "jaraco.text>=3.7; extra == \"core\"",
+        "importlib_metadata>=6; python_version < \"3.10\" and extra == \"core\"",
+        "tomli>=2.0.1; python_version < \"3.11\" and extra == \"core\"",
+        "wheel>=0.43.0; extra == \"core\"",
+        "jaraco.functools>=4; extra == \"core\"",
+        "more_itertools; extra == \"core\"",
+        "pytest-checkdocs>=2.14; extra == \"check\"",
+        "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+        "ruff>=0.13.0; sys_platform != \"cygwin\" and extra == \"check\"",
+        "pytest-cov; extra == \"cover\"",
+        "pytest-enabler>=3.4; extra == \"enabler\"",
+        "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\"",
+        "mypy==1.18.*; extra == \"type\"",
+        "importlib_metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
+        "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\""
+      ]
+    },
+    {
+      "name": "threadpoolctl",
+      "version": "3.6.0",
+      "requires": []
+    },
+    {
+      "name": "tzdata",
+      "version": "2026.6",
+      "requires": []
+    },
+    {
+      "name": "wheel",
+      "version": "0.48.0",
+      "requires": [
+        "packaging >= 24.0"
+      ]
+    }
+  ],
+  "additional_packages_outside_observed_pins": {
+    "agentarts-autoresearch": "0.1.0",
+    "pip": "25.0.1",
+    "setuptools": "84.2.1",
+    "tzdata": "2026.6",
+    "wheel": "0.48.0"
+  },
+  "dependency_network": {
+    "used": true,
+    "index": "https://pypi.org/simple",
+    "wheel_download_host": "files.pythonhosted.org",
+    "binary_only": true,
+    "tls_verification": true,
+    "policy_state": "enforced",
+    "product_api_usage": false
+  },
+  "pip_check_passed": true,
+  "wheel_install_no_dependencies_no_index": true,
+  "installed_native_smoke": {
+    "status": "installed_saved_native_cases_verified",
+    "module_origin": "/workspace/work/g6-native-release-20261113-01/venv/lib/python3.12/site-packages/autoresearch",
+    "package_files": 177,
+    "core_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+    "runtime_dependencies": {
+      "numpy": "2.5.4",
+      "scipy": "1.17.0",
+      "scikit-learn": "1.8.0"
+    },
+    "cli_help": {
+      "console_entrypoint": true,
+      "module": true
+    },
+    "cases": {
+      "retrieval": {
+        "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+        "snapshot_ref": "f4b381cba28c3cbda6edd979c9dfa4b63db96997feab6b816774c070479d0cc8",
+        "code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 0,
+          "existing_cash_cap_cny": 5,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "g5-native-retrieval:retrieval",
+          "local_tool_call_limit": 2,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "local_tool_calls_used": 2,
+          "local_tool_calls_reserved": 0,
+          "local_tool_dispatches": 2,
+          "evidence_reads_used": 0,
+          "evidence_reads_reserved": 0,
+          "fit_limit": 0,
+          "fit_attempts_used": 0,
+          "fits_reserved": 0,
+          "preprocessing_fits": 0,
+          "fits_completed": 0,
+          "ridge_fits_completed": 0,
+          "preprocessing_fits_completed": 0
+        },
+        "saved_replays": {
+          "primary": {
+            "replayed": true,
+            "request_id": "native-primary",
+            "status": "completed"
+          },
+          "audit": {
+            "replayed": true,
+            "request_id": "native-audit",
+            "status": "completed"
+          },
+          "wait": {
+            "replayed": true,
+            "request_id": "native-wait",
+            "status": "waiting"
+          },
+          "report": {
+            "replayed": true,
+            "request_id": "native-report",
+            "status": "exported"
+          }
+        },
+        "readonly_http": {
+          "/": {
+            "status": 200,
+            "sha256": "d68dfbc8627765f30b7c009d725f8ab5396a1e867d19e1db50d678411a066794"
+          },
+          "/app.js": {
+            "status": 200,
+            "sha256": "20b506dc9cf0c9f65675d231131598140124b8b4797506c1e676c06893c2901b"
+          },
+          "/app.css": {
+            "status": 200,
+            "sha256": "3d06baee2325fc80fbfe07ab8657edab5d4f339d8583ff20b6a9e3570c2406ff"
+          },
+          "/api/project": {
+            "status": 200,
+            "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+            "state_version": 13
+          },
+          "/api/project/input.json": {
+            "status": 200,
+            "bytes": 11134512,
+            "sha256": "943e3d815bf0dfeeba5da78cf09fac31f25182d5a9aa161d3943fbb777331b2b"
+          },
+          "/api/project/report.json": {
+            "status": 200,
+            "bytes": 13334118,
+            "sha256": "48a93db4cec947c3d1c33fdad7e9c313339bfc534356f660a9e2f90590ab5e2c"
+          },
+          "/api/project/report.md": {
+            "status": 200,
+            "bytes": 12806,
+            "sha256": "9b602641174811ee902870f7f88fa5d217befa34828d1cef31273e65b31b0f2c"
+          },
+          "/api/project/report.pdf": {
+            "status": 200,
+            "bytes": 20038,
+            "sha256": "94af4072f95346982fa3fba38fad3d77b83436e2d0355c0f1d75a80adc87d3e5"
+          },
+          "POST /api/project": {
+            "status": 405
+          }
+        },
+        "pdf_pages": 7,
+        "manager_files_unchanged": 13
+      },
+      "scheduling": {
+        "project_id": "project-148dac5d531144008498449cb16a54ea",
+        "snapshot_ref": "841909d6a651848ad7976fb79da95d7cc22b773cdb531c3b2cdf68e7bda82147",
+        "code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 0,
+          "existing_cash_cap_cny": 5,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "g5-native-scheduling:scheduling",
+          "local_tool_call_limit": 2,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "local_tool_calls_used": 2,
+          "local_tool_calls_reserved": 0,
+          "local_tool_dispatches": 2,
+          "evidence_reads_used": 0,
+          "evidence_reads_reserved": 0,
+          "fit_limit": 0,
+          "fit_attempts_used": 0,
+          "fits_reserved": 0,
+          "preprocessing_fits": 0,
+          "fits_completed": 0,
+          "ridge_fits_completed": 0,
+          "preprocessing_fits_completed": 0
+        },
+        "saved_replays": {
+          "primary": {
+            "replayed": true,
+            "request_id": "native-primary",
+            "status": "completed"
+          },
+          "audit": {
+            "replayed": true,
+            "request_id": "native-audit",
+            "status": "completed"
+          },
+          "wait": {
+            "replayed": true,
+            "request_id": "native-wait",
+            "status": "waiting"
+          },
+          "report": {
+            "replayed": true,
+            "request_id": "native-report",
+            "status": "exported"
+          }
+        },
+        "readonly_http": {
+          "/": {
+            "status": 200,
+            "sha256": "d68dfbc8627765f30b7c009d725f8ab5396a1e867d19e1db50d678411a066794"
+          },
+          "/app.js": {
+            "status": 200,
+            "sha256": "20b506dc9cf0c9f65675d231131598140124b8b4797506c1e676c06893c2901b"
+          },
+          "/app.css": {
+            "status": 200,
+            "sha256": "3d06baee2325fc80fbfe07ab8657edab5d4f339d8583ff20b6a9e3570c2406ff"
+          },
+          "/api/project": {
+            "status": 200,
+            "project_id": "project-148dac5d531144008498449cb16a54ea",
+            "state_version": 13
+          },
+          "/api/project/input.json": {
+            "status": 200,
+            "bytes": 1344437,
+            "sha256": "8fda7b78377ae71e1d16e057d313efb8cb2d66d88d5d0ee18b0bc4842047bdda"
+          },
+          "/api/project/report.json": {
+            "status": 200,
+            "bytes": 3665726,
+            "sha256": "144ddd06cf93bb6ab801a9e545d835e646f68aeba0b99d1c8f2e1f300592f6ba"
+          },
+          "/api/project/report.md": {
+            "status": 200,
+            "bytes": 14914,
+            "sha256": "a9ab0c81014379073c2c743ad212c00c01b11ae89f30fada5d79ece4bd623a90"
+          },
+          "/api/project/report.pdf": {
+            "status": 200,
+            "bytes": 23452,
+            "sha256": "6550a23e074d42025d7a93a421c91d1c26df642533ce8af4d83b765420161b87"
+          },
+          "POST /api/project": {
+            "status": 405
+          }
+        },
+        "pdf_pages": 8,
+        "manager_files_unchanged": 13
+      }
+    },
+    "forbidden_call_counts": {},
+    "loopback_connections": 18,
+    "copy_storage_reads": [
+      "retrieval/audit-request.json",
+      "retrieval/audit-result.json",
+      "retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-6f6cf23eaa4fb3922931cae1d95ef14f.json",
+      "retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-f2291951a00d194f4069b2b40a9c8a00.json",
+      "retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/evidence-budget-42c5a2c0db85dfacd9b99b849a615fb4ca855cc6cd47ece9f1f78330c17cc08c.json",
+      "retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/project.sqlite",
+      "retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/source.json",
+      "retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/writer.lock",
+      "retrieval/manager/reports/4089f62a493f8fe518dddb70e9da865b6af4f6cf199cad9a5766163f0f50701b/input.json",
+      "retrieval/manager/reports/4089f62a493f8fe518dddb70e9da865b6af4f6cf199cad9a5766163f0f50701b/manifest.json",
+      "retrieval/manager/reports/4089f62a493f8fe518dddb70e9da865b6af4f6cf199cad9a5766163f0f50701b/report.json",
+      "retrieval/manager/reports/4089f62a493f8fe518dddb70e9da865b6af4f6cf199cad9a5766163f0f50701b/report.md",
+      "retrieval/manager/reports/4089f62a493f8fe518dddb70e9da865b6af4f6cf199cad9a5766163f0f50701b/report.pdf",
+      "retrieval/manager/workbench.sqlite",
+      "retrieval/manager/writer.lock",
+      "retrieval/primary-request.json",
+      "retrieval/primary-result.json",
+      "retrieval/report-request.json",
+      "retrieval/report-result.json",
+      "retrieval/wait-request.json",
+      "retrieval/wait-result.json",
+      "scheduling/audit-request.json",
+      "scheduling/audit-result.json",
+      "scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/artifacts/action-60d069e0125cdd173de796b10ab8f17f.json",
+      "scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/artifacts/action-c832f8e2051aef07977f6bcb1f5ec3fa.json",
+      "scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/artifacts/evidence-budget-69cdfef9e23284dbef91f76ad0322f4d4fc4d7cbda722096defc3c79990883ff.json",
+      "scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/project.sqlite",
+      "scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/source.json",
+      "scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/writer.lock",
+      "scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/input.json",
+      "scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json",
+      "scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json",
+      "scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.md",
+      "scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.pdf",
+      "scheduling/manager/workbench.sqlite",
+      "scheduling/manager/writer.lock",
+      "scheduling/primary-request.json",
+      "scheduling/primary-result.json",
+      "scheduling/report-request.json",
+      "scheduling/report-result.json",
+      "scheduling/wait-request.json",
+      "scheduling/wait-result.json"
+    ],
+    "new_primary_or_audit_executions": 0,
+    "ranking_or_metric_recomputations": 0,
+    "production_solver_executions": 0,
+    "new_report_exports": 0,
+    "fits": 0,
+    "product_model_api_calls": 0,
+    "nonlocal_product_network": 0
+  },
+  "native_original_files": {
+    "retrieval": 63,
+    "scheduling": 62
+  },
+  "protected_original_files": 369,
+  "protection_receipts_equal": true,
+  "source_and_native_cases_written": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "failed_closed_before_build",
+      "failure": {
+        "type": "AssertionError",
+        "message": "",
+        "commands": []
+      },
+      "diagnosis": "Verifier helper compared SHA strings against the frozen {bytes,sha256} objects. Exact same-shape bytes and SHA comparison fixed; no protected data or criteria changed. No build/install/study command ran in this attempt.",
+      "failure_receipt": {
+        "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-01/failure.json",
+        "bytes": 66,
+        "sha256": "a3070dc5fc8b534956d8c45204efc31b309b1727b13ff1d795d29a62a39af780"
+      }
+    },
+    {
+      "attempt": 2,
+      "status": "exact_snapshot_clean_install_saved_native_recovery_verified",
+      "result": {
+        "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/result.json",
+        "bytes": 3416,
+        "sha256": "8f80b7174c96534a676d2041b3b8b5b468016b8c3fb3bdbca41fe24c6ee10d8b"
+      },
+      "manifest": {
+        "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/manifest.json",
+        "bytes": 3102,
+        "sha256": "0947bb412744135a913372c8c763f81b01ab41d7fbdd2b396f4366fdbf7c4631"
+      }
+    }
+  ],
+  "evidence": {
+    "requirements-reproduction.lock": {
+      "path": "/workspace/work/g6-native-release-20261113-01/requirements-reproduction.lock",
+      "bytes": 411,
+      "sha256": "9ff245001f4c3e8e93be11757a8fd3f7d4b88ac4a7a174d96e6cbbc111859813"
+    },
+    "environment-result.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/environment-result.json",
+      "bytes": 4253,
+      "sha256": "7b9de026bd7000e69767062239b004886611834a5aab1ac0f48b6b071da18fdb"
+    },
+    "pins-pip-report.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/pins-pip-report.json",
+      "bytes": 378122,
+      "sha256": "a3ff96d3fed080580860722607bfb7bc5282df9f4ded4e8613eae5252b655e73"
+    },
+    "closure.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/closure.json",
+      "bytes": 12619,
+      "sha256": "d807a56ce7c9846cc0490e12bb160038e3692fb220fe7bc0d91c4b21bd4755a7"
+    },
+    "build-tools-pip-report.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/build-tools-pip-report.json",
+      "bytes": 11368,
+      "sha256": "65b696f2f4caaf54b905c88fe2d013f340d8261e2dc0263cda20a60010042038"
+    }
+  },
+  "final_evidence": {
+    "installed-smoke.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/installed-smoke.json",
+      "bytes": 10750,
+      "sha256": "7277e2e2b8e13d595ebcd06978bd2b8b9588ee72dd5993ea0af72826fd745d31"
+    },
+    "installed-closure.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/installed-closure.json",
+      "bytes": 14594,
+      "sha256": "ed451672f8152e8a4be65d221fc4edf7a1cc21924e5d82aaf5a393b0e21eef84"
+    },
+    "original-native-before.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/original-native-before.json",
+      "bytes": 14311,
+      "sha256": "56f99cb862762491c5814725a6548be36b7bfbfd873020903fff3364d006135b"
+    },
+    "original-native-after.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/original-native-after.json",
+      "bytes": 14311,
+      "sha256": "56f99cb862762491c5814725a6548be36b7bfbfd873020903fff3364d006135b"
+    },
+    "protected-before.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/protected-before.json",
+      "bytes": 84640,
+      "sha256": "a05bc6dcd668b35c0755b143e4f190b54091669e286428f3ad26f6f29e03f4da"
+    },
+    "protected-completion.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/protected-completion.json",
+      "bytes": 84640,
+      "sha256": "a05bc6dcd668b35c0755b143e4f190b54091669e286428f3ad26f6f29e03f4da"
+    },
+    "protected-after.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/protected-after.json",
+      "bytes": 84640,
+      "sha256": "a05bc6dcd668b35c0755b143e4f190b54091669e286428f3ad26f6f29e03f4da"
+    },
+    "wheel-pip-report.json": {
+      "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/wheel-pip-report.json",
+      "bytes": 1727,
+      "sha256": "6e47ad0775966d6d8dfecba24373e56ee4f5b4bde61a327d858741cb07ad121b"
+    }
+  },
+  "cost": {
+    "research_fits": 0,
+    "product_model_api_calls": 0,
+    "development_tokens": null,
+    "currency": null
+  },
+  "limitations": [
+    "Historical-runtime environment is new and separate; no existing environment downgraded.",
+    "Base wheel plus explicit historical 18-pin environment; optional reports extra with its different matplotlib constraint was not requested/resolved.",
+    "Read-only saved-case recovery only: no new primary/audit execution, score/optimum recomputation, report export or performance measurement.",
+    "Existing PDFs parsed only; no screenshot-based browser validation in this verifier.",
+    "Successful source/wheel installation and recovery do not establish scientific refit reproduction, complete G6, sealed isolation or user-value validation."
+  ],
+  "package_files": {
+    "autoresearch/__init__.py": "59841528c935fedcfe307dd32957694c16b714a4aaf5af1c573b72d127f63b87",
+    "autoresearch/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "autoresearch/agent_tasks.py": "644d82114aa7282488e318a3715e77b5dac231a327bf2dbd761bb1e742ee57a2",
+    "autoresearch/archive_inventory.py": "f2ffb4494cf4da8bd6fe585ee1547da623f973a8449de52b2fcc23e038ff1bd9",
+    "autoresearch/c01.py": "11a4fcec9967ef9bf0f4e0f3173eaad1ac52897cd7e64d26ce8308d21777822b",
+    "autoresearch/c01_cloud_loop.py": "3b3a05c6e39f6f040b4be760577687e60d63ac496d05aa1c0fc54c8e0c73a19f",
+    "autoresearch/c01_cloud_memory.py": "e2ffa07398e9e463481770d4605328bf00981e834bf856b52832fd962d24adbf",
+    "autoresearch/c01_knowledge.py": "b195825ca2d53020879da6b97f8461b471c2b254763551e9ee40576faa05b1eb",
+    "autoresearch/c01_local_loop.py": "18f588b48322aa503034508b0a0db7fcfaba3e282e4e02ae22e3887f29a14207",
+    "autoresearch/c01_loop.py": "f14bc0d9be0c83113544a5fcf8b52de38725fbf577733fb7d3cd484edf8cf9d4",
+    "autoresearch/c01_memory_context.py": "24fb180e7ac16b1599e7fa4fe1ca9a91c0ebef31d09e2e29401c507de5456175",
+    "autoresearch/c01_memory_loop.py": "7a4b3af6104954d8e81b5ffff426915912862097d84c5e92afec05709c6b675f",
+    "autoresearch/c01_model_loop.py": "f0fb51c4b26b126e4ea7b06dddfa66294e7ff51f932cdf298268af732e4885a3",
+    "autoresearch/c01_native_tools.py": "e3aa1da387b5054c8eda9ddff41abb0217865595f81aa77867b77aaa562e1a5c",
+    "autoresearch/c01_research.py": "812d1a96883116d005aec2bd5a66f5acb2954f26c847317259d4097c02f08d9e",
+    "autoresearch/c01_research_outputs.py": "c8d8cc5c5be61846d515ed1b13493f3dc8226072631cae55aa6f4c60d1e8a4cd",
+    "autoresearch/c01_research_verifier.py": "9a151ed91776355f03c34535d9411f5eab13ba4994a4bab614a1d55de8fd2725",
+    "autoresearch/c01_source_audit.py": "9ec15a472d7c41bf07001753f26d6d2a1c88626b36ab5105edc8d07befbf0ba6",
+    "autoresearch/c01_studio.py": "3a302ec072fc1a82b87ce91b41a27c4688ddc9d18012a11ff4c7452ad5bed4eb",
+    "autoresearch/chemotopo_archive.py": "ed7cc97826db017f47b8a9160fcabdedd02ff276ec25722be6b20955f73bfc21",
+    "autoresearch/chemotopo_bundle.py": "8f756a885984d1d5781e6ecc4cc1d0158c4054c1cc7d5ac17a7645d246be4bf5",
+    "autoresearch/chemotopo_cloud.py": "febc5238d0dddc6ee99fc72bef1c723e2e5fc072164cc6edb084aee8f3ddf84c",
+    "autoresearch/chemotopo_data.py": "e24b356700b712bbd079a0a8d60be35bf9b0739c82a0509e219b98047200620a",
+    "autoresearch/chemotopo_delivery.py": "7f8710faeee344dbd69c9f8904f03d3d0b2a749cbcd7ba41209daf5c72ca1ea2",
+    "autoresearch/chemotopo_experiment_evidence.py": "229beccceb65f819da63c0b7ba6e9b5563f1f2d3a0b5702f580cc261012ad3e3",
+    "autoresearch/chemotopo_interaction.py": "acc8aa6612dd3416f6683d0549e13f27a35faf554a02452b09297fae2001dd54",
+    "autoresearch/chemotopo_iteration_cloud.py": "cde96b01982d9848e984885a94b293151c1895e8fb97c7220b4df89f66520a1b",
+    "autoresearch/chemotopo_iteration_evidence.py": "362c11e71f2afd8e922e21d0f02afbab32ea00ce0b66bc7075fda886481fabc1",
+    "autoresearch/chemotopo_iteration_report.py": "cbd5f51fda2f72d173bb795437b526ad4cec3eda9ae67301c32063664afbbd78",
+    "autoresearch/chemotopo_iteration_study.py": "f7614697265d3874d626b3a19218b510d0578ba193e3919127dd6ca90e3c855d",
+    "autoresearch/chemotopo_iteration_view.py": "38ae2b4d03aa0b459ff289a5c959e4320d8fcd571c0719b42836b8a45074a9c3",
+    "autoresearch/chemotopo_prediction.py": "767a31e9aa5ee1d5ec417f1a2e0fa8cbe41b284d0f23f20903d660782ab17390",
+    "autoresearch/chemotopo_project.py": "fdaf5e40f52f3f5cded82a376431b1df0da1560c0d39acda0b9ff0197fbdb0ea",
+    "autoresearch/chemotopo_publication.py": "8ac85a967b92de7f9e4b465f964b00412cea53ec4c9d766ee6c0bd24331b42da",
+    "autoresearch/chemotopo_rebuild.py": "09594c1ae29230bd774d222a18009d9ca55ebad8c3ee64e5b1ece3c6374f0fd5",
+    "autoresearch/chemotopo_report.py": "823586524d643a00dcd11eb3e4d727ad434d383742fe2531b7f426d2f8ba3f85",
+    "autoresearch/chemotopo_studio.py": "63ede45e9f763f79e3be7452ea2f043358e61508219c79f45d9b2068dbb443bd",
+    "autoresearch/chemotopo_study.py": "2bb4ac9e6537b3bd21cfcba174fe6ffce00d5c6c150bc06daf0af83933f5647e",
+    "autoresearch/claude_selection_transport.py": "7958a08af1b1b643507271c5a3615bf78a5469e0667dcc811db84d007f8b94ef",
+    "autoresearch/cli.py": "ab9aa2b354a166b7b983f0d0a0406e1095cdf72b6551fde337521d8985dd5d8d",
+    "autoresearch/compact_iteration.py": "6b03769a044fea62d03e0a590f7b361622f3375326efa9aa7dbd61121328476c",
+    "autoresearch/configured_iteration.py": "5d30b4e05b63524d9137547edf07eca1420ce6833f0dc4588bfb79060e3ecad7",
+    "autoresearch/configured_iteration_report.py": "3c6f4073230be0a78d1007e95c7c936288601f834eda792ed90992dce11e1a2d",
+    "autoresearch/configured_iteration_view.py": "39e722c44ced8a4376dc423bdc5328accaca071ea3d4dbe6ff5b9fbfea3b3ae1",
+    "autoresearch/contracts.py": "ddd701df5dc9abfd834ea92a30bc96e2b831801603ff30d0d8910155d897f778",
+    "autoresearch/cpu_report_sections.py": "a7be068d80562f062d8341ac3e7817d181f4314946bf4d8a9fc15fb7a7903e5f",
+    "autoresearch/current_workbench.py": "29cdcc80220b6ad9b6b7306279848df2aa3a614585db560d1e55d300a6368ae3",
+    "autoresearch/data/README.md": "3104c7a01ac820ad591b44b95552cfef9d7a483e7fe69ab99a62a8e5ded39dbf",
+    "autoresearch/data/matbench_steels.json.gz": "473bc4957b2ea5e6465aef84bc29bb48ac34db27d69ea4ec5f508745c6fae252",
+    "autoresearch/datasets.py": "0ec2dcdcbd811bea84a69480872ae7298c3bb54edd210fdc8370b911c2c039cb",
+    "autoresearch/diagnostic_figure.py": "cb14aa2f3aa82a5d0f49ce48100a750dffd4a908202cbc2dc6e4b4a36e05da69",
+    "autoresearch/diagnostic_followup.py": "6956af76dc62a93049c5d482ef8deca4121ebcff3815c89190510494d584d94b",
+    "autoresearch/diagnostic_followup_evidence.py": "c21c9ceee3e58c58492db96ded2d486c21262998a2765d54f6ce3ebac6a30ea3",
+    "autoresearch/diagnostic_research.py": "5a6a2732e1bb10679fa0558eb2e50626a81380bffa349426faca959f8374ee89",
+    "autoresearch/diagnostic_view.py": "f08a3f47429a22f9ea864c5c9a829905fb1cac9d3bbdfec82a2e3564ccafc997",
+    "autoresearch/dossier_publication.py": "96f1cf27bd86573fcd9817c685bc4d9c2a56a9c1332a221eee5230641a6021d3",
+    "autoresearch/engine.py": "d91a66cfc76b2140c348bb6206024ce4147868103f43cd0639275c10c9f00b99",
+    "autoresearch/europe_pmc.py": "f8b2134e3640456dcfb809c5e7941313046c5df5b62ab84accc497e8742da799",
+    "autoresearch/evidence_assessment.py": "5ac66d080828a70564b86f27b5dd489ec4c24bf0356cc168b3038eb6d317abec",
+    "autoresearch/evidence_catalog.py": "ca703ea3cf3744bba6357da8d86a9e860b36ade1cd0a79d6373a706ff29fe3c0",
+    "autoresearch/evidence_draft.py": "ed0a63f66c11b9f962c2c48343f6826eef04d2a645d377617b9a169b785932fc",
+    "autoresearch/evidence_handoff.py": "1288a5c13ac28a295952ad888c844888923815b21ea318cb0a5c2bbfbc47a22e",
+    "autoresearch/evidence_intake.py": "34978a880274f2d0abbbd2e4d07586a8fa1d42e0d95b2faadd169d96ba8e436b",
+    "autoresearch/evidence_submission.py": "9e403705ed3c7a75210d6d5adb5862b1d88613bd6fde36b32411a55a3404bd81",
+    "autoresearch/evidence_workflow.py": "451dfaad9bffea96a5a3f1e9ab0965f9cd760f091525a3aa2dba0ff314dc33bb",
+    "autoresearch/experiment_protocol.py": "115b4e2d8fc71bdc58ddd6d749332c2072f7b04a280142387f310dbab8eb474d",
+    "autoresearch/feature_comparison.py": "ee0e27004facab70311f2a02580e41113ce222cbe3e6cf456861b9d04efe11ef",
+    "autoresearch/fixture.py": "8099abb4e24b02631af23491137e2c742cbfda1447c782a97a6f6bd694140878",
+    "autoresearch/grouped_quality_adapter.py": "2a17738d2ca218443924ec22171eeb8181762b8ddf5f1fa4a3b68ce9eb4decc1",
+    "autoresearch/handoff_view.py": "eed4bea9276fa4a2d632906159c1071489ba819426d5fe0aaf11573dc0dabf9a",
+    "autoresearch/host_model_batch.py": "53097dd73654a0dbd69c679afda4a973b5cefbd9c8998665e16439de2fdc56ca",
+    "autoresearch/host_model_report.py": "bc590cda584fa516aa5b213f19b16ad222f6daf394795199a4f30b79868e5304",
+    "autoresearch/host_model_selection.py": "bf7e95fbc670b142dc20170c839584a035af4c35b73dc064b377105e91e1e5d1",
+    "autoresearch/host_selection_protocol.py": "f3ea6f75b569aa61e6ecd3538af5c4320e3b842e977825d50e6dcaa421ba0b78",
+    "autoresearch/input_basis.py": "c843bfe5c489279c47d83c45b602313bf43bc70967115dc6d26d1ce00e876aae",
+    "autoresearch/iterative_diagnosis.py": "03ff7903e4d1c8b00266ff7727576be85a69a89634219418305f1e500e0c6efc",
+    "autoresearch/iterative_diagnosis_evidence.py": "2bbb68c134ede52c62503831ef65d944e91f44065e3e5bf9b435835b26ce86ff",
+    "autoresearch/knowledge.py": "8635de1079610719eb0b12c31beb9af0b1b09aa6d93e06d0edfd655a825f45cf",
+    "autoresearch/knowledge_browser.py": "71f3b48c81dc5150a14d3af75be437f580519510130b3496a760cff1475496c0",
+    "autoresearch/knowledge_sources.py": "2f9a8ee3650e0e7f978c08427e05fcc7502e6adf4c5cbc50af07a2d01fc7ce6b",
+    "autoresearch/local_demo.py": "fa3b2054f2230b3abd1469a5ceb29dc2e20f6433bc2a3bced2173c42d7cb7000",
+    "autoresearch/local_ollama.py": "2c915d4747c76dcb0ff08775582ba9b0781b41001faaae3e422460a4d04c1e75",
+    "autoresearch/local_process.py": "b99625d11ab27827e3dc330e49177e4c0feae8430454c25b5457bd8b66dd9255",
+    "autoresearch/local_workbench.py": "1a26c3edee4ff5833e3129f8dbe00759dea679aefff8b947efaf0fc5423c3b1e",
+    "autoresearch/method_registry.py": "1f3c6e0dc23df197fe38b596ee666c6d6804edda8963c6b932c43ad048c53b8f",
+    "autoresearch/model_client.py": "b9b1486265d5e92f2289cea4e00c3dfcfec2d2db1f97f0b405732e2120e3bf34",
+    "autoresearch/numeric_association_adapter.py": "ca0673acf22e39ff71c9d851d1f738ae6d7833d6fba35273abcecdc77d4e4e33",
+    "autoresearch/ollama_cloud.py": "9f54e62c5c1d4c86c83c79e01ca654bb26af9ebef14a868fd714574711f3c662",
+    "autoresearch/paper_export.py": "c21ed821c33385adb45a6c9d44a1bbcc2f794db12de8077ed138fe80a47116f3",
+    "autoresearch/pipeline_preparation_view.py": "ae26fa2684d120b0ee8282ac26d98d90c578f2fd27586021c2c5d1d6cc29b944",
+    "autoresearch/pipeline_research.py": "e419f56eb935b19cea0afab1ab0acf83d5ef0f5fb2e1db8ee2d594ad817ef297",
+    "autoresearch/pipeline_research_transport.py": "cb8c1e6d9bb5ca2d928415faec6012f1bb1a91db8b8206f4a42ca643d430bdca",
+    "autoresearch/pipeline_research_view.py": "c99351e5736750794ce0880f913d8f3ed55247919dea02803072347497d0a013",
+    "autoresearch/pipeline_source.py": "8e47f54faa1950278d5d603d29c5acd6d1dc57009d86cb895381c1c0334161b7",
+    "autoresearch/plan_fact_check.py": "c1bfe6443d76e98bf5d075089e1db9c8a3ef93bf36b17c70cacfbf37abc7dc1d",
+    "autoresearch/plan_feedback.py": "ae65357a1df4a3ff6efac566a25e1853c700d5470d52d95979add7c9f0231226",
+    "autoresearch/plan_readiness.py": "1a41c86bff0ceaf2fea641b59c21122b54b0c1d31b2d856ee5ef4d248c8da5fe",
+    "autoresearch/postrun_evidence.py": "03d4e7d86292b041df2728f2350acc51abd050c2f76c54f648198695230d3831",
+    "autoresearch/postrun_research.py": "81cc0f49c5568877a9c9af990f4ff3eaeaea60d62011da43c8c8223edd230a8d",
+    "autoresearch/postrun_revision.py": "d78e8770c84887e4ace69ceaf60c15ed7ecf7a595d30e1428af3d77995ff4bf5",
+    "autoresearch/postrun_revision_evidence.py": "03e08a660d07fb3948f88e9a8c110797546c2611625aab4e4f9072fea0ed9b7c",
+    "autoresearch/postrun_revision_view.py": "a6594722529bb4b0076d3639694023b7399bbc9529b293ff64c614f88592f4d9",
+    "autoresearch/postrun_view.py": "41aabaff9207eae8f30d4fb4fea9dab340a336f8ea9af4c4f802673074a32554",
+    "autoresearch/prediction_adapter.py": "1bc8005f3ce824a8f9f9652ba51fc0bae3db3230e046e7fddeea78b594da1c5c",
+    "autoresearch/prediction_checks.py": "ca1e7979b185be8b88aa5fd0b8eb1dcd2b5686438531dd9222dd53a00d292567",
+    "autoresearch/prediction_controls.py": "0a9ea5359acae44f0c5c6962ddeccb0c313a658fcbc390961cad78925bf2f8d8",
+    "autoresearch/prediction_summary.py": "89794811814bedb07eda148411d9555d82a0c57ac1fff1e401575db9adb42349",
+    "autoresearch/prepared_continuation.py": "6a3cafbbb1268c6b8a0ead9cc66f667645e2ffd6883e3b910ddecac98dfd5e0c",
+    "autoresearch/project_controller.py": "5af96319f9d17c2ec84a171a0ce589ed21d6ec5bade774d55301108d8b7f10c5",
+    "autoresearch/project_design.py": "4322b2794912736d96b47180a348e79b44401a2c9542f999a1135b30d8927dd9",
+    "autoresearch/project_experience.py": "e8fa31312e3ad1ac1b50d80d307c3baeb39792e67eca12a25b4e4997871ee161",
+    "autoresearch/project_experience_binding.py": "3001b76dff60dddeaa99d5638650bb9058e0cfe06d717ec7997e65d0bd4d51cf",
+    "autoresearch/project_knowledge.py": "7b26df0d953236faff32f8fc21016d1f3206e327b1a6e0657740944416b29230",
+    "autoresearch/project_local_model.py": "c5cd9610e110e79c8b1943de96037042156101e5c0c0141fe052c8f28ca1fc5e",
+    "autoresearch/project_model_proposal.py": "03af347eca68a7fdb0d466c01efce8cbd7fb3d7c6ba0d0aea7d0fd353ba87e8b",
+    "autoresearch/project_model_protocol.py": "7078ed019dcb8715939c3fb6487dd17ea0a454f3331aa5e3886403f7d79dadf2",
+    "autoresearch/project_recipe.py": "23f3e6532427034f376eea695730908da7f1b29b4e7a7002331fd7392c90bb73",
+    "autoresearch/project_report.py": "6a05c4aee76bdc8f36d56cf562f70988b686ead1a55be0206da304a6774050ff",
+    "autoresearch/project_selection.py": "42c6ada54ff6fc5cf35608cc1789249ee7d6c5b2f5dce32a5f12ca36d469fd20",
+    "autoresearch/project_selection_view.py": "d02d9906a614b41fb5e2bc9dc04088d8a2ab9bc1f564dbf980e56c1d2fd2943a",
+    "autoresearch/project_workbench.py": "51827518e3c617f12447c8be9581bc1cb0a3906288f3193dd47ebc4a85104c88",
+    "autoresearch/protocol.py": "43f5de34522e5f169fbe4103488199212d93f21add13c63c27e246badbfe00bc",
+    "autoresearch/reasoning_profile.py": "4d92bacf67c067bcce09e71e81eceb8239b2db9bbbbf4c116dd4f4266209f232",
+    "autoresearch/recipe_change_proposal.py": "01a691aa8fe42d3aa208842f5249ad68d656e7560a076c7d975b45ee3bfb7c04",
+    "autoresearch/recipe_improvement.py": "ceb0877748fac983a3706f52c7859297f9fc95ec212bd5bbc20bdec22c302e7b",
+    "autoresearch/recipe_improvement_adapter.py": "0172031f2b887083484ff20cd71f9f765e62154a7740b7a3091c8ed7490c03c1",
+    "autoresearch/reports.py": "9fab25d8f354cfa5c4d1da4b7264c98b2b06aafc8ead6b4c2ca46db4fa64ed9a",
+    "autoresearch/reproduction_verifier.py": "f65e49abac0ea7c9c3462a925d3c1290b7166d429b535f87b6e81e66b24b1787",
+    "autoresearch/research_delivery.py": "dad04bf2372c4c5a2330d32675e9694c2033725171a240263739e86ae0169b39",
+    "autoresearch/research_design.py": "3bd3b0b7aa086e774c22075f79332e4af8843d64a1d1668d27afd6936faef62a",
+    "autoresearch/research_dossier.py": "a58c49a87343a2b7efcc8fb1cb72b0d9423261bd1b21389558a5857e75ea6205",
+    "autoresearch/research_dossier_render.py": "518171658098406e26f46caca1ffa9774ab42386410170ca3bc669e222ae6dad",
+    "autoresearch/research_loop.py": "c442238e496cdf3f04da8e2d5123643033134438b48f368ccb0f26cc6529e648",
+    "autoresearch/research_memory.py": "4351078550dbba3fd7578937b572b2b946d4370b2d8a98c7ef29ff21a3ec0e4a",
+    "autoresearch/research_methods.py": "854d8fbaef43d680a54c5dc893d9d2616cfed45809c4db8e0dec14b353495679",
+    "autoresearch/research_plan_proposal.py": "02b6836418d0bc3b99ab3fe04ec7753626003c888c59422185b6f4e77124c18a",
+    "autoresearch/research_project.py": "b4a183b9b1cab2059c5b453986f6570603a743f00832070e35e51978aa95a679",
+    "autoresearch/research_recipe.py": "8a446f0abc57f50471da8ef47a286b34437243c80ff18c11bf857142d92c7f9c",
+    "autoresearch/residual_diagnostics.py": "78935e8ad02e77276becf3271de35330f4980cc0c4310ad822a8e342aee394ab",
+    "autoresearch/retrieval_adapter.py": "16e111318074baa7b3d3b1648bdd690ec6e380db3e3115d6555ee9f3fab2ada7",
+    "autoresearch/retrieval_lexical.py": "fc3a85ee18db8647e98eda8a3780d6f290039377f5e69783ed24fedecbd09f54",
+    "autoresearch/returned_evidence.py": "0f49cb8e5bbd913d1a4c9be94fc1f5e3450ba92152d4e06cdaa296ae12148f90",
+    "autoresearch/ridge_validation_adapter.py": "ec965e31c7b148c24f11910d93ecc03e474504333548156a23575a39cf269711",
+    "autoresearch/runtime.py": "751033c9c6d678f4e2fdc1e272636903598b2acb551693df6e758c2de03b416b",
+    "autoresearch/saved_materials.py": "01d5d3d0881dd4623124905fd67d98e21c95f07d69b781f76fcd08d7ff6c7835",
+    "autoresearch/saved_oof_adapter.py": "0515a1360f4a9a1e0ed8deccb86fd78ec41d47c994ac72fe6bbdfff08f287ac1",
+    "autoresearch/saved_oof_diagnostic_adapter.py": "73e1d56b71e7c1cab1222edfd46cf68e71f7961e550ec27b9e8c5b1dedd93358",
+    "autoresearch/saved_oof_diagnostics.py": "f8914f42e8fdbd79181806a84be5c848036c5a03264e62a0f5adb76a8f6333de",
+    "autoresearch/scheduling_adapter.py": "86f653b0bfbc9cb6c9b596c09a02ddb4252871ced1ed70a530091deaff04a098",
+    "autoresearch/scheduling_kernel.py": "3a335e102279ce9e6a7a8861a3f203670fccfbfb3ea3d2941f8b9406ea92e401",
+    "autoresearch/snapshot_viewer.py": "f28cfae25e7d142decbe3f1da552b2a3a793629125b83da9a9ee01c47611b917",
+    "autoresearch/source_assessment.py": "379f1ea741df90287dda745cf61598331500dd3de2a59e8febc6ba1ec2cecf3f",
+    "autoresearch/source_assessment_continuation.py": "aefbda48fc021e9cf8128f9e23bca7ba9250d67b57c4f3486b8f4454c0438be4",
+    "autoresearch/source_assessment_view.py": "4ecd871ae9703456bc7b376100c2b7b92753dc938df1bc1fe78779aae02f3f8d",
+    "autoresearch/source_connector_bundle.py": "01152ce783b8a81db219012bccde7b94e2ae026bb3734a8808dfd86ed4f7bf2a",
+    "autoresearch/source_continuation_transport.py": "9698107e7f3bd5c5b3fb3d61e80ed2302140f952637966677e6de4daf1674363",
+    "autoresearch/source_continuation_view.py": "b61a46b2b2cee6b6367c218796319c937dff7612549a616886b23dad3a618908",
+    "autoresearch/source_evidence_adapter.py": "2b9b4e4786b52b6f6f504f8ec71bc50da176e95cce74a75e7a8c5586e7be3050",
+    "autoresearch/source_integrity_adapter.py": "fbc8ae603a4d71656509564a695552a11d5d336b992560ce12f610515bbc33ff",
+    "autoresearch/steel_audit_adapter.py": "f007bcbb367204e71f4d81ada65546268501fc35d18044056b7cc189e3d599b4",
+    "autoresearch/studio.py": "daf5c829bdf57e17a22f94e68aa030bb1b47c669ae819667b16400067eb30d10",
+    "autoresearch/studio_outputs.py": "ced1ef24cac34d35a9a1a1968f8bf2a33607fbdb4f7a47d64fc122f7835affb6",
+    "autoresearch/studio_project.py": "94339e3f376c311643d7bff218bf30dfe12b0fc3b711449cfba37b27d5e694b1",
+    "autoresearch/tabular_preparation_view.py": "574a988494ceb1c2a802f9915a9443aabac1fa757f76c29dce43b65a90f14df1",
+    "autoresearch/tabular_quality_adapter.py": "eadeded773d2c0ffa0fadebbf87576197ab3e077767415306c7a790e4d355e52",
+    "autoresearch/tabular_research.py": "79c41b5c3240ca9b8b3b25b439d420e126804207f149ae1d96285694df7c527d",
+    "autoresearch/tabular_research_view.py": "f52c81e2217ecc0343027d3b1640f96cd249d05ca3c9e0bd1fe4d06e1d7a8a8e",
+    "autoresearch/tabular_source.py": "2ea87f9fffed63d22ad450446425c3a8ee12b67f9aeacb7f9968122165b31314",
+    "autoresearch/tabular_submission.py": "bb0184c9329a7f582352bb45087a4b322dff66174b7e37a240008bc9ee425155",
+    "autoresearch/training.py": "3eeb7c31e6b98ae3bf724dc0d441e19de45d4ad06341393c1caa5b673bd68efd",
+    "autoresearch/web/app.css": "3d06baee2325fc80fbfe07ab8657edab5d4f339d8583ff20b6a9e3570c2406ff",
+    "autoresearch/web/app.js": "20b506dc9cf0c9f65675d231131598140124b8b4797506c1e676c06893c2901b",
+    "autoresearch/web/index.html": "121ba61cb32bfde058b5bafff5bcbc84d3ebe255b8c13fed4ad3cbae8da999f1",
+    "autoresearch/web/vendor-licenses.txt": "3fc5ea5415bfd9d190d9b109cdff175f8d78e33b465533e5259ac350b77d1990",
+    "autoresearch/windows_network.py": "feed136794548f83808e0a5c2b8ef0906dd1805b871dd527e2497f8176f31d0c",
+    "autoresearch/workbench_recipe.py": "85d4e90236fdf8a9ad40bc50478474cc74b3a817e2ffd183cc3b0c7c747ec140",
+    "autoresearch/workbook_projection_adapter.py": "3e171db4eb777ebb3cf575e7f6685cfa2b23714a9a13467f0253058c529d5c3a"
+  },
+  "source_identity_manifest": {
+    "path": "/workspace/work/g6-native-release-20261113-01/release-attempt-02/source-snapshot.json",
+    "sha256": "4fc3afbf749ebdc52b26bd0bc0ce0ded2a2de43b801cf39ac62ce950f5e3503a"
+  },
+  "http_check_accounting": {
+    "per_case": {
+      "get_requests": 8,
+      "rejected_post_405": 1,
+      "total_checks": 9
+    },
+    "both_cases": {
+      "get_requests": 16,
+      "rejected_post_405": 2,
+      "total_checks": 18,
+      "loopback_connections": 18
+    },
+    "raw_response_records_unchanged": true
+  }
+}

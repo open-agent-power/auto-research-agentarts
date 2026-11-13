@@ -1,0 +1,238 @@
+{
+  "schema_version": "g5-native-cpu-acceptance-v1",
+  "status": "verified_trusted_local_native_slice",
+  "scientific_source_commit": "8e8a206ed0b71479a6e774e36ed91fdb06e21c22",
+  "postrun_presentation_commit": "e638b5f3782d12a7b54bb9ede5596e5c4d9726cf",
+  "project_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+  "cases": {
+    "retrieval": {
+      "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+      "state_version": 13,
+      "source_snapshot_sha256": "2ff1e33fc9b780037338f9916b9430bd6502029058ccd5386334af1e2b430895",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "evidence_reads_reserved": 0,
+        "evidence_reads_used": 0,
+        "existing_cash_cap_cny": 5,
+        "fit_attempts_used": 0,
+        "fit_limit": 0,
+        "fits_completed": 0,
+        "fits_reserved": 0,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "g5-native-retrieval:retrieval",
+        "local_tool_call_limit": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_dispatches": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "preprocessing_fits": 0,
+        "preprocessing_fits_completed": 0,
+        "ridge_fits_completed": 0
+      },
+      "plans": 3,
+      "research_status": "waiting",
+      "guard_call_counts": {
+        "network": 0,
+        "ridge_fit": 0,
+        "scaler_fit": 0,
+        "source_extraction": 0
+      },
+      "freeze_sha256": "5b85abe2a1b962580befae1525143cbdc53e539dd11d7a426c5b78dbb64aa295",
+      "native_result_sha256": "a5c353ccefd02dca7dd01f4cd610b225ce03921ce5037f085e2f44fe79c3958c",
+      "host_time": {
+        "schema_version": "native-cpu-host-command-v1",
+        "argv": [
+          "/workspace/auto-research-agentarts/.venv/bin/python",
+          "-B",
+          "/workspace/auto-research-agentarts/scripts/run_native_cpu_cases.py",
+          "run",
+          "--output",
+          "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/retrieval",
+          "--review",
+          "/workspace/auto-research-agentarts/runs/g5-native-run-reviews/retrieval.json"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 17.417145437997533,
+        "child_user_seconds": 14.617292999999998,
+        "child_system_seconds": 2.153276,
+        "child_max_rss_kib": 270028,
+        "scope": "Whole driver subprocess with preflight, Git, native work and report; not kernel-only benchmark time",
+        "automatic_retry": false
+      },
+      "reports": {
+        "input.json": {
+          "bytes": 11134512,
+          "sha256": "943e3d815bf0dfeeba5da78cf09fac31f25182d5a9aa161d3943fbb777331b2b"
+        },
+        "report.json": {
+          "bytes": 13334118,
+          "sha256": "48a93db4cec947c3d1c33fdad7e9c313339bfc534356f660a9e2f90590ab5e2c"
+        },
+        "report.md": {
+          "bytes": 12806,
+          "sha256": "9b602641174811ee902870f7f88fa5d217befa34828d1cef31273e65b31b0f2c"
+        },
+        "report.pdf": {
+          "bytes": 20038,
+          "sha256": "94af4072f95346982fa3fba38fad3d77b83436e2d0355c0f1d75a80adc87d3e5"
+        }
+      },
+      "ui_requests": {
+        "GET": 28
+      },
+      "ui_files_unchanged": true
+    },
+    "scheduling": {
+      "project_id": "project-148dac5d531144008498449cb16a54ea",
+      "state_version": 13,
+      "source_snapshot_sha256": "08ebf6433efb414ff139197036f5fa419ffe9e0f11037954f537d5a80e8b678d",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "evidence_reads_reserved": 0,
+        "evidence_reads_used": 0,
+        "existing_cash_cap_cny": 5,
+        "fit_attempts_used": 0,
+        "fit_limit": 0,
+        "fits_completed": 0,
+        "fits_reserved": 0,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "g5-native-scheduling:scheduling",
+        "local_tool_call_limit": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_dispatches": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "preprocessing_fits": 0,
+        "preprocessing_fits_completed": 0,
+        "ridge_fits_completed": 0
+      },
+      "plans": 3,
+      "research_status": "waiting",
+      "guard_call_counts": {
+        "network": 0,
+        "ridge_fit": 0,
+        "scaler_fit": 0,
+        "source_extraction": 0
+      },
+      "freeze_sha256": "165aefe48bc2af38aeec071519e3ef30e08a6018be5f45d8bfc93f34583f12b9",
+      "native_result_sha256": "0c21dffeae091bc6d137db8ed04275ea0d6e848cc68486bf6d413d451c2087fa",
+      "host_time": {
+        "schema_version": "native-cpu-host-command-v1",
+        "argv": [
+          "/workspace/auto-research-agentarts/.venv/bin/python",
+          "-B",
+          "/workspace/auto-research-agentarts/scripts/run_native_cpu_cases.py",
+          "run",
+          "--output",
+          "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling",
+          "--review",
+          "/workspace/auto-research-agentarts/runs/g5-native-run-reviews/scheduling.json"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 11.234041823001462,
+        "child_user_seconds": 9.302898,
+        "child_system_seconds": 1.2979969999999998,
+        "child_max_rss_kib": 184724,
+        "scope": "Whole driver subprocess with preflight, Git, native work and report; not kernel-only benchmark time",
+        "automatic_retry": false
+      },
+      "reports": {
+        "input.json": {
+          "bytes": 1344437,
+          "sha256": "8fda7b78377ae71e1d16e057d313efb8cb2d66d88d5d0ee18b0bc4842047bdda"
+        },
+        "report.json": {
+          "bytes": 3665726,
+          "sha256": "144ddd06cf93bb6ab801a9e545d835e646f68aeba0b99d1c8f2e1f300592f6ba"
+        },
+        "report.md": {
+          "bytes": 14914,
+          "sha256": "a9ab0c81014379073c2c743ad212c00c01b11ae89f30fada5d79ece4bd623a90"
+        },
+        "report.pdf": {
+          "bytes": 23452,
+          "sha256": "6550a23e074d42025d7a93a421c91d1c26df642533ce8af4d83b765420161b87"
+        }
+      },
+      "ui_requests": {
+        "GET": 28
+      },
+      "ui_files_unchanged": true
+    }
+  },
+  "verification": {
+    "mathematics": {
+      "checks": 9910,
+      "receipt_sha256": "b6a252e12a4d11e0cd50b596bfd1d1b637054b8f83047d49e84358f0ba761d9c",
+      "verifier_sha256": "ba82a2afe5e765ccf02ac12765cbfb6f2213a0b815f6d0f4f12e539176cf2f0d"
+    },
+    "same_id_recovery": {
+      "final_checks": 408,
+      "final_calls": 72,
+      "earlier_completed_calls": 72,
+      "actual_total_calls": 144,
+      "summary_sha256": "8ea065bce37fbc29b96b62f25225ee6e6a7266ea003fbac5c792d4b43b1f4c3c",
+      "successful_checker_snapshot_sha256": "cfde35711561b1ca053216a6a63bc4003f575aa52f4277022251ba853c2130ea",
+      "current_checker_sha256": "4cec7c897179d16d116752a1091a20c52c2e0040c374727682a9859c9e2ddb13"
+    },
+    "browser": {
+      "views": 14,
+      "downloads": 8,
+      "expected_missing_task_requests_after_fix": 0,
+      "summary_sha256": "5a1c8f2e22122efc41e0200c7dc6bc42139283f36a8b8adbcd019cbe25d0a1dd",
+      "pdf_pages": [
+        7,
+        8
+      ],
+      "visual_scope": "Representative UI screenshots and PDF first/last only; not all-page PDF typography approval"
+    },
+    "independent_final": {
+      "summary_sha256": "3122244782514ffa6a2889b2ba28c2d17ba2dbf93f2df75550bee23175b26ec3",
+      "raw_checks": 1146,
+      "final_cross_checks": 78
+    },
+    "engineering": {
+      "frozen_source_full_suite": {
+        "run": 1225,
+        "passed": 1206,
+        "skipped": 19
+      },
+      "postrun_ui_related_suite": {
+        "run": 17,
+        "passed": 17
+      },
+      "full_src_including_derived_cache_unchanged": false,
+      "derived_cache_changes": 4,
+      "strict_failure_preserved": true
+    }
+  },
+  "prior_protected_files": 369,
+  "prior_research_files_subset": 292,
+  "prior_research_fit_attempts": 50,
+  "all_prior_evidence_preserved": true,
+  "automatic_method_promotion": false,
+  "full_original_G5_G0_G6_or_sealed_RSI_passed": false,
+  "product_model_api_calls": 0,
+  "new_study_estimator_fits": 0,
+  "development_token_currency_costs": null,
+  "limits": [
+    "Known public standalone outcomes; native integration replication",
+    "Citation retrieval, not generated answers or fact support/refutation",
+    "Saved metrics independently recomputed; no independent reranking",
+    "Synthetic known exact scheduling algorithm; one small dev slowdown retained",
+    "No OS/cgroup/sealed guarantee or multigeneration RSI",
+    "Clean install follow-up is separate; saved replay is not model-refit reproduction"
+  ]
+}
