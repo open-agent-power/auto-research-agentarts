@@ -7,7 +7,7 @@
 | 阶段 | 状态 | 验收依据 |
 |---|---|---|
 | G0 仓库/环境/上游审计 | blocked | [验收记录](g0/G0-review.md)；资源隔离和上游runtime smoke未通过 |
-| G1 真实研究闭环 | blocked_by_G0 | 至少两轮、观察导致计划变化、证据链、独立复现 |
+| G1 真实研究闭环 | 原Gate依赖保持；获批G1-L已verified | [两轮真实切片与恢复](g1-local/results.md)，不宣称原G0通过 |
 | G2 动态协作 | blocked | 测量收益后选择组织；开发子代理不算产品收益 |
 | G3 跨课题方法改进 | blocked | 独立任务重验及负迁移 |
 | G4 隔离代码级 RSI | blocked | 受保护评价器、真实候选差异、晋级/拒绝 |
@@ -46,3 +46,7 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 已核对[现有原生接口合同](g0/NATIVE_INTERFACE_FREEZE.md)：真实字段、输入/计划/方法绑定、精确候选、累计预算、来源登记与读取、报告与恢复路径。该文件仅为G0独立准备，不创建新API，也不授权研究执行。
 
 本地先行决定已接受：用户对具体推荐方案回复“继续推进”，[授权](g1-local/authorization.json)记录方案A及累计范围。此前needs_user_decision为历史状态；原G0仍blocked，G2+仍受限。
+
+## Sprint 002 结果
+
+获批本地G1切片已技术验收：[结果](g1-local/results.md)、[验收](g1-local/acceptance.json)、[复盘](SPRINT-002.md)、[恢复](g1-local/reproduction.md)。两轮MAE8.383388→5.702073MPa，313行/129组恶化、负值1保留；5工具/20estimator尝试/1来源/0产品模型，独立算术3252项及原/新路径29请求重放通过。原G0/G2+不变。

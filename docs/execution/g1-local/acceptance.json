@@ -1,0 +1,105 @@
+{
+  "scope": "accepted_trusted_local_G1_slice",
+  "status": "verified",
+  "original_G0": "blocked",
+  "G2_and_later": "blocked",
+  "project_id": "project-431366b59dac432dabb315d82dee6eae",
+  "final_state_version": 32,
+  "research_status": "waiting",
+  "plan_revisions": 3,
+  "input": {
+    "original_rows": 1030,
+    "numeric_tokens": 9270,
+    "derived_groups": 427,
+    "singleton_groups": 246,
+    "extra_original_numeric_duplicate_rows": 25
+  },
+  "paired_metrics": {
+    "baseline_mae": 8.383388056181742,
+    "candidate_mae": 5.702072514528066,
+    "mae_change": -2.6813155416536762,
+    "relative_improvement": 0.31983674424763486,
+    "baseline_negative_predictions": 0,
+    "candidate_negative_predictions": 1
+  },
+  "matched_rows": 1030,
+  "adverse": {
+    "worsened_rows": 313,
+    "worsened_groups": 129,
+    "negative_predictions": 1,
+    "negative_original_row": 689,
+    "negative_prediction_mpa": -1.962895071052401,
+    "worsened_age_strata_days": [
+      14,
+      120,
+      180
+    ]
+  },
+  "budget": {
+    "local_tool_calls_used": 5,
+    "local_tool_call_limit": 6,
+    "estimator_attempts_used": 20,
+    "estimator_limit": 20,
+    "ridge_fits": 10,
+    "scaler_fits": 10,
+    "source_reads_used": 1,
+    "source_read_limit": 1,
+    "product_model_sends": 0,
+    "external_product_api_sends": 0
+  },
+  "evidence": {
+    "arithmetic": {
+      "path": "runs/g1-local-verification/final/verification.json",
+      "sha256": "0dc7237f0ee7eaa4019456571bc6d3bfa2aac4d0ec3bac56b085e287b8dc1597"
+    },
+    "replay": {
+      "path": "runs/g1-local-review/final-replay-01/review.json",
+      "sha256": "7dc9453a4bb9256010ea559990c438f567181f15197c37db2707bb28d35c4be0"
+    },
+    "chronology": {
+      "path": "runs/g1-local-review/chronology-and-provenance.json",
+      "sha256": "5743117fd53c831f6616a9fae5dc40f91c529cec9b84a61813f701dcc20bc9f3"
+    },
+    "browser": {
+      "path": "runs/g1-local-ui/result.json",
+      "sha256": "62f9bffc332d44ea1695545cde7c18d2f6c3c89a7d7e4a6cbc61792f8a180910"
+    },
+    "pdf": {
+      "path": "runs/g1-local-ui/pdf-result.json",
+      "sha256": "6bb020a2a50f64a08584fd5b1c6cc84cffc88c4d99d3fea7426b037a196d6ed7"
+    },
+    "report_export": {
+      "path": "runs/cloud-concrete-local-20261113-01/report-export.json",
+      "sha256": "4d0e65fb081751f663732ed8866ddf9fa688c0153af347b6665840b1e2088212"
+    },
+    "freeze": {
+      "path": "runs/cloud-concrete-local-20261113-01/freeze.json",
+      "sha256": "6697bb35b76b8bceaad774db2848e1214bc7e28d174ebf7def2eb2e1f1e8e1fc"
+    }
+  },
+  "arithmetic_checks": 3252,
+  "replay_original_operations": 29,
+  "replay_original_files_unchanged": 96,
+  "replay_checks": 11,
+  "chronology_checks": 15,
+  "browser_screenshots": 9,
+  "pdf_pages": 39,
+  "pdf_visual_scope": "First and last page checked, not all-page visual certification",
+  "new_production_core_changes": false,
+  "autonomous_model_runtime_verified": false,
+  "scientific_or_external_validity_approved": false,
+  "developer_agent_cost": "unknown",
+  "code_freeze_commit": "5d36424af76fbe50df4ef0476e4f762d6f3138e6",
+  "relocated_restore": {
+    "status": "verified_same_environment",
+    "arithmetic_checks": 3252,
+    "replay_checks": 18,
+    "original_operations_replayed": 29,
+    "restored_files_unchanged": 101,
+    "old_case_access_forbidden_during_replay": true,
+    "host_storage_mapping": "source bundle path mapped in memory only; source bytes match",
+    "receipt": "runs/g1-local-review/relocated-replay-01/review.json",
+    "sha256": "dfcc708c5a672d659f3b68a7d90f1972c79b10ede6387bdedd755261e8eeaf7e",
+    "clean_environment_install_verified": false
+  }
+}

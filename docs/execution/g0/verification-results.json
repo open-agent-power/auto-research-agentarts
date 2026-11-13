@@ -39,12 +39,17 @@
     "runtime_smoke": "not_executed"
   },
   "G1": {
-    "status": "not_started",
+    "status": "approved_trusted_local_slice_verified_original_gate_not_passed",
     "task": "P0-CONCRETE-CLOUD-001",
     "original_rows": 1030,
     "original_sha256": "8d4b15b6fc68cd932d745cbd663d5ceae66dd54422e99c1e4865f2936ab7e2af",
-    "real_research_fits": 0,
-    "product_api_sends": 0
+    "real_research_fits": 20,
+    "product_api_sends": 0,
+    "ridge_fits": 10,
+    "preprocessing_fits": 10,
+    "local_tool_calls": 5,
+    "source_extractions": 1,
+    "acceptance": "docs/execution/g1-local/acceptance.json"
   },
   "developer_agent_cost": "unknown",
   "github_delivery": {
@@ -83,7 +88,7 @@
     "base_branch": "main"
   },
   "continuation_decision": {
-    "status": "accepted_trusted_local_only",
+    "status": "accepted_trusted_local_slice_completed",
     "proposal": "docs/execution/g0/LOCAL_EXECUTION_DECISION.md",
     "answer": "继续推进",
     "read_only_preflight": "runs/g0-decision-review-20261113/preflight-reviewed.json",

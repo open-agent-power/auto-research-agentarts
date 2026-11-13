@@ -1,29 +1,27 @@
 # 当前接续
 
-## 当前目标与停点
+## 当前结果
 
-执行 Master Execution Pack v2。G0审计交付已完成、独立审查已收齐，**G0仍BLOCKED**。经用户批准的G1-L可信本地切片开始；G2–G6未开始，没有无人值守模型后台或定时任务。
+经用户批准的可信本地G1切片已完成技术验收。原G0资源隔离及上游runtime仍BLOCKED，G2–G6未开始。只有只读工作台服务，没有无人值守模型研究或定时任务。
 
-## 本轮事实
+## 本轮已完成
 
-- 原包23文件已解压并校验，主仓库基线`5d497c8ae22100953f66c3c5b54746ca87e09f01`；本轮开发分支`codex/execution-pack-v2-g0`已合并至`main`。
-- 30行能力/验证矩阵、8上游固定版本及源码/许可审查、旧资产缺失清单、Concrete官方1030行与无损输入、评价协议已保存。
-- 两处测试可移植性问题已修；最终完整回归1111项：1092通过、19明确跳过，exit0。原两轮失败日志保留；测试通过不等于真实课题或Gate通过。
-- Docker实测要求1CPU/512MiB/128PID，实际仍4CPU/16GiB/PID max。rootless无cgroup delegation；其余7项隔离检查通过但不能抵消这3项失败。
-- 上游只有静态/源码检查，隔离runtime smoke独立未完成。旧研究账本与私有运行资产未收到，不宣称恢复。
+- 研究源码冻结提交`5d36424`，项目`project-431366b59dac432dabb315d82dee6eae`，原生manager在`runs/cloud-concrete-local-20261113-01/manager`。
+- 完整1030行/427配合比签名组，两轮固定Ridge：MAE8.383388→5.702073MPa；313行/129组恶化，负预测0→1。计划v1→真实反馈v2→v3收束，原wait状态32。
+- 预算5/6本地工具、20/20estimator尝试（10Scaler+10Ridge）、1/1来源提取、0产品模型/API；无unknown或fit预留。不能通过新ID/目录重置额度。
+- 冻结独立验算3252项通过。原位置29请求重放/11检查通过，96原文件字节不变；新路径数学3252项及29请求/18检查通过，101恢复文件与原预算不变，重放禁止访问旧case。
+- 原生报告4附件、39页PDF、完整来源/SQLite/工件和派生图保存。五页桌面及390px代表页实际检查，下载SHA匹配；PDF仅首页末页视觉检查，未声称全部页面或真人评价。
 
-## GitHub交付状态
+## 接续入口
 
-2026-11-13（Asia/Shanghai）用户完成组织授权后，已确认`open-agent-power`组织的安装包含目标仓库、Contents/Pull requests写权限。分支`codex/execution-pack-v2-g0`已成功推送，首个成功远程提交`257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4`；[PR #1](https://github.com/open-agent-power/auto-research-agentarts/pull/1)已按用户明确指示于2026-11-13合并至`main`，合并提交`269388af8f6d0a3330e5ea0e668459c428071367`。先前403保留为历史失败，当前GitHub交付阻塞已解除。G0资源及上游runtime两个阻塞保持。
+[结果与限制](../execution/g1-local/results.md) · [验收JSON](../execution/g1-local/acceptance.json) · [独立审查](../execution/g1-local/independent-review.md) · [界面](../execution/g1-local/ui-verification.md) · [复现/恢复](../execution/g1-local/reproduction.md) · [本轮复盘](../execution/SPRINT-002.md)。
 
-## 当前执行
+原始公开数据：`/workspace/work/g0-data-research/`；独立证据：`runs/g1-local-verification/`、`runs/g1-local-review/`、`runs/g1-local-ui/`；新路径恢复：`runs/g1-local-restored/`。只读工作台在云电脑`http://127.0.0.1:18830/`，模型/写操作关闭。
 
-用户在明确可信本地方案后回复“继续推进”，已按语境接受方案A，[授权记录](../execution/g1-local/authorization.json)固定6工具/20fit/1来源/0产品模型及API发送。原G0隔离门与上游runtime阻塞保持，G2+不解锁。
+## 下一阶段与阻塞
 
-当前实现固定案例宿主runner，复用现有manager/controller，按阶段冻结请求ID与原参数。先执行基线与保存诊断，再由本次真实观察生成计划v2，决定唯一log1p候选或明确等待；独立成员只读重算并核验恢复。不得把历史MAE放入新观察。
+本课题仅为已见公开数据的表达对照，不是领域批准、未见任务收益、自主模型runtime或RSI。保留全部坏结果，下一研究需要独立数据和新范围，不能自动追加fit。
 
-## 下一动作
+继续原计划G2及以后需要可强制实施CPU/RAM/PID和工件配额的Worker，完成上游最小隔离PoC后重新验G0。当前云机UID1000、cgroup未委派，不能自行修复；没有外部Worker连接或环境修改接口。已完成本地例外不等于解除此门槛。
 
-完成runner冻结与阶段执行、独立算术和重放、原生报告和可恢复包，按实测更新本轮结果。案例原始工件存ignored runs，源码/协议和摘要可推送main；每轮完成后继续授权范围内工作。
-
-[任务板](../execution/README.md) · [G0验收](../execution/g0/G0-review.md) · [基线](../execution/g0/baseline-verification.md) · [本轮复盘](../execution/SPRINT-001.md)。原始日志在ignored `runs/`，公开数据在`/workspace/work/g0-data-research/`；另交付证据包。当前用户权限不能修复平台cgroup委派。
+GitHub组织授权已生效，PR#1已合并，后续本轮变更验证后直接推送main。用户要求每大轮汇报后自主继续，仅真实外部/决策阻塞再询问。
