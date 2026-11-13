@@ -11,11 +11,15 @@ import math
 
 from .contracts import ResearchError, canonical, fingerprint
 
-PRIMARY = {"retrieval": "research.retrieval-fixed-pair", "scheduling": "research.weighted-interval-fixed-pair"}
-AUDITS = {"retrieval": "research.retrieval-saved-error-audit", "scheduling": "research.weighted-interval-saved-audit"}
+PRIMARY = {"retrieval": "research.retrieval-fixed-pair", "scheduling": "research.weighted-interval-fixed-pair",
+           "relevance": "research.relevance-fixed-pair"}
+AUDITS = {"retrieval": "research.retrieval-saved-error-audit", "scheduling": "research.weighted-interval-saved-audit",
+          "relevance": "research.relevance-saved-error-audit"}
 FILES = {"retrieval": {"corpus":"corpus.jsonl", "queries":"queries.jsonl", "train_qrels":"qrels-train.tsv", "test_qrels":"qrels-test.tsv", "license":"license.md"},
+         "relevance": {"corpus":"corpus.jsonl", "queries":"queries.jsonl", "train_qrels":"qrels-train.tsv", "test_qrels":"qrels-test.tsv", "license":"license.md"},
          "scheduling": {"jobs":"jobs.json", "license":"license.md"}}
-TITLES = {"retrieval":"引用文档检索对照与保存错误诊断报告", "scheduling":"合成加权区间调度对照与保存结果审计报告"}
+TITLES = {"retrieval":"引用文档检索对照与保存错误诊断报告", "scheduling":"合成加权区间调度对照与保存结果审计报告",
+          "relevance":"文档相关性检索对照与保存错误诊断报告"}
 
 
 def _require(value, message):
@@ -46,19 +50,28 @@ def source_manifest(packet, kind):
         expected=FILES[kind]
         _require(set(packet)=={"schema_version","task_kind","spec_source","assets","spec","scope","snapshot_sha256"}
             and packet["schema_version"]=="cpu-research-source-v1"
-            and packet["task_kind"]==("citation_retrieval" if kind=="retrieval" else "weighted_interval")
+            and packet["task_kind"]=={"retrieval":"citation_retrieval", "relevance":"relevance_retrieval", "scheduling":"weighted_interval"}[kind]
             and packet["snapshot_sha256"]==fingerprint({k:v for k,v in packet.items() if k!="snapshot_sha256"})
             and type(packet["assets"]) is dict and set(packet["assets"])==set(expected), "CPU输入结构或快照身份改变。")
         spec_raw=_asset(packet["spec_source"],"spec.json",65536)
         _require(_json(spec_raw)==packet["spec"] and packet["spec"]["files"]==expected, "CPU声明不匹配原spec字节。")
         spec=packet["spec"]
+        if kind=="relevance":
+            _require(spec["schema_version"]=="relevance-retrieval-spec-v1"
+                and packet["scope"]["contract"]=="relevance-retrieval-fixed-pair-v1"
+                and packet["scope"]["qrels_semantics"]==spec["source_provenance"]["qrels_semantics"]=="positive_relevance_binary_projection"
+                and set(spec["license_notes"])=={"corpus","queries_and_qrels"}, "相关性输入合同、标签语义或许可对象改变。")
         rows=[{"name":"embedded:spec.json","role":"embedded_cpu_spec","sha256":hashlib.sha256(spec_raw).hexdigest(),"bytes":len(spec_raw)}]
         for role,name in expected.items():
             maximum=(8912896 if role=="corpus" else 524288 if role=="queries" else 4194304 if role=="jobs" else 65536)
+            if kind=="relevance":
+                maximum=12*1024*1024 if role=="corpus" else 3*1024*1024 if role=="queries" else 1024*1024 if role.endswith("qrels") else 65536
             asset=packet["assets"][role]
             raw=_asset(asset,name,maximum)
             _require(packet["scope"]["input_identities"][role]=={"sha256":asset["sha256"],"bytes":len(raw)}, "CPU范围中的输入身份改变。")
             license_note=spec["license_notes"]["abstracts" if role=="corpus" else "claims_and_qrels"] if kind=="retrieval" else spec["license_notes"]
+            if kind=="relevance":
+                license_note=spec["license_notes"]["corpus" if role=="corpus" else "queries_and_qrels"]
             rows.append({"name":"embedded:"+name,"role":"embedded_cpu_original","asset_role":role,"sha256":asset["sha256"],"bytes":len(raw),
                 "url":spec["source_url"],"license_note":license_note,"attribution":spec["attribution"],
                 "provenance_claim":copy.deepcopy(spec["source_provenance"]),"notice":"Verified embedded bytes only; licence/provenance declarations are not independently established by report export."})
@@ -79,15 +92,23 @@ def _primary(kind, entries):
 def summary(kind, state, entries):
     entry=_primary(kind,entries)
     rows=[]
-    if kind=="retrieval":
+    if kind in ("retrieval","relevance"):
+        relevance=kind=="relevance"
         method="在冻结语料和查询上比较固定TF-IDF余弦与BM25，完整排名先冻结，再按引用文档qrels计算Recall/MRR/nDCG；不生成答案、不拟合、不调用模型。"
         headers=["划分","指标","TF-IDF","BM25","候选−基线","胜/平/负"]
+        baseline,candidate="tfidf_cosine","bm25"
+        if relevance:
+            method="在冻结语料和查询上比较固定BM25基线与TF-IDF余弦候选；相同query/doc ID在top20截断前排除。完整排名先在内存计算内容身份，再按正相关性标签的二元投影计算Recall/MRR/nDCG，排名随最终原生工件保存；不生成答案、不拟合、不调用模型。"
+            headers=["划分","指标","BM25 基线","TF-IDF 候选","候选−基线","胜/平/负"]
+            baseline,candidate="bm25","tfidf_cosine"
         if entry:
             for split,value in entry["tool_result"]["result"]["paired_summary"]["splits"].items():
                 for metric,change in value["paired_candidate_minus_baseline"].items():
-                    rows.append([split,metric,_number(value["arms"]["tfidf_cosine"]["metrics"][metric]),_number(value["arms"]["bm25"]["metrics"][metric]),
+                    rows.append([split,metric,_number(value["arms"][baseline]["metrics"][metric]),_number(value["arms"][candidate]["metrics"][metric]),
                         _number(change["mean"]),f"{change['wins']}/{change['ties']}/{change['losses']}"])
         notice="qrels表示cited_doc_ids，不是SUPPORT/CONTRADICT或事实核验。原query metadata可能含句级注释，仅原样保留且不参与检索或评分；不是封存盲测。早排指标改善可伴随Recall下降，不自动采用候选。"
+        if relevance:
+            notice="原始正相关性grade保留，当前指标按grade>0二元投影，不是canonical graded BEIR nDCG。语料中缺失的正例仍计入召回分母，不补造文档或静默丢标签；划分以原spec清单为准，不自动成为官方或封存盲测。固定算法对照本身不能证明记忆的因果收益；保留所有下降与未召回结果，不自动采用候选。"
     else:
         method="在显式合成工程任务上比较相同精确动态规划的全扫描与二分前驱查找；保留每次实际时延、完整schedule、目标值和生产核验，不训练模型。"
         headers=["任务/划分","jobs","目标值","扫描 ms","二分 ms","倍率/状态"]
@@ -122,7 +143,7 @@ def sections(report):
         if entry["command"]==AUDITS[kind]:
             result.append({"title":"保存结果的后续诊断","paragraphs":["行动："+entry["action_id"],
                 "前序绑定："+canonical(body["predecessor"]),"仅复用保存算术，不重新排名、对gold评分、求解、计时或拟合。完整诊断："+pointer],"headers":[],"rows":[]})
-        elif kind=="retrieval":
+        elif kind in ("retrieval","relevance"):
             adverse=body["adverse_queries"]
             shown=adverse[:12]
             result.append({"title":"检索覆盖损失与完整排名","paragraphs":["行动："+entry["action_id"],

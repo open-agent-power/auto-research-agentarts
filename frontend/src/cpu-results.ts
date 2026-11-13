@@ -21,19 +21,21 @@ function disclosure(title: string, content: HTMLElement): HTMLElement {
   return panel;
 }
 
-function retrievalSummary(observation: Obj, table: ResultTable): HTMLElement {
+function retrievalSummary(observation: Obj, table: ResultTable, relevance = false): HTMLElement {
   const wrap = el("div", "project-cpu-results cpu-result-summary cpu-retrieval-summary");
-  wrap.dataset.cpuFamily = "retrieval";
+  wrap.dataset.cpuFamily = relevance ? "relevance" : "retrieval";
   const scope = object(observation.scope), summary = object(observation.summary);
-  wrap.append(el("h4", "", "引用文献检索 · 保存结果"),
+  wrap.append(el("h4", "", relevance ? "文档相关性检索 · 保存结果" : "引用文献检索 · 保存结果"),
     el("p", "", `语料 ${numeric(scope.document_count)} 篇；原查询 ${numeric(scope.query_count)} 条；本次固定对照 ${numeric(summary.query_pairs)} 条。`),
-    el("p", "detail-note", "引用标签表示被引用的文献，不判定支持、反驳或答案正确性；固定公开结果不等同隐藏评价，也不代表生成式 RAG。"));
+    el("p", "detail-note", relevance
+      ? "正相关性 grade 按大于 0 做二元投影；此 nDCG 不是 canonical graded BEIR 成绩。相同查询/文档 ID 在 top20 截断前排除，缺失正例仍计入分母；不自动成为官方划分、隐藏评价或生成式 RAG。"
+      : "引用标签表示被引用的文献，不判定支持、反驳或答案正确性；固定公开结果不等同隐藏评价，也不代表生成式 RAG。"));
   const paired = object(summary.paired_summary), splits = object(paired.splits);
   const appendSplit = (name: string, value: Obj): HTMLElement => {
-    const arms = object(value.arms), baseline = object(arms.tfidf_cosine), candidate = object(arms.bm25);
+    const arms = object(value.arms), baseline = object(arms[relevance ? "bm25" : "tfidf_cosine"]), candidate = object(arms[relevance ? "tfidf_cosine" : "bm25"]);
     const baselineMetrics = object(baseline.metrics), candidateMetrics = object(candidate.metrics), deltas = object(value.paired_candidate_minus_baseline);
     return table(`${splitName(name)}集 · 基线 ${numeric(baseline.queries)} / 候选 ${numeric(candidate.queries)} 条查询`,
-      ["指标", "TF-IDF 基线", "BM25 候选", "候选 − 基线", "上升 / 持平 / 下降查询"], metricKeys.map(key => {
+      ["指标", relevance ? "BM25 基线" : "TF-IDF 基线", relevance ? "TF-IDF 候选" : "BM25 候选", "候选 − 基线", "上升 / 持平 / 下降查询"], metricKeys.map(key => {
         const pair = object(deltas[key]);
         return [metricNames[key], numeric(baselineMetrics[key]), numeric(candidateMetrics[key]), signed(pair.mean),
           `${numeric(pair.wins)} / ${numeric(pair.ties)} / ${numeric(pair.losses)}`];
@@ -53,7 +55,8 @@ function retrievalSummary(observation: Obj, table: ResultTable): HTMLElement {
     }
     if (remaining.children.length) wrap.append(disclosure("查看开发集与验证集的全部指标", remaining));
   } else wrap.append(el("p", "detail-note", "此保存诊断仅带查询计数；宏指标见前序固定对照的结果，完整诊断见本行动 JSON。"));
-  wrap.append(el("p", "cpu-result-caution", `需要核对的查询：${numeric(summary.adverse_queries)}。集合包括任一指标下降，或任一臂 Recall@20 未覆盖全部引用；不表示这些查询全部是候选恶化。`));
+  wrap.append(el("p", "cpu-result-caution", `需要核对的查询：${numeric(summary.adverse_queries)}。集合包括任一指标下降，或任一臂 Recall@20 未覆盖全部${relevance ? "正相关例" : "引用"}；不表示这些查询全部是候选恶化。`));
+  if (relevance) wrap.append(el("p", "detail-note", "两臂为固定算法对照；仅凭该差异不能证明记忆的因果收益。完整原始 grade、查询/文档坐标、排名与未召回结果保留在本行动 JSON。"));
   return wrap;
 }
 
@@ -97,6 +100,8 @@ export function cpuResultSummary(observations: Obj[], table: ResultTable, contex
     if (reader) summary.append(reader);
     return summary;
   }
+  const relevance = observations.find(item => item.kind === "relevance_retrieval_pair" || item.kind === "saved_relevance_error_audit");
+  if (relevance) return retrievalSummary(relevance, table, true);
   const scheduling = observations.find(item => item.kind === "weighted_interval_fixed_pair" || item.kind === "saved_weighted_interval_audit");
   return scheduling ? schedulingSummary(scheduling, table) : null;
 }

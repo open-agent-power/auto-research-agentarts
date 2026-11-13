@@ -1,5 +1,8 @@
 # 研究推进与价值评测索引
 
+独立相关性迁移先冻结 source-only Recall20 选臂、BM25 基线和固定 TF-IDF 等臂对照，再独审一次执行；候选与负对照同值不能证明记忆收益。新语义、程序分区和真实准入见[相关性对照](../../docs/relevance-retrieval.md)与[执行协议](../../docs/execution/g5-local/retrieval-transfer-protocol.md)。
+
+
 G6可信本地新增证据：[归档独立重开](../../docs/execution/g6-local/archive-reopen-guide.md)仅恢复既有ID、复用外部clean依赖；[保存参数算术](../../docs/execution/g6-local/saved-model-arithmetic-results.md)从归档原CSV与25fold参数独立重建2991条OOF，固定容差/全部负例保持，不是重估系数、重新训练或新方法收益。两种证据分开，不以原1225工程测试替代它们。
 
 云端可信本地新证据：[G3两目标原生迁移与语义拒绝](../../docs/execution/g3-local/results.md)、[G2同任务无收益对照](../../docs/execution/g2-local/results.md)、[G5引用文献检索/明示合成算法对照](../../docs/execution/g5-local/results.md)。对应独立算术/恢复与负结果分别保留；不把局部技术验收当完整Gate、自动科研收益或记忆因果增益。

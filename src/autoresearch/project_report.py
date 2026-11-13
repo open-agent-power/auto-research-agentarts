@@ -18,7 +18,8 @@ from . import cpu_report_sections
 
 KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel",
          "software.source-integrity-check": "software", "data.tabular-quality-audit": "tabular",
-         "research.retrieval-fixed-pair": "retrieval", "research.weighted-interval-fixed-pair": "scheduling"}
+         "research.retrieval-fixed-pair": "retrieval", "research.weighted-interval-fixed-pair": "scheduling",
+         "research.relevance-fixed-pair": "relevance"}
 TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存模型与评价复核报告",
           "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告", **cpu_report_sections.TITLES}
 

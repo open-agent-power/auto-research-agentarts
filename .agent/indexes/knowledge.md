@@ -1,5 +1,8 @@
 # 知识、数据与记忆索引
 
+独立 ArguAna 来源已通过官方 Webis/Zenodo CC BY 4.0 与原件映射审计；NFCorpus 学术限定负证据保留。完整 corpus/query/qrels 与无成绩 SHA 选样见[准入审计](../../docs/execution/g5-local/retrieval-transfer-source-audit.json)，不由代码许可推断数据许可。
+
+
 原生[保存误差诊断](../../docs/research-design.md#原生保存误差诊断)是本项目的工具反馈：完整原CV引用、行／折／组误差进入计划输入，完整小组表或明确整表引用保留全部坏结果。它不自动晋升为条件记忆或跨项目案例，不产生新CV／fit／来源读取；如需跨项目复用，仍走下述显式案例协议。
 
 保存OOF案例支持显式父行动配对：完整2,048行边界、两份原工件与各自生产身份、离线全量算术和严格同评价核对。紧凑案例保留父版收益及恶化行／组／负预测，供context、知识页和报告读取；仍是历史类比，不新增本题证据或执行资格。见[配对用法](../../docs/project-experience.md#显式保存父版对照)。

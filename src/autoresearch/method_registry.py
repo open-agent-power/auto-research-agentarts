@@ -6,21 +6,23 @@ from pathlib import Path
 from . import saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter
 from . import prediction_adapter, ridge_validation_adapter, saved_oof_diagnostic_adapter
 from .contracts import ResearchError, canonical
-from . import retrieval_adapter, scheduling_adapter
+from . import retrieval_adapter, relevance_retrieval_adapter, scheduling_adapter
 
 SOURCE = "research.source-selection"
 LEGACY_SOURCE = "p02.source-mapping-check"
-PRIMARY = {module.TOOL_ID: module for module in (saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, retrieval_adapter, scheduling_adapter)}
+PRIMARY = {module.TOOL_ID: module for module in (saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, retrieval_adapter, relevance_retrieval_adapter, scheduling_adapter)}
 WORKBOOK = workbook_projection_adapter.TOOL_ID
 NUMERIC = numeric_association_adapter.TOOL_ID
 PREDICTIONS = {module.TOOL_ID: module for module in prediction_adapter.ADAPTERS}
 RIDGE = {module.TOOL_ID: module for module in ridge_validation_adapter.ADAPTERS}
 DIAGNOSTICS = {module.TOOL_ID: module for module in saved_oof_diagnostic_adapter.ADAPTERS}
 DESIGN_METHODS = PREDICTIONS | RIDGE
-SAVED_PAIR_AUDITS = {item.TOOL_ID: item for item in (retrieval_adapter.AUDIT, scheduling_adapter.AUDIT)}
+SAVED_PAIR_AUDITS = {item.TOOL_ID: item for item in (retrieval_adapter.AUDIT, relevance_retrieval_adapter.AUDIT, scheduling_adapter.AUDIT)}
 SAVED_PAIR_PARENTS = {retrieval_adapter.AUDIT_TOOL_ID: retrieval_adapter.TOOL_ID,
+                      relevance_retrieval_adapter.AUDIT_TOOL_ID: relevance_retrieval_adapter.TOOL_ID,
                       scheduling_adapter.AUDIT_TOOL_ID: scheduling_adapter.TOOL_ID}
 SAVED_PAIR_KINDS = {retrieval_adapter.TOOL_ID: "citation_retrieval_pair",
+                   relevance_retrieval_adapter.TOOL_ID: "relevance_retrieval_pair",
                    scheduling_adapter.TOOL_ID: "weighted_interval_fixed_pair"}
 FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter)} | DESIGN_METHODS | DIAGNOSTICS | SAVED_PAIR_AUDITS
 
@@ -75,6 +77,8 @@ def evaluation_ref(method_id):
             WORKBOOK: "workbook-projection-v1",
             retrieval_adapter.TOOL_ID: "citation-retrieval-fixed-pair-v1",
             retrieval_adapter.AUDIT_TOOL_ID: "citation-retrieval-saved-error-audit-v1",
+            relevance_retrieval_adapter.TOOL_ID: "relevance-retrieval-fixed-pair-v1",
+            relevance_retrieval_adapter.AUDIT_TOOL_ID: "relevance-retrieval-saved-error-audit-v1",
             scheduling_adapter.TOOL_ID: "weighted-interval-fixed-pair-v1",
             scheduling_adapter.AUDIT_TOOL_ID: "weighted-interval-saved-audit-v1"}[method_id]
 

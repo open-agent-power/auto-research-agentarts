@@ -8,6 +8,10 @@
 
 ## 最新汇报入口
 
+Sprint010 已于北京时间2026-11-14 04:45:53实际接续。继承云盘、origin、494原件/421完整路径与8固定参考checkout均核对；独有owner `root-sprint010-20261114T0446`。本轮独立 ArguAna 来源/语义/原始配对审计已完成，新相关性原生接头和报告已实现并经工程检查，真实目标排名/评分尚未执行。唯一研究output固定 `runs/g5-retrieval-transfer-20261114-01`，study lineage `g5-arguana-source-arm-transfer-v1`，共享claim在 `.agent/autonomy/studies/`；任何unknown只恢复该处原请求，不换目录或重置额度。
+
+输入 `source.json` 为15686699B、SHA `d20458472f460eec731e15c292b5b1229e3c30f35896e9e1ef1cac8d722f634c`，位于 `/workspace/work/g5-arguana-transfer-inputs-20261114-01`。来源/选样完整身份见[审计](../execution/g5-local/retrieval-transfer-source-audit.json)。策略 v2 SHA `f7c3b5172d44cca6c721f050a5524a360c6f4d88f7d81159593755dcb9bd9a96`，source-only冻结 Recall20 规则；等臂固定TF-IDF负对照不识别记忆因果收益。先提交源码、freeze、独审原freeze后再运行一次2tool/0fit/model/source课题，原SciFact/调度/50estimator保持。
+
 本轮[Sprint009](../execution/SPRINT-009.md)从北京时间01:47实际接续，已实现保存不利查询GET/界面，完成原件/HTTP/桌面手机验证，并继续独立安装和CLI窄修。每次触发无论成功、失败、无进展或lease占用均final报告；最新实际时间、commit、活动执行状态和下次计划见[最新报告](latest-report.md)／[机器报告](latest-report.json)。单个3小时任务仍继承原云盘；本轮触发标记01:46:53，下次计划04:47:27，平台run/result与通知送达仍unknown，不能据标记推断完成或送达。
 
 ## 已完成的真实证据

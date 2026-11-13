@@ -1,5 +1,8 @@
 # 后端索引
 
+新 `relevance_retrieval_adapter` 以独立相关性合同复用原生 Project/Controller/Workbench；BM25→TF-IDF、same-ID 截断前排除、缺失正例留分母，保存原 grade，旧 citation producer 不改。见[合同与迁移边界](../../docs/relevance-retrieval.md)。
+
+
 `saved_retrieval_reader`只读校验并投影已完成引用检索工件；分页25、两臂各20、source/action/result和audit前驱绑定。原研究codeidentity及预算不变；不调用rank/score/fit/controller。入口与真实验证见[阅读器](../../docs/saved-retrieval-reader.md)。
 
 Ridge分组编码使用独立`encode_groups`首次出现字典映射，保留原整数ID/NumPy与GroupKFold语义；原生微函数确认和8纯回归/1164工程回归已核，[结果](../../docs/execution/g4-local/native-results.md)。源码身份改变，旧研究固定0ceb274服务/账本，不自动upgrade或重训。

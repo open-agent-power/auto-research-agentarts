@@ -41,3 +41,6 @@ Sprint008回应用户追问汇报：北京时间00:06检查，前轮23:15推送�
 
 
 Sprint009从01:47实际接续，读取器0acb05e已实现并经真实HTTP/浏览器限定验收；原输入、预算、sourceidentity保持。之后继续独立23分发项安装，0ac原生CLI帮助/本地保存读取通过但可选runtime帮助缺SDK退出1；保留该负结果和piptarget2RECORD路径边界，窄修8a394e3帮助入口延迟SDK，原runtime.py不改。全部最终安装物/依赖/CLI/HTTP精确scope见reader-release及latest-report。API不补算原件没有的分数，0新fit/模型服务，开发成本unknown；原OS/sealed/多代RSI/完整Gate不扩大。下一任务先做独立检索任务许可/语义/预算与跨任务策略对照预注册，不重置旧案例。
+
+
+Sprint010：2026-11-14 04:45:53在继承盘实际接续；ArguAna官方Webis/Zenodo CC BY 4.0与106MB原ZIP、BEIR全量文本/配对已审计，5缺正例/1298同ID自文本保留，NFCorpus学术限定未采用。新增独立relevance合同/registry/report/summary，旧citation/lexical与source pins不改；来源prepared并无真实targetranking/score。唯一样本选择arguana-transfer-v1 SHA 80/80/300，原1406query/全8674doc/1406qrels保留；唯一study g5-arguana-source-arm-transfer-v1/output runs/g5-retrieval-transfer-20261114-01。只有正式源码commit+exactfreeze独审批准后才一次2tools；候选等同fixedTFIDF control的结构零不称memorygain。以current和latest-report继续，未知状态不换ID/目录/预算。
