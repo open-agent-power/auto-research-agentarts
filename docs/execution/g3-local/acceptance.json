@@ -1,0 +1,263 @@
+{
+  "schema_version": "g3-local-acceptance-v1",
+  "recorded_at_utc": "2026-11-13T07:12:34.197707+00:00",
+  "source_commit": "0ceb2742825a9e95b373260fb39950fcbb48af1b",
+  "targets": {
+    "real-estate": {
+      "passed": true,
+      "checks": {
+        "arithmetic_pass": true,
+        "same_id_replay_pass": true,
+        "relocated_arithmetic_pass": true,
+        "relocated_replay_pass": true,
+        "relocated_numeric_result_equals_original_except_storage_paths": true,
+        "all_original_case_bytes_equal_before_after": true,
+        "relocated_copy_bytes_unchanged": true,
+        "one_in_memory_storage_mapping_only": true,
+        "no_forbidden_execution_or_fallback": true,
+        "frozen_assets_match_current": true,
+        "commit_unchanged": true
+      },
+      "numeric_check_count": 1416,
+      "original_replay_check_count": 47,
+      "relocated_numeric_check_count": 1416,
+      "relocated_replay_check_count": 49,
+      "original_tree_files": 101,
+      "usage": {
+        "local_actions": 5,
+        "fit_attempts": 20,
+        "source_reads": 1,
+        "native_model_requests": 0
+      },
+      "metrics": [
+        {
+          "mae": 6.425092885328579,
+          "reference_mae": 10.786705168236324,
+          "negative_predictions": 0,
+          "bad_groups_vs_reference": 79
+        },
+        {
+          "mae": 6.287279461085385,
+          "reference_mae": 10.786705168236324,
+          "negative_predictions": 0,
+          "bad_groups_vs_reference": 79
+        }
+      ],
+      "paired_comparison": {
+        "baseline_action": "action-a1dcc3434446df440b04fab0841cf31d",
+        "candidate_action": "action-39075c63ac3c28e308488388c3751688",
+        "worsened_rows": 179,
+        "worsened_groups": 107,
+        "baseline_mae": 6.425092885328579,
+        "candidate_mae": 6.287279461085385,
+        "relative_improvement": 0.02144925010467702
+      },
+      "evidence": [
+        {
+          "path": "runs/g3-local-verification/real-estate/arithmetic-01/verification.json",
+          "sha256": "4dc4f2db008a8588783437037d1f7324661d00a8eccd655411547cdfb24a6d93"
+        },
+        {
+          "path": "runs/g3-local-verification/real-estate/replay-02/review.json",
+          "sha256": "e2d7e8cc631245c44fa1b09971cefc274039b4899f85fe859291a0607e8c70f6"
+        },
+        {
+          "path": "runs/g3-local-restored/real-estate/arithmetic-01/verification.json",
+          "sha256": "8c6593d1cd6ce1c4c21707cf6b38a8b5c5bf1c85446c007259e535adb776f59b"
+        },
+        {
+          "path": "runs/g3-local-restored/real-estate/replay-01/review.json",
+          "sha256": "91e2fd3fd99ee4c85cf1b0fa80633e66f2e4fd78d1e86c419fcb242eeb936d7b"
+        }
+      ],
+      "project_id": "project-15598e4677924464a7c16903b5a6b7f3",
+      "state_version": 33,
+      "research_status": "waiting",
+      "plan_versions": 3,
+      "eligibility": {
+        "applicable": true,
+        "baseline_action_id": "action-a1dcc3434446df440b04fab0841cf31d",
+        "candidate_transform": {
+          "house_age": "log1p"
+        },
+        "case_bundle_sha256": "4dca2ddf38ef9debe14b85ccdf37f164df92c74d8eda594941c999ecd5fe7c1b",
+        "dataset_id": "real-estate",
+        "diagnostic_action_id": "action-7c2a819fbf24437fde3ed5316202a02f",
+        "historical_case_retained_active": true,
+        "native_method_association_is_not_semantic_approval": true,
+        "reason_codes": [],
+        "schema_version": "target-transfer-eligibility-v1",
+        "scientific_validation": false,
+        "source_age_unit": "day",
+        "target_age_unit": "year"
+      },
+      "export_manifest": {
+        "input.json": {
+          "bytes": 668044,
+          "sha256": "8fbd51c27be91fff5c3b9311e00584e48feb04f1ec3ceeed5dee30a82bf5f9f6"
+        },
+        "report.json": {
+          "bytes": 2493196,
+          "sha256": "1d6ce0c1d6429cd55015b5c938dbf0d2bf2be335300f0b70be6e512136179a2f"
+        },
+        "report.md": {
+          "bytes": 65344,
+          "sha256": "38a71c97c6aa6ee80a37e91eb176eff3caa639759692909fa51c139e0f5d4b8c"
+        },
+        "report.pdf": {
+          "bytes": 97430,
+          "sha256": "e8e236967a07307b94a9f88ebd30e3fe10151309cb441c4eadcdaad80d497bb5"
+        }
+      }
+    },
+    "slump": {
+      "passed": true,
+      "checks": {
+        "arithmetic_pass": true,
+        "same_id_replay_pass": true,
+        "relocated_arithmetic_pass": true,
+        "relocated_replay_pass": true,
+        "relocated_numeric_result_equals_original_except_storage_paths": true,
+        "all_original_case_bytes_equal_before_after": true,
+        "relocated_copy_bytes_unchanged": true,
+        "one_in_memory_storage_mapping_only": true,
+        "no_forbidden_execution_or_fallback": true,
+        "frozen_assets_match_current": true,
+        "commit_unchanged": true
+      },
+      "numeric_check_count": 202,
+      "original_replay_check_count": 41,
+      "relocated_numeric_check_count": 202,
+      "relocated_replay_check_count": 43,
+      "original_tree_files": 90,
+      "usage": {
+        "local_actions": 3,
+        "fit_attempts": 10,
+        "source_reads": 1,
+        "native_model_requests": 0
+      },
+      "metrics": [
+        {
+          "mae": 2.2570917542423743,
+          "reference_mae": 6.231186060842944,
+          "negative_predictions": 0,
+          "bad_groups_vs_reference": 20
+        }
+      ],
+      "paired_comparison": {},
+      "evidence": [
+        {
+          "path": "runs/g3-local-verification/slump/arithmetic-01/verification.json",
+          "sha256": "54fa2656e332940432aeea07e0025b07c062cb3692a5b609fe679f809a93e2b4"
+        },
+        {
+          "path": "runs/g3-local-verification/slump/replay-02/review.json",
+          "sha256": "b9fbc5c2c0b60e891da9ddfc6dad6ae8d95f6128565e638cff74fd6b6a2a78a1"
+        },
+        {
+          "path": "runs/g3-local-restored/slump/arithmetic-01/verification.json",
+          "sha256": "5d2a82580375b4b52b88e6c574884ca35a7b33038eb828c3046a653189d6dbf1"
+        },
+        {
+          "path": "runs/g3-local-restored/slump/replay-01/review.json",
+          "sha256": "582a6a28a7b1b4447d5c72067c7081c28a7b2f9f97db49bc4e05f0a32e09d4d6"
+        }
+      ],
+      "project_id": "project-710b3b4275da4d898820d439bd075b9a",
+      "state_version": 24,
+      "research_status": "waiting",
+      "plan_versions": 3,
+      "eligibility": {
+        "applicable": false,
+        "baseline_action_id": "action-fc4904b98d90bf787886cf26e68a7e9e",
+        "candidate_transform": null,
+        "case_bundle_sha256": "4dca2ddf38ef9debe14b85ccdf37f164df92c74d8eda594941c999ecd5fe7c1b",
+        "dataset_id": "slump",
+        "diagnostic_action_id": "action-f77481b66a18ae354ea26ee22b6a8ca4",
+        "historical_case_retained_active": true,
+        "native_method_association_is_not_semantic_approval": true,
+        "reason_codes": [
+          "NO_TARGET_AGE_TRANSFORM_DECLARED",
+          "SEMANTICALLY_NOT_APPLICABLE",
+          "TARGET_AGE_UNIT_NOT_YEAR"
+        ],
+        "schema_version": "target-transfer-eligibility-v1",
+        "scientific_validation": false,
+        "source_age_unit": "day",
+        "target_age_unit": null
+      },
+      "export_manifest": {
+        "input.json": {
+          "bytes": 637324,
+          "sha256": "0e0e02dbfa627df80f5f8115dabeafee058792c4b065bbd169c80fca974160ef"
+        },
+        "report.json": {
+          "bytes": 1196160,
+          "sha256": "0d4a0ba19e61ab03e92700a0ecb405e79b9b0a107460e4db222aff9dd7574118"
+        },
+        "report.md": {
+          "bytes": 30919,
+          "sha256": "572700cd10977fe87a225ecd8971016adfd9b09afa03435fa076b289b7befd10"
+        },
+        "report.pdf": {
+          "bytes": 43287,
+          "sha256": "06fa6cae38601752bb55a7612980476cbd3d20281effe32a27bf913f3ae1ef2d"
+        }
+      }
+    }
+  },
+  "fits_added": 0,
+  "model_api_calls": 0,
+  "original_cases_mutated": false,
+  "limitations": [
+    "Native trusted-local reproduction and explicit applicability only; original Docker isolation gate remains unresolved.",
+    "Two targets and no model/no-memory decision arm do not establish causal memory benefit or general RSI.",
+    "Slump has no varying-age field and retains a semantic abstention; no candidate fitted."
+  ],
+  "retained_failures": [
+    {
+      "path": "runs/g3-local-verification/real-estate/replay-01/review.json",
+      "sha256": "0f511397990f017e24e3eb13c6ab3c010c72f33ef1e08b0353f5f02850a809d6",
+      "failures": [
+        {
+          "name": "same_receipt_except_replayed:register-source",
+          "passed": false,
+          "detail": null
+        }
+      ],
+      "explanation": "Initial native source registration view includes reused=False; same-ID saved view omits it. Scratch helper v2 normalizes only this absent false metadata and replayed flags; reused=True and substantive fields are preserved. No product/evaluator changes or state mutations."
+    },
+    {
+      "path": "runs/g3-local-verification/slump/replay-01/review.json",
+      "sha256": "c86822caf0c4dd7748d69382f626bd8a14d3bbd1dd3397f809b775cc4d417e14",
+      "failures": [
+        {
+          "name": "same_receipt_except_replayed:register-source",
+          "passed": false,
+          "detail": null
+        }
+      ],
+      "explanation": "Initial native source registration view includes reused=False; same-ID saved view omits it. Scratch helper v2 normalizes only this absent false metadata and replayed flags; reused=True and substantive fields are preserved. No product/evaluator changes or state mutations."
+    }
+  ],
+  "passed": true,
+  "replay_helper": {
+    "path": "/workspace/work/g3-audit/reopen_and_replay.py",
+    "sha256": "59b58f26cd6e626b76eb3739c21571283fdaf218a08a1a933c8e1b8a7e4f39ea",
+    "failed_first_helper_path": "/workspace/work/g3-audit/reopen_and_replay-v1.py",
+    "failed_first_helper_sha256": "4e80774acf15148335a978dad22beadd0cb2a26bd10e552dfedced83a75efa34"
+  },
+  "independent_receipt": {
+    "path": "runs/g3-local-verification/independent-verification-receipt.json",
+    "sha256": "c2ba0a3a14150815c98a2bac0f9dc654de4aa0179376065150f13f165e57805d"
+  },
+  "status": "verified_trusted_local_scope",
+  "full_original_g3_gate_passed": false,
+  "portfolio": {
+    "estimator_attempts_used": 30,
+    "estimator_ceiling": 40,
+    "source_reads_used": 2,
+    "product_model_sends": 0,
+    "automatic_promotion": false
+  }
+}

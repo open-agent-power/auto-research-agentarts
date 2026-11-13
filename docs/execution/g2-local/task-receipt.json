@@ -1,0 +1,63 @@
+{
+  "task_id": "G2-L-trusted-coordination-001",
+  "status": "awaiting_independent_review",
+  "scope": "trusted analysis task coordination and saved-evidence comparison; full original G2 unpassed",
+  "changed_files": [
+    "src/autoresearch/agent_tasks.py",
+    "tests/test_agent_tasks.py",
+    "scripts/run_g2_local_comparison.py",
+    "docs/execution/g2-local/contract.md",
+    "docs/execution/g2-local/comparison-protocol.md",
+    "docs/execution/g2-local/results.md",
+    "docs/execution/g2-local/task-receipt.json"
+  ],
+  "raw_directory": "runs/g2-local-comparison-20261113-02",
+  "freeze_sha256": "7d0585b6abc67ccc5a581aa4f1d5fcceadce70c52dd56e01189f34955013636d",
+  "summary_sha256": "d31bdae932ec2b983611b2eac112a616525512b2bc8413dc66f914c1cc393427",
+  "module_sha256": "644d82114aa7282488e318a3715e77b5dac231a327bf2dbd761bb1e742ee57a2",
+  "tests": {
+    "command": ".venv/bin/python -m unittest discover -s tests -p test_agent_tasks.py -v",
+    "exit_code": 0,
+    "passed": 16,
+    "log": "runs/g2-local-unit/test-agent-tasks-reviewed.log",
+    "log_sha256": "b6c8c1220a4a855825e1fb2674ed864de64725fd7369daaadb6e1cf7ebbaf711"
+  },
+  "real_runs": [
+    {
+      "command": ".venv/bin/python scripts/run_g2_local_comparison.py --case runs/cloud-concrete-local-20261113-01 --output runs/g2-local-comparison-20261113-02",
+      "exit_code": 0,
+      "arms": 9,
+      "tasks_per_arm": 4,
+      "identical_output_hashes": true,
+      "protected_case_files_unchanged": 101
+    }
+  ],
+  "prior_failure": {
+    "directory": "runs/g2-local-comparison-20261113-01",
+    "stage": "shared warmup before comparison arms",
+    "reason": "incorrectly conflated groups containing any worsened row with groups whose mean MAE worsens",
+    "preserved": true
+  },
+  "median_wall_seconds": {
+    "dynamic": 0.05615036499875714,
+    "single": 0.05454142499729642,
+    "static": 0.05726840400166111
+  },
+  "decision": "retain_single_default_no_representative_multi_agent_benefit",
+  "cost": {
+    "native_tool_dispatches": 0,
+    "native_fits": 0,
+    "product_model_sends": 0,
+    "external_product_api_sends": 0,
+    "development_tokens": null,
+    "currency": null,
+    "amount": null
+  },
+  "limitations": [
+    "No LLM transport or scientific-state integration",
+    "Host-only Python API is not a security boundary",
+    "No OS/cgroup isolation repaired",
+    "Full G2 not passed; G4 disabled",
+    "Original case budget and all byte identities preserved"
+  ]
+}

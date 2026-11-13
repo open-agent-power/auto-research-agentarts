@@ -1,0 +1,18 @@
+{
+  "task_id": "G6-L-package-001",
+  "owner": "upstream_audit",
+  "status": "ready_for_root_review",
+  "changed_files": [
+    "scripts/verify_local_release.py",
+    "docs/execution/g6-local/results.md",
+    "docs/execution/g6-local/acceptance.json",
+    "docs/execution/g6-local/task-receipt.json"
+  ],
+  "raw": "/workspace/work/g6-local-release-20261113-01",
+  "actual_result": "offline build/install/import/help passed",
+  "source_changed": false,
+  "case_mutated": false,
+  "commit_or_tag_created": false,
+  "new_dependencies_downloaded": false,
+  "full_G6_accepted": false
+}

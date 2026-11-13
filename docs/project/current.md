@@ -22,14 +22,17 @@
 
 复现归档`runs/g1-local-delivery/concrete-reproduction.zip`已生成，约19.5MB/280条目，包含完整Git bundle、原/恢复case、公开数据/许可、独立检查、界面与图表，ZIP CRC与每文件SHA全核验；[清单](../execution/g1-local/delivery-manifest.json)保留身份。新Worker[主机接入/验收包](../../deploy/worker/README.md)及无副作用封装已准备并通过语法/帮助/已存在目录拒绝检查，未发生远程部署或采购。
 
-## 当前Sprint 003
+## 当前Sprint 003结果与下一轮
 
-用户明确表示“无法补充这一项，没事，继续按照项目计划推荐就可以”，已记录[扩大可信本地推进](../execution/local-continuation.json)。当前环境限制不再作为每阶段重复确认点；原隔离未通过如实保留，既有Concrete20fit账本保护。没有采购或产品模型API发送。
+用户明确接受缺失隔离Worker并要求继续，[授权边界](../execution/local-continuation.json)保持。已完成[本轮报告](../execution/SPRINT-003.md)与对应独立审查/验收；G0原问题不再逐阶段重复询问。
 
-并行文件所有权：root维护原生G3执行/集成；resource_audit维护agent_tasks模块/测试；research_task维护两真实数据预核；repo_audit维护G3冻结独立verifier/协议；upstream_audit维护G5纯CPU基准；independent_review独立审阅。
+- G2-L任务DAG/恢复模块16测试、独立115检查通过；真实保存证据4任务×3组织×3轮没有并发收益，继续single默认。无LLM transport或自动科研多Agent收益声明。
+- G3-L两新目标完成三版原生计划、真实来源/经验导入/报告与独立恢复。RealEstate414行MAE6.425093→6.287279(2.14%)，179行/107组恶化；Slump103行MAE2.257092MPa，无age明确拒绝变换。新增累计30/40estimator、8数值工具/2来源/0产品模型；旧Concrete20fit保持。
+- G3原/新路径各1416+202算术检查，原47+41/新49+43请求恢复检查通过；原RE101/Slump90文件及旧Concrete101文件字节保持。研究源码冻结`0ceb274`，后续host driver需固定该commit，不篡改freeze或upgrade旧case。
+- G5-L SciFact检索保留BM25早排改善与Recall5/20下降；明示合成调度工程优化。独立60检查，尚未原生RAG接线。G6-L离线wheel安装/资源核对通过，继承已有依赖，不称完整干净安装或runtime。
 
-G3预登记：RealEstate414行(20estimator上限)，Slump103行(20上限，预计只10baseline)，两题总上限40，均6工具/1来源/0产品模型/API，研究执行并发1。源Concrete age为天，房产age为年，log1p不是单位不变迁移；Slump没有逐行age，仅作资格负控，与源有一组配料数值重叠，不称完全独立外验。先固定语义/数据/候选/评价，再看目标成绩。
+证据在`runs/g2-local-comparison-20261113-02`、`runs/g3-local-transfer-20261113-01`、`runs/g3-local-verification`、`runs/g3-local-restored`、`runs/g5-local-cpu-20261113-01`及`work/g6-local-release-20261113-01`。原始公开数据/许可`/workspace/work/g3-data`，参考库`/workspace/references/upstream`保持。
 
-G2只实现受信任分析任务的DAG/claim/result/恢复，不执行任意代码或宣称自动LLM协作。无实测收益维持single默认。G5准备许可明确的SciFact引用文献检索和明示synthetic的加权区间调度CPU对照；不调用生成模型或LLM judge。
+下一轮root集成G4-L代码候选；research_task实现固定纯计算能力解释器/协议，resource_audit实现评测器，repo_audit与independent_review独立审查，upstream_audit补G3派生图。仅独立worktree修改真实分组编码纯helper，0研究fit/API；先冻结/审查再执行单候选，可reject/inconclusive。不自动晋级生产，不迁移旧研究项目，不声称sealed或多代RSI。
 
-每轮完成后验证并直接推送main、说明改动/实测/限制，再接续可独立工作。不把本地进程假称Docker安全沙箱，不复制旧预算或声称sealed多代RSI。
+每轮完成后验证并直接推送main、说明改动/实测/限制，再继续可独立任务。不会创建无人值守定时任务、采购服务或发送产品模型API。

@@ -1,5 +1,7 @@
 # 后端索引
 
+独立`agent_tasks.AgentTaskLedger`为可信host分析任务提供ProjectRef固定绑定、DAG、事务claim/同ID恢复、attempt/result绑定协调和一致状态快照；与科研fit/source预算分离，无模型传输或任意执行。默认single；本地保存证据对照没有多线程收益，见[合同](../../docs/execution/g2-local/contract.md)与[结果](../../docs/execution/g2-local/results.md)。
+
 `saved_materials`按显式action／诊断结果SHA选择完整保存groups／folds／rows，核对诊断及原CV封套、来源和历史设计，直接复制原值；不重新inspect或关联原输入。plan／recipe非空请求生成v3，最终64KiB全量校验，超限明确失败；默认旧context/prompt原字节保持。Host specification／freshness／same-ID、readonly preview、report与RSI导出读取共用冻结内容，见[字段供应](../../docs/research-design.md#明确供应保存诊断字段)。
 
 原生保存OOF诊断复用`inspect_saved_oof`，两个check-specific方法独立注册于`DIAGNOSTICS/FOLLOWUP`，不进训练check或默认顺序。原CV/结果SHA与当前设计进入请求身份，trusted workspace只在执行端传入；工具1／fit0／来源0，computed资格、原ID／unknown／换设计恢复沿原账本。完整结果为`result.diagnostic`，不冒充CV；见[原生诊断](../../docs/research-design.md#原生保存误差诊断)。

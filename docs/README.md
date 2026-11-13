@@ -6,6 +6,7 @@
 |---|---|
 | 产品目标、系统组成和当前边界 | [产品与系统架构](architecture.md) |
 | Master Execution Pack v2 云端执行与接续 | [当前接续](project/current.md)、[阶段任务与验收](execution/README.md) |
+| 可信本地协作与跨任务实验 | [G2任务协调](execution/g2-local/contract.md)、[G3迁移结果](execution/g3-local/results.md)、[G5 CPU结果](execution/g5-local/results.md) |
 | 当前进度、未完成事项 | [当前进度](current-progress.md)（完整 ICT 工作区本机文件） |
 | 当前主线与优先方向 | [项目计划](plan.md)（完整 ICT 工作区本机文件） |
 | 如何启动与使用 | [产品 README](../README.md)、[本地工作台](local-workbench.md)、[项目使用](project-slice.md) |

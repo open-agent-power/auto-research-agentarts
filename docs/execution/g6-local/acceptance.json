@@ -1,0 +1,129 @@
+{
+  "schema_version": "g6-local-packaging-smoke-v1",
+  "status": "verified_limited_local_packaging",
+  "source_commit": "0ceb2742825a9e95b373260fb39950fcbb48af1b",
+  "wheel": {
+    "path": "/workspace/work/g6-local-release-20261113-01/source/dist/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+    "sha256": "3b454d45ed7b37166cdcc74544e28e4b053c190b61cca0e305394abf2e5262c1",
+    "bytes": 1186553,
+    "packaged_source_resource_files": 172,
+    "archive_entries": 177
+  },
+  "checks": {
+    "zip_crc": true,
+    "all_packaged_bytes_match": true,
+    "installed_product_cli_help": true,
+    "installed_module_cli_help": true,
+    "installed_AgentTaskLedger_import": true,
+    "installed_resources_read_hashes_match": true,
+    "installed_origin_inside_new_venv": true,
+    "tracked_files_unchanged": 175,
+    "protected_concrete_case_files_unchanged": 101,
+    "head_unchanged": true
+  },
+  "dependencies_inherited": {
+    "numpy": "2.3.5",
+    "scikit-learn": "1.8.0",
+    "agentarts-autoresearch": "0.1.0"
+  },
+  "commands": [
+    {
+      "label": "build-wheel",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-c",
+        "from setuptools.build_meta import build_wheel; print(build_wheel('dist'))"
+      ],
+      "cwd": "/workspace/work/g6-local-release-20261113-01/source",
+      "exit_code": 0,
+      "log": "build-wheel.txt",
+      "log_sha256": "a4e06d8b14b736762cfa7ecec20af33a6c4763e7a56cb439c43915c8604e1177"
+    },
+    {
+      "label": "create-venv",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-m",
+        "venv",
+        "--system-site-packages",
+        "/workspace/work/g6-local-release-20261113-01/venv"
+      ],
+      "cwd": "/workspace/work/g6-local-release-20261113-01",
+      "exit_code": 0,
+      "log": "create-venv.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "install-wheel",
+      "argv": [
+        "/workspace/work/g6-local-release-20261113-01/venv/bin/python",
+        "-I",
+        "-m",
+        "pip",
+        "install",
+        "--no-index",
+        "--no-deps",
+        "--force-reinstall",
+        "/workspace/work/g6-local-release-20261113-01/source/dist/agentarts_autoresearch-0.1.0-py3-none-any.whl"
+      ],
+      "cwd": "/workspace/work/g6-local-release-20261113-01",
+      "exit_code": 0,
+      "log": "install-wheel.txt",
+      "log_sha256": "a39d13e11402e8c87c3abeff40fe76b6edc1e42c4f4a265463bf6ab2a0c21111"
+    },
+    {
+      "label": "cli-help",
+      "argv": [
+        "/workspace/work/g6-local-release-20261113-01/venv/bin/autoresearch",
+        "--help"
+      ],
+      "cwd": "/workspace/work/g6-local-release-20261113-01",
+      "exit_code": 0,
+      "log": "cli-help.txt",
+      "log_sha256": "76c831ac1bef487ce756b122a083553a2a802cd7ea80dccca97b36e452400c93"
+    },
+    {
+      "label": "module-help",
+      "argv": [
+        "/workspace/work/g6-local-release-20261113-01/venv/bin/python",
+        "-I",
+        "-m",
+        "autoresearch",
+        "--help"
+      ],
+      "cwd": "/workspace/work/g6-local-release-20261113-01",
+      "exit_code": 0,
+      "log": "module-help.txt",
+      "log_sha256": "2556470efe3e5a0b66e29c97c868977ce08e527064e45f05decfc1a9f29a0aa6"
+    },
+    {
+      "label": "installed-import-resources",
+      "argv": [
+        "/workspace/work/g6-local-release-20261113-01/venv/bin/python",
+        "-I",
+        "/workspace/work/g6-local-release-20261113-01/smoke-installed.py"
+      ],
+      "cwd": "/workspace/work/g6-local-release-20261113-01",
+      "exit_code": 0,
+      "log": "installed-import-resources.txt",
+      "log_sha256": "ad835ae34d4601aa0b22f15cef9fc36a2869ef09a223244d3c1a67dbf1e71761"
+    }
+  ],
+  "source_result_sha256": "6e8b72ef7d99945fa94abc0e5f7f42781412f0ae613277f08e5426bb3fd82831",
+  "source_manifest_sha256": "ac97f8d9151ed5e87d46541857bba09ac54f0839af9b94374b32fb07e4582292",
+  "limitations": [
+    "New venv inherits system site packages",
+    "No clean dependency installation or optional extras/runtime verification",
+    "No fitting, model/API or research-state mutation",
+    "Wheel snapshot has no standalone algorithm/retrieval runner integration",
+    "No tag, commit, deployment or full G6 acceptance"
+  ],
+  "cost": {
+    "product_model_calls": 0,
+    "fits": 0,
+    "currency": null,
+    "development_tokens": null
+  }
+}

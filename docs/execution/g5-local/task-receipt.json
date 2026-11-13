@@ -1,6 +1,6 @@
 {
   "task_id": "G5-L-CPU-transfer-001",
-  "status": "awaiting_independent_review",
+  "status": "independently_verified_limited_benchmark",
   "owner": "upstream_audit",
   "scope": "two fixed CPU experiment packs, no workbench integration/full-G5/RSI",
   "raw_directory": "runs/g5-local-cpu-20261113-01",
@@ -42,5 +42,11 @@
     "public qrels are citations, not scientific support/refutation",
     "no candidate promotion or native task adapter"
   ],
-  "next_recommendation": "retain ranking/coverage tradeoff, add native task adapter and separate task before claiming migration success"
+  "next_recommendation": "retain ranking/coverage tradeoff, add native task adapter and separate task before claiming migration success",
+  "independent_review": {
+    "path": "runs/sprint-003-review/g5-verification.json",
+    "sha256": "0ae4d857f072e9da42301d134a923b7e4be85c65b6e402fa6040e35f90fd020a",
+    "checks": 60,
+    "scope": "all920 perquery metrics and aggregates; independent Fenwick optima for12 cases; no retiming"
+  }
 }

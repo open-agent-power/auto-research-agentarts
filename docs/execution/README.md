@@ -8,11 +8,11 @@
 |---|---|---|
 | G0 仓库/环境/上游审计 | blocked | [验收记录](g0/G0-review.md)；资源隔离和上游runtime smoke未通过 |
 | G1 真实研究闭环 | 原Gate依赖保持；获批G1-L已verified | [两轮真实切片与恢复](g1-local/results.md)，不宣称原G0通过 |
-| G2 动态协作 | blocked | 测量收益后选择组织；开发子代理不算产品收益 |
-| G3 跨课题方法改进 | blocked | 独立任务重验及负迁移 |
+| G2 动态协作 | 原Gate未通过；G2-L已verified | [模块/真实无收益对照](g2-local/results.md)，保留single；无模型Agent研究收益 |
+| G3 跨课题方法改进 | 原Gate未通过；G3-L已verified | [两目标闭环/语义拒绝/恢复](g3-local/results.md)，无记忆因果增益声明 |
 | G4 隔离代码级 RSI | blocked | 受保护评价器、真实候选差异、晋级/拒绝 |
-| G5 RAG/算法迁移 | blocked | 可复算两类任务及对照 |
-| G6 发布交接 | blocked | 干净安装、回归、主研究案例独立复现 |
+| G5 RAG/算法迁移 | 原Gate未通过；G5-L已verified | [两类CPU对照](g5-local/results.md)，尚未原生RAG接线 |
+| G6 发布交接 | 原Gate未通过；G6-L打包verified | [离线wheel安装](g6-local/results.md)，非全新依赖/runtime/正式发布 |
 
 ## 当前任务契约
 
@@ -52,3 +52,7 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 获批本地G1切片已技术验收：[结果](g1-local/results.md)、[验收](g1-local/acceptance.json)、[复盘](SPRINT-002.md)、[恢复](g1-local/reproduction.md)。两轮MAE8.383388→5.702073MPa，313行/129组恶化、负值1保留；5工具/20estimator尝试/1来源/0产品模型，独立算术3252项及原/新路径29请求重放通过。原G0/G2+不变。
 
 恢复归档已核验并记录[身份](g1-local/delivery-manifest.json)。为下一阶段准备的[Worker主机接入/验收包](../../deploy/worker/README.md)只运行既有有界探针、不安装或部署服务；实际可接入主机仍缺失，原G0保持阻塞。
+
+## Sprint 003：扩大可信本地范围后的结果
+
+用户最新[决定](local-continuation.json)取代上文历史G2+限制，允许受控本地继续，原隔离失败不再重复询问。[本轮报告](SPRINT-003.md)和[独立审查](SPRINT-003-review.md)记录实际G2/G3/G5/G6局部结果、失败/恢复/负结果及未通过的完整Gate。下一轮G4-L纯计算能力边界与代码候选准备中。
