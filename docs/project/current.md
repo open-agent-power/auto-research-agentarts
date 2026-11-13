@@ -35,6 +35,12 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 下一可独立增量：核验本轮完整复现归档与原件许可清单，补独立离线重开演练与首次定时轮次实际记录；若能从保存系数进行完整预测算术复核，应先冻结0fit/0model独立范围，不重训或重置旧课题。后续仍直接验证后推送main；原隔离问题不重复询问。
 
+## 最新交付与真实外部阻塞
+
+[Sprint005](../execution/SPRINT-005.md)已闭合；[复现包索引](../execution/delivery-sprint-005.json)对应77,407,847字节ZIP、930成员、源bundle tip `e97c0a6`、独立2864检查/494文件保护，均通过。归档已完成，不需重复生成或重跑研究。
+
+本轮普通push被GitHub拒绝，`gh auth status`确认环境GH_TOKEN invalid；最后成功远程main仍`0c197e8`，本地已领先且完整保存，禁止reset到旧远程。用户原先的push/merge授权仍有效，实际需要更新CLI凭据；连接的GitHub应用账户读取可用，但其create_commit缺少原作者/日期参数，不能保持科研冻结commit身份，不用新SHA替代旧记录。恢复凭据后先只读核remote HEAD再普通push；技术授权失败不能假报成功，也不能重复索要已接受的Worker/开发批准。其余本地G6接续可独立继续。
+
 ## 历史项目与服务
 
 旧Concrete `runs/cloud-concrete-local-20261113-01/manager`，RealEstate/Slump `runs/g3-local-transfer-20261113-01/{real-estate,slump}/manager`；state分别32/33/24，研究estimator分别20/20/10。原源码冻结 `0ceb274`，旧只读服务18830由 `work/study-source-0ceb274` 启动，actions/models关闭。新main对旧case为CODE_CHANGED，不能upgrade、迁移producer、重拟合或重建其预算。原/新路径独立恢复与原件哈希见对应Sprint报告。

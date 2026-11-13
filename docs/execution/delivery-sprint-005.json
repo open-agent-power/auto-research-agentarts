@@ -1,0 +1,39 @@
+{
+  "schema_version": "sprint-005-delivery-index-v1",
+  "status": "verified_local_delivery_pending_git_cli_authentication",
+  "archive_path": "/workspace/auto-research-agentarts/runs/sprint-005-delivery/native-cpu-reproduction-evidence.zip",
+  "archive_bytes": 77407847,
+  "archive_sha256": "e320404532fe80fd085ec1dbe07cf6e1abda6d8212a00f8295baa3c9371a1a58",
+  "source_bundle_tip": "e97c0a697ce641081b0a276f5dfa5d1a29762879",
+  "scientific_source_commit": "8e8a206ed0b71479a6e774e36ed91fdb06e21c22",
+  "presentation_and_wheel_source_commit": "e638b5f3782d12a7b54bb9ede5596e5c4d9726cf",
+  "zip_members": 930,
+  "payload_entries": 929,
+  "allowlisted_input_files": 926,
+  "all_crc_and_file_sha_checks_passed": true,
+  "self_contained_git_bundle_verified": true,
+  "protected_files_unchanged": 494,
+  "protected_older_files_subset": 369,
+  "independent_review_sha256": "4fe443aa11e4bf613aa26d52a0def0a570662c6a4741f62630a18132b10973db",
+  "independent_checks": 2864,
+  "delivery_receipt_sha256": "3340de84e350354588e57a33545992094449416236ff22c109be5d38f960e067",
+  "archive_manifest_sha256": "6c35932e8a9170c868b89e198479b4c7b52670b366720bda39ee6e9ebf40f1e1",
+  "excluded": [
+    "credential/control files",
+    "private automation identifiers",
+    "virtual environments",
+    "dependency caches",
+    "node_modules",
+    "reference clones",
+    "raw .git",
+    "duplicate UI downloads"
+  ],
+  "scope": "Source, complete saved cases, public originals/licenses, preserved failures, independent reviews, true read-only videos and purpose-specific clean wheel; not a dependency mirror, scientific refit or full original Gates.",
+  "github_publication": {
+    "state": "blocked_by_expired_cloud_cli_token",
+    "last_pushed_main": "0c197e8c2cbd14a899b8097d476cdb93053380e3",
+    "cloud_changes_committed": true,
+    "known_error": "gh auth status reports GH_TOKEN invalid; Git remote rejected username/token",
+    "permission": "Existing user authorization to push/merge persists; credential renewal is needed, not new development approval."
+  }
+}
