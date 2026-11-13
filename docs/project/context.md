@@ -32,3 +32,6 @@ Sprint003已得到G2无收益对照、G3两目标闭环及负控、G5两类CPU�
 继承环境恢复的Sprint006已实际普通push成功并回读main=`477aae3`，上轮token失效不再是当前阻塞；原失败及冻结提交身份保持，不需重复索要登录/Worker授权。平台已有11:43UTC run-time marker，但run/result详情未返回，完成状态不推断。本轮聚焦archive-only保存接续、2991保存参数预测算术（先固定协议再算）、UCI原下载独立补充包；0fit/0model，不重写已验收77MB ZIP或历史课题。
 
 Sprint006实测闭合：新target从归档8原ID恢复，01依赖平台探测失败保留，02仅真实uname1次后strict subprocess/network0；177/187/930物料绑定、1510实际独审过。固定参数算术2991行maxdiff1.42e-14，33282输出断言，负例689保留；补充UCI209918B小包37成员。494原件/50历史fit不变。下一轮做两CPU领域实验页摘要与损失展示，沿既定DESIGN/保存观察，0新研究，别重复已闭合算术或重发driver。
+
+
+Sprint007已完成两CPU领域保存结果阅读，源码7633792，原state13/3plans/2tools与50历史fit保持，无新增研究/工程fit或产品模型调用。最终桌面+手机五页、38截图、80GET、12下载/读取及末列文字范围实测通过，独立36+63语义/807最终检查。01/02/03视觉缺口与调度启动失败保留，04才完整通过。新只读18836/18837由独立固定checkout服务原manager，旧源码pin clean。下一步已有artifact不利query按需精确阅读，见current及cpu-results-ui.json；平台14:45UTC标记仍无run/result详情。

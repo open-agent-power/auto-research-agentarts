@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+`cpu-results.ts`由`project-view.ts`原comparison reader复用，读取保存的检索宏指标/配对数/下降与调度慢例/完整任务。缺失不填0，原JSON与下载保留；手机表格核固定首列与末列文字范围，不改研究或预算。[用法](../../docs/local-workbench.md#原生-cpu-保存结果)、[实际验收](../../docs/execution/g5-local/cpu-results-ui.md)。
+
 `local-model.ts`在计划模式提供明确保存字段勾选、只读预览及输入／选择JSON下载。按项目保留草稿，快照变化使预览失效；不可用的旧action/SHA不偷偷替换。CLI关闭或只读时仍可阅读，发送门禁保持。历史记录与MD/PDF仅摘要实际冻结供应的字段/count/producer，完整原值留在原JSON；见[供应与边界](../../docs/research-design.md#明确供应保存诊断字段)。
 
 `project-view`在实验行动及画布摘要显示原生保存误差诊断，完整折／组表和按需GET的逐行表均用有界滚动，原CV身份、目标单位与两种加权分别表示；现有原工件下载保留。`project_report`独立读取`result.diagnostic`，不混入训练CV与父比较。见[阅读路径](../../docs/research-design.md#原生保存误差诊断)。

@@ -33,7 +33,11 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 两段[真实只读演示](../execution/g6-local/native-demo.md)已完成（31.28/30.68秒，1440×900），实际指标帧已看，125案例文件与5类API前后字节不变。视频与34文件精确allowlist保存在 `runs/g5-native-demo-20261113-01`，不重复录制假运行。
 
-上述归档重开与保存系数算术已在Sprint006实际闭合，下一轮不要重复旧driver或新建同课题。下一可独立增量是实验中心的检索/调度结果摘要：复用保存observations和既定五页设计，直显宏指标、召回下降、慢例与原记录入口；使用现有两案只读验收，不执行新研究、不拟合或扩额。平台首轮完成/投递状态仍需后续真实回读，不能从触发标记推断。
+上述归档重开与保存系数算术已在Sprint006闭合，不重复旧driver或新建同课题。[Sprint007](../execution/SPRINT-007.md)现已完成两CPU领域可读摘要：宏指标、Recall5/20下降、133混合集合含义、唯一慢例及全部16任务直接阅读，原JSON及下载保持。最终源码`7633792`，独立固定checkout `/workspace/work/native-cpu-ui-7633792`，只读预览18836/18837仍用原manager、无写/模型开关。中间2f展示进程已停止，旧0ceb/8e8/e638源码pin均clean。
+
+最终两案五页在1440×900和390×844实测，38截图、80浏览器GET／0POST／错误、4原行动下载＋8报告HTTP读取；API、494保护文件及三根完整421路径集保持。36原件＋63编译语义检查和807项最终独审通过。01/02/03手机布局缺口及02服务启动失败保留，只有04最终完整看图和末列文字边界通过。[UI验收](../execution/g5-local/cpu-results-ui.md)与[精确身份/预算](../execution/g5-local/cpu-results-ui.json)可接续。历史50estimator不变，本轮无新研究/工程fit或产品模型/API；开发成本unknown，非科研收益或原完整Gate通过。
+
+下一可独立增量：已有artifact不利query的按需阅读与精确定位。先核原query/doc/action引用及加载边界，再复用reader用GET展示；投影只有133总数，不硬编码60/73，不重排/重算/新建项目/换ID/扩额。平台14:45UTC触发标记存在但run/result仍null、投递unknown，不据标记推断完成。
 
 ## 最新交付与凭据恢复
 
@@ -55,6 +59,6 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 ## 平台定时与参考库
 
-已设置单个每3小时平台任务，enabled且继承同一cloud环境(`/workspace`)。本轮回读出现`2026-11-13T11:43:24.792602+00:00`触发时间标记，下个计划时点为14:47:27UTC；last_run/result详情仍null，不能据此标平台完成/投递成功。本轮已实际恢复云盘、领取lease并完成原提交推送，独立记录工作证据。手机无需常开来触发；状态配置位于ignored `.agent/autonomy/automation.json`，不公开私密ID。
+已设置单个每3小时平台任务，enabled且继承同一cloud环境(`/workspace`)。以下为Sprint006历史回读：当时出现`2026-11-13T11:43:24.792602+00:00`触发时间标记，下个计划时点为14:47:27UTC；last_run/result详情仍null，不能据此标平台完成/投递成功。Sprint006已实际恢复云盘、领取lease并完成原提交推送，独立记录工作证据。手机无需常开来触发；状态配置位于ignored `.agent/autonomy/automation.json`，不公开私密ID。
 
 云端 `/workspace/references/upstream/` 的 autoresearch、AI-Scientist、AgentLaboratory、prime、OpenHands、software-agent-sdk、beir、ragas 共8个真实Git checkout已再核HEAD=manifest且clean。机制与许可研究见[G0复用矩阵](../execution/g0/upstream/reuse-matrix.md)，当前选择性自研适配；完整上游runtime未全部接入。BEIR数据/固定指标实际使用；Prime地址为服务CLI，AIDE²未定位源码，不能声称复现。

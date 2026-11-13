@@ -1,0 +1,311 @@
+{
+  "schema_version": "sprint007-cpu-ui-evidence-v1",
+  "recorded_at_utc": "2026-11-13T15:14:34.591033+00:00",
+  "scope": "Saved CPU observation presentation, not new scientific gain",
+  "source_commit": "7633792a6e817efe32ec0750e0846be43fdb55f6",
+  "baseline_commit": "1c340349bb1ace89f7c94523e359f4abda5469b4",
+  "implementation_commit": "533674795769ac60da8719b0d374ace0fd39ebcf",
+  "grid_fix_commit": "2f61c9fa57644c843997c9a0c525af4e98d8cb27",
+  "source_checkout": "/workspace/work/native-cpu-ui-7633792",
+  "code": [
+    {
+      "path": "frontend/src/cpu-results.ts",
+      "bytes": 8500,
+      "sha256": "4472a6595aabee22c2c4387b1f7a24a0d4839e64ed8b3fb5af1e1020ddaea9f2"
+    },
+    {
+      "path": "frontend/src/project-view.ts",
+      "bytes": 91549,
+      "sha256": "2390cd9805230b14506e783308d5049f06fa0926b39b5819cbadcbe8134666ac"
+    },
+    {
+      "path": "frontend/src/styles.css",
+      "bytes": 91689,
+      "sha256": "2f994216bc2c615c8cd4eb9e2bb7eb6c51c742566e2f072232c325d552bf0100"
+    },
+    {
+      "path": "src/autoresearch/web/app.js",
+      "bytes": 1117742,
+      "sha256": "a0451bd596ac971baf9a8746bf7dbfd96cd2d4c3df1b567a869b3626b7dac851"
+    },
+    {
+      "path": "src/autoresearch/web/app.css",
+      "bytes": 92357,
+      "sha256": "c7829f0692c976d19774e48d84013e5a61eac6f1b62e809d2489cd0ade1764ca"
+    }
+  ],
+  "cases": [
+    {
+      "family": "retrieval",
+      "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+      "state_version": 13,
+      "research_plan_revisions": 3,
+      "manager": "runs/g5-native-cases-20261113-01/retrieval/manager",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "existing_cash_cap_cny": 5,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "g5-native-retrieval:retrieval",
+        "local_tool_call_limit": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_dispatches": 2,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0,
+        "fit_limit": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "preprocessing_fits": 0,
+        "fits_completed": 0,
+        "ridge_fits_completed": 0,
+        "preprocessing_fits_completed": 0
+      },
+      "actions": [
+        {
+          "id": "action-f2291951a00d194f4069b2b40a9c8a00",
+          "request_id": "controller-child-30b38e69e3d7adbe0f895bcd83026e34",
+          "command": "research.retrieval-fixed-pair",
+          "status": "completed",
+          "code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+          "source_snapshot_sha256": "2ff1e33fc9b780037338f9916b9430bd6502029058ccd5386334af1e2b430895",
+          "result_sha256": "dd1780f4b0c6b8e642255c75fa64109dcb08e49d8280d2d39e6f501fbb104b91",
+          "artifact": {
+            "path": "runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-f2291951a00d194f4069b2b40a9c8a00.json",
+            "bytes": 800067,
+            "sha256": "51a423bd1ddb0f203d04fb98c28a903b51156c7d088a4c2cd2e8b58f4ba69c5e"
+          }
+        },
+        {
+          "id": "action-6f6cf23eaa4fb3922931cae1d95ef14f",
+          "request_id": "controller-child-7c36fc55e637859a4711972cc4aa2bc0",
+          "command": "research.retrieval-saved-error-audit",
+          "status": "completed",
+          "code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+          "source_snapshot_sha256": "2ff1e33fc9b780037338f9916b9430bd6502029058ccd5386334af1e2b430895",
+          "result_sha256": "ebf8457118a3c031802582065bbcf1526b576b1808799ea835b3094488f199e8",
+          "artifact": {
+            "path": "runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-6f6cf23eaa4fb3922931cae1d95ef14f.json",
+            "bytes": 260108,
+            "sha256": "9f136cfea13efcf5056cec72a3ce4715dc54b12e0c4e4b7c42151039d1c0aece"
+          }
+        }
+      ],
+      "resume": "UI GET only; do not redispatch completed actions; research unknown uses original ID/body, never new project/reset.",
+      "port": 18836
+    },
+    {
+      "family": "scheduling",
+      "project_id": "project-148dac5d531144008498449cb16a54ea",
+      "state_version": 13,
+      "research_plan_revisions": 3,
+      "manager": "runs/g5-native-cases-20261113-01/scheduling/manager",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "existing_cash_cap_cny": 5,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "g5-native-scheduling:scheduling",
+        "local_tool_call_limit": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_dispatches": 2,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0,
+        "fit_limit": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "preprocessing_fits": 0,
+        "fits_completed": 0,
+        "ridge_fits_completed": 0,
+        "preprocessing_fits_completed": 0
+      },
+      "actions": [
+        {
+          "id": "action-60d069e0125cdd173de796b10ab8f17f",
+          "request_id": "controller-child-1042a6d25ab2a0ef6afbd46fb4181378",
+          "command": "research.weighted-interval-fixed-pair",
+          "status": "completed",
+          "code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+          "source_snapshot_sha256": "08ebf6433efb414ff139197036f5fa419ffe9e0f11037954f537d5a80e8b678d",
+          "result_sha256": "4eeda3def5e6002a39ed20fcd5208b086cdd78202c646bca1014c5ce427c6490",
+          "artifact": {
+            "path": "runs/g5-native-cases-20261113-01/scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/artifacts/action-60d069e0125cdd173de796b10ab8f17f.json",
+            "bytes": 1100725,
+            "sha256": "97a931f22681f50b5887e01b6e82a551da35516c8d4d3e2f0eead1a7c5748482"
+          }
+        },
+        {
+          "id": "action-c832f8e2051aef07977f6bcb1f5ec3fa",
+          "request_id": "controller-child-e7b72f50ffdc8c82e21396f0ebb8a6db",
+          "command": "research.weighted-interval-saved-audit",
+          "status": "completed",
+          "code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+          "source_snapshot_sha256": "08ebf6433efb414ff139197036f5fa419ffe9e0f11037954f537d5a80e8b678d",
+          "result_sha256": "0ce00384b0a55ef67b6253e0199f3afd44bafbec49af08a7ddfadbfb1a43ab6c",
+          "artifact": {
+            "path": "runs/g5-native-cases-20261113-01/scheduling/manager/projects/e2e6a30f9183cdeb834ea4dc5380a66f4e1a6d1e03a61f800d209ea22d4af659/artifacts/action-c832f8e2051aef07977f6bcb1f5ec3fa.json",
+            "bytes": 21468,
+            "sha256": "528187b0e65e92dff85fda8eeae483c266b540c5cf92fa63478b4f9c56d6083d"
+          }
+        }
+      ],
+      "resume": "UI GET only; do not redispatch completed actions; research unknown uses original ID/body, never new project/reset.",
+      "port": 18837
+    }
+  ],
+  "materials": [
+    {
+      "path": "runs/sprint-007-ui-20261113-04/receipt.json",
+      "bytes": 21458,
+      "sha256": "cb49d1f0ac837d9b232d02022ceb79f20fac91d60147b599ec373c23dac98aab"
+    },
+    {
+      "path": "runs/sprint-007-ui-20261113-04/visual-review.json",
+      "bytes": 1173,
+      "sha256": "83d0f4e38a5fbdc068f132129b6ff827ba5c392a3a4e964e19b3bfadf4296d7c"
+    },
+    {
+      "path": "runs/sprint-007-ui-20261113-04/verify_cpu_ui_v4.py",
+      "bytes": 15140,
+      "sha256": "403d9158e163f5f75bf54350da4ea35677f2eeabf2b8bcc664c0d54f9270995d"
+    },
+    {
+      "path": "runs/sprint-007-semantic-review-20261113/acceptance.json",
+      "bytes": 20798,
+      "sha256": "fce8fdd82da59b81f28aa20dfc4ee2215f09929288daa24720e9367933041eb5"
+    },
+    {
+      "path": "runs/sprint-007-semantic-review-20261113/render-review.json",
+      "bytes": 5047,
+      "sha256": "f84b1b31bcc2264b016eddd80de9a805604715876d4e96d10ee0eec8a7402b91"
+    },
+    {
+      "path": "runs/sprint-007-semantic-review-20261113/final-source-binding.json",
+      "bytes": 2995,
+      "sha256": "d292b41f69835adf9aaaa2e96b156b1a0249ec00aa445c808d18233b24f912ad"
+    },
+    {
+      "path": "runs/sprint-007-semantic-review-20261113/final-review.json",
+      "bytes": 127374,
+      "sha256": "32ab952808fcd685e36968c11af1f0fc47763d6061c813552bbad3f53c812ee2"
+    },
+    {
+      "path": "runs/sprint-007-semantic-review-20261113/visual-review-02-03-findings.json",
+      "bytes": 1992,
+      "sha256": "6750264cd81f37ebb0dd751484532fcc19bef123b804b852a36c3e379d42dce3"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/protected-before.json",
+      "bytes": 113345,
+      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/protected-after.json",
+      "bytes": 113345,
+      "sha256": "3a379a7a7aca359d3b6c7f538cef176bd1fe7e0a25a0c24a7f0f24c33a5d6407"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/protected-path-sets-before.json",
+      "bytes": 26050,
+      "sha256": "b69690e127b44b9812fa4781ac8a1cdd5bcfc4212245275ae320d8cecbd65767"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/source-pins.json",
+      "bytes": 574,
+      "sha256": "d6a506e6cfd07d31b338b7e54fd4f4f4a04b155f6283e96c01d32215029dcc45"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/production-diff-scope.json",
+      "bytes": 398,
+      "sha256": "3a71e3604687a9733b082a636b789988aaa330177f1034463fc51fb838d6ae10"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/frontend-validation-02.json",
+      "bytes": 521,
+      "sha256": "e1fea31f7b13aeeab6773ad00490fb7a7d996cccb5071a5124744aa9eb9ad11d"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/frontend-validation-03.json",
+      "bytes": 426,
+      "sha256": "33c52bf4e5566fe4467a8d7d72d65c0737a57ad6e1e861ff7566f351bde6b727"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/automation-observation.json",
+      "bytes": 437,
+      "sha256": "e47ea95df3894705b993e7179856b6229d4e0c8a1347e821ea59a507b4358d4b"
+    },
+    {
+      "path": "runs/sprint-007-start-20261113-01/runtime-identity.json",
+      "bytes": 347,
+      "sha256": "4ede5a950f556d015fd875a280ab5b299933b75afb0414dcd3615264e0612b75"
+    }
+  ],
+  "actual_browser": {
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "contexts": 4,
+    "screenshots": 38,
+    "browser_get_requests": 80,
+    "post_or_nonorigin_requests": 0,
+    "page_or_http_errors": 0,
+    "action_browser_downloads": 4,
+    "report_http_reads": 8,
+    "original_api_and_files_unchanged": true,
+    "terminal_text_range_checked": true,
+    "five_page_checks": 20
+  },
+  "independent_checks": {
+    "saved_sources": 36,
+    "compiled_semantics": 63,
+    "first_layout_binding": 20,
+    "final_browser_files_visual": 807,
+    "not_scientific_samples": true
+  },
+  "usage": {
+    "new_research_fits": 0,
+    "new_engineering_fits": 0,
+    "product_model_api_calls": 0,
+    "new_ranking_solving_scoring_or_reports": 0,
+    "historical_estimator_attempts_unchanged": 50,
+    "protected_case_files": 494,
+    "complete_path_set_files": 421,
+    "development_tokens_and_money": "unknown"
+  },
+  "failures_retained": [
+    "01 basicpass but expandedgrid visualfailure",
+    "02 overallfailed:retrieval complete;scheduling genericstartupfailure/connectionrefused,specificcause unknown",
+    "02/03 partial basicpasses but terminalvalues obscured bystickycolumn",
+    "04 finalpassed"
+  ],
+  "limitations": [
+    "BM25 test recall5/20 declines; no promotion",
+    "133adverse is union, not all losses; observation lacks60/73taxonomy",
+    "public citation retrieval, not generatedRAG/hiddenfactualevaluation",
+    "synthetic known exactDP; slowcase retained, notnovelalgorithm",
+    "trustedlocal; originalG0/fullG5/G6/sealed/multigeneration unchanged"
+  ],
+  "next_task": "On-demand existing adverse-query artifact reading with originalquery/doc/action references. GET only; no rerank/rescore/newproject/budget.",
+  "need_user_decision": false,
+  "research_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e"
+}
