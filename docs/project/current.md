@@ -2,7 +2,7 @@
 
 ## 当前结果
 
-经用户批准的可信本地G1切片已完成技术验收。原G0资源隔离及上游runtime仍BLOCKED，G2–G6未开始。只有只读工作台服务，没有无人值守模型研究或定时任务。
+经用户批准的可信本地G1切片已完成技术验收。原G0资源隔离及上游runtime仍未通过；用户已接受当前环境限制，新的G2-L/G3-L/G5-L可信本地轮次开始。只有只读工作台服务，没有无人值守模型研究或定时任务。
 
 ## 本轮已完成
 
@@ -22,10 +22,14 @@
 
 复现归档`runs/g1-local-delivery/concrete-reproduction.zip`已生成，约19.5MB/280条目，包含完整Git bundle、原/恢复case、公开数据/许可、独立检查、界面与图表，ZIP CRC与每文件SHA全核验；[清单](../execution/g1-local/delivery-manifest.json)保留身份。新Worker[主机接入/验收包](../../deploy/worker/README.md)及无副作用封装已准备并通过语法/帮助/已存在目录拒绝检查，未发生远程部署或采购。
 
-## 下一阶段与阻塞
+## 当前Sprint 003
 
-本课题仅为已见公开数据的表达对照，不是领域批准、未见任务收益、自主模型runtime或RSI。保留全部坏结果，下一研究需要独立数据和新范围，不能自动追加fit。
+用户明确表示“无法补充这一项，没事，继续按照项目计划推荐就可以”，已记录[扩大可信本地推进](../execution/local-continuation.json)。当前环境限制不再作为每阶段重复确认点；原隔离未通过如实保留，既有Concrete20fit账本保护。没有采购或产品模型API发送。
 
-继续原计划G2及以后需要可强制实施CPU/RAM/PID和工件配额的Worker，完成上游最小隔离PoC后重新验G0。当前云机UID1000、cgroup未委派，不能自行修复；没有外部Worker连接或环境修改接口。已完成本地例外不等于解除此门槛。
+并行文件所有权：root维护原生G3执行/集成；resource_audit维护agent_tasks模块/测试；research_task维护两真实数据预核；repo_audit维护G3冻结独立verifier/协议；upstream_audit维护G5纯CPU基准；independent_review独立审阅。
 
-GitHub组织授权已生效，PR#1已合并，后续本轮变更验证后直接推送main。用户要求每大轮汇报后自主继续，仅真实外部/决策阻塞再询问。
+G3预登记：RealEstate414行(20estimator上限)，Slump103行(20上限，预计只10baseline)，两题总上限40，均6工具/1来源/0产品模型/API，研究执行并发1。源Concrete age为天，房产age为年，log1p不是单位不变迁移；Slump没有逐行age，仅作资格负控，与源有一组配料数值重叠，不称完全独立外验。先固定语义/数据/候选/评价，再看目标成绩。
+
+G2只实现受信任分析任务的DAG/claim/result/恢复，不执行任意代码或宣称自动LLM协作。无实测收益维持single默认。G5准备许可明确的SciFact引用文献检索和明示synthetic的加权区间调度CPU对照；不调用生成模型或LLM judge。
+
+每轮完成后验证并直接推送main、说明改动/实测/限制，再接续可独立工作。不把本地进程假称Docker安全沙箱，不复制旧预算或声称sealed多代RSI。

@@ -1,0 +1,94 @@
+{
+  "budget": {
+    "fit_attempts": 20,
+    "local_tool_calls": 6,
+    "model_calls": 0,
+    "source_reads": 1
+  },
+  "candidate_transform": {
+    "house_age": "log1p"
+  },
+  "dataset_id": "real-estate",
+  "expected_fit_actions": 2,
+  "expected_rows": 414,
+  "experience": {
+    "bundle_sha256": "4dca2ddf38ef9debe14b85ccdf37f164df92c74d8eda594941c999ecd5fe7c1b",
+    "source_action_id": "action-d093cfe1b49ae1365c9126ade64dd0b5",
+    "source_age_unit": "day",
+    "source_parent_action_id": "action-3a4d3c93d9dae8a943a22e7757e03b8b",
+    "source_project_id": "project-431366b59dac432dabb315d82dee6eae",
+    "target_age_unit": "year",
+    "transform_semantically_applicable": true
+  },
+  "feature_columns": [
+    "transaction_date",
+    "house_age",
+    "distance_to_mrt",
+    "convenience_stores",
+    "latitude",
+    "longitude"
+  ],
+  "grouping": {
+    "columns": [
+      "latitude",
+      "longitude"
+    ],
+    "id_prefix": "location-",
+    "id_width": 4,
+    "kind": "decimal_columns",
+    "target_column": "location_group"
+  },
+  "mapping": [
+    {
+      "source": "No",
+      "target": "original_no"
+    },
+    {
+      "source": "X1 transaction date",
+      "target": "transaction_date"
+    },
+    {
+      "source": "X2 house age",
+      "target": "house_age"
+    },
+    {
+      "source": "X3 distance to the nearest MRT station",
+      "target": "distance_to_mrt"
+    },
+    {
+      "source": "X4 number of convenience stores",
+      "target": "convenience_stores"
+    },
+    {
+      "source": "X5 latitude",
+      "target": "latitude"
+    },
+    {
+      "source": "X6 longitude",
+      "target": "longitude"
+    },
+    {
+      "source": "Y house price of unit area",
+      "target": "house_price_unit_area"
+    }
+  ],
+  "original_columns": [
+    "No",
+    "X1 transaction date",
+    "X2 house age",
+    "X3 distance to the nearest MRT station",
+    "X4 number of convenience stores",
+    "X5 latitude",
+    "X6 longitude",
+    "Y house price of unit area"
+  ],
+  "original_csv": "/workspace/work/g3-data/real-estate/official-data.csv",
+  "original_sha256": "0730a5687ec285a3c2f9921a808855bd1bde21fc53e6377561cbdce2dda9cbb1",
+  "schema_version": "tabular-transfer-verifier-config-v1",
+  "source_row_column": "source_row",
+  "split_group_columns": [
+    "location_group"
+  ],
+  "target_column": "house_price_unit_area",
+  "target_unit": "10000 New Taiwan Dollar/Ping"
+}

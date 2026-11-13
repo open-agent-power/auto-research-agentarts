@@ -1,0 +1,42 @@
+{
+  "schema_version": "trusted-local-continuation-v2",
+  "status": "accepted",
+  "user_instruction": "无法补充这一项，没事，继续按照项目计划推荐就可以",
+  "interpretation": "User accepts unavailable Worker isolation and directs continued trusted-local project work. Do not repeat the same cgroup confirmation each phase.",
+  "recorded_at_utc": "2026-11-13T06:50:24.449471+00:00",
+  "original_container_controls": "not_verified_and_known_failed",
+  "dependency_policy": "Trusted fixed/reviewed local work may continue with explicit scope; no claim of full Docker/sealed isolation.",
+  "preserve_prior_cases": true,
+  "g3": {
+    "per_target": {
+      "real-estate": {
+        "tool_calls": 6,
+        "estimator_attempts": 20,
+        "source_reads": 1
+      },
+      "slump": {
+        "tool_calls": 6,
+        "estimator_attempts": 20,
+        "source_reads": 1
+      }
+    },
+    "portfolio_estimator_ceiling": 40,
+    "expected_estimator_attempts": 30,
+    "product_model_sends": 0,
+    "external_api_sends": 0,
+    "research_concurrency": 1
+  },
+  "g2": {
+    "scope": "typed analysis task DAG/claims/results with separate project-bound ledger; no model transport or arbitrary execution",
+    "max_parallel": 2,
+    "default_mode": "single",
+    "maximum_tasks": 64
+  },
+  "g5": {
+    "scope": "fixed pure-CPU retrieval and scheduling benchmark code, no generation/judge/model service",
+    "research_concurrency": 1,
+    "product_model_sends": 0
+  },
+  "g4": "No full sandbox/sealed RSI claim; any later candidate execution needs actual bounded capability enforcement and independent review, not renamed local process.",
+  "financial_scope": "No provisioning/purchase/paid model API authorized by this change."
+}

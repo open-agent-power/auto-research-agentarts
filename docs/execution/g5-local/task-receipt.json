@@ -1,0 +1,46 @@
+{
+  "task_id": "G5-L-CPU-transfer-001",
+  "status": "awaiting_independent_review",
+  "owner": "upstream_audit",
+  "scope": "two fixed CPU experiment packs, no workbench integration/full-G5/RSI",
+  "raw_directory": "runs/g5-local-cpu-20261113-01",
+  "freeze_sha256": "759d15473a64f45f855f5c455ddb6329bac229885d077424d381df3ef25f6af8",
+  "raw_manifest_sha256": "660bd6b2867222e51e1480fcdff3a679eff71b67723b28c9f5ff544ea904bf7d",
+  "changed_files": [
+    "scripts/run_cpu_transfer_benchmarks.py",
+    "docs/execution/g5-local/protocol.md",
+    "docs/execution/g5-local/results.md",
+    "docs/execution/g5-local/source-provenance.md",
+    "docs/execution/g5-local/source-receipts.json",
+    "docs/execution/g5-local/task-receipt.json"
+  ],
+  "execution_checks": [
+    "py_compile",
+    "data provenance exact/mapped identity checks",
+    "fixed metric microchecks",
+    "32 scheduling correctness checks",
+    "12 independent algorithm test workloads x3 timings x2 methods",
+    "raw artifact SHA verification",
+    "git diff --check"
+  ],
+  "command": "python scripts/run_cpu_transfer_benchmarks.py run --output runs/g5-local-cpu-20261113-01",
+  "exit_code": 0,
+  "measured": {
+    "wall_seconds": 10.531131086001551,
+    "cpu_seconds": 10.515389224,
+    "max_rss_kib": 84944
+  },
+  "cost": {
+    "program_model_calls": 0,
+    "external_api_calls_during_run": 0,
+    "development_tokens": null,
+    "currency": null,
+    "amount": null
+  },
+  "negative_findings": [
+    "BM25 Recall@5 and Recall@20 worse than TF-IDF",
+    "public qrels are citations, not scientific support/refutation",
+    "no candidate promotion or native task adapter"
+  ],
+  "next_recommendation": "retain ranking/coverage tradeoff, add native task adapter and separate task before claiming migration success"
+}

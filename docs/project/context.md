@@ -20,3 +20,7 @@
 ## 接续
 
 先读 [current](current.md)，再按任务板进入当前 Gate。运行资源问题以实际容器内部限制为准，不以 docker inspect 配置宣称生效。具体审计见 [G0](../execution/g0/)。
+
+## 后续环境决定
+
+用户已明确接受无法补Worker并要求继续推荐计划，当前范围以[local-continuation.json](../execution/local-continuation.json)为准。可开展有界可信本地的新课题/分析/CPU基准，单独预登记预算；原G0隔离事实保持，旧Concrete20fit不可重置。无需每个阶段重复询问同一环境限制，实际费用或新的不可逆外部动作另按授权处理。

@@ -1,0 +1,113 @@
+{
+  "budget": {
+    "fit_attempts": 20,
+    "local_tool_calls": 6,
+    "model_calls": 0,
+    "source_reads": 1
+  },
+  "candidate_transform": null,
+  "dataset_id": "slump",
+  "expected_fit_actions": 1,
+  "expected_rows": 103,
+  "experience": {
+    "bundle_sha256": "4dca2ddf38ef9debe14b85ccdf37f164df92c74d8eda594941c999ecd5fe7c1b",
+    "source_action_id": "action-d093cfe1b49ae1365c9126ade64dd0b5",
+    "source_age_unit": "day",
+    "source_parent_action_id": "action-3a4d3c93d9dae8a943a22e7757e03b8b",
+    "source_project_id": "project-431366b59dac432dabb315d82dee6eae",
+    "target_age_unit": null,
+    "transform_semantically_applicable": false
+  },
+  "feature_columns": [
+    "cement",
+    "slag",
+    "fly_ash",
+    "water",
+    "superplasticizer",
+    "coarse_aggregate",
+    "fine_aggregate"
+  ],
+  "grouping": {
+    "columns": [
+      "cement",
+      "slag",
+      "fly_ash",
+      "water",
+      "superplasticizer",
+      "coarse_aggregate",
+      "fine_aggregate"
+    ],
+    "id_prefix": "mixture-",
+    "id_width": 4,
+    "kind": "decimal_columns",
+    "target_column": "mixture_group"
+  },
+  "mapping": [
+    {
+      "source": "No",
+      "target": "original_no"
+    },
+    {
+      "source": "Cement",
+      "target": "cement"
+    },
+    {
+      "source": "Slag",
+      "target": "slag"
+    },
+    {
+      "source": "Fly ash",
+      "target": "fly_ash"
+    },
+    {
+      "source": "Water",
+      "target": "water"
+    },
+    {
+      "source": "SP",
+      "target": "superplasticizer"
+    },
+    {
+      "source": "Coarse Aggr.",
+      "target": "coarse_aggregate"
+    },
+    {
+      "source": "Fine Aggr.",
+      "target": "fine_aggregate"
+    },
+    {
+      "source": "SLUMP(cm)",
+      "target": "slump_cm"
+    },
+    {
+      "source": "FLOW(cm)",
+      "target": "flow_cm"
+    },
+    {
+      "source": "Compressive Strength (28-day)(Mpa)",
+      "target": "strength_28d"
+    }
+  ],
+  "original_columns": [
+    "No",
+    "Cement",
+    "Slag",
+    "Fly ash",
+    "Water",
+    "SP",
+    "Coarse Aggr.",
+    "Fine Aggr.",
+    "SLUMP(cm)",
+    "FLOW(cm)",
+    "Compressive Strength (28-day)(Mpa)"
+  ],
+  "original_csv": "/workspace/work/g3-data/slump/archive-originals/slump_test.data",
+  "original_sha256": "78cea9fbb28ad8fc17f389e216e724dc04642c6c363143e67f6bcb97e74525ee",
+  "schema_version": "tabular-transfer-verifier-config-v1",
+  "source_row_column": "source_row",
+  "split_group_columns": [
+    "mixture_group"
+  ],
+  "target_column": "strength_28d",
+  "target_unit": "MPa"
+}

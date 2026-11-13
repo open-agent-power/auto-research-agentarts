@@ -1,0 +1,33 @@
+{
+  "retrieved_at": "2026-11-13T06:54:17.500Z",
+  "sources": [
+    {
+      "url": "https://github.com/allenai/scifact",
+      "metadata": {
+        "scrapeId": "01a1d3a7-acba-70bc-8a84-72bf94e40e0b",
+        "sourceURL": "https://github.com/allenai/scifact",
+        "url": "https://github.com/allenai/scifact",
+        "statusCode": 200,
+        "contentType": "text/html; charset=utf-8",
+        "cacheState": "miss"
+      },
+      "source_type": "official_source",
+      "inspected": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/allenai/scifact/68b98a56d93e0f9da0d2aab4e6c3294699a0f72e/LICENSE.md",
+      "metadata": {
+        "scrapeId": "01a1d3a7-f475-72d8-b5a0-99d20506c066",
+        "sourceURL": "https://raw.githubusercontent.com/allenai/scifact/68b98a56d93e0f9da0d2aab4e6c3294699a0f72e/LICENSE.md",
+        "url": "https://raw.githubusercontent.com/allenai/scifact/68b98a56d93e0f9da0d2aab4e6c3294699a0f72e/LICENSE.md",
+        "statusCode": 200,
+        "contentType": "text/plain; charset=utf-8",
+        "cacheState": "miss"
+      },
+      "source_type": "official_source",
+      "inspected": true
+    }
+  ],
+  "program_model_calls": 0,
+  "source_retrieval_infrastructure_cost": null
+}
