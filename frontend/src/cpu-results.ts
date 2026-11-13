@@ -1,5 +1,6 @@
 /** Read CPU comparison observations only; no ranking, solving, or command submission. */
 import { el, numeric } from "./dom";
+import { createRetrievalReader, type RetrievalReaderContext } from "./retrieval-reader";
 
 type Obj = Record<string, unknown>;
 type ResultTable = (caption: string, headings: string[], values: string[][]) => HTMLElement;
@@ -89,9 +90,13 @@ function schedulingSummary(observation: Obj, table: ResultTable): HTMLElement {
   return wrap;
 }
 
-export function cpuResultSummary(observations: Obj[], table: ResultTable): HTMLElement | null {
+export function cpuResultSummary(observations: Obj[], table: ResultTable, context?: RetrievalReaderContext): HTMLElement | null {
   const retrieval = observations.find(item => item.kind === "citation_retrieval_pair" || item.kind === "saved_retrieval_error_audit");
-  if (retrieval) return retrievalSummary(retrieval, table);
+  if (retrieval) {
+    const summary = retrievalSummary(retrieval, table), reader = context ? createRetrievalReader(context, table) : null;
+    if (reader) summary.append(reader);
+    return summary;
+  }
   const scheduling = observations.find(item => item.kind === "weighted_interval_fixed_pair" || item.kind === "saved_weighted_interval_audit");
   return scheduling ? schedulingSummary(scheduling, table) : null;
 }

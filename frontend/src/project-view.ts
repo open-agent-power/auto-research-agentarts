@@ -309,7 +309,7 @@ function comparison(action: Obj, project: Obj): HTMLElement {
     wrap.append(el("p", "empty-state", "此行动尚无已保存观察。缺少结果不能记为成功或零误差。"));
     return wrap;
   }
-  const cpu = cpuResultSummary(observations, resultTable);
+  const cpu = cpuResultSummary(observations, resultTable, { project, action });
   if (cpu) {
     cpu.append(details("此方法的完整观察记录", observations));
     return cpu;

@@ -22,6 +22,7 @@ from .host_model_report import host_model_report_current
 from .research_plan_proposal import build_context as build_plan_context
 from .research_recipe import parse_json
 from .saved_materials import normalize_requests
+from .saved_retrieval_reader import read_adverse_page, read_adverse_query
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
 MAX_REPORT_TOTAL_BYTES = 128 * 1024 * 1024
@@ -77,6 +78,38 @@ def _bound_state(project, iteration_snapshot):
     _require(iteration_snapshot is None or state.get("source_scope", {}).get("iteration_snapshot_sha256") == iteration_snapshot,
              "BUNDLE_PROJECT_MISMATCH", "Project and sealed iteration identities differ.")
     return state
+
+
+def _retrieval_reader_query(raw, *, detail):
+    """Parse display selectors only; never accept a path or research command."""
+    _require(len(raw.encode("utf-8")) <= 2048, "INVALID_QUERY", "Reader selectors exceed their input limit.")
+    try:
+        values = parse_qs(raw, keep_blank_values=True, strict_parsing=True,
+                          max_num_fields=5, errors="strict")
+    except (ValueError, UnicodeError):
+        raise ResearchError("INVALID_QUERY", "Use one set of bound reader selectors.") from None
+    required = {"project_id", "snapshot_ref", "action_id"}
+    optional = {"query_id", "split"} if detail else {"offset", "limit"}
+    _require(required <= set(values) <= required | optional
+             and (not detail or optional <= set(values))
+             and all(len(items) == 1 and items[0] for items in values.values()),
+             "INVALID_QUERY", "Use one set of bound reader selectors.")
+    result = {key: items[0] for key, items in values.items()}
+    identifier(result["project_id"], "project_id")
+    identifier(result["action_id"], "action_id")
+    _require(re.fullmatch(r"[a-f0-9]{64}", result["snapshot_ref"]) is not None,
+             "INVALID_QUERY", "Use a full project snapshot identity.")
+    if detail:
+        identifier(result["query_id"], "query_id")
+        _require(result["split"] in {"dev", "validation", "test"}, "INVALID_QUERY", "Use a saved query split.")
+    else:
+        for key, default in (("offset", "0"), ("limit", "25")):
+            value = result.get(key, default)
+            _require(re.fullmatch(r"0|[1-9][0-9]{0,5}", value) is not None,
+                     "INVALID_QUERY", "Use bounded integer pagination.")
+            result[key] = int(value)
+        _require(1 <= result["limit"] <= 25, "INVALID_QUERY", "Read at most 25 saved adverse queries per page.")
+    return result
 
 
 def _binding(workspace, bundle):
@@ -493,6 +526,23 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     _require(not parsed.query, "INVALID_QUERY", "Project status does not accept a query.")
                     state = _bound_state(project, iteration_snapshot)
                     return self.send_json(200, _projection(project, state, report))
+                if parsed.path in {"/api/project/retrieval-adverse.json", "/api/project/retrieval-query.json"}:
+                    detail = parsed.path == "/api/project/retrieval-query.json"
+                    selectors = _retrieval_reader_query(parsed.query, detail=detail)
+                    before = _bound_state(project, iteration_snapshot)
+                    _require(before["id"] == selectors["project_id"]
+                             and before["snapshot_ref"] == selectors["snapshot_ref"],
+                             "STALE_STATE", "The bound reader project changed.")
+                    arguments = {key: selectors[key] for key in
+                                 (("action_id", "query_id", "split") if detail else ("action_id", "offset", "limit"))}
+                    value = (read_adverse_query if detail else read_adverse_page)(project, before, **arguments)
+                    current, current_snapshot, _ = binding()
+                    after = _bound_state(current, current_snapshot)
+                    _require(before["id"] == after["id"] and before["snapshot_ref"] == after["snapshot_ref"],
+                             "STALE_STATE", "The bound reader project changed while loading.")
+                    raw = json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+                    _require(len(raw) <= 1024 * 1024, "READER_TOO_LARGE", "Saved reader response exceeds its display limit.")
+                    return self.send_data(200, raw, "application/json; charset=utf-8")
                 if parsed.path == "/api/project/evidence-task.json":
                     _require(not parsed.query, "INVALID_QUERY", "Evidence task does not accept a query.")
                     state = _bound_state(project, iteration_snapshot)
