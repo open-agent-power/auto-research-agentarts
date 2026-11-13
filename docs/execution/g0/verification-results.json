@@ -81,5 +81,16 @@
     "merged_at_utc": "2026-11-13T00:49:12Z",
     "merge_commit": "269388af8f6d0a3330e5ea0e668459c428071367",
     "base_branch": "main"
+  },
+  "continuation_decision": {
+    "status": "needs_user_decision",
+    "proposal": "docs/execution/g0/LOCAL_EXECUTION_DECISION.md",
+    "answer": null,
+    "read_only_preflight": "runs/g0-decision-review-20261113/preflight-reviewed.json",
+    "read_only_preflight_sha256": "99fec1df203d4f60a9f220ec2cbc2b84335b437d7f2db760962dab387ddddc03",
+    "input_hashes_unchanged": true,
+    "new_research_fits": 0,
+    "new_product_model_sends": 0,
+    "original_G0_unchanged": true
   }
 }

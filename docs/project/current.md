@@ -16,7 +16,13 @@
 
 2026-11-13（Asia/Shanghai）用户完成组织授权后，已确认`open-agent-power`组织的安装包含目标仓库、Contents/Pull requests写权限。分支`codex/execution-pack-v2-g0`已成功推送，首个成功远程提交`257ed278b4ded8d05d21ef7b4f94c29cdc7f5db4`；[PR #1](https://github.com/open-agent-power/auto-research-agentarts/pull/1)已按用户明确指示于2026-11-13合并至`main`，合并提交`269388af8f6d0a3330e5ea0e668459c428071367`。先前403保留为历史失败，当前GitHub交付阻塞已解除。G0资源及上游runtime两个阻塞保持。
 
+## 当前决策节点
+
+本轮只读恢复复核确认环境限制未改变，输入哈希一致；未启动容器资源复测、研究项目或fit。已形成经资源审计及独立审查的[可信本地先行方案](../execution/g0/LOCAL_EXECUTION_DECISION.md)，状态为`needs_user_decision`。原任务包要求先过Gate，故需明确决定是否修订顺序：A允许有限可信本地研究先行、隔离门和G2+保持未通过；B保持原顺序等可用Worker。一般性的“继续推进”不当作选项A的回答。
+
 ## 下一动作
+
+在用户回答前仅完成独立的接口/评价准备，不创建研究项目或fit。若批准A，按方案和原课题协议推进；若选择B，按以下原资源恢复路径接续。
 
 由平台提供可强制CPU/RAM/PID与磁盘合同的Worker，再用唯一新输出目录重跑`python scripts/verify_cloud_resources.py --output runs/g0-resources-recheck-<唯一编号>`。完成拟用上游最小隔离PoC并独立复核G0后，沿现有ResearchProject/ProjectController按冻结课题协议执行两轮、观察驱动修订、报告、复现与接续。
 
