@@ -1,0 +1,16 @@
+{
+  "schema_version": "sprint-003-delivery-v1",
+  "code_commit": "2decc75",
+  "target_execution_commit": "0ceb274",
+  "archive_path": "runs/sprint-003-delivery/sprint-003-evidence.zip",
+  "archive_bytes": 24424131,
+  "archive_sha256": "9e6d7af68a0363292173c603bf8003f8e84061822cf1ffbeb7b888f2e9e62202",
+  "entries": 592,
+  "per_file_sha256_verified": 590,
+  "zip_crc_verified": true,
+  "source_git_bundle_verified": true,
+  "includes_credentials": false,
+  "includes_environments": false,
+  "program_fits_added": 0,
+  "program_model_calls": 0
+}
