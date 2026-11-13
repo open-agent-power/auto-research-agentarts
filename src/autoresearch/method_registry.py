@@ -1,21 +1,28 @@
 """Explicit local method registry; domain adapters share execution, never target semantics."""
 import hashlib
+from importlib.metadata import version as package_version
 from pathlib import Path
 
 from . import saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter
 from . import prediction_adapter, ridge_validation_adapter, saved_oof_diagnostic_adapter
-from .contracts import ResearchError
+from .contracts import ResearchError, canonical
+from . import retrieval_adapter, scheduling_adapter
 
 SOURCE = "research.source-selection"
 LEGACY_SOURCE = "p02.source-mapping-check"
-PRIMARY = {module.TOOL_ID: module for module in (saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter)}
+PRIMARY = {module.TOOL_ID: module for module in (saved_oof_adapter, steel_audit_adapter, source_integrity_adapter, tabular_quality_adapter, retrieval_adapter, scheduling_adapter)}
 WORKBOOK = workbook_projection_adapter.TOOL_ID
 NUMERIC = numeric_association_adapter.TOOL_ID
 PREDICTIONS = {module.TOOL_ID: module for module in prediction_adapter.ADAPTERS}
 RIDGE = {module.TOOL_ID: module for module in ridge_validation_adapter.ADAPTERS}
 DIAGNOSTICS = {module.TOOL_ID: module for module in saved_oof_diagnostic_adapter.ADAPTERS}
 DESIGN_METHODS = PREDICTIONS | RIDGE
-FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter)} | DESIGN_METHODS | DIAGNOSTICS
+SAVED_PAIR_AUDITS = {item.TOOL_ID: item for item in (retrieval_adapter.AUDIT, scheduling_adapter.AUDIT)}
+SAVED_PAIR_PARENTS = {retrieval_adapter.AUDIT_TOOL_ID: retrieval_adapter.TOOL_ID,
+                      scheduling_adapter.AUDIT_TOOL_ID: scheduling_adapter.TOOL_ID}
+SAVED_PAIR_KINDS = {retrieval_adapter.TOOL_ID: "citation_retrieval_pair",
+                   scheduling_adapter.TOOL_ID: "weighted_interval_fixed_pair"}
+FOLLOWUP = {module.TOOL_ID: module for module in (grouped_quality_adapter, workbook_projection_adapter, numeric_association_adapter)} | DESIGN_METHODS | DIAGNOSTICS | SAVED_PAIR_AUDITS
 
 
 def primary_id(project):
@@ -38,6 +45,8 @@ def get_analysis(method_id):
 
 def followup_ids(primary_method_id):
     get(primary_method_id)
+    if primary_method_id in SAVED_PAIR_KINDS:
+        return [key for key, parent in SAVED_PAIR_PARENTS.items() if parent == primary_method_id]
     return [*DESIGN_METHODS, grouped_quality_adapter.TOOL_ID, WORKBOOK, NUMERIC, *DIAGNOSTICS] if primary_method_id == tabular_quality_adapter.TOOL_ID else []
 
 
@@ -63,11 +72,32 @@ def evaluation_ref(method_id):
             tabular_quality_adapter.TOOL_ID: "tabular-quality-v1",
             grouped_quality_adapter.TOOL_ID: "grouped-quality-profile-v1",
             NUMERIC: "numeric-association-v1",
-            WORKBOOK: "workbook-projection-v1"}[method_id]
+            WORKBOOK: "workbook-projection-v1",
+            retrieval_adapter.TOOL_ID: "citation-retrieval-fixed-pair-v1",
+            retrieval_adapter.AUDIT_TOOL_ID: "citation-retrieval-saved-error-audit-v1",
+            scheduling_adapter.TOOL_ID: "weighted-interval-fixed-pair-v1",
+            scheduling_adapter.AUDIT_TOOL_ID: "weighted-interval-saved-audit-v1"}[method_id]
+
+
+def runtime_dependencies():
+    """Numerical runtime is part of execution identity, not just source bytes.
+
+    GroupKFold 1.9 changes actual partitions relative to 1.8. A dependency
+    upgrade must not silently continue an older project's evaluation.
+    """
+    import numpy
+    import scipy
+    import sklearn
+    loaded = {"numpy": numpy.__version__, "scipy": scipy.__version__, "scikit-learn": sklearn.__version__}
+    installed = {name: package_version(name) for name in loaded}
+    if loaded != installed:
+        raise ResearchError("RUNTIME_CHANGED", "Loaded numerical modules differ from installed distributions; restart with the registered environment.")
+    return loaded
 
 
 def code_identity():
     digest = hashlib.sha256(Path(__file__).read_bytes())
+    digest.update(canonical({"runtime_dependencies": runtime_dependencies()}).encode("utf-8"))
     for key, module in sorted((PRIMARY | FOLLOWUP).items()):
         digest.update(key.encode("utf-8")); digest.update(module.code_identity().encode("ascii"))
     return digest.hexdigest()

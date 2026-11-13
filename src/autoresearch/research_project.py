@@ -168,7 +168,7 @@ class ResearchProject:
                    "run_id": "run-" + uuid.uuid4().hex, "state_version": 0,
                    "research_status": "active", "execution_status": "ready", "registration": registration,
                    "source_snapshot_sha256": payload["snapshot_sha256"], "source_scope": payload["scope"],
-                   "code_identity": code_identity(), "policy_ref": {"id": "local.condition-adaptive", "version": "1",
+                   "code_identity": code_identity(), "runtime_dependencies": registry.runtime_dependencies(), "policy_ref": {"id": "local.condition-adaptive", "version": "1",
                                                                     "next_check_priority": "residual_first"},
                    "supported_methods": [{"id": method_id, "version": primary.ADAPTER_VERSION,
                                           "condition": "satisfied", "scope": payload["scope"]},
@@ -571,13 +571,22 @@ class ResearchProject:
                 predecessor_method = ("data.ridge-random-validation" if registry.DIAGNOSTICS[method_id].check == "random_cv"
                                       else "data.ridge-group-validation") if method_id in registry.DIAGNOSTICS else primary_id
                 require(predecessor is not None and predecessor["status"] == "completed"
+                        and predecessor.get("project_id") == project["id"]
                         and predecessor["command"] == predecessor_method
                         and predecessor["source_snapshot_sha256"] == project["source_snapshot_sha256"]
                         and predecessor["result_sha256"] == parameters["based_on_result_sha256"]
                         and predecessor["method_instance"]["evaluation_ref"] == registry.evaluation_ref(predecessor_method),
                         "EVIDENCE_CHANGED", "The follow-up predecessor identity differs.")
                 self._recover(predecessor)
-                original = json.loads(self._artifact(predecessor).read_bytes())["tool_result"]
+                saved_envelope = json.loads(self._artifact(predecessor).read_bytes())
+                require(saved_envelope.get("sha256") == predecessor["result_sha256"]
+                        == fingerprint({key: value for key, value in saved_envelope.items() if key != "sha256"})
+                        and saved_envelope.get("action_id") == predecessor["id"]
+                        and saved_envelope.get("request_sha256") == predecessor["request_sha256"]
+                        and saved_envelope.get("source_snapshot_sha256") == project["source_snapshot_sha256"]
+                        and saved_envelope.get("code_identity") == predecessor["code_identity"],
+                        "EVIDENCE_CHANGED", "Captured predecessor envelope differs from the accepted action.")
+                original = saved_envelope["tool_result"]
                 if method_id in registry.DIAGNOSTICS:
                     require(binding == project_design.current(project) and predecessor.get("design_binding") == binding,
                             "CONDITION_NOT_SATISFIED", "The saved CV must belong to the current frozen design.")
@@ -589,6 +598,13 @@ class ResearchProject:
                             and binding["source_snapshot_sha256"] == project["source_snapshot_sha256"]
                             and project_design.check_eligible(current, registry.DESIGN_METHODS[method_id].check),
                             "CONDITION_NOT_SATISFIED", "The original input and current design do not qualify this prediction check.")
+                elif method_id in registry.SAVED_PAIR_AUDITS:
+                    require(original.get("tool_id") == predecessor_method
+                            and original.get("status") == "completed"
+                            and original.get("result", {}).get("source_snapshot_sha256") == project["source_snapshot_sha256"]
+                            and original.get("result", {}).get("scope") == project["source_scope"]
+                            and primary.eligible(original),
+                            "EVIDENCE_CHANGED", "The verified fixed-pair result does not qualify its saved-only audit.")
                 elif method_id != registry.WORKBOOK:
                     require(methods.grouped_feedback_eligible(original["result"]["profile"], original["result"]["scope"]),
                             "CONDITION_NOT_SATISFIED", "The verified original result does not qualify this follow-up.")
@@ -635,7 +651,9 @@ class ResearchProject:
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
             try:
-                if method_id in registry.DIAGNOSTICS:
+                if method_id in registry.SAVED_PAIR_AUDITS:
+                    result = primary.execute_saved(original, parameters)
+                elif method_id in registry.DIAGNOSTICS:
                     result = primary.execute(self.root, parameters)
                 elif method_id in registry.RIDGE:
                     result = primary.execute(payload, parameters, fit_observer=lambda event: self._record_fit_event(action, event))
@@ -683,6 +701,8 @@ class ResearchProject:
                 require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to a tool action.")
                 self._require_unclaimed(project, request_id, except_collection="code_revisions")
             require(project["code_identity"] == expected_code_identity, "CODE_CHANGED", "Expected old code identity differs.")
+            require(project.get("runtime_dependencies") == registry.runtime_dependencies(),
+                    "RUNTIME_CHANGED", "A compatible source upgrade requires the original registered numerical runtime; unknown legacy runtimes remain pinned.")
             require(project["schema_version"] in ("local-research-project-v1", "local-research-project-v2", "local-research-project-v3"),
                     "INCOMPATIBLE_PROJECT", "This project schema cannot be upgraded here.")
             current = self.status()

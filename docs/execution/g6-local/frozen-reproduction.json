@@ -1,0 +1,196 @@
+{
+  "status": "separate_historical_pinned_environment_verified_for_ids_and_splits",
+  "source_commit": "0ceb2742825a9e95b373260fb39950fcbb48af1b",
+  "wheel_path": "/workspace/work/g6-local-release-20261113-01/source/dist/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "3b454d45ed7b37166cdcc74544e28e4b053c190b61cca0e305394abf2e5262c1",
+  "original_inline_adapter_sha256": "5c689576add16d5bd28cdf5c43a5c4599afb257a12f6b239018dcabcb0501090",
+  "lock_sha256": "9ff245001f4c3e8e93be11757a8fd3f7d4b88ac4a7a174d96e6cbbc111859813",
+  "script_sha256": "4e4e1c470703c41ee94a2f0462a6a640216971d9a9d1e9a6ede3d219dfd7d4c0",
+  "clean_venv": "/workspace/work/g6-frozen-reproduction-20261113-01/venv",
+  "system_site_packages": false,
+  "fit_calls": 0,
+  "product_model_api_calls": 0,
+  "original_case_files_match_prefreeze": 292,
+  "dependency_network_downloads": true,
+  "commands": [
+    {
+      "stage": "create-pinned-venv",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-I",
+        "-m",
+        "venv",
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv"
+      ],
+      "exit_code": 0,
+      "log": "create-pinned-venv.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "install-observed-exact-pins",
+      "argv": [
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv/bin/python",
+        "-I",
+        "-m",
+        "pip",
+        "install",
+        "--index-url",
+        "https://pypi.org/simple",
+        "--only-binary=:all:",
+        "--no-cache-dir",
+        "--report",
+        "/workspace/work/g6-frozen-reproduction-20261113-01/pip-report.json",
+        "-r",
+        "/workspace/work/g6-frozen-reproduction-20261113-01/requirements-reproduction.lock"
+      ],
+      "exit_code": 0,
+      "log": "install-observed-exact-pins.txt",
+      "log_sha256": "f99242c7c7d384f1dd62bdae2c95448d66c89a140e21de3b52c7c4b0cf4bbbf8"
+    },
+    {
+      "stage": "install-historical-wheel",
+      "argv": [
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv/bin/python",
+        "-I",
+        "-m",
+        "pip",
+        "install",
+        "--no-index",
+        "--no-deps",
+        "/workspace/work/g6-local-release-20261113-01/source/dist/agentarts_autoresearch-0.1.0-py3-none-any.whl"
+      ],
+      "exit_code": 0,
+      "log": "install-historical-wheel.txt",
+      "log_sha256": "63840f9b8fba946870b728ba0f041337a5b7bdd527daec107896fa3d4286e175"
+    },
+    {
+      "stage": "pip-check",
+      "argv": [
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv/bin/python",
+        "-I",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "exit_code": 0,
+      "log": "pip-check.txt",
+      "log_sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+    },
+    {
+      "stage": "pip-freeze",
+      "argv": [
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv/bin/python",
+        "-I",
+        "-m",
+        "pip",
+        "freeze",
+        "--all"
+      ],
+      "exit_code": 0,
+      "log": "pip-freeze.txt",
+      "log_sha256": "6fb7d11a4ef1ac33da24d88c9ed7979fe315a40e46514df75109f68db61bc267"
+    },
+    {
+      "stage": "cli-help",
+      "argv": [
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv/bin/autoresearch",
+        "--help"
+      ],
+      "exit_code": 0,
+      "log": "cli-help.txt",
+      "log_sha256": "76c831ac1bef487ce756b122a083553a2a802cd7ea80dccca97b36e452400c93"
+    },
+    {
+      "stage": "zero-fit-complete-array-compatibility",
+      "argv": [
+        "/workspace/work/g6-frozen-reproduction-20261113-01/venv/bin/python",
+        "-I",
+        "/workspace/work/g6-frozen-reproduction-20261113-01/check-frozen-groups.py",
+        "/workspace/work/g6-frozen-reproduction-20261113-01"
+      ],
+      "exit_code": 0,
+      "log": "zero-fit-complete-array-compatibility.txt",
+      "log_sha256": "4525ac183a042f37e74c73c684d8d894b5638a9e81aad6d2e1b8cd6100fdd8c6"
+    }
+  ],
+  "completed_utc": "2026-11-13T09:21:06.881266+00:00",
+  "limits": [
+    "Separate frozen-purpose env; previous 1.9 strict failure unchanged",
+    "No model refit/prediction/metric reproduction claimed",
+    "Original0ceb source lacks later helper and current dependency-identity guard",
+    "Transitive package inventory observed and recorded, not previously fully locked",
+    "No production-code promotion or fullG6 acceptance"
+  ],
+  "all_observed_pins": {
+    "numpy": "2.5.4",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0",
+    "h5py": "3.16.0",
+    "reportlab": "4.4.9",
+    "matplotlib": "3.10.8",
+    "pypdf": "6.21.4",
+    "joblib": "1.5.3",
+    "threadpoolctl": "3.6.0",
+    "pillow": "13.0.0",
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.61.1",
+    "kiwisolver": "1.4.9",
+    "packaging": "26.3",
+    "pyparsing": "3.3.2",
+    "python-dateutil": "4.0.0",
+    "charset-normalizer": "3.5.2"
+  },
+  "actual_distribution_versions": {
+    "charset-normalizer": "3.5.2",
+    "joblib": "1.5.3",
+    "agentarts-autoresearch": "0.1.0",
+    "fonttools": "4.61.1",
+    "reportlab": "4.4.9",
+    "packaging": "26.3",
+    "matplotlib": "3.10.8",
+    "tzdata": "2026.6",
+    "pyparsing": "3.3.2",
+    "python-dateutil": "4.0.0",
+    "contourpy": "1.3.3",
+    "kiwisolver": "1.4.9",
+    "cycler": "0.12.1",
+    "pypdf": "6.21.4",
+    "scipy": "1.17.0",
+    "h5py": "3.16.0",
+    "pip": "25.0.1",
+    "scikit-learn": "1.8.0",
+    "pillow": "13.0.0",
+    "numpy": "2.5.4",
+    "threadpoolctl": "3.6.0"
+  },
+  "installed_module_origin": "/workspace/work/g6-frozen-reproduction-20261113-01/venv/lib/python3.12/site-packages/autoresearch/ridge_validation_adapter.py",
+  "compatibility": {
+    "concrete": {
+      "rows": 1030,
+      "groups": 427,
+      "all_ids_equal_vm_original": true,
+      "all_folds_equal_frozen_1_8": true,
+      "input_sha256": "18fdf2174c1ba02589d828a64bd06c063014380914f477b191b75c253c0205e0"
+    },
+    "real-estate": {
+      "rows": 414,
+      "groups": 259,
+      "all_ids_equal_vm_original": true,
+      "all_folds_equal_frozen_1_8": true,
+      "input_sha256": "8f04038e7fe9b7e83bbf1531064ce2dd42d063aeccc031c28193f1a71925b7fb"
+    },
+    "slump": {
+      "rows": 103,
+      "groups": 103,
+      "all_ids_equal_vm_original": true,
+      "all_folds_equal_frozen_1_8": true,
+      "input_sha256": "17b1e78e8dc43064a4f069f997da67d2b5f10b7614c44e81bc1231ed96f7c25c"
+    }
+  },
+  "raw_directory": "/workspace/work/g6-frozen-reproduction-20261113-01",
+  "raw_result_sha256": "c1e46214b8a6528eed704fd05e4ebacf96104bcaf5cf3479755aba25efb48df6",
+  "raw_manifest_sha256": "226c715680075d83ef2b4c9b3da6a9774f790720f56d53d057a6d51544e7cbb4",
+  "complete_array_compatibility_sha256": "79d314ed7c0a34916b26c59bb86c26e97993bb59eaccb47741b5f903f8295b7c",
+  "existing_1_9_env_and_failed_receipts_unchanged": true
+}

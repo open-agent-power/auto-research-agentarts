@@ -215,7 +215,19 @@ def _domain_methods(project, need):
                       if predecessor else {})
         reason = "Inspect zero/missing/invalid concentration only after saved quality feedback and declared group fields; keep all original values and unresolved source needs."
         missing = ["completed quality feedback with zero/missing/invalid values and declared group columns"]
-        if method_id == registry.WORKBOOK:
+        if method_id in registry.SAVED_PAIR_AUDITS:
+            eligible = bool(predecessor
+                and predecessor.get("project_id") == project.get("id")
+                and registry.SAVED_PAIR_PARENTS[method_id] == primary
+                and predecessor.get("source_snapshot_sha256") == project.get("source_snapshot_sha256")
+                and predecessor.get("method_instance", {}).get("evaluation_ref") == registry.evaluation_ref(primary)
+                and any(item.get("producer") == primary
+                        and item.get("kind") == registry.SAVED_PAIR_KINDS[primary]
+                        and item.get("scope") == project.get("source_scope")
+                        for item in predecessor.get("observations", [])))
+            reason = "Audit the exact completed fixed pair using saved observations only; preserve adverse outcomes without reranking, re-solving or fitting."
+            missing = ["a completed same-source fixed pair with the registered evaluation and observation kind"]
+        elif method_id == registry.WORKBOOK:
             origin = _workbook_origin(project)
             eligible = bool(predecessor and origin)
             if origin:
@@ -288,6 +300,8 @@ def _domain_choice(project, options, knowledge):
                                if method_id == registry.WORKBOOK else
                                "Saved quality feedback and declared numeric fields qualify descriptive Pearson associations; no causal or clinical conclusion is implied."
                                if method_id == registry.NUMERIC else
+                               "The completed fixed pair qualifies its saved-only adverse-result audit; no reranking, re-solving or additional fit is proposed."
+                               if method_id in registry.SAVED_PAIR_AUDITS else
                                "Saved quality feedback qualifies a grouped zero/missing inspection; prior source and scientific questions remain unresolved.")}
     saved = copy.deepcopy((project.get("next_decision") or {}).get("next_action", {}))
     if saved.get("method_id") != registry.SOURCE or saved.get("kind") != "evidence_task":

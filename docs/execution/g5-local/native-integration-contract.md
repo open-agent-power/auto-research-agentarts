@@ -1,6 +1,6 @@
-# G5-L native CPU research integration — proposed contract
+# G5-L native CPU research integration — implementation contract
 
-Status: **root-accepted implementation contract; no retrieval execution yet**. Root accepted the generic bounded input/case-specific freeze distinction and source-verification clarification below before implementation.
+Status: **implemented and independently reviewed; real native execution still pending**. Root accepted the generic bounded input/case-specific freeze distinction and source-verification clarification below before implementation. The existing standalone outcomes are already known. The separate run protocol and code freeze govern the new execution; this document does not reset any earlier case.
 Target: one retrieval study can use the same native project, plans, actions,
 budget, report and recovery as the tabular study. Reuse the existing controller;
 do not add another case controller or call the standalone benchmark through shell.
@@ -31,7 +31,7 @@ frozen outputs unchanged. Its `build_index/retrieve/metrics` are useful referenc
 implementations, not current product adapters. Avoid importing a development
 script into the native dependency graph or broad changes to KnowledgeIndex.
 
-## Exact v1 input packet (proposed)
+## Exact v1 input packet
 
 One host-selected directory contains fixed safe basenames only. A host capture
 function validates and embeds original bytes; runtime/model/HTTP commands cannot
@@ -60,9 +60,17 @@ commit is a 40-hex Git identity. URL text is retained only; it never triggers I/
 - `files` is the exact mapping `{corpus:corpus.jsonl,queries:queries.jsonl,
   train_qrels:qrels-train.tsv,test_qrels:qrels-test.tsv,license:license.md}`.
 - Corpus rows: exact `_id,title,text,metadata`; query rows: exact `_id,text,metadata`.
-  `_id` is unique bounded nonempty text (≤80 chars); metadata must be an empty
-  object for this BEIR v1. Preserve row order, raw JSONL bytes and physical line
-  locators. Corpus title ≤4,096 chars, text ≤131,072 chars; query text ≤4,096.
+  `_id` is unique bounded nonempty text (≤80 chars). Metadata is an opaque
+  bounded JSON object, not an empty-object assumption: ≤16KiB canonical UTF-8,
+  ≤512 nodes, depth≤8, keys≤128 chars and string values≤4,096; only finite JSON
+  primitives/list/object values. Preserve original row order, raw JSONL bytes
+  and LF/CRLF physical line locators; Unicode LS/NEL inside strings are data,
+  not row separators. Corpus title≤4,096 chars, text≤131,072; query text≤4,096.
+  Real SciFact query metadata is nonempty in693/1109 rows (max495 bytes),
+  including original SUPPORT/CONTRADICT sentence annotations. Those bytes are
+  preserved but never supplied to ranking/scoring, which use only query text
+  and citation-document qrels. The failed metadata-empty host preflight is kept;
+  this correction occurs before registration, code freeze or study execution.
 - Qrels header is exactly `query-id\tcorpus-id\tscore`; unique query/doc pairs,
   score exactly integer 1, all foreign keys resolved. These are citation labels.
 - `source_provenance` exact keys: `beir_archive_sha256,original_archive_sha256,
@@ -104,16 +112,18 @@ input_identities maps the five roles to verified `{sha256,bytes}` values.
 The v1 host intake can call `capture_source(host_directory)` then
 `ResearchProject.create(source=packet_path,method_id=research.retrieval-fixed-pair,
 goal=...,budget_ref=<new explicit native-integration scope>,max_tool_calls=2)`;
-these are proposed method/module identifiers, not currently implemented APIs.
+these identifiers are now explicitly registered native methods.
 The existing `LocalWorkbench.create(body)` remains the CSV-specific intake.
 
 ## Native actions, observations and artifacts
 
-Proposed primary method: `research.retrieval-fixed-pair`, evaluation identity
+Primary method: `research.retrieval-fixed-pair`, evaluation identity
 `citation-retrieval-fixed-pair-v1`. `load_source` does strict mechanical intake;
 `execute(payload,dimension=None)` allows no other parameters. Both declared arms
-rank every query using only corpus/query data; complete rankings are captured
-before the scorer accesses qrels. This is a reviewed fixed-code procedural
+rank every query using only corpus title/text and query text; original metadata
+is opaque and unused. Complete rankings are canonically hashed in memory before
+the scorer accesses citation qrels, then persisted together in the final native
+ToolResult artifact. This is not a separately durable ranking-stage checkpoint. This is a reviewed fixed-code procedural
 separation, not confidentiality or protection from the same operating-system user.
 
 One completed action returns the existing ToolResult envelope:
@@ -127,7 +137,7 @@ retrieval observations, not validated medical claims or model-agent statements.
 All query IDs and every loss/tie remain in the complete ≤4 MiB result envelope;
 do not emit only an improved aggregate or drop low-recall/no-hit queries.
 
-Proposed follow-up: `research.retrieval-saved-error-audit`, parameter keys exactly
+Follow-up: `research.retrieval-saved-error-audit`, parameter keys exactly
 `based_on_action_id,based_on_result_sha256` (existing predecessor envelope).
 Eligibility requires the same project's completed fixed-pair action/source and
 frozen comparison. Controller verifies and supplies its saved ToolResult to this
@@ -177,6 +187,15 @@ Registration/imports change registry and application code identities. Freeze a
 new source release and new integration case; keep prior G1/G3/G4/G5 artifacts and
 their old-code services pinned. Do not upgrade, re-fit, rewrite or migrate those
 cases just to demonstrate this interface. Hash their whole trees before/after.
+
+Actual loaded NumPy, SciPy and scikit-learn versions are registered and included
+in execution identity, with distribution metadata required to match. The real
+G6 clean-install check found different GroupKFold partitions in scikit-learn1.9.1
+versus the historical1.8.0 environment. New compatible source upgrades require
+the original registered runtime exactly; missing legacy registrations and
+dependency changes fail closed. Historical exact upgrade-request receipts may
+still replay without changing identity or usage. This is a version boundary,
+not a complete dependency/environment sandbox or cross-version reproduction.
 
 Required tests are targeted source-schema/size/path/foreign-key rejection,
 hand-calculable lexical/metric checks, procedural qrels separation, real native

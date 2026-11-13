@@ -65,3 +65,28 @@ main-context 检查将全部 adapter execute、source execute、Ridge／Scaler f
 `5cf1f170f974d2baeaf4c649fbcb4fcf03fd88c45f6810df2861ad5392b28e5d`。
 批准的是精确代码、纯分组回归及已核验的旧源码／服务保护。出现问题时，旧 source 与原 module 字节仍可核对和恢复。
 旧研究预算、历史决定、原始输入和原件不因本次发布而重置；完整 G4 的 OS／sealed／多代 RSI 门仍未通过。
+
+## 后续全量工程回归
+
+随后独立成员在同一未提交的精确 adapter／测试树运行全套 unittest：
+**1,164 项，1,145 通过、19 skip、0 failure／error**，166.445 s（墙时约 168.225 s）。
+总审只读核对日志末尾及全部七份回归 artifact SHA／长度，没有重复运行全套。
+`runs/g4-integration-regression-20261113-01/regression-receipt.json` SHA：
+`8241da13bfa50aa6413d00065097d603e279c3840fc24e59227ca3a7ba48a3ca`。
+
+回归确实执行了工程 fixture 的 estimator fitting，未计量 fixture fit 总次数，
+因此不能把本节或整轮工程验证说成“所有程序 fit 为 0”。实际三研究课题没有重跑，
+累计 estimator 尝试仍为 20／20／10，总计 50；292 个研究文件及完整 src／tests 字节前后保持，
+没有新增外部产品模型 API。上述 8 项纯分组测试与独立恢复自身仍为 0 fit。
+
+## 后续异版本兼容性反例
+
+G6 clean 环境实际加载 sklearn 1.9.1，而研究冻结版本为 1.8.0。已安装的精确 candidate helper
+仍给出相同分组 ID，但 Concrete 的 808／1,030 行、Real Estate 的 252／414 行 fold 不同；
+即便忽略 fold 编号，两者 partition 仍不同，Slump 保持一致。独立只读比较完整保存数组确认了该反例，
+没有重算模型或筛掉差异行；记录在 `runs/g4-native-integration/cross-version-split-review.json`。
+
+因此本次 helper 的正确性不意味着任意 sklearn 版本可复现旧划分。G6 的严格失败继续保留，
+不能把安装成功说成旧研究复现通过。另建的历史用途精确 18 包 pin 环境（原 `0ceb274` wheel）
+恢复了全部 1,547 行原分组／fold，但不声称完成 OOF 预测／系数／误差的重新复现。
+详见 `../g6-local/final-clean-wheel.md` 和 `../g6-local/frozen-reproduction.md`。

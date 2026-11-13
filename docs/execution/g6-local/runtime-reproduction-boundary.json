@@ -1,0 +1,123 @@
+{
+  "scope": "Read-only document/source/receipt verification, no installation/model/CV execution",
+  "guard_source_state": "current working tree, separate from03f packaged checkpoint; root owns final review/commit",
+  "source_references": {
+    "runtime_registry": {
+      "path": "src/autoresearch/method_registry.py",
+      "lines": [
+        82,
+        91,
+        93,
+        98,
+        100
+      ],
+      "sha256": "1f3c6e0dc23df197fe38b596ee666c6d6804edda8963c6b932c43ad048c53b8f"
+    },
+    "project_creation": {
+      "path": "src/autoresearch/research_project.py",
+      "lines": [
+        171,
+        254,
+        548,
+        551,
+        687,
+        693,
+        704
+      ],
+      "sha256": "b4a183b9b1cab2059c5b453986f6570603a743f00832070e35e51978aa95a679"
+    },
+    "controller_block": {
+      "path": "src/autoresearch/project_controller.py",
+      "lines": [
+        72
+      ],
+      "sha256": "5af96319f9d17c2ec84a171a0ce589ed21d6ec5bade774d55301108d8b7f10c5"
+    },
+    "guard_tests": {
+      "path": "tests/test_cpu_projects.py",
+      "lines": [
+        156,
+        170,
+        192,
+        205
+      ],
+      "sha256": "e78845beadf3ad3723e705393b3e7b9eacc97d2e7222a2dc97cf2417f15f561d"
+    },
+    "existing_guard_test_log": {
+      "path": "runs/g5-native-integration-unit/test-cpu-projects-04.log",
+      "lines": [
+        1
+      ],
+      "sha256": "964c2113691530c9af600b8d36c14b44e234b228975f525cc39b62cf5629aa97"
+    }
+  },
+  "receipts": {
+    "acceptance.json": {
+      "sha256": "a85790d36d2f9817072f8dbda6be85de428c0d0e5271f682bbf78fc75b04844e",
+      "status": "verified_limited_local_packaging",
+      "wheel_sha256": "3b454d45ed7b37166cdcc74544e28e4b053c190b61cca0e305394abf2e5262c1"
+    },
+    "clean-install.json": {
+      "sha256": "d125bfb5697757c8d78ecfe59babefb6403d01624de786b3f6d67da5cb13c97b",
+      "status": "passed_after_verifier_html_expectation_correction",
+      "wheel_sha256": "3b454d45ed7b37166cdcc74544e28e4b053c190b61cca0e305394abf2e5262c1"
+    },
+    "final-clean-wheel.json": {
+      "sha256": "7d4a9f14ebeb9ce3ff312b876e55625935789ecf0ca36b46323d5de05d93161f",
+      "status": "installed_components_passed_split_compatibility_failed_on_two_datasets",
+      "wheel_sha256": "0c75d7e05e40dadaf4a49fa73ba9071d5be75f5e2abf00fee6af3ef1186c7609"
+    },
+    "frozen-reproduction.json": {
+      "sha256": "b75edfdb70dc92ffb6b5c009b49caf8253d5e7505368aecd88bdd341243a7361",
+      "status": "separate_historical_pinned_environment_verified_for_ids_and_splits",
+      "wheel_sha256": "3b454d45ed7b37166cdcc74544e28e4b053c190b61cca0e305394abf2e5262c1"
+    }
+  },
+  "raw_manifest_hashes_valid": true,
+  "credential_content_checks": [
+    {
+      "path": "scripts/verify_frozen_reproduction.py",
+      "findings": []
+    },
+    {
+      "path": "scripts/verify_clean_release.py",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/clean-install.json",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/acceptance.json",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/clean-versions.json",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/task-receipt.json",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/frozen-reproduction-versions.json",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/frozen-reproduction.json",
+      "findings": []
+    },
+    {
+      "path": "docs/execution/g6-local/final-clean-wheel.json",
+      "findings": []
+    }
+  ],
+  "existing_research_venv_metadata": {
+    "numpy": "2.5.4",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0"
+  },
+  "no_raw_sensitive_values_printed": true,
+  "new_fits": 0,
+  "product_model_api_calls": 0
+}

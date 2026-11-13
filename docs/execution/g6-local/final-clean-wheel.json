@@ -1,0 +1,135 @@
+{
+  "schema_version": "g6-final-G4-clean-wheel-v1",
+  "status": "installed_components_passed_split_compatibility_failed_on_two_datasets",
+  "source_commit": "03f90a31f187a156cfa156fee7c0d659fcc3d5c4",
+  "source_snapshot_sha256": "60a08ce2cf179c3188761f5e25954c32fd0437dd5fad09b0528918ea48f2f4f5",
+  "wheel": "/workspace/work/g6-final-g4-clean-20261113-01/source/dist/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+  "wheel_sha256": "0c75d7e05e40dadaf4a49fa73ba9071d5be75f5e2abf00fee6af3ef1186c7609",
+  "wheel_bytes": 1186582,
+  "installed_origin": "/workspace/work/g6-clean-20261113-01/venv/lib/python3.12/site-packages/autoresearch/ridge_validation_adapter.py",
+  "installed_adapter_sha256": "ec965e31c7b148c24f11910d93ecc03e474504333548156a23575a39cf269711",
+  "actual_versions": {
+    "numpy": "2.5.4",
+    "scikit-learn": "1.9.1"
+  },
+  "research_versions": {
+    "numpy": "2.5.4",
+    "scikit-learn": "1.8.0"
+  },
+  "clean_venv": "/workspace/work/g6-clean-20261113-01/venv",
+  "system_site_packages": false,
+  "nonproduct_dependency_versions_unchanged": true,
+  "wheel_and_installed_source_resource_files_match": 172,
+  "snapshot_input_files_match": 175,
+  "new_G5_modules_excluded": true,
+  "compatibility": {
+    "concrete": {
+      "rows": 1030,
+      "groups": 427,
+      "all_group_ids_equal": true,
+      "all_saved_folds_equal": false,
+      "mismatched_fold_rows": 808,
+      "partitions_equal_ignoring_fold_labels": false
+    },
+    "real-estate": {
+      "rows": 414,
+      "groups": 259,
+      "all_group_ids_equal": true,
+      "all_saved_folds_equal": false,
+      "mismatched_fold_rows": 252,
+      "partitions_equal_ignoring_fold_labels": false
+    },
+    "slump": {
+      "rows": 103,
+      "groups": 103,
+      "all_group_ids_equal": true,
+      "all_saved_folds_equal": true,
+      "mismatched_fold_rows": 0,
+      "partitions_equal_ignoring_fold_labels": true
+    }
+  },
+  "original_case_files_match_G4_prefreeze_inventory": 292,
+  "native_readonly": {
+    "status": "passed",
+    "copied_state_version": 33,
+    "http_get_count": 8,
+    "http_post_status": 405,
+    "copied_project_files_unchanged": 16,
+    "report_render": {
+      "status": "rendered_saved_dict_only",
+      "pages": 28,
+      "sha256": "09de14a612f931778c9b87c7819775699607db786e9f13cef0cc92db33dc09c2",
+      "h5py_import": true,
+      "matplotlib_import": true
+    }
+  },
+  "initial_strict_failure_preserved": {
+    "receipt": "initial-failure.json",
+    "sha256": "2a4e3b7509425dcfc7b6b802ff108671f76d821ba65a2df3fa37fa85eb45867f"
+  },
+  "commands": [
+    {
+      "path": "build-final-g4-wheel.txt",
+      "sha256": "7537304a112f1eefafde9a6f7e2e020d5c1688f068fe034b30b479910108f232",
+      "exit_code": 0
+    },
+    {
+      "path": "cli-help.txt",
+      "sha256": "76c831ac1bef487ce756b122a083553a2a802cd7ea80dccca97b36e452400c93",
+      "exit_code": 0
+    },
+    {
+      "path": "dependencies-after.txt",
+      "sha256": "66ad81d5c44ebf9db4cfcdd15960518001dbee1f39fc4d5da1333d90836e588d",
+      "exit_code": 0
+    },
+    {
+      "path": "dependencies-before.txt",
+      "sha256": "66ad81d5c44ebf9db4cfcdd15960518001dbee1f39fc4d5da1333d90836e588d",
+      "exit_code": 0
+    },
+    {
+      "path": "install-final-g4-no-deps.txt",
+      "sha256": "2a14014ba41627df3948121a6bfa3daee1da5668f988a4632fe80dc510b27d95",
+      "exit_code": 0
+    },
+    {
+      "path": "module-help.txt",
+      "sha256": "2556470efe3e5a0b66e29c97c868977ce08e527064e45f05decfc1a9f29a0aa6",
+      "exit_code": 0
+    },
+    {
+      "path": "native-report-clean-smoke.txt",
+      "sha256": "63c430f802047bc9b8acb90b6ad8062348dea36676dff878ea23e450dfa5bcd6",
+      "exit_code": 0
+    },
+    {
+      "path": "pip-check.txt",
+      "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+      "exit_code": 0
+    },
+    {
+      "path": "three-array-zero-fit-compatibility.txt",
+      "sha256": "adb7bfc30ad2e68d353663c3ea63c1537b56c40f70aa3a731b751e0e20274dab",
+      "exit_code": 1
+    }
+  ],
+  "cost": {
+    "new_fits": 0,
+    "product_model_api_calls": 0,
+    "dependency_downloads_this_step": 0,
+    "currency": null,
+    "tokens": null
+  },
+  "limits": [
+    "This reviewed03f source contains G4 group encoding only, not G5 integration",
+    "Group-ID correctness does not imply sklearn cross-version partition stability",
+    "No original CV refit, model coefficient reproduction or numerical study reproduction",
+    "No dependency downgrade, retuning, protocol edits or discarded mismatch rows",
+    "Full clean G6/AgentArts/Docker acceptance not claimed"
+  ],
+  "raw_directory": "/workspace/work/g6-final-g4-clean-20261113-01",
+  "raw_result_sha256": "9440010fadfeb35379ee3270dccaa40632a23ec50a68c697a98153dd354adee8",
+  "raw_manifest_sha256": "be09235e70303a13a7e0f3d4206bd0d9c4a376101cdd5a47b2797ea73bc4e7f2",
+  "complete_array_diagnostic_sha256": "32641271475e8af11a2defb22a2f6443f989235863626f011c45a72c772819d4"
+}

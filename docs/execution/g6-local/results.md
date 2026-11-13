@@ -39,3 +39,9 @@ python scripts/verify_local_release.py --output /workspace/work/g6-local-release
 ```
 
 The verifier refuses an existing output directory and outputs outside workspace `work/`. A later final release must build the final reviewed commit, retain its actual provenance, include research/data/benchmark handover material separately, and explicitly state whichever original G6 requirements remain unverified.
+
+## Subsequent checks — separate scopes, original receipt preserved
+
+Later work completed a [non-inheriting clean dependency install](clean-install.md), then packaged the [reviewed03f90a3 G4 source](final-clean-wheel.md) without untrackedG5 modules. Installed component/read-only/report smoke passed, but clean sklearn1.9.1 failed the historical Concrete/Real Estate split compatibility checks. A separate [historically pinned1.8 environment](frozen-reproduction.md) reproduced all three saved group/fold arrays without fitting; it did not alter the1.9 environment or failed receipt.
+
+See [runtime/reproduction boundary](runtime-reproduction-boundary.md) for exact version findings, current root dependency-identity protection, unchanged old-case/replay rules and the1.8 environment required for subsequent nativeG5 execution. The opening sections remain the original inherited-dependency packaging smoke; these later receipts do not retroactively turn that initial result into a clean install, original model reproduction or fullG6 acceptance.

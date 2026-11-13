@@ -13,12 +13,14 @@ from . import paper_export, project_workbench, project_selection_view, snapshot_
 from .contracts import ResearchError, canonical, fingerprint
 from .research_project import ResearchProject, safe_path
 from . import project_controller, project_selection
+from . import cpu_report_sections
 
 
 KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel",
-         "software.source-integrity-check": "software", "data.tabular-quality-audit": "tabular"}
+         "software.source-integrity-check": "software", "data.tabular-quality-audit": "tabular",
+         "research.retrieval-fixed-pair": "retrieval", "research.weighted-interval-fixed-pair": "scheduling"}
 TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存模型与评价复核报告",
-          "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告"}
+          "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告", **cpu_report_sections.TITLES}
 
 EXPERIENCE_NOTE = ("以下为显式导入的历史方法案例，数值属于原项目、目标与协议，不是本项目的结果。"
                    "方法卡条件仍需核对，案例不创建候选或增加执行额度。源记忆撤回限制后续导出；"
@@ -108,6 +110,8 @@ def _number(value):
 
 
 def _summary(kind, state, results):
+    if kind in cpu_report_sections.PRIMARY:
+        return cpu_report_sections.summary(kind, state, results)
     primary = state["registration"].get("method_id", "p02.saved-oof-residuals")
     complete = [item["tool_result"] for item in results if item["command"] == primary and item["tool_result"] is not None]
     tool = complete[-1] if complete else None
@@ -208,6 +212,9 @@ def collect_report(workspace) -> dict:
              "sha256": csv_source["sha256"], "bytes": csv_source["bytes"], "url": spec["source_url"],
              "license_note": spec["license_note"], "provenance_claim": spec["provenance"],
              "notice": "These are the audited CSV input bytes; upstream origin, transformation and licence are submitter declarations, not a verified original external CSV."}])
+    elif KINDS[method_id] in cpu_report_sections.PRIMARY:
+        cpu_assets, cpu_provenance = cpu_report_sections.source_manifest(source_packet, KINDS[method_id])
+        source_manifest.extend(cpu_assets)
     results, receipts, assets, source_selections = [], [], {}, []
     registered = {item["receipt_snapshot_sha256"]: dict(item) for item in before.get("evidence_sources", [])}
     for action in before["actions"] + before["evidence_actions"]:
@@ -313,12 +320,16 @@ def collect_report(workspace) -> dict:
                                                        + Path(input_basis.__file__).read_bytes()
                                                        + Path(project_experience_binding.__file__).read_bytes()
                                                        + Path(project_experience.__file__).read_bytes()
-                                                       + Path(research_design.__file__).read_bytes()).hexdigest(),
+                                                       + Path(research_design.__file__).read_bytes()
+                                                       + (Path(cpu_report_sections.__file__).read_bytes() if kind in cpu_report_sections.PRIMARY else b"")).hexdigest(),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
     if before.get("experience_revisions"):
         report["experience_cases"] = experience_cases
         report["input"]["experience_revisions"] = copy.deepcopy(before["experience_revisions"])
+    if kind in cpu_report_sections.PRIMARY:
+        report["cpu_source_provenance"] = cpu_provenance
+        report["cpu_sections"] = cpu_report_sections.sections(report)
     binding = before.get("design_revisions", [])[-1] if before.get("design_revisions") else None
     report["design_assessment"] = research_design._assessment(binding["resource"], research_design._records(project, before, binding),
         before["source_scope"], report["feature_comparisons"]) if binding else None
@@ -992,6 +1003,12 @@ def _markdown(report):
     lines.extend(["## 方法与冻结评价", "", summary["method"], "", "范围：" + _text(canonical(summary["scope"]), 1200),
              "", "## 实际结果", "", _markdown_table(summary["headers"], summary["rows"]) if summary["rows"] else "没有已完成的主方法结果。", "", summary["result_notice"],
              ""])
+    for section in report.get("cpu_sections", []):
+        lines.extend(["## " + section["title"], ""])
+        for paragraph in section["paragraphs"]:
+            lines.extend([paragraph, ""])
+        if section["headers"]:
+            lines.extend([_markdown_table(section["headers"],section["rows"]), ""])
     prediction_notes = _prediction_notes(report)
     if prediction_notes:
         lines.extend(["## 保存预测验证", "", _markdown_table(_PREDICTION_HEADERS, _prediction_rows(prediction_notes)), ""])
@@ -1178,12 +1195,19 @@ def _pdf(report):
     story.append(p(summary["method"], limit=500))
     h("三、实际结果")
     if summary["rows"]:
-        fractions = ([.35, .15, .15, .18, .17] if report["kind"] == "p02" else [.10, .20, .23, .23, .24]
+        fractions = ([1/len(summary["headers"])]*len(summary["headers"]) if report["kind"] in cpu_report_sections.PRIMARY else
+                     [.35, .15, .15, .18, .17] if report["kind"] == "p02" else [.10, .20, .23, .23, .24]
                      if report["kind"] == "steel" else [.62, .38] if report["kind"] == "tabular" else [.30, .15, .15, .40])
         table(summary["headers"], summary["rows"], fractions)
     else:
         story.append(p("没有已完成的主方法结果；失败与未知仍保留，不填造数值。"))
     story.append(p(summary["result_notice"], small, 600))
+    for section in report.get("cpu_sections", []):
+        h(section["title"])
+        for paragraph in section["paragraphs"]:
+            story.append(p(paragraph,small,1600))
+        if section["headers"]:
+            table(section["headers"],section["rows"],[1/len(section["headers"])]*len(section["headers"]))
     prediction_notes = _prediction_notes(report)
     if prediction_notes:
         h("保存预测验证")
