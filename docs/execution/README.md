@@ -12,7 +12,7 @@
 | G3 跨课题方法改进 | 原Gate未通过；G3-L已verified | [两目标闭环/语义拒绝/恢复](g3-local/results.md)，无记忆因果增益声明 |
 | G4 隔离代码级 RSI | 原Gate未通过；G4-L已集成verified | [独立原生微函数/源码集成](g4-local/native-results.md)，非OS/sealed/多代RSI |
 | G5 RAG/算法迁移 | 原Gate未通过；G5-L原生两领域已运行 | [原生检索/调度](g5-local/native-results.md)、[独立9910项](g5-local/native-results-independent.md)，citation检索不生成答案；无完整/sealed声明 |
-| G6 发布交接 | 原Gate未通过；G6-L分层核验继续 | [实际安装/版本边界](g6-local/runtime-reproduction-boundary.md)，当前产品clean1.8安装与保存接续推进，不称完整科研重现或正式发布 |
+| G6 发布交接 | 原Gate未通过；G6-L归档/参数核验已运行 | [Sprint006](SPRINT-006.md)、[归档重开](g6-local/archive-reopen-guide.md)、[保存参数算术](g6-local/saved-model-arithmetic-results.md)；非完整离线依赖安装/训练重现/正式发布 |
 
 ## 当前任务契约
 
@@ -60,3 +60,7 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint 004：代码候选的实际闭环
 
 [报告](SPRINT-004.md)与[原生/集成验收](g4-local/native-acceptance.json)记录真实helper差异、固定原生确认、源码集成及1164工程回归。旧研究292文件/50fit保持，旧服务固定原source。G6全新依赖环境已准备；G5同原生框架接线正在实施，未执行前不标已完成。
+
+## Sprint 005–006：原生跨领域与归档交接
+
+[Sprint005](SPRINT-005.md)完成两领域原生计划/执行/保存审计、9910数值检查、移址恢复、UI、clean wheel和77MB归档；[Sprint006](SPRINT-006.md)在继承云盘继续完成原提交推送、归档新target的8原ID恢复、2991保存参数预测重建及UCI原下载独立小补充包。失败/负例/原预算保持；不把保存参数核验写成重新训练、把依赖复用写成完整离线安装或推断平台调度完成。

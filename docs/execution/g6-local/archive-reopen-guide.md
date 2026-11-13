@@ -34,12 +34,12 @@ ZIP 提供源码、wheel、已保存 case、输入、报告、原件来源和验
 
 原件的绝对路径声明仍指向当时的 `/workspace/...`；`delivery-inventory.json` 的 `protected_original_archive_paths` 给出 494 个对应 member。不得批量字符串替换这些声明或改写冻结输入以让验证通过。重定位只在明确的只读副本访问层完成，并另记映射；遇到未覆盖路径要报告缺口。
 
-当前实现入口是 `scripts/reopen_native_cpu_delivery.py`，分开执行 prepare 与经独审绑定的 recover。在仓库根运行，下例 root 必须尚不存在：
+当前实现入口是 `scripts/reopen_native_cpu_delivery.py`，分开执行 prepare 与经独审绑定的 recover。在仓库根运行，下例使用示意的新目录；实际须替换为 `/workspace/work/g6-archive-reopen-<unique>` 下尚不存在、未被其他尝试使用的目录。已有 01 目录不得重跑：
 
 ```sh
 python scripts/reopen_native_cpu_delivery.py prepare \
   --archive /workspace/auto-research-agentarts/runs/sprint-005-delivery/native-cpu-reproduction-evidence.zip \
-  --root /workspace/work/g6-archive-reopen-20261113-01
+  --root /workspace/work/g6-archive-reopen-example-new
 ```
 
 prepare 校验并恢复完整 930-member `payload/`，从内部 bundle 生成 `final-source/`、`science-source/`、`release-source/` 三个固定 checkout，并从归档 wheel 用 `--no-index --no-deps --no-compile --target` 安装全新 `target/`，核对 177 个包文件。其产物 `archive-validation.json` 与 `prepared.json` 只代表准备完成。第三方依赖仍由外部 `/workspace/work/g6-native-release-20261113-01/venv` 提供，不从 ZIP 安装依赖。
@@ -48,11 +48,50 @@ prepare 校验并恢复完整 930-member `payload/`，从内部 bundle 生成 `f
 
 ```sh
 python scripts/reopen_native_cpu_delivery.py recover \
-  --root /workspace/work/g6-archive-reopen-20261113-01 \
+  --root /workspace/work/g6-archive-reopen-example-new \
   --review /绝对路径/本轮真实独审.json
 ```
 
-recover 由干净 Python 的 `-I -B` 子进程运行，产品模块只能从新 `target/` 加载，case 从 `payload/` 下已存在的两个 manager 打开；预定仅 8 次原 ID 保存重放。成功必须有 `recovery.json` 及 `attempt-final.json` 的实际结果，不能从 prepare 推断。失败保留 `prepare-error.json`、`recovery-error.json` 或最终 unknown receipt 和日志，不自动重试或新建 ID。当前脚本已实现、CLI 已核对，本轮 prepare/recover 尚待独审与实际执行；已有 [clean wheel 保存接续](native-release.md) 是先前独立 scope 的证据，不替代本轮 archive-only 演练。
+recover 由干净 Python 的 `-I -B` 子进程运行，产品模块只能从新 `target/` 加载，case 从 `payload/` 下已存在的两个 manager 打开；预定每域仅 4 个原 ID，共 8 次保存重放。3 版计划、source cap 和 import 仅从原 DB 读验，不重新执行 create/source-cap/import。成功必须有 `recovery.json` 及 `attempt-final.json` 的实际结果，不能从 prepare 推断。失败保留 `prepare-error.json`、`recovery-error.json` 或最终 unknown receipt 和日志，不自动重试或新建 ID。已有 [clean wheel 保存接续](native-release.md) 是先前独立 scope 的证据，不替代本轮 archive-only 演练。原件补充包不作为此 helper 的 native case、源码或依赖输入。
+
+## 保留的 01 准备与恢复失败
+
+`/workspace/work/g6-archive-reopen-20261113-01` 的实际 prepare 已通过：930 members 的 CRC/bytes/SHA、bundle 三个固定 pin 与干净 checkout、177 个 source/wheel/target 包文件一致；target 的全部 187 文件另行冻结。`prepared.json` 的 schema 是 `g6-native-archive-reopen-prepared-v1`，状态保持 `prepared_not_replayed`，SHA-256 `ab3d6fa2e6b5488a9acdbb49a7aa887a5a85dd94d6abfd344806104e17bee7f0`。
+
+01 随后的真实 recover 失败，**没有完成任何原 ID 重放**。失败在归档 `target` 的产品导入链中：h5py 调用 stdlib `platform.processor()`，其固定 `uname -p` 探测被严格 Popen 守卫阻止。此时尚未绑定 manager 或提交原 ID 请求；守卫记录 1 次 Popen 尝试，真正启动的该探测进程为 0，fit/compute/create/export/model/原 case 存储守卫计数均为 0。不是“产品导入前失败”，也不是 8 次 replay 通过。`recovery-error.json` 的 `completed_saved_replays=0`；`attempt-final.json` 状态为 `unknown_preserve_no_retry`，`recovery.json` 不存在，01 整体和日志保持不变，不在该目录重试。
+
+外层 observer 另核旧 ZIP、494 个受保护原文件及路径集合不变，01 的 930-member payload 和 187-file target 也不变；这些保护清单仅供外层前后核验，没有作为恢复输入。证据在 `/workspace/work/g6-archive-reopen-precheck/`：
+
+| 回执 | SHA-256 |
+|---|---|
+| `prepare-protection-receipt.json` | `99e4a8f24552b373ded2635aefb6e4f5ec37eae23b5feb2e40981d145f5fac72` |
+| `failed-recover-protection-receipt.json` | `4e85c923c232d555f06f42315cc4a041df6ac00f64af637d654aba7bc9ed7339` |
+
+窄修 helper 已以 `82d44b4f9a9d48e1a223b07ca97872cb4ef35563` 提交，脚本 SHA-256 `da287780a3a694719d80c4e1d615fb9661e9facde45eb2b0b2f6be72c7c6b83f`。它在文件/import/网络守卫已经安装后，先完成真实 `platform.processor()` 元数据预热；临时 launcher 只允许系统 `uname -p` 精确调用一次，并记录 binary/argv/stdout/returncode/value，随后恢复严格 Popen 守卫再导入 h5py/产品。网络从 bootstrap 前就禁止。静态审查与小型 clean-env fixture 已通过，fixture 实际发生 1 次 uname，随后的 h5py 导入没有 Popen；这不是实际案例重放结果。
+
+因此须分开报告外部依赖 bootstrap 的受控 subprocess 与 saved-recovery 阶段的严格 subprocess 计数，不能声称 whole child 的 subprocess 为 0。完整 replay 阶段的 fit/排名/求解/source/model/report 计算守卫没有放宽。02 使用新 scratch 和新 exact review；它只隔离恢复尝试，不是新研究或新额度，两域原 DB 的已用 2 次工具额度保持。
+
+## 02 实际恢复通过：仅取回保存结果
+
+`/workspace/work/g6-archive-reopen-20261113-02` 已实际完成 prepare 和一次经新独审绑定的 recover。`recovery.json` 的 schema 为 `g6-native-archive-recovery-v1`，状态 `saved_archive_recovery_verified`；`attempt-final.json` 为 `completed`。检索与调度各取回 4 个原 ID，共 8/8 次 `replayed=true`。primary/audit 保存响应为 `completed`，wait 为 `waiting`，report 为 `exported`；这些是原响应状态，不是本轮重新派发或导出。3 plans、source cap、import 只读核验，每案 2 个已用工具额度、0 预留及 fit/model/source 使用量不变。
+
+实际 child bootstrap 启动 1 次系统 `/usr/bin/uname -p`，returncode=0，stdout 是 `unknown\n`，`platform.processor()` 的真实值是空字符串；没有伪造处理器值。bootstrap 网络为 0。随后严格保存恢复阶段的 subprocess、network、fit、新排名/求解/模型/来源提取/报告生成及原存储 fallback 守卫均为 0。整个 child 有这 1 次 bootstrap subprocess，不能描述为全流程零子进程或零失败。
+
+97 个实际 loaded 产品模块全部来自归档 wheel 新装的 `target/`；177 个产品/资源文件与归档 wheel、e638b5f 源码字节相同。完整 187-file target、930-member payload、旧 ZIP、494 个受保护原文件和 10 个完整路径集合前后不变；01 的 6 个失败控制原 SHA 保持。依赖仍透明复用外部 clean1.8 环境，实际 Python 3.12.14、NumPy 2.5.4、SciPy 1.17.0、scikit-learn 1.8.0；没有从 ZIP 提供依赖或新建另一完整依赖环境。
+
+[独立审查](archive-reopen-independent-review.md)接受这个有限 scope：prepared 核对 1838 项、保存结果核对 1510 项，另核 494 个原文件及 10 个 nameset；审查者没有重放原 ID。其 checker 的 3 个历史失败版本也保留，不改成无失败历史。完整机读摘要见 [archive-reopen-results.json](archive-reopen-results.json)，只收身份、计数和原始回执定位，不复制 97 条模块路径表。
+
+| 02 原始回执 | SHA-256 |
+|---|---|
+| `prepared.json` | `f31c5adc6fc1e73ad7e5e308e9fc9843b76beaca6eb1e533e47cf83e96c57d21` |
+| `independent-review.json` | `54f00e2e8c9d1627ca2b5a32e1dd6d812862a954f814538b2bad022b68199db0` |
+| `recovery.json` | `458e1712ba9f662866d17466b1876451a7e41e53aee867e5b7f4b0569ce06a41` |
+| `attempt-final.json` | `dc5b1ad20ff2a16a7dabc836e682e53a8248ac6398f42baf73a9839fa95d2a88` |
+| `dependency-bootstrap.json` | `43a425a53e3cd06837069d856a0ca3b1a98e920ce4c498bb8cbf32a9f5fd09f6` |
+| 外层 `recover-02-protection-receipt.json` | `3a771930419af4a62401bdbd65d7af75c72b188d1e770b3008d9b039423a6c25` |
+| 独立 `runs/g6-archive-reopen-review/final-review.json` | `299f0139529dfc3d629ba92d7506a4d75e09241b3829049830530bf8767cad70` |
+
+结论限于同机合作式守卫下的归档保存恢复；它不建立 OS 隔离、科学模型 refit 复现、完整离线依赖安装或原 G0/G6 全 Gate 通过。开发 token 和金额仍未知，不记为 0。
 
 ## 资产许可与原件定位
 
@@ -71,6 +110,8 @@ recover 由干净 Python 的 `-I -B` 子进程运行，产品模块只能从新 
 三份 UCI 研究输入的转换后 CSV、source snapshot 和来源原件在各自 manager/source-bundle 中保留；这个 ZIP 成员中没有独立的 UCI 原下载 XLS/XLSX 或 ZIP。它可用于保存案例核验，不应被描述成包含全部上游原下载文件的镜像。SciFact 的两个实际下载压缩包则确实在包中。
 
 该 UCI 缺口随后由独立补充包闭合：`runs/sprint-006-originals/uci-original-downloads-supplement.zip`，209,918 字节，37 members，SHA-256 `1930516373006e6cb44b00d8d43fc512dcc82e44890680b066560f0b013a1cc7`。旧 77MB ZIP 的身份不变；补充包内 `supplement-manifest.json` 明确关联旧包 SHA，旧包并未被重写为包含这些文件。
+
+正式小索引 [originals-supplement.json](originals-supplement.json)记录补充包、原包、manifest、创建回执和薄 packer 的 bytes/SHA，以及三条转换来源链；详细逐文件 allowlist 继续以原 `supplement-manifest.json` 为准，没有重打包或覆盖补充 ZIP。
 
 补充包保存 34 个 payload：三份原下载 ZIP、Concrete XLS / Real Estate XLSX / Slump `.data` 和 `.names` 原 member、研究转换实际使用的官方 CSV、旧 source manifests、转换 receipts、字段映射、许可页及原 README。全部 36 条旧 source-manifest 声明已与现存文件匹配，3 条原输入→旧 conversion receipt→77MB 归档 case CSV 的 SHA 链全同。Concrete XLS 是从旧 ZIP 原 member 直接读取；其单独 member SHA 在本轮观察，不冒称旧 receipt 已单独登记该 SHA。Concrete 和 Real Estate 原转换使用的是官方 CSV，Slump 使用 `.data`；Excel 仅为下载原件核对，不是训练直接读取的格式。
 

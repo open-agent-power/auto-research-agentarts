@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+G6可信本地新增证据：[归档独立重开](../../docs/execution/g6-local/archive-reopen-guide.md)仅恢复既有ID、复用外部clean依赖；[保存参数算术](../../docs/execution/g6-local/saved-model-arithmetic-results.md)从归档原CSV与25fold参数独立重建2991条OOF，固定容差/全部负例保持，不是重估系数、重新训练或新方法收益。两种证据分开，不以原1225工程测试替代它们。
+
 云端可信本地新证据：[G3两目标原生迁移与语义拒绝](../../docs/execution/g3-local/results.md)、[G2同任务无收益对照](../../docs/execution/g2-local/results.md)、[G5引用文献检索/明示合成算法对照](../../docs/execution/g5-local/results.md)。对应独立算术/恢复与负结果分别保留；不把局部技术验收当完整Gate、自动科研收益或记忆因果增益。
 
 [翼型自噪声真实任务](../../docs/research/airfoil-noise-study.md)已沿未改运行时完成1503行／106派生组／10fit及原生保存诊断。两份首次计划有明确资源路由差异：当前先请求保存明细并保留调用，对照建议立即负控；两者均可条件采纳，未证明科研收益。仅当前Host采用，完整材料交付给操作者后原生wait，工具3/4保留1，未执行负控或再次调用模型。106组超8,192B仅整体引用，模型没有读到全文；下一项由这个真实请求驱动，解决明确保存证据读取，而非重抽同状态回答证明效果。

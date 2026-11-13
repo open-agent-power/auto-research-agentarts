@@ -1,0 +1,266 @@
+{
+  "schema_version": "saved-model-arithmetic-result-summary-v1",
+  "status": "saved_model_arithmetic_verified",
+  "verifier_source_commit": "9f6058590a0024c5ef85aaeb49244d2f5f17f7e9",
+  "verifier_sha256": "e112e126eca85c1d61dda38c08b9b70c3d73b37fee854b56ac076c9065c6f2fb",
+  "protocol_sha256": "1e154433c58827cdada1e262bead66393ef66c0e44428e56ca93a23ce6df123d",
+  "archive": {
+    "bytes": 77407847,
+    "sha256": "e320404532fe80fd085ec1dbe07cf6e1abda6d8212a00f8295baa3c9371a1a58"
+  },
+  "reconstructed_rows": 2991,
+  "unique_original_input_rows": 1547,
+  "saved_fold_models": 25,
+  "cv_versions": 5,
+  "abs_tolerance": 1e-10,
+  "relative_tolerance": 1e-12,
+  "max_prediction_abs_diff": 1.4210854715202004e-14,
+  "max_aggregate_metric_abs_diff": 8.881784197001252e-16,
+  "cases": [
+    {
+      "case": "concrete",
+      "resource_version": 1,
+      "action_id": "action-3a4d3c93d9dae8a943a22e7757e03b8b",
+      "rows": 1030,
+      "dimensions": 8,
+      "fold_models": 5,
+      "metrics": {
+        "candidate_mae": {
+          "actual": 8.383388056181742,
+          "saved": 8.383388056181742,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "reference_mae": {
+          "actual": 13.487405151286643,
+          "saved": 13.487405151286643,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "improvement": {
+          "actual": 0.37842839581474264,
+          "saved": 0.37842839581474264,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        }
+      },
+      "max_prediction_abs_diff": 1.4210854715202004e-14,
+      "negative_rows": [],
+      "row_output": "concrete-v1-rows.jsonl",
+      "row_output_identity": {
+        "bytes": 550411,
+        "sha256": "0b61b9d5e736381b918eda6c7f90fd3337516173933201ace73dfe2239772266"
+      },
+      "source_snapshot_sha256": "93a0abd645c1bd50bc4cbb6ae3864c62526baff19bf6e3ec6e722c7da1670243",
+      "captured_csv_sha256": "768a123975d7f56ddaef8f2965594614aa7a015b2719d545266e4965bd5b25aa",
+      "artifact_sha256": "bfac9f9537621c5896244f3c4b47fa9c7aa618770b7b099c2c3314d24d5f8ab4",
+      "result_sha256": "0f9064180b7a9444c9f6d07e31c4d3b9e211466b9e0388eda7764dd4dbd66b29",
+      "all_checks_passed": true
+    },
+    {
+      "case": "concrete",
+      "resource_version": 2,
+      "action_id": "action-d093cfe1b49ae1365c9126ade64dd0b5",
+      "rows": 1030,
+      "dimensions": 8,
+      "fold_models": 5,
+      "metrics": {
+        "candidate_mae": {
+          "actual": 5.702072514528066,
+          "saved": 5.702072514528066,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "reference_mae": {
+          "actual": 13.487405151286643,
+          "saved": 13.487405151286643,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "improvement": {
+          "actual": 0.5772298340141349,
+          "saved": 0.5772298340141349,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        }
+      },
+      "max_prediction_abs_diff": 1.4210854715202004e-14,
+      "negative_rows": [
+        689
+      ],
+      "row_output": "concrete-v2-rows.jsonl",
+      "row_output_identity": {
+        "bytes": 551246,
+        "sha256": "a678db7f10b5f55770a1aae991378a1b6713953e185689c8987559fc4097e44d"
+      },
+      "source_snapshot_sha256": "93a0abd645c1bd50bc4cbb6ae3864c62526baff19bf6e3ec6e722c7da1670243",
+      "captured_csv_sha256": "768a123975d7f56ddaef8f2965594614aa7a015b2719d545266e4965bd5b25aa",
+      "artifact_sha256": "f5d5286c5ab8158b6c1c850ade75f0801fa5cd5a3e9e2bac14ec0ebcccfd8325",
+      "result_sha256": "6b59f713a4823466902296f38b5f114e4102a32cdb3df6d271be0332eb91aa0a",
+      "all_checks_passed": true
+    },
+    {
+      "case": "real-estate",
+      "resource_version": 1,
+      "action_id": "action-a1dcc3434446df440b04fab0841cf31d",
+      "rows": 414,
+      "dimensions": 6,
+      "fold_models": 5,
+      "metrics": {
+        "candidate_mae": {
+          "actual": 6.42509288532858,
+          "saved": 6.42509288532858,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "reference_mae": {
+          "actual": 10.786705168236324,
+          "saved": 10.786705168236324,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "improvement": {
+          "actual": 0.40435074611582145,
+          "saved": 0.40435074611582145,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        }
+      },
+      "max_prediction_abs_diff": 7.105427357601002e-15,
+      "negative_rows": [],
+      "row_output": "real-estate-v1-rows.jsonl",
+      "row_output_identity": {
+        "bytes": 225518,
+        "sha256": "e04787d1c3b5898ab8eebbc75241689b65f7dff6f8cf1cb089f4d6543228145f"
+      },
+      "source_snapshot_sha256": "2bdd8a3d0a51206d32db510d0ac4289a0c6026532fd7b9bdba2dae0493a5848e",
+      "captured_csv_sha256": "260416d0c66b3c93fcfce9ea0e861cb1aa0a6c7dc7313dbd740309c5ff77c389",
+      "artifact_sha256": "fe5d7444a458ed7c04dc3c0247d5fee90294af445c89d3a9d613a4cd46512902",
+      "result_sha256": "c5cc645e397efeff6a7620ff49efe43d859efc49334cc5707c10e09081a477ea",
+      "all_checks_passed": true
+    },
+    {
+      "case": "real-estate",
+      "resource_version": 2,
+      "action_id": "action-39075c63ac3c28e308488388c3751688",
+      "rows": 414,
+      "dimensions": 6,
+      "fold_models": 5,
+      "metrics": {
+        "candidate_mae": {
+          "actual": 6.287279461085385,
+          "saved": 6.287279461085386,
+          "signed_diff": -8.881784197001252e-16,
+          "abs_diff": 8.881784197001252e-16,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "reference_mae": {
+          "actual": 10.786705168236324,
+          "saved": 10.786705168236324,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "improvement": {
+          "actual": 0.4171269759370475,
+          "saved": 0.4171269759370474,
+          "signed_diff": 1.1102230246251565e-16,
+          "abs_diff": 1.1102230246251565e-16,
+          "actual_limit": 1e-10,
+          "passed": true
+        }
+      },
+      "max_prediction_abs_diff": 7.105427357601002e-15,
+      "negative_rows": [],
+      "row_output": "real-estate-v2-rows.jsonl",
+      "row_output_identity": {
+        "bytes": 225662,
+        "sha256": "382e06669a9e2c0e70bf68dcd07ce7c3cfad906dbe46aed0ea76fc0718e1687a"
+      },
+      "source_snapshot_sha256": "2bdd8a3d0a51206d32db510d0ac4289a0c6026532fd7b9bdba2dae0493a5848e",
+      "captured_csv_sha256": "260416d0c66b3c93fcfce9ea0e861cb1aa0a6c7dc7313dbd740309c5ff77c389",
+      "artifact_sha256": "89f396d736bc0136fc6aa28a98797e9edb18f9e90421ac7bb1ad22a441aed361",
+      "result_sha256": "c877004a720d10a6cd631cdc8549370c78afc8c0381c63984f6df169f1458ea3",
+      "all_checks_passed": true
+    },
+    {
+      "case": "slump",
+      "resource_version": 1,
+      "action_id": "action-fc4904b98d90bf787886cf26e68a7e9e",
+      "rows": 103,
+      "dimensions": 7,
+      "fold_models": 5,
+      "metrics": {
+        "candidate_mae": {
+          "actual": 2.257091754242374,
+          "saved": 2.257091754242374,
+          "signed_diff": 0.0,
+          "abs_diff": 0.0,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "reference_mae": {
+          "actual": 6.231186060842946,
+          "saved": 6.231186060842945,
+          "signed_diff": 8.881784197001252e-16,
+          "abs_diff": 8.881784197001252e-16,
+          "actual_limit": 1e-10,
+          "passed": true
+        },
+        "improvement": {
+          "actual": 0.6377749384782393,
+          "saved": 0.6377749384782392,
+          "signed_diff": 1.1102230246251565e-16,
+          "abs_diff": 1.1102230246251565e-16,
+          "actual_limit": 1e-10,
+          "passed": true
+        }
+      },
+      "max_prediction_abs_diff": 7.105427357601002e-15,
+      "negative_rows": [],
+      "row_output": "slump-v1-rows.jsonl",
+      "row_output_identity": {
+        "bytes": 55109,
+        "sha256": "eecf916da6ec2d0925f95600a7a90ef20b1ec0e8fddfb5cf1eadb0d33d2c0723"
+      },
+      "source_snapshot_sha256": "8b04db5985fbdd2cd36eafb480e435870e3d3708b3479b4084291f4efe29e681",
+      "captured_csv_sha256": "722f3eb1d4b39e9c06f837d7b5177f0b5ef52c35bd9207163f186449043b0a27",
+      "artifact_sha256": "6a5a01b9d413c23d6541a175a5e46c5163ca5719f3ab29d83a62a3e0b3f7af95",
+      "result_sha256": "f397b4ada7ffaff9a3c396e646e73d1c96c20d8310e2668306eb8f2ba5cada11",
+      "all_checks_passed": true
+    }
+  ],
+  "new_estimator_fit_calls": 0,
+  "new_estimator_predict_calls": 0,
+  "model_api_calls": 0,
+  "guard_attempts": {},
+  "historical_fit_attempts_preserved": 50,
+  "original_files_unchanged": 494,
+  "raw_output_directory": "/workspace/work/g6-saved-model-arithmetic-20261113-01",
+  "raw_result_sha256": "f2988acb5de6aa01f1cf31db993722754f891d312c36cf3db67731d3b8436519",
+  "independent_output_checks": 33282,
+  "independent_actual_receipt_sha256": "a34348349bfa6557676f8ef0456cc06d1d991a470120b3b2cdfad6c15be46c97",
+  "scope": "Apply fixed saved parameters with independent stdlib arithmetic; no parameter estimation or retraining. Prior same-kind saved coefficient checks existed; this round uses the manifested archive across all five models.",
+  "cost_tokens_currency": null,
+  "full_G6_or_scientific_refit_reproduction_claimed": false
+}

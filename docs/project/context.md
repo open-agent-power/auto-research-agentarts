@@ -30,3 +30,5 @@ Sprint003已得到G2无收益对照、G3两目标闭环及负控、G5两类CPU�
 用户要求安排云端周期检查（3h或6h），root选择3h并已创建/启用、readback核同一继承cloud/workspace。平台调度与持续24h模型进程不同，首次执行待验；lease协调本轮与定时轮，不改研究预算。参考库8个固定checkout再次核验全clean/匹配manifest。
 
 继承环境恢复的Sprint006已实际普通push成功并回读main=`477aae3`，上轮token失效不再是当前阻塞；原失败及冻结提交身份保持，不需重复索要登录/Worker授权。平台已有11:43UTC run-time marker，但run/result详情未返回，完成状态不推断。本轮聚焦archive-only保存接续、2991保存参数预测算术（先固定协议再算）、UCI原下载独立补充包；0fit/0model，不重写已验收77MB ZIP或历史课题。
+
+Sprint006实测闭合：新target从归档8原ID恢复，01依赖平台探测失败保留，02仅真实uname1次后strict subprocess/network0；177/187/930物料绑定、1510实际独审过。固定参数算术2991行maxdiff1.42e-14，33282输出断言，负例689保留；补充UCI209918B小包37成员。494原件/50历史fit不变。下一轮做两CPU领域实验页摘要与损失展示，沿既定DESIGN/保存观察，0新研究，别重复已闭合算术或重发driver。

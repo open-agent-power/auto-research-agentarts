@@ -1,0 +1,88 @@
+{
+  "schema_version": "uci-original-downloads-supplement-index-v1",
+  "status": "created_and_verified",
+  "observed_date": "2026-11-13",
+  "archive": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-006-originals/uci-original-downloads-supplement.zip",
+    "bytes": 209918,
+    "sha256": "1930516373006e6cb44b00d8d43fc512dcc82e44890680b066560f0b013a1cc7"
+  },
+  "parent_archive": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-005-delivery/native-cpu-reproduction-evidence.zip",
+    "bytes": 77407847,
+    "sha256": "e320404532fe80fd085ec1dbe07cf6e1abda6d8212a00f8295baa3c9371a1a58"
+  },
+  "manifest": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-006-originals/supplement-manifest.json",
+    "bytes": 13637,
+    "sha256": "939403cff8e5a1187aa163e9f30a60d93a937f30ed4fcad8a22841b337cf0490"
+  },
+  "create_receipt": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-006-originals/create-receipt.json",
+    "bytes": 662,
+    "sha256": "022625ed04262dbc2e62a97efc303840f1b49df965ee89ebcedcd3445812dc43"
+  },
+  "host_packer": {
+    "path": "/workspace/auto-research-agentarts/scripts/archive_original_data_supplement.py",
+    "bytes": 10027,
+    "sha256": "b19cb671e1e2c4ac7e70b70263b7ac03dbfe1bc56cedffdafd93f65e0a770e79"
+  },
+  "payload_files": 34,
+  "zip_members": 37,
+  "uncompressed_payload_bytes": 444153,
+  "old_source_manifest_declarations_verified": 36,
+  "datasets": [
+    {
+      "dataset": "concrete",
+      "license_declaration": "CC BY 4.0",
+      "license_source": "https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength",
+      "old_declared_files_verified": 5,
+      "source_manifest_sha256": "fe30f981a7ff6c8e22c5b68540fe60a4371c4bf31ae2f874165f6554a89e6b98",
+      "original_used_for_conversion": "data.csv",
+      "conversion_input_sha256": "8d4b15b6fc68cd932d745cbd663d5ceae66dd54422e99c1e4865f2936ab7e2af",
+      "conversion_receipt_sha256": "abbf807a2bb744416b58dfa6c55d2100fb7612817c7b51d8dc961023eb7b1c1a",
+      "saved_case_csv_member": "repo/runs/cloud-concrete-local-20261113-01/manager/inputs/1203619ec0cd6fc491f03cf071ff1bdd87c1c3e9e38b33edf86dac64e5dc7b89/concrete.csv",
+      "saved_case_csv_sha256": "768a123975d7f56ddaef8f2965594614aa7a015b2719d545266e4965bd5b25aa",
+      "excel_was_training_input": false
+    },
+    {
+      "dataset": "real-estate",
+      "license_declaration": "CC BY 4.0",
+      "license_source": "https://archive.ics.uci.edu/dataset/477/real+estate+valuation+data+set",
+      "old_declared_files_verified": 16,
+      "source_manifest_sha256": "2db601b8f600be7f9ea63e8645bd0d563d1efb4dad8aca2612ca7adcba38c459",
+      "original_used_for_conversion": "official-data.csv",
+      "conversion_input_sha256": "0730a5687ec285a3c2f9921a808855bd1bde21fc53e6377561cbdce2dda9cbb1",
+      "conversion_receipt_sha256": "7b54d0c60bc26db08d396d1f674443401266968abc9daddbedbc29ef4079a11b",
+      "saved_case_csv_member": "repo/runs/g3-local-transfer-20261113-01/real-estate/manager/inputs/3d1f53ce9b3f6845f8e3c923ff1ca0291432bec4ce41eeb4e3b0fdaf43a327cf/real-estate.csv",
+      "saved_case_csv_sha256": "260416d0c66b3c93fcfce9ea0e861cb1aa0a6c7dc7313dbd740309c5ff77c389",
+      "excel_was_training_input": false
+    },
+    {
+      "dataset": "slump",
+      "license_declaration": "CC BY 4.0",
+      "license_source": "https://archive.ics.uci.edu/dataset/182/concrete+slump+test",
+      "old_declared_files_verified": 15,
+      "source_manifest_sha256": "b911f87da37e3514799ce90b051c533921d54e59e6173b728b4728fbd8ecf369",
+      "original_used_for_conversion": "archive-originals/slump_test.data",
+      "conversion_input_sha256": "78cea9fbb28ad8fc17f389e216e724dc04642c6c363143e67f6bcb97e74525ee",
+      "conversion_receipt_sha256": "d3535ab752627aa1f81f03e07e37480e98770b2b853657b4da7e10f4745dda0f",
+      "saved_case_csv_member": "repo/runs/g3-local-transfer-20261113-01/slump/manager/inputs/9b983e36808edb1b025bc01d49c089cce4aa6f8441f85769ee46a2610b57690c/slump.csv",
+      "saved_case_csv_sha256": "722f3eb1d4b39e9c06f837d7b5177f0b5ef52c35bd9207163f186449043b0a27",
+      "excel_was_training_input": false
+    }
+  ],
+  "exact_payload_allowlist": "runs/sprint-006-originals/supplement-manifest.json:files",
+  "parent_archive_not_rewritten": true,
+  "source_files_unchanged": true,
+  "zip_crc_and_payload_sha256_passed": true,
+  "new_network_downloads": 0,
+  "new_conversion_fit_prediction_model_calls": 0,
+  "research_budget_mutations": 0,
+  "boundary": [
+    "Existing official downloads, source/license notices and historical conversion evidence only.",
+    "Concrete and Real Estate conversion actually used official CSV; Slump used slump_test.data. Excel members are retained original downloads, not asserted direct training inputs.",
+    "No new product/code license, public-domain grant or legal assurance is created.",
+    "Native archive-only recovery does not read this supplement for case/source/dependency inputs."
+  ]
+}

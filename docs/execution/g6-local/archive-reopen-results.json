@@ -1,0 +1,277 @@
+{
+  "schema_version": "g6-native-archive-reopen-summary-v1",
+  "status": "accepted_for_saved_archive_recovery_only",
+  "observed_date": "2026-11-13",
+  "root": "/workspace/work/g6-archive-reopen-20261113-02",
+  "parent_archive": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-005-delivery/native-cpu-reproduction-evidence.zip",
+    "bytes": 77407847,
+    "sha256": "e320404532fe80fd085ec1dbe07cf6e1abda6d8212a00f8295baa3c9371a1a58"
+  },
+  "source_commits": {
+    "final": "e97c0a697ce641081b0a276f5dfa5d1a29762879",
+    "release": "e638b5f3782d12a7b54bb9ede5596e5c4d9726cf",
+    "science": "8e8a206ed0b71479a6e774e36ed91fdb06e21c22"
+  },
+  "host_helper": {
+    "path": "scripts/reopen_native_cpu_delivery.py",
+    "commit": "82d44b4f9a9d48e1a223b07ca97872cb4ef35563",
+    "sha256": "da287780a3a694719d80c4e1d615fb9661e9facde45eb2b0b2f6be72c7c6b83f"
+  },
+  "wheel_sha256": "574a83edc7eadb7d338bb43facd5c84b423e8494598d2ac5aadd3633e9d65295",
+  "external_dependencies": {
+    "environment": "/workspace/work/g6-native-release-20261113-01/venv",
+    "reused_existing_clean_environment": true,
+    "supplied_or_installed_from_archive": false,
+    "observed_versions": {
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "scipy": "1.17.0",
+      "scikit-learn": "1.8.0"
+    },
+    "version_evidence": "archive-reopen-independent-review.md; existing native clean release closure",
+    "new_clean_environment_claimed": false
+  },
+  "attempt_01": {
+    "root": "/workspace/work/g6-archive-reopen-20261113-01",
+    "prepare_status": "prepared_not_replayed",
+    "recover_status": "unknown_preserve_no_retry",
+    "failure": "archive target product import chain: h5py -> platform.processor -> Popen guard blocks uname -p before manager binding or case request",
+    "completed_saved_replays": 0,
+    "blocked_probe_attempts": 1,
+    "actual_probe_processes_started": 0,
+    "preserved_failure_control_files": 6,
+    "not_retried": true,
+    "attempt_final": {
+      "path": "/workspace/work/g6-archive-reopen-20261113-01/attempt-final.json",
+      "bytes": 153,
+      "sha256": "ad8c1ebad39f976b3455e49269d47abbbd9f818a7d019410ed6566c196bbc8fc"
+    },
+    "recovery_error": {
+      "path": "/workspace/work/g6-archive-reopen-20261113-01/recovery-error.json",
+      "bytes": 276,
+      "sha256": "1d37a161d7458c20461f0381f723e606a8b0bdc18356a994bb2c33139bc61757"
+    }
+  },
+  "attempt_02": {
+    "prepared_schema": "g6-native-archive-reopen-prepared-v1",
+    "prepared_status_retained": "prepared_not_replayed",
+    "recovery_schema": "g6-native-archive-recovery-v1",
+    "recovery_status": "saved_archive_recovery_verified",
+    "attempt_final_status": "completed",
+    "saved_replay_responses": 8,
+    "all_replayed": true,
+    "automatic_retry": false,
+    "records": [
+      {
+        "case": "retrieval",
+        "step": "primary",
+        "request_id": "native-primary",
+        "response_status": "completed",
+        "replayed": true
+      },
+      {
+        "case": "retrieval",
+        "step": "audit",
+        "request_id": "native-audit",
+        "response_status": "completed",
+        "replayed": true
+      },
+      {
+        "case": "retrieval",
+        "step": "wait",
+        "request_id": "native-wait",
+        "response_status": "waiting",
+        "replayed": true
+      },
+      {
+        "case": "retrieval",
+        "step": "report",
+        "request_id": "native-report",
+        "response_status": "exported",
+        "replayed": true
+      },
+      {
+        "case": "scheduling",
+        "step": "primary",
+        "request_id": "native-primary",
+        "response_status": "completed",
+        "replayed": true
+      },
+      {
+        "case": "scheduling",
+        "step": "audit",
+        "request_id": "native-audit",
+        "response_status": "completed",
+        "replayed": true
+      },
+      {
+        "case": "scheduling",
+        "step": "wait",
+        "request_id": "native-wait",
+        "response_status": "waiting",
+        "replayed": true
+      },
+      {
+        "case": "scheduling",
+        "step": "report",
+        "request_id": "native-report",
+        "response_status": "exported",
+        "replayed": true
+      }
+    ]
+  },
+  "cases": {
+    "retrieval": {
+      "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+      "run_id": "run-3da891c77629467288cc5735a9b3f421",
+      "snapshot_ref": "f4b381cba28c3cbda6edd979c9dfa4b63db96997feab6b816774c070479d0cc8",
+      "saved_replays": 4,
+      "original_path_metadata_unchanged": true,
+      "budget": {
+        "local_tool_call_limit": 2,
+        "local_tool_calls_used": 2,
+        "local_tool_calls_reserved": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "new_model_requests": 0,
+        "model_requests_reserved": 0,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0
+      }
+    },
+    "scheduling": {
+      "project_id": "project-148dac5d531144008498449cb16a54ea",
+      "run_id": "run-1c79622647b647ea99ba02190d555700",
+      "snapshot_ref": "841909d6a651848ad7976fb79da95d7cc22b773cdb531c3b2cdf68e7bda82147",
+      "saved_replays": 4,
+      "original_path_metadata_unchanged": true,
+      "budget": {
+        "local_tool_call_limit": 2,
+        "local_tool_calls_used": 2,
+        "local_tool_calls_reserved": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "new_model_requests": 0,
+        "model_requests_reserved": 0,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0
+      }
+    }
+  },
+  "phases": {
+    "external_dependency_metadata_bootstrap": {
+      "allowed_subprocess_calls": 1,
+      "blocked_subprocess_calls": 0,
+      "cache_already_warm": false,
+      "network_calls": 0,
+      "phase": "external_dependency_metadata_bootstrap",
+      "processes": [
+        {
+          "argv": [
+            "uname",
+            "-p"
+          ],
+          "resolved_executable": "/usr/bin/uname",
+          "returncode": 0,
+          "stdout": "unknown\n"
+        }
+      ],
+      "processor_value": "",
+      "system_binary": "/usr/bin/uname",
+      "system_binary_sha256": "458ea035850a5802a46ceb931e2864f9649a9030f43342156c54768f7ffddb3e"
+    },
+    "strict_saved_recovery": {
+      "guard_call_counts": {
+        "bootstrap_network": 0,
+        "fit": 0,
+        "network_or_subprocess": 0,
+        "new_compute_create_export_or_model": 0,
+        "original_repository_case_packet_or_product_storage": 0
+      },
+      "subprocess_calls": 0,
+      "new_scientific_compute_fit_model_source_network_or_report": 0
+    },
+    "whole_child_subprocess_count_is_not_zero": true
+  },
+  "preservation": {
+    "loaded_product_modules_from_new_archive_target": 97,
+    "all_product_origins_from_new_archive_target": true,
+    "package_file_bytes_same_as_archive_wheel_and_e638_source": 177,
+    "full_target_files_unchanged": 187,
+    "full_payload_members_unchanged": 930,
+    "protected_original_files_unchanged": 494,
+    "protected_tree_namesets_unchanged": 10,
+    "attempt01_failure_controls_unchanged": 6,
+    "parent_zip_unchanged": true,
+    "external_observer_not_recovery_input": true
+  },
+  "independent_review": {
+    "status": "accepted_for_saved_archive_recovery_only",
+    "prepared_checks": 1838,
+    "saved_result_checks": 1510,
+    "protected_original_file_checks": 494,
+    "reviewer_sent_saved_requests": 0,
+    "reviewer_harness_failed_versions_preserved": 3,
+    "final_receipt": {
+      "path": "/workspace/auto-research-agentarts/runs/g6-archive-reopen-review/final-review.json",
+      "bytes": 1714,
+      "sha256": "299f0139529dfc3d629ba92d7506a4d75e09241b3829049830530bf8767cad70"
+    }
+  },
+  "evidence": [
+    {
+      "path": "/workspace/work/g6-archive-reopen-20261113-02/prepared.json",
+      "bytes": 201668,
+      "sha256": "f31c5adc6fc1e73ad7e5e308e9fc9843b76beaca6eb1e533e47cf83e96c57d21"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-20261113-02/independent-review.json",
+      "bytes": 1803,
+      "sha256": "54f00e2e8c9d1627ca2b5a32e1dd6d812862a954f814538b2bad022b68199db0"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-20261113-02/dependency-bootstrap.json",
+      "bytes": 411,
+      "sha256": "43a425a53e3cd06837069d856a0ca3b1a98e920ce4c498bb8cbf32a9f5fd09f6"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-20261113-02/recovery.json",
+      "bytes": 77731,
+      "sha256": "458e1712ba9f662866d17466b1876451a7e41e53aee867e5b7f4b0569ce06a41"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-20261113-02/attempt-final.json",
+      "bytes": 166,
+      "sha256": "dc5b1ad20ff2a16a7dabc836e682e53a8248ac6398f42baf73a9839fa95d2a88"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-precheck/recover-02-protection-receipt.json",
+      "bytes": 2517,
+      "sha256": "3a771930419af4a62401bdbd65d7af75c72b188d1e770b3008d9b039423a6c25"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-precheck/recovery-02-package-origins.json",
+      "bytes": 37616,
+      "sha256": "1da2458f01281b71a68eab83247b8fa01941e001caf40bf5c3989a8de3a94e7d"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-precheck/prepare-02-protection-receipt.json",
+      "bytes": 1895,
+      "sha256": "c90aa6495b4e34a5666569b37f2b06647a83b6667efde1e13c2cbdbd80fd6fae"
+    },
+    {
+      "path": "/workspace/work/g6-archive-reopen-precheck/failed-recover-protection-receipt.json",
+      "bytes": 788,
+      "sha256": "4e85c923c232d555f06f42315cc4a041df6ac00f64af637d654aba7bc9ed7339"
+    }
+  ],
+  "limits": [
+    "Only saved original-ID recovery; no new study, budget reset, fit, indexing/ranking, solve, model/source extraction or report generation.",
+    "Third-party dependencies came from existing clean1.8 environment; archive is not a complete dependency-wheel mirror or new offline clean installation.",
+    "One real metadata bootstrap uname subprocess occurred; strict saved recovery subprocess/network counts are zero.",
+    "Attempt01 failure and reviewer harness failures remain preserved.",
+    "Same-host cooperative guards, not OS isolation, scientific model refit reproduction or complete original G0/G6 acceptance."
+  ],
+  "development_token_currency_costs": null
+}

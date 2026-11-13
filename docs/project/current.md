@@ -33,7 +33,7 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 两段[真实只读演示](../execution/g6-local/native-demo.md)已完成（31.28/30.68秒，1440×900），实际指标帧已看，125案例文件与5类API前后字节不变。视频与34文件精确allowlist保存在 `runs/g5-native-demo-20261113-01`，不重复录制假运行。
 
-下一可独立增量：核验本轮完整复现归档与原件许可清单，补独立离线重开演练与首次定时轮次实际记录；若能从保存系数进行完整预测算术复核，应先冻结0fit/0model独立范围，不重训或重置旧课题。后续仍直接验证后推送main；原隔离问题不重复询问。
+上述归档重开与保存系数算术已在Sprint006实际闭合，下一轮不要重复旧driver或新建同课题。下一可独立增量是实验中心的检索/调度结果摘要：复用保存observations和既定五页设计，直显宏指标、召回下降、慢例与原记录入口；使用现有两案只读验收，不执行新研究、不拟合或扩额。平台首轮完成/投递状态仍需后续真实回读，不能从触发标记推断。
 
 ## 最新交付与凭据恢复
 
@@ -41,7 +41,11 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 上轮普通push因GH_TOKEN invalid失败，记录保持。此次继承云环境恢复后，新CLI会话实测有效，已普通fast-forward推送并远端回读确认main为`477aae3f89e130f06d497d12d83d8d459def6955`；所有8e8/e638/e97冻结提交原身份发布，无需用户重新登录。后续凭据可能过期时先用新进程实际检查，不把历史失败当永久阻塞、不重置本地领先提交，也不以新Git元数据替换原冻结SHA。
 
-Sprint006正在推进：从77MB归档独立重开两个native manager，只用已有DB和原ID，明确复用已有clean1.8依赖、不是从ZIP离线安装所有依赖；另审出旧5个CV工件确存25fold系数/缩放参数，共2991个OOF值，可预登记独立公式重建（0fit/model），不训练补造参数。补充原77MB未纳入的UCI原下载，采用单独补充包，不改旧ZIP。
+[Sprint006](../execution/SPRINT-006.md)已完成实际验证：从77MB归档复制原已有DB，在`/workspace/work/g6-archive-reopen-20261113-02`新target重开8/8原ID；177产品文件/187完整target/930payload/97产品module origins均绑定。外部依赖透明复用clean1.8，未从ZIP离线安装全依赖。[归档结果](../execution/g6-local/archive-reopen-results.json)与1510项[独审](../execution/g6-local/archive-reopen-independent-review.md)保持0新研究/fit/model/source/报告；一次真实uname依赖bootstrap与后续严格子进程0分开。01在归档产品导入h5py时被守卫挡下，0manager/0ID，原unknown host-attempt及六控制原件保持，不能整体重跑01或02。
+
+保存参数核验按事前源码`9f60585`/固定容差运行完整5CV/25fold/2991输出，最大预测差1.4210854715202004e-14；独立33282项字段/指标核对通过。Concrete负预测689保留，50历史estimator不变，新fit/API0。见[结果](../execution/g6-local/saved-model-arithmetic-results.md)、[机器摘要](../execution/g6-local/saved-model-arithmetic-results.json)、[独审](../execution/g6-local/saved-model-arithmetic-review.md)。只验证保存参数表达，不是重新训练或新科研收益。
+
+原77MB包没有含全部UCI原下载，已单独补齐209918字节/37成员/34payload的[原件补充包](../execution/g6-local/originals-supplement.json)，三原下载/CSV/许可/转换SHA链均核对，旧ZIP身份不变。11项新时间复核有正式receipt。494原件与完整路径集保持，历史源码pin/协议不改。
 
 ## 历史项目与服务
 
