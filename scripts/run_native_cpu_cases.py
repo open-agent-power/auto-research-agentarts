@@ -49,13 +49,14 @@ def save(path, value):
         os.fsync(stream.fileno())
 
 
-def read(path, maximum=16000000):
+def read(path, maximum=16000000, *, allow_empty=False):
     path = Path(path)
     require(path.is_file() and not any(p.is_symlink() for p in (path, *path.parents)), 'Use regular non-symlink files')
-    require(0 < path.stat().st_size <= maximum, 'File exceeds fixed byte bound')
+    minimum = 0 if allow_empty else 1
+    require(minimum <= path.stat().st_size <= maximum, 'File exceeds fixed byte bound')
     with path.open('rb') as stream:
         raw = stream.read(maximum+1)
-    require(0 < len(raw) <= maximum, 'Captured file exceeds byte bound')
+    require(minimum <= len(raw) <= maximum, 'Captured file exceeds byte bound')
     return raw
 
 
@@ -177,7 +178,7 @@ def protected_paths():
 def identities(paths):
     result = {}
     for path in paths:
-        raw = read(path, 64000000)
+        raw = read(path, 64000000, allow_empty=True)
         result[str(path)] = {'bytes': len(raw), 'sha256': sha(raw)}
     return result
 
