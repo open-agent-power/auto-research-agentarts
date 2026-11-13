@@ -1,0 +1,33 @@
+# 自动检查、对齐与继续开发
+
+用户明确要求云端定期检查成果、与项目要求对齐后继续推进。采用单个每3小时触发的任务；这是平台定时触发的开发轮次，不是24小时不停运行的模型进程。手机应用关闭不应作为执行前提；实际是否启动/完成以平台任务记录为准。环境离线、授权到期或平台暂停时如实报告，不假报成功。
+
+## 每轮入口
+
+1. 检查继承云电脑是否可用、仓库是否为`/workspace/auto-research-agentarts`，origin应为`open-agent-power/auto-research-agentarts`。缺少旧云盘时不重建历史账本、不宣称旧证据已恢复。
+2. 使用dev-system与项目AGENTS导航，读取`docs/project/current.md`、`docs/execution/README.md`及本文件，按需查看pack-v2原始阶段要求、最新Sprint和审查。
+3. 使用`scripts/project_autonomy_guard.py`的status/claim/heartbeat/release协调本地开发。每轮使用独有owner，默认1200秒lease。已有未过期owner时只读检查并报告，不能在同工作树并发写。编辑、执行、提交前heartbeat确认仍持有lease；长步骤前续租，结束后release。该lease只协调配合它的执行者，不是权限或研究预算安全边界。
+4. 先检查git状态和已记录活动；保护已有未提交改动，禁止reset/clean或覆盖另一执行者。按原请求ID恢复pending/unknown；不得新ID、复制目录或新项目重置旧研究额度。不得改冻结评价器/协议/原件来迎合分数。
+5. 对照原要求与真实证据，明确已实现、已验证、原Gate缺口和下一小步。选一个具体可验收增量完成代码/真实验证/必要独审，不能只输出下一步计划。已有用户授权允许验证后直接合入并推送main，无需草稿PR或例行确认。
+6. 保留实际失败、负结果、成本和代码/数据身份。研究预算与工程fixture拟合分开统计；未知金额/token不写0。原隔离未通过已被用户接受，不再反复索要同一Worker；不假称OS/sealed/多代RSI通过。
+7. 不新增采购、付费模型/API或外发消息。既有明确0模型/API切片保持；新增研究先冻结范围、预算和评价，旧case与服务source pin保持。只有需要用户选择的新真实阻塞才提问，其余可独立工作继续。
+8. 每一大轮更新current/context/Sprint和证据入口，必要检查通过再推送。报告本轮完成、实际测试/结果、尚存边界、下步与具体决策项；时间不足先保存可接续状态。结束清理自己的lease，不删失败原件。
+
+## 参考项目的真实状态
+
+云端参考目录`/workspace/references/upstream/`及`/workspace/references/manifest.json`已存在。2026-11-13再次核对8仓库均为真实Git checkout、HEAD与固定清单一致、工作树clean：autoresearch、AI-Scientist、AgentLaboratory、prime、OpenHands、software-agent-sdk、beir、ragas。核验原件`runs/autonomy-setup-20261113/reference-check.json`。
+
+[G0复用矩阵](g0/upstream/reuse-matrix.md)是当时的决策，不等于安装完成。现有实际路线：
+
+- autoresearch/AIDE²的固定评价、有限候选与keep/reject思想用于自研原生协议；G4已完成真实helper差异/受限与原生确认/独立审查/源码集成，非上游GPU训练复现。
+- AI-Scientist、AgentLaboratory的阶段上下文、实验快照与审阅机制已研究；保留我们的JSON/SQLite账本，未引入其任意exec/pickle链路。AI-Scientist许可证限制仍保留。
+- OpenHands根目录与canonical SDK分开审计；SDK coding-worker属于后续可选适配，未宣称runtime已集成。
+- BEIR的SciFact原件/许可/引用qrels及固定IR指标已有真实CPU对照；现在继续接入同一原生研究框架。Query metadata原始注释保留但不参与当前排名或评分；不把citation retrieval当事实真伪判定。
+- Ragas评测接口/成本已经研究，当前使用确定性IR指标；未开启生成模型或LLM judge。
+- 提供的Prime地址实际为服务CLI，不能冒称已合入预期训练harness。AIDE²只有论文证据，未定位的源码不宣称拉取/复现。
+
+参考更新先fetch/另存版本并做许可、能力与适用性审查，保留已冻结checkout和运行身份。适合的机制以明确适配/差异/验证合入；不把互不相关仓库整体强行merge，也不因为上游自称成功就标本项目Gate通过。
+
+## 后台配置与可验证性
+
+调度任务ID、环境继承结果和下一触发时间保存于ignored `.agent/autonomy/automation.json`，配置/结果原件在`runs/autonomy-setup-20261113/`。平台success+enabled只证明配置，首次真实执行与环境可用性另行核验。由任务卡调整或暂停；工作成果与证据继续留仓库/云盘，不依赖手机聊天缓存。

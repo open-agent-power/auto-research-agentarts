@@ -2,7 +2,7 @@
 
 ## 当前结果
 
-经用户批准的可信本地G1切片已完成技术验收。原G0资源隔离及上游runtime仍未通过；用户已接受当前环境限制，新的G2-L/G3-L/G5-L可信本地轮次开始。只有只读工作台服务，没有无人值守模型研究或定时任务。
+经用户批准的可信本地G1切片已完成技术验收。原G0资源隔离及上游runtime仍未通过；用户已接受当前环境限制，新的G2-L/G3-L/G5-L可信本地轮次开始。只读工作台服务保持；用户后续已要求平台定时推进，现已创建每3小时的开发检查任务并回读确认继承当前云电脑，首次实际定时执行待验。产品常驻模型研究服务尚未部署。
 
 ## 本轮已完成
 
@@ -46,3 +46,9 @@
 全新clean依赖环境已准备：`/workspace/work/g6-clean-20261113-01/venv`，NumPy2.5.4/sklearn1.9.1，sources/reports安装/HTTP/PDF smoke通过；旧研究venv/sklearn1.8未变。等待当前source commit对应wheel与三完整分组/fold的零拟合兼容核对。
 
 下一原生检索合同root已接受，允许generic小fixture但真实SciFact必须冻结原5183/1109/80-80-300覆盖；followup通用source完整性校验可读原字节，诊断本身不重排/不重新用qrels评分。resource_audit拥有新retrieval_adapter/lexical/tests；root拥有registry/methods/step/report集成，待独审再执行新2tools/0fit/API case。旧standalone全部冻结，不把接线新case当搜索重置。
+
+## 平台定时推进已启用
+
+用户明确要求“3h或者6h检查成果、与项目要求对齐后推进”。已设置单个每3小时精确触发任务，readback确认enabled并继承本会话同一cloud环境(/workspace)；首次定时执行记录仍为空，不能把配置当已完成后台运行。任务与当前开发共同遵循[自动推进规程](../execution/AUTONOMY.md)与cooperative lease，避免同工作树并发写。平台任务配置在ignored `.agent/autonomy/automation.json`，不是手机本地闹钟；手机无需常开来触发任务。
+
+8个参考仓库再次核对真实Git checkout/HEAD=manifest/clean，目录`/workspace/references/upstream`。完整runtime并未全部合并；实际按许可和证据研究机制/原生适配，BEIR数据与固定指标已使用，检索接线继续。
