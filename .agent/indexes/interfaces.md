@@ -159,3 +159,9 @@ A64已在已有构造项目通过一次实际子代理候选v2和一次允许来
 
 
 - 原始训练设计继续`POST /api/local-workbench/design-bind`，`prediction_column:null`，新增`training:{feature_columns,split_group_columns,fit_limit}`。GET designs提供numeric_columns/group_columns/budget；三种原方法为data.ridge-random-validation、data.ridge-group-validation、data.prediction-negative-control，仍沿原advance。目录completed_requests包含导入、改版与绑定的原ID，支持响应丢失后只读核对。详见[研究设计](../../docs/research-design.md)。
+
+
+[固定保存研究reference](../../docs/saved-study-reference.md)：sourcea1152b4的host-only `read_saved_study_reference.py summary|status`，只读绑定原study及最终audit，<=64KiB，缺失/unknown/损坏不补0。没有任意path/study/execute参数；S019只读getter/API另行实现，不把reference当新native primary或项目预算。
+
+
+S019 sourcee88c3f5已接唯一 `GET /api/local-workbench/saved-study-reference`，无query/路径参数、不在POST动作表、不取项目binding，外部保存引用scope；[实际8HTTP/异常态/构造器及bootstrap边界](../../docs/execution/g5-local/saved-study-reference-http-verification.json)。getter无项目预算访问，UI/关联/三臂执行不冒称完成。

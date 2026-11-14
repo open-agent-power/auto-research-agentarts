@@ -1,19 +1,21 @@
 {
   "schema_version": "project-automation-progress-report-v1",
-  "sprint": "Sprint013–Sprint017",
+  "sprint": "Sprint013–Sprint019",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-14T13:28:22+08:00",
-  "end_time": null,
+  "end_time": "2026-11-14T16:36:14.645513+08:00",
   "milestone_captured_at": "2026-11-14T14:33:27.401217+08:00",
-  "status": "milestones_through_installed_product_complete_continuing_readonly_study_reference",
+  "status": "implementation_and_verification_complete_publishing_handoff_then_release",
   "implementation_commits": [
     "3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b",
     "cee2ead576af16a06788c9ecc078002d6305132b",
     "79b6d7d7ca23bb0fa505d452d23171bd60e92c54",
     "62f09edbf15f90cdcd08450aab5d60199d44d63f",
-    "404ef9772c2160c036788d3fd5b156f512e4f172"
+    "404ef9772c2160c036788d3fd5b156f512e4f172",
+    "a1152b4f5d952888d583086e01d023badb95a955",
+    "e88c3f5c8b69a32cc2418e81abaddd78619e27d9"
   ],
-  "latest_source_pin": "/workspace/work/knowledge-query-alias-source-404ef97",
+  "latest_source_pin": "/workspace/work/saved-study-reference-api-source-e88c3f5",
   "latest_runtime_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
   "completed": [
     "CPU complete saved evidence snapshots, exactscope memory/import/retire/restore and native project advisory/context/report/UI",
@@ -22,7 +24,9 @@
     "One bounded real three-arm scheduling policy study; negative endpoint1.261183787/12of12small-case losses; no adoption or retuning",
     "Bounded letter-digit query aliases:37 engineering tests, independent code review and actual same7doc index old/new project query comparison",
     "Static completed-study capsule4671421B/976members, independently checked879source+10docs and all member hashes; no execution",
-    "Fresh404wheel1264600B/c2bba632;185product/179Py fourway identity, productRECORD/23metadata/offline22pins and installed synthetic queries; independently reviewed"
+    "Fresh404wheel1264600B/c2bba632;185product/179Py fourway identity, productRECORD/23metadata/offline22pins and installed synthetic queries; independently reviewed",
+    "Fixed saved study reference reader/CLI, final pinned basePython actual read,27cases/16refs/17files unchanged,10fake checks and independent review",
+    "Fixed saved reference integrated in existing Controller/Workbench readonly GET;22checks/8actualHTTP/independentreview,1realreader and no source or budget changes"
   ],
   "validation": {
     "backend_unit_checks": 24,
@@ -64,7 +68,28 @@
       "evidence": "docs/execution/delivery-sprint-016.json"
     },
     "latest_loaded_product_origins": 98,
-    "independent_thirdparty_RECORD": "not rehashed"
+    "independent_thirdparty_RECORD": "not rehashed",
+    "saved_reference": {
+      "code_commit": "a1152b4f5d952888d583086e01d023badb95a955",
+      "JSON_bytes": 12136,
+      "CLI_bytes": 12137,
+      "cases": 27,
+      "raw_refs": 16,
+      "unchanged_files_locks": 17,
+      "guard_attempts": 0,
+      "evidence": "docs/execution/g5-local/saved-study-reference-verification.json"
+    },
+    "native_reference_HTTP": {
+      "actual_requests": 8,
+      "real_reader_calls": 1,
+      "fake_unknown_response": 1,
+      "response_bytes": 12198,
+      "unchanged_study_files": 17,
+      "unchanged_manager_files": 13,
+      "constructor": "bypassed; not no-write startup proof",
+      "allowed_bootstrap_uname_p": 1,
+      "evidence": "docs/execution/g5-local/saved-study-reference-http-verification.json"
+    }
   },
   "preservation": {
     "scientific_files": 572,
@@ -112,21 +137,23 @@
   ],
   "active_execution": {
     "lease_owner": "root-sprint013-20261114T1328",
-    "root_and_team": "root delivery/current/report; reused implementation fixed readonly study reader in progress; reused validator gap investigation done; reused reviewer installed artifact review done",
+    "root_and_team": "Implementation, validation and independent reviews complete. Root publishing this handoff, then releasing sole lease; other3reusedmembers completed.",
     "team_pool": 4,
     "new_study_executed": true,
     "temporary_services_from_current_validation": "closed",
-    "continuous_model_between_sessions": "not claimed"
+    "continuous_model_between_sessions": "not claimed",
+    "research_executor_running": false,
+    "lease_state_at_capture": "active_closing; check final delivery/release receipt for actual release"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "Complete fixed original-study readonly reference reader/CLI with actual final audit binding and spent counters; no project/action fabrication, no new study or budget, no claim it is in404wheel.",
+  "next_task": "Create explicit readonly saved-study UI and separate budget presentation in existing Workbench; first establish no-write startup for original manager, then actual desktop/mobile and missing/unknown states. No new research/model/API or project budget.",
   "next_planned_trigger_time": "2026-11-14T16:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
-  "evidence_index": "docs/execution/g5-local/scheduling-threshold-transfer-results.json",
-  "Git_delivery": "Sprint014 ordinary push/readback main93bb5d92b3de1953571a48b394c29d42714bbf5e; runs/sprint-014-setup-20261114/milestone-delivery.json. Sprint015 source404 committed, later publish pending actual receipt.",
-  "updated_at": "2026-11-14T16:12:08.199230+08:00",
+  "evidence_index": "docs/execution/g5-local/saved-study-reference-http-verification.json",
+  "Git_delivery": "Prior ordinary push/readback2036087; final sourcee88c3f5/report delivery and lease release will be captured under runs/sprint-019-study-reference-http-20261114/final-delivery.json and final-release.json. Do not infer their success until present.",
+  "updated_at": "2026-11-14T16:36:14.645513+08:00",
   "continuation": {
     "sprint": "Sprint014",
     "status": "real_primary_and_saved_audit_complete_negative_result",
@@ -148,5 +175,6 @@
       "new_research_calls": 0
     }
   },
-  "current_product_release": "docs/execution/g6-local/query-alias-release.json"
+  "current_product_release": "docs/execution/g6-local/query-alias-release.json",
+  "end_time_scope": "Implementation and verification complete; final report publication and lease release follow. Exact delivery/release evidence stored under runs/sprint-019-study-reference-http-20261114."
 }

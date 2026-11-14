@@ -1,0 +1,235 @@
+{
+  "schema_version": "fixed-study-reference-http-verification-v1",
+  "captured_at_asia_shanghai": "2026-11-14T16:36:14.645513+08:00",
+  "code_commit": "e88c3f5c8b69a32cc2418e81abaddd78619e27d9",
+  "source_pin": "/workspace/work/saved-study-reference-api-source-e88c3f5",
+  "source_fingerprints": {
+    "src/autoresearch/local_workbench.py": "bb43be444dea32809ff917887106954ffbf5f1bca49f3cc3f95cb4c73816942b",
+    "src/autoresearch/project_controller.py": "8018b6de816adeeebc47774ef9eeae35d0cc556472d9eec81211bf804f715c25",
+    "src/autoresearch/project_workbench.py": "8a655ee7c23885ecf591b2b14e1594f51c02f5942728cb54d30701d4ce8c9514",
+    "src/autoresearch/saved_study_reference.py": "76a5f23481a503779b2937d44e877372e19a17333b0ef4b0051992a9305eb140"
+  },
+  "endpoint": "GET /api/local-workbench/saved-study-reference",
+  "route_scope": "saved_external_reference_not_current_project_result",
+  "layers": "ProjectWorkbench handler -> LocalWorkbench static getter -> ProjectController static getter -> fixed readonly reader",
+  "test_checks": {
+    "passed": 22,
+    "seconds": 0.668,
+    "log": {
+      "path": "runs/sprint-019-study-reference-http-20261114/fake-tests-final.log",
+      "bytes": 4133,
+      "sha256": "660726d40cfc11cb0fa784315343c5ef25ac641f82f37a230fbe3ea8cbbefca8"
+    }
+  },
+  "independent_code_review": {
+    "path": "runs/sprint-019-study-reference-http-20261114/independent-code-review.json",
+    "bytes": 2824,
+    "sha256": "5ac48bb6bac712b8187b781478d8b2eb7ece8db609be98346d95141707846340"
+  },
+  "actual_HTTP_receipt": {
+    "path": "runs/sprint-019-reference-http-validation-20261114/actual-http-attempt02.json",
+    "bytes": 66232,
+    "sha256": "e146d7ff419da8286079f4bceaaf389b830b26bb0e5f77c95b13c7b2db6a911b"
+  },
+  "independent_final_HTTP_review": {
+    "path": "runs/sprint-019-study-reference-http-20261114/independent-final-http-review.json",
+    "bytes": 3871,
+    "sha256": "27384a7884b6ab99cd815b415ba16e2ffd4b866d77be30b8d63c7841bcd2168f"
+  },
+  "actual_requests": [
+    {
+      "label": "real_completed",
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference",
+      "response_bytes": 12198,
+      "response_sha256": "d782180397a3025caca74ecf1c73a09c9c9cb049c3e49235ebde61d2f610b3d9",
+      "status": 200
+    },
+    {
+      "label": "bare_empty_query_rejected",
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference?",
+      "response_bytes": 71,
+      "response_sha256": "de0dad70b4a799c760c4b7f27c22e4d258259f481dfae32e5f44081d60c1e4ba",
+      "status": 400
+    },
+    {
+      "label": "query_rejected",
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference?study=other",
+      "response_bytes": 71,
+      "response_sha256": "de0dad70b4a799c760c4b7f27c22e4d258259f481dfae32e5f44081d60c1e4ba",
+      "status": 400
+    },
+    {
+      "label": "empty_value_rejected",
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference?study=",
+      "response_bytes": 71,
+      "response_sha256": "de0dad70b4a799c760c4b7f27c22e4d258259f481dfae32e5f44081d60c1e4ba",
+      "status": 400
+    },
+    {
+      "label": "post_rejected",
+      "method": "POST",
+      "path": "/api/local-workbench/saved-study-reference",
+      "response_bytes": 92,
+      "response_sha256": "42b101728773bb8fde935d69685db5ae8cc8849b947378f6ed3b0e6dea8cef5b",
+      "status": 405
+    },
+    {
+      "label": "put_rejected",
+      "method": "PUT",
+      "path": "/api/local-workbench/saved-study-reference",
+      "response_bytes": 88,
+      "response_sha256": "1562df6754404c6a42e70cc58d7c3e578294ba3c703b30bb5d5a4b6b0ce34b6a",
+      "status": 405
+    },
+    {
+      "label": "neighbor_rejected",
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference/other",
+      "response_bytes": 96,
+      "response_sha256": "8d41cd22f70840c86c4c5414bc69271bb2bcce5c5c8d4f4c77062363baf1e7f7",
+      "status": 404
+    },
+    {
+      "label": "synthetic_unknown_fixture",
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference",
+      "response_bytes": 276,
+      "response_sha256": "997298c619964b6932fe51a1718570530386faf085a5bbaba4d78f859d156aba",
+      "status": 200
+    }
+  ],
+  "actual_request_count": 8,
+  "wire_paths_verified": [
+    {
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference"
+    },
+    {
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference?"
+    },
+    {
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference?study=other"
+    },
+    {
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference?study="
+    },
+    {
+      "method": "POST",
+      "path": "/api/local-workbench/saved-study-reference"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/local-workbench/saved-study-reference"
+    },
+    {
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference/other"
+    },
+    {
+      "method": "GET",
+      "path": "/api/local-workbench/saved-study-reference"
+    }
+  ],
+  "real_reader_calls": 1,
+  "mock_unknown_response": true,
+  "mock_is_actual_study_status": false,
+  "real_response_bytes": 12198,
+  "real_cases": 27,
+  "raw_refs": 16,
+  "construction_mode": "existing original manager path, LocalWorkbench.__new__ only; constructor/migrations not invoked",
+  "service_scope": "loopback ephemeral exclusive bind, actions disabled, model disabled",
+  "server_closed": true,
+  "all_original_files_states_unchanged": true,
+  "study_files_locks_checked": 17,
+  "original_manager_files_checked": 13,
+  "old_project_observed_state": 13,
+  "old_project_completed_actions": 2,
+  "old_project_tool_limit": 2,
+  "reserved_counter_scope": "No fresh computed reserved status in this HTTP script. Prior case reserved0 is supported only by earlier evidence and byte-identical project DB.",
+  "protected_files": 574,
+  "old_paths": 421,
+  "guard_attempts": {
+    "BoundedStudyLedger._append": 0,
+    "BoundedStudyLedger._clock_halt": 0,
+    "BoundedStudyLedger._put_meta": 0,
+    "BoundedStudyLedger.claim": 0,
+    "BoundedStudyLedger.finish_generation": 0,
+    "BoundedStudyLedger.finish_primary": 0,
+    "BoundedStudyLedger.halt": 0,
+    "BoundedStudyLedger.perform": 0,
+    "BoundedStudyLedger.seal_inputs": 0,
+    "BoundedStudyLedger.start_generation": 0,
+    "BoundedStudyLedger.start_primary": 0,
+    "BoundedStudyLedger.worker": 0,
+    "ChatClient.complete": 0,
+    "LocalHTTP._blocking_request": 0,
+    "LocalHTTP.request": 0,
+    "LocalWorkbench.__init__": 0,
+    "LocalWorkbench._save": 0,
+    "LocalWorkbench._writer": 0,
+    "LocalWorkbench.advance": 0,
+    "LocalWorkbench.advance_recipe": 0,
+    "LocalWorkbench.create": 0,
+    "LocalWorkbench.model_advance": 0,
+    "LocalWorkbench.model_resume": 0,
+    "ProjectController._advance": 0,
+    "ProjectController.advance": 0,
+    "ProjectController.advance_recipe": 0,
+    "ProjectController.advance_selection": 0,
+    "ResearchProject._save": 0,
+    "ResearchProject._writer": 0,
+    "ResearchProject.create": 0,
+    "ResearchProject.reserve_local_model_slot": 0,
+    "ResearchProject.step": 0,
+    "ResearchProject.upgrade": 0,
+    "autoresearch.relevance_retrieval_adapter.execute": 0,
+    "autoresearch.relevance_retrieval_adapter.retrieve": 0,
+    "autoresearch.retrieval_adapter.execute": 0,
+    "autoresearch.scheduling_adapter.execute": 0,
+    "autoresearch.scheduling_kernel.brute_force": 0,
+    "autoresearch.scheduling_kernel.jobs_for": 0,
+    "autoresearch.scheduling_kernel.schedule": 0,
+    "external_dns": 0,
+    "external_socket_connect": 0,
+    "formal_verifier_module_import": 0,
+    "os.fork": 0,
+    "os.popen": 0,
+    "os.system": 0,
+    "sqlite_write_connect": 0,
+    "subprocess.Popen": 0
+  },
+  "allowed_bootstrap_uname_p": 1,
+  "guard_scope": "non-loopback network guarded before product import; at most one explicit /usr/bin/uname -p subprocess allowed during bootstrap, all other subprocesses denied; research/project/ledger-write callbacks and SQLite write connections guarded after import",
+  "first_failed_attempt": {
+    "evidence": {
+      "path": "runs/sprint-019-reference-http-validation-20261114/actual-http-receipt.json",
+      "bytes": 45320,
+      "sha256": "0c3d4e4be82ab7c69c1fbbc8427d46054bdb74fbfc015ef545a49545e8a4cb67"
+    },
+    "cause": "h5py platform processor bootstrap attempted uname-p and strict subprocess guard rejected it",
+    "scope": "Protection baseline files were read for hashes; product import did not finish, no service/HTTP/reader call and no original writes.",
+    "recovery": "Only exact once /usr/bin/uname -p,shell=false allowed as metadata probe; original attempt retained, no research retried."
+  },
+  "component_identity_evidence": {
+    "batch": "bb43be444dea32809ff917887106954ffbf5f1bca49f3cc3f95cb4c73816942b",
+    "controller": "ce2f5d3a8b70cc1d6017e8b5d0e0a2eb4ba3223d9eeae19045b3612877c277d2",
+    "controller_path": "/workspace/auto-research-agentarts/src/autoresearch/project_controller.py",
+    "native_project": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9"
+  },
+  "limits": [
+    "Actual HTTP harness intentionally skipped LocalWorkbench.__init__ via __new__, setting original root/db only. It verifies the real static handler chain, not no-write normal constructor startup.",
+    "No UI, project association, experience schema import, candidate generation, budget migration or native three-arm execution integration.",
+    "Reference getter does not load, upgrade or change projects. It quotes original source62/e731 and does not replace provenance.",
+    "Current404wheel lacks reader/API source additions; original producer/pins/wheels remain unchanged.",
+    "Independent final reviewer checked existing evidence and selected originals, did not rerun HTTP/research/formal audit or full574 baseline."
+  ],
+  "new_research_fit_model_API_source_extraction": 0,
+  "development_tokens_currency": null
+}

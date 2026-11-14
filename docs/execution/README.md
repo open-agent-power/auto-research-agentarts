@@ -107,3 +107,13 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint017：source404安装物验证
 
 [Sprint017](SPRINT-017.md)已完成新wheel/独立venv、185产品逐字节/RECORD/23依赖元数据及实际安装态微型检索，独审通过。[成品](g6-local/query-alias-release.md)明确host脚本、原producer、bootstrap与依赖审查范围；下一固定study只读引用属于独立后续源码。
+
+
+## Sprint018：原最终账本的只读引用
+
+[Sprint018](SPRINT-018.md)完成固定study reader/CLI，系统Python实际读取原最终状态，27摘要/16refs/17原件不变，10fake及独审过。[使用](../saved-study-reference.md)明确它不是经验包/原nativeaction或执行授权。后续只读API与UI、执行runtime分阶段实现。
+
+
+## Sprint019：固定保存研究接已有只读API
+
+[Sprint019](SPRINT-019.md)已完成Controller/Workbench固定GET及22相关检查、窄原manager8真实HTTP与独审。[精确回执](g5-local/saved-study-reference-http-verification.json)区分真实/fixture、会写构造器绕过与bootstrap探测，原件/预算不变；UI/项目关联/三臂执行未完成。

@@ -1,22 +1,16 @@
-# 最新进展报告
+# 本次连续开发进展
 
-北京时间2026-11-14：本次**13:28:22开始，当前持续执行**；Sprint014真实研究于15:41:58完成保存审计。本页更新2026-11-14T15:47:46.556639+08:00，会话结束时间尚未到，不能预填。原13:47定时触发并入同owner执行。
+北京时间2026-11-14 **13:28:22开始，2026-11-14T16:36:14.645513+08:00完成本次开发/验证并保存汇报**；13:47定时触发并入同owner。发布本报告和释放lease随后执行，精确收尾回执见ignored `runs/sprint-019-study-reference-http-20261114/{final-delivery,final-release}.json`；没有回执不推断成功。
 
-- **代码/提交**：CPU经验/展示/知识需求三个增量 `3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b`、`cee2ead576af16a06788c9ecc078002d6305132b`、`79b6d7d7ca23bb0fa505d452d23171bd60e92c54`，已推送里程碑 `4939f030fabf042cced74c2c481bc4fa45dcbc5a`。新增有限调度研究/账本/恢复源码 **`62f09edbf15f90cdcd08450aab5d60199d44d63f`**，准确pin和运行环境见结果索引；本阶段推送以实际delivery回执为准。
-- **实际研究/负结果**：唯一threshold32与固定二分/扫描比较完成。小n12/12case均慢，预定耗时比**1.261183787（约慢26.12%）**，不晋级、不改阈值、不补测。真实29生成/2642jobs、1140kernel、29Fenwick、2穷举/4352子集、6080234扫描，1primary/1saved audit，活动12.903210272秒/120秒。全部27性能case的19慢/8快、所有原计时/排程与原n32反证保留。
-- **验证**：两阶段独立审批和唯一保存审计通过，最终2402事件/无unknown、failed、halt；独审从288条保存计时另核主终点。4完成入口在5回调守卫下原ID重放，0调用、10文件不变；导入前bootstrap未监测。46项fake工程检查另计，修复的resume封存中断缺口与系统Python缺h5py失败均保留，既有完整venv执行，没有新依赖采购。
-- **前一成品**：CPU三原包完整保存/导入/撤回/恢复及HTTP/浏览器/报告已验；最新79b6 wheel1253924B/SHA a59e0fb2…，183产品/177Py源→wheel→fresh安装一致。具体24后端/3needs/1context、请求/实际看图与三套安装范围在Sprint013，不扩大称新研究收益。
+- **真实研究**：唯一threshold32三臂对照完成，12/12小n均慢，主耗时比1.261183787（本样本慢26.12%），拒绝晋级，不改阈值补测。29生成/2642jobs、1140kernel、29Fenwick、2穷举/4352子集、6080234扫描，1primary/1audit，活动12.903/120秒。全raw/27case19慢8快与源反证保留；[精确结果](../execution/g5-local/scheduling-threshold-transfer-results.json)。
+- **代码**：科学harness `62f09edbf15f90cdcd08450aab5d60199d44d63f`；查询兼容 `404ef9772c2160c036788d3fd5b156f512e4f172`；最终保存引用reader `a1152b4f5d952888d583086e01d023badb95a955`；已接Controller/Workbench只读API `e88c3f5c8b69a32cc2418e81abaddd78619e27d9`。另Sprint013三项CPU经验/界面/需求提交与旧pins均保持。
+- **工程实测**：对应46/37/10/22项检查通过，独立代码/结果/成品审查分别完成。查询同七文档旧新两入口实际引用保持，单字符缺失/OR噪声/TopK限制不抹去。最终reader系统Python真实CLI12137B/27case/16refs/17原件不变；原manager真实HTTP8请求，实际reader1/12198B、非法请求拒绝、mockunknown单列。17study/13manager/state13/两completed actions/原预算、574保护文件/421路径同；本HTTP未新算computed reserved。
+- **成品/证据**：新wheel1264600B/SHA c2bba632cc73a69ee19b97a5664feb019eb181894a7e2a9de220645b5e8794b4，185产品/179Py四处字节一致，离线22pins/23项/RECORD和安装态查询过；[安装准确范围](../execution/g6-local/query-alias-release.json)。静态study ZIP4671421B/976成员、SHA3c12efc995a4a4e4e61763150b1d5de818755dbbdf6e892c15d43c9c96a0c598，完整manifest/CRC/source/doc字节独审；[交付](../execution/delivery-sprint-016.json)。404wheel不含后续reader/API，ZIP非完整跨机执行环境。
 
-574保护文件/421旧路径、原state/budget/producer/source pins和50历史研究fit保持；新fit/产品模型/API/来源抽取0，开发token与金额unknown。新三臂是standalone研究，现有ResearchProject双臂adapter未因此完成三臂runtime。OS/sealed、SDK/runtime、完整Gate、多代RSI均未扩大；本机有限合成结果不等于统计显著、普遍否定或因果记忆收益。
+真实负结果不能用单测覆盖。两阶段审批/未知保护/同ID重放和原50研究fit/旧预算/producer保持，新fit/产品模型/API/来源抽取0，开发token/费用unknown。保留roundtrip/browser/时钟/恢复路由/缺h5py及HTTP首次bootstrap守卫失败。成功HTTP仅放行1次系统uname-p，其他列举guard0；用__new__绕过会写构造器，仅证明handler链，不证明正常启动无写。
 
-**活跃状态**：root持唯一lease `root-sprint013-20261114T1328`，复用4人团队；实施成员继续核CPU知识实际检索，验证与独审成员完成当前验收待复用。没有第二个研究重型执行者；公共锁和命名进程检查不证明OS隔离。没有需要用户选择的新阻塞。下一项是微型工程检索命中检查，明确显式FTS、精确scope memory、项目经验context并非自动互通，不能把query词串或单测当实际研究收益。
+**边界和接续**：只读API已接线，UI、项目关联、经验import及三臂执行runtime未完成；原Gates/OS/sealed/SDK/多代RSI不扩大。无新用户决策阻塞。下一任务先实现不改原manager的host启动路径，再按既定DESIGN做独立只读study视图、预算分栏和桌面/手机实际验收，不新研究或扩额。
 
-下次配置计划 **今天16:47:27北京时间**；平台run/result与通知投递回执仍 **unknown**。本里程碑后继续推进，不假称会话外常驻模型，不另发邮件/Slack。
+**执行状态**：复用4人团队，本次实现/验证/独审均完成，无其他研究执行者；root仅收尾提交/推送并release，实际lease以guard和最终回执为准，不假称会话外有常驻模型。下次配置计划 **16:47:27北京时间**，平台run/result及通知投递仍 **unknown**。仅在本会话回传报告。
 
-[完整Sprint014](../execution/SPRINT-014.md) · [全部case](../execution/g5-local/scheduling-threshold-transfer-results.md) · [精确身份/预算/恢复](../execution/g5-local/scheduling-threshold-transfer-results.json) · [Sprint013成品验收](../execution/SPRINT-013.md) · [机器报告](latest-report.json)
-
-持续更新（2026-11-14T16:02:38.435414+08:00）：Sprint015 query别名源码404ef977/新core4b93246c已完成，37工程检查及同7文档新旧两入口实际引用对比过，原字节/引用保持；OR噪声/TopK/单字符缺失保留，无新研究。原study62/e731不变。原4人团队继续静态胶囊交付与404新wheel独立安装，后者尚未验收，旧79b6成品不冒称带新改动。见[Sprint015](../execution/SPRINT-015.md)。
-
-持续更新（2026-11-14T16:03:44.025786+08:00）：Sprint016静态研究ZIP4671421B/976成员已完成并独审，SHA3c12efc9…；原代码62/文档93+全部payload字节/CRC绑定，非跨机可执行研究环境。[交付范围](../execution/delivery-sprint-016.json)。新研究调用0，继续S017当前source404新wheel/独立安装验证，尚未验收。
-
-持续更新（2026-11-14T16:12:08.199230+08:00）：Sprint017新404成品1264600B/SHA c2bba632…、185产品/179Py四处相同及离线独立venv/安装态查询完成且独审通过；[范围](../execution/g6-local/query-alias-release.json)。仍在原owner连续推进S018固定研究只读reference，绑定最终audit/预算状态，不伪造native action/project、不扩额、不执行研究。
+[最新S019](../execution/SPRINT-019.md) · [完整HTTP/失败范围](../execution/g5-local/saved-study-reference-http-verification.json) · [机器报告](latest-report.json)

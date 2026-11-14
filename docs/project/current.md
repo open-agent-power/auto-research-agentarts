@@ -8,6 +8,20 @@
 
 ## 最新汇报入口
 
+### Sprint019只读原生API完成，本次接续已保存
+
+最新源码 `e88c3f5c8b69a32cc2418e81abaddd78619e27d9`，clean pin `/workspace/work/saved-study-reference-api-source-e88c3f5`；[Sprint019](../execution/SPRINT-019.md)完成ProjectController/LocalWorkbench/ProjectWorkbench固定GET引用。22相关fake回归、独审及原manager窄真实HTTP8请求通过，实际reader1/12198B/27cases/16refs；3×400、2×405、邻路404及另1mockunknown明确分开。原17study/13manager/state13/两completed actions/预算及574/421不变；没有新research/audit/fit/model/API。
+
+重要边界：真实HTTP采用__new__设置原root/db，绕过会写构造器，未证明正常启动无写；首h5py bootstrap失败已留存，成功轮仅精确允许1次uname-p，其他列举guard0。只读API完成，不称UI/项目关联/经验import或三臂执行runtime完成；404成品不含S018/S019。[精确验收](../execution/g5-local/saved-study-reference-http-verification.json)。
+
+下一可做任务：沿既有DESIGN，把外部保存study做成独立只读Workbench视图，原study/claim/producer/实际spent与当前项目预算分栏；先提供明确不改原manager的host启动路径，复用原reader，不新项目/预算/研究，不把裸JSON或fake测试当真实UI验收。完成桌面/手机、unknown/unavailable/完整raw引用与服务关闭的实际验证，再独审推送。原source62/e731/输入/审计1次、product404/4b93及所有旧pins保持，模型/API切片不扩。四人团队继续优先复用，触发先核实际lease，不能因本报告写收口而假称后台常驻。
+
+### Sprint018已完成最终引用reader，继续原生只读API
+
+[Sprint018](../execution/SPRINT-018.md)源码 `a1152b4f5d952888d583086e01d023badb95a955`，clean pin `/workspace/work/saved-study-reference-source-a1152b4`。系统Python最终pin一次实际CLI读原study completed/27摘要/16refs，JSON12136B，17原文件/锁不变；导入前process/network及执行/账本写/SQLite/formal-verifier守卫0。10fake检查与独审通过，旧c463成功读取与最终76a验收分开。[入口/边界](../saved-study-reference.md)/[精确证据](../execution/g5-local/saved-study-reference-verification.json)。
+
+原study62/e731、product404/4b93、reader源码分别保留；不新研究/项目/预算/候选，不重跑唯一audit。当前原实施成员正在将同一reader只读getter接ProjectController/LocalWorkbench/固定GET API（S019，尚未验收）；不做UI/经验import/项目关联或三臂执行runtime。404wheel不含S018/S019，原4人团队同owner持续。
+
 ### Sprint017新成品已验证，继续固定研究只读引用
 
 [Sprint017](../execution/SPRINT-017.md)已完成source404新wheel **1264600B/SHA c2bba632…** 与独立venv验收：185产品/179Py四处字节相同、产品RECORD195/23发行项/exact22离线安装/pipcheck，安装态两种查询经两入口通过；独审逐产品核对，98观察origins/42导入后guard0，bootstrapunknown、全第三方RECORD未在独审重核。[精确成品范围](../execution/g6-local/query-alias-release.json)。原research62/e731和旧case/pins保持，0新研究/fit/API。

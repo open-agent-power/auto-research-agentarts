@@ -76,3 +76,9 @@ Sprint016静态证据胶囊完成：ZIP4671421B/976，SHA3c12efc9…；879源62+
 
 
 Sprint017成品完成：404source、wheel1264600B/SHA c2bba632…、185/179产品四处相同；离线exact22/23项、RECORD195、98origins/42导入后guards0，独审scope和bootstrap/thirdpartyRECORD限制明确。继续S018固定study只读引用，先解决最终audit不在result、经验包超4MiB、原nativeaction不可伪造的真实边界；不混新旧nativeidentity，不新增科研或扩预算。
+
+
+Sprint018：a1152b4 reader最终pin系统PythonCLI真实一次，12137含换行/27case/16refs/17原件锁字节不变，preimport网络进程与执行写入/formal-verifier guard0，10fake+独审过。读取原final2402链，不重跑审计、不伪造project/action。继续S019只读Controller/Workbench GET，当前未完成，无新研究/预算。
+
+
+Sprint019完成：e88c3f5 fixed GET→真实Controller/Workbench/reader，22fake+8HTTP+独审；原17/13manager、state13/两completed actions/预算、574/421同。验收__new__绕过原会写constructor、bootstrap仅放行1 uname-p/首失败留存、mockunknown单列，准确限定scope。当前404成品不含reader/API；下一任务先明确无写启动再做独立只读study UI/预算分栏/桌面手机，拒绝新研究/项目/预算，原source62/e731/1audit/50oldfit保持。

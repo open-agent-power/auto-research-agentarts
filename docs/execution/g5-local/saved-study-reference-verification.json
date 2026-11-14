@@ -1,0 +1,138 @@
+{
+  "schema_version": "saved-study-reference-verification-v1",
+  "captured_at_asia_shanghai": "2026-11-14T16:26:02.772548+08:00",
+  "code_commit": "a1152b4f5d952888d583086e01d023badb95a955",
+  "source_pin": "/workspace/work/saved-study-reference-source-a1152b4",
+  "source_files": {
+    "src/autoresearch/saved_study_reference.py": {
+      "path": "src/autoresearch/saved_study_reference.py",
+      "bytes": 17720,
+      "sha256": "76a5f23481a503779b2937d44e877372e19a17333b0ef4b0051992a9305eb140"
+    },
+    "scripts/read_saved_study_reference.py": {
+      "path": "scripts/read_saved_study_reference.py",
+      "bytes": 683,
+      "sha256": "27eeeba7888d4c00f7647cfc5b95154e952a02c32e80df0d76b32f8535d3feca"
+    },
+    "tests/test_saved_study_reference.py": {
+      "path": "tests/test_saved_study_reference.py",
+      "bytes": 12408,
+      "sha256": "783418acab225be4dfa9e0f9c55b2f82129c8c17fb1486548407ad360afb670e"
+    }
+  },
+  "read_study_id": "g5-scheduling-threshold-transfer-v1",
+  "original_research_code": "62f09edbf15f90cdcd08450aab5d60199d44d63f",
+  "original_producer": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
+  "original_claim": "8a6dd0f5a9ebd3d3439364c39bbf4b7b97e01a09652ab14c25ab85d7b206f3bb",
+  "tests": {
+    "passed": 10,
+    "seconds": 0.31,
+    "evidence": {
+      "path": "runs/sprint-018-study-reference-implementation-20261114/synthetic-tests-reviewed.log",
+      "bytes": 1883,
+      "sha256": "298660e4339c0a603327d3b13243329a8b4e4192c307c8f4263623502d0fa49e"
+    }
+  },
+  "independent_code_review": {
+    "path": "runs/sprint-018-study-reference-20261114/independent-review.json",
+    "bytes": 3301,
+    "sha256": "aa54685ee0304d1636912dce05bed158b72b7273a6325d131b356925f72b270a"
+  },
+  "older_successful_read": {
+    "evidence": {
+      "path": "runs/sprint-018-study-reference-implementation-20261114/read-once-guarded.json",
+      "bytes": 21458,
+      "sha256": "3faddc616c134b777fbbce24f284be9ffd229e81daeb4a42bef3a3a01807a3f0"
+    },
+    "source_sha256": "c4631d6c44faa1bf8761bc04ea369abdef9ecc9d576a88312bf590fb8144e07c",
+    "scope": "Before final exception-only changes, not final source acceptance"
+  },
+  "final_pin_actual_acceptance": {
+    "path": "runs/sprint-018-study-reference-gap-20261114/independent-final-pin-receipt.json",
+    "bytes": 24431,
+    "sha256": "8873d9f4f13387e40bd5d5d96b49842593238f41ceb7708a956c91b83bb64941"
+  },
+  "stdout": {
+    "path": "runs/sprint-018-study-reference-gap-20261114/independent-final-pin-cli.stdout",
+    "bytes": 12137,
+    "sha256": "1b26a57e77a758f9509e67695e17f373b2a024487796fe0f416aea9d71849ef7"
+  },
+  "system_python": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+  "CLI_invocations": 1,
+  "stdout_bytes": 12137,
+  "JSON_bytes_excluding_newline": 12136,
+  "guard_attempts": {
+    "formal_verifier_module_import": 0,
+    "kernel.brute_force": 0,
+    "kernel.jobs_for": 0,
+    "kernel.schedule": 0,
+    "ledger._append": 0,
+    "ledger._clock_halt": 0,
+    "ledger._put_meta": 0,
+    "ledger.claim": 0,
+    "ledger.finish_generation": 0,
+    "ledger.finish_primary": 0,
+    "ledger.halt": 0,
+    "ledger.perform": 0,
+    "ledger.seal_inputs": 0,
+    "ledger.start_generation": 0,
+    "ledger.start_primary": 0,
+    "ledger.worker": 0,
+    "ledger.write_connect": 0,
+    "os.execv": 0,
+    "os.execve": 0,
+    "os.execvp": 0,
+    "os.execvpe": 0,
+    "os.fork": 0,
+    "os.popen": 0,
+    "os.spawnv": 0,
+    "os.spawnve": 0,
+    "os.spawnvp": 0,
+    "os.spawnvpe": 0,
+    "os.system": 0,
+    "socket.create_connection": 0,
+    "socket.socket": 0,
+    "sqlite.non_readonly_connect": 0,
+    "subprocess.Popen": 0
+  },
+  "guard_scope": "subprocess/network blocked before product import; kernel and ledger write callbacks blocked after import and before single CLI call; formal verifier module loading blocked",
+  "product_imports_before_guards": false,
+  "old_evidence_files_locks_unchanged": true,
+  "files_locks_checked": 17,
+  "raw_references_returned": 16,
+  "summary_cases": 27,
+  "actual_spent": {
+    "audit": 1,
+    "bruteforce": 2,
+    "correctness": 6,
+    "exhaustive_subsets": 4352,
+    "generate": 29,
+    "kernel_total": 1140,
+    "oracle": 29,
+    "primary": 1,
+    "scan_comparisons": 6080234,
+    "timed": 972,
+    "warmup": 162
+  },
+  "semantic_scope": {
+    "standalone": true,
+    "binding_only": true,
+    "numerical_recomputation": false,
+    "raw_data_included": false,
+    "may_execute": false,
+    "project_budget_accessed_or_written": false,
+    "concurrent_project_budgets_audited": false
+  },
+  "status_failures": {
+    "missing": "unavailable",
+    "unresolved": "unknown",
+    "SQLite_operational": "unknown",
+    "SQLite_other_or_binding_failure": "integrity_error",
+    "known_failure": "failed"
+  },
+  "research_budget_reused": false,
+  "new_research_fit_model_API_source_extraction": 0,
+  "native_integration": "Host-only reader/CLI in this commit. Controller/Workbench getter/API is separate later work, UI/project association and execution runtime not implemented.",
+  "current_wheel": "404 wheel does not contain this reader or later API. Original source62/e731 and product404/4b93 identities remain separate.",
+  "cost": "Development tokens/currency unknown; this is saved reference binding, not another formal study audit."
+}
