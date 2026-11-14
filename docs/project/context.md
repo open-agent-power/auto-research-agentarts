@@ -109,3 +109,6 @@ Sprint034：旧AA guard96checks证prefix回滚可重预留；1d19f06独立witnes
 
 
 Sprint035：用户批准的固定pilot已实际3逻辑委派/2工具；原project943409c583e54a5d88d414bddb997669/run78ce0add28fa454bb0ad72dd9b979bd1，workspace/work/model-feedback-pilot-20261114-v1，产品78acf/guard1d19。primary实际1index/6rank/6metrics，saved audit0新rank/score；两臂3query打平、validation0、qv正例b两空排名。review needs_revision/leave_proposed，原提案不改/不采纳/state11/baseline v1，3/2额度均尽，guard5响应完成仅留存含义。两个root编排故障均同ID只读恢复；最终2终态重放/15项目文件相同。完整精确ID/SHA/费用unknown见S035/results。继续S036产品保存材料显式检索adverse-query投影，不再派研究模型/工具；实现/工程验证/代码独审复用原3成员，开发和研究调用分开。
+
+
+Sprint036 sourceb2e05f80a76780834077a52fde58d20db4f5a27c/pin saved-retrieval-materials-source-b2e05f8：v3 plan opt-in retrieval_adverse_query，原action/result/split/query固定，复制保存正例ID/两rank IDs/metrics，不含原文；4selector/64KiB整次拒绝，recipe拒绝、report元数据。实现34含新6，独审新6与OOF精确bytes/合成grade2missing，独立原pilot20/old4/Host6/capacity2/relevance14，41文件与Arg树不变。原pilot3/2用完/state11/proposed不改，CODE_CHANGED保持，旧pin继续恢复。继续S037离线成品，不计新研究model/fit/rank；bootstrapunknown、保存算术单列。

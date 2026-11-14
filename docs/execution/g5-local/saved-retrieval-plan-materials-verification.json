@@ -1,0 +1,155 @@
+{
+  "schema_version": "saved-retrieval-plan-materials-verification-v1",
+  "indexed_at_asia_shanghai": "2026-11-14T20:42:15.125991+08:00",
+  "status": "verified_scoped_product_engineering",
+  "source_commit": "b2e05f80a76780834077a52fde58d20db4f5a27c",
+  "clean_pin": "/workspace/work/saved-retrieval-materials-source-b2e05f8",
+  "implementation": {
+    "path": "runs/sprint-036-implementation-20261114/handoff.json",
+    "bytes": 3165,
+    "sha256": "655da85c7cbcbfb544a2030f739afd9be0cb6d6c247d2e711c61d5739189b9bb"
+  },
+  "implementation_tests": {
+    "path": "runs/sprint-036-implementation-20261114/related-tests.log",
+    "bytes": 6262,
+    "sha256": "c2efa48e19c26d72776c48e047199fb095b55aa60349a9eada19ef7d3df3e058"
+  },
+  "independent_validation": {
+    "path": "runs/sprint-036-validation-20261114/index.json",
+    "bytes": 7581,
+    "sha256": "1c8adc71a96e749cb64c6daed1d8a35814b2ef92d1bbcf5184adcdd270f08cc5"
+  },
+  "independent_findings": {
+    "path": "runs/sprint-036-validation-20261114/FINDINGS.md",
+    "bytes": 2321,
+    "sha256": "0033f5d5bee23891e6a26b6c9001f2a1220dcc487e774a1a62735b1e312ff91c"
+  },
+  "independent_review_precommit": {
+    "path": "runs/sprint-036-review-20261114/precommit.json",
+    "bytes": 3745,
+    "sha256": "475b554036b7323f5010f2a81b13b01ad0c6cf5ab0e285cbdbd025ddb92f7e5d"
+  },
+  "independent_review_postfreeze": {
+    "path": "runs/sprint-036-review-20261114/final.json",
+    "bytes": 2527,
+    "sha256": "618f922da7986e9eb5deb2a57a3eeb118c950645ca3426f6a849274ddf1c3a85"
+  },
+  "reviewed_files": {
+    "src/autoresearch/saved_materials.py": {
+      "expected": "50a8b5d479d5da4f71cbbbbc2f7afc079f2ef0295ddc54ce41f4083d7b00103e",
+      "actual": "50a8b5d479d5da4f71cbbbbc2f7afc079f2ef0295ddc54ce41f4083d7b00103e",
+      "matched": true
+    },
+    "src/autoresearch/plan_feedback.py": {
+      "expected": "2cbb83c5e29ea58ac0b9177506d6366261a91a8f63b7ecd1acc68944c408ec8d",
+      "actual": "2cbb83c5e29ea58ac0b9177506d6366261a91a8f63b7ecd1acc68944c408ec8d",
+      "matched": true
+    },
+    "src/autoresearch/recipe_change_proposal.py": {
+      "expected": "e9ef1d79d254e9a780cd3a994956b2017d65b6902b8f2d2caf2b5131175d69d2",
+      "actual": "e9ef1d79d254e9a780cd3a994956b2017d65b6902b8f2d2caf2b5131175d69d2",
+      "matched": true
+    },
+    "src/autoresearch/host_model_report.py": {
+      "expected": "18fbaaf5cea77c7d304a4aaaa8412e531248daa5135df41a5ff18db027cd6b86",
+      "actual": "18fbaaf5cea77c7d304a4aaaa8412e531248daa5135df41a5ff18db027cd6b86",
+      "matched": true
+    },
+    "tests/test_saved_retrieval_plan_materials.py": {
+      "expected": "da6323f746b4eef7b91ba50a22b462cb48eca4b69f355fd2cf2c0a8c39d8d242",
+      "actual": "da6323f746b4eef7b91ba50a22b462cb48eca4b69f355fd2cf2c0a8c39d8d242",
+      "matched": true
+    },
+    "docs/host-model-selection.md": {
+      "expected": "559907a188f8b92bc40f305e46c727c71c9ffde4e3e13c6d65b80f4f8344ae9e",
+      "actual": "559907a188f8b92bc40f305e46c727c71c9ffde4e3e13c6d65b80f4f8344ae9e",
+      "matched": true
+    }
+  },
+  "checks": {
+    "implementation_related_tests": 34,
+    "implementation_new_tests": 6,
+    "independent_reviewer_new_tests": 6,
+    "validator_real_pilot": 20,
+    "validator_old_pin_and_frozen_prompt": 4,
+    "validator_synthetic_host": 6,
+    "validator_synthetic_capacity": 2,
+    "validator_real_relevance": 14,
+    "counts_overlap_do_not_sum_as_unique_tests_or_research": true
+  },
+  "validated_material": {
+    "selector": "retrieval_adverse_query",
+    "plan_only": true,
+    "maximum_distinct_action_split_query_selectors": 4,
+    "maximum_complete_context_bytes": 65536,
+    "oversize_rejects_all_no_truncation": true,
+    "copied": "One explicit adverse query: saved positive IDs, two saved ranking ID lists/ranks/source lines, original metrics and source/action/result/producer/snapshot bindings",
+    "query_document_source_text_included": false,
+    "captured_source_read_internally_for_validation": true,
+    "saved_consistency_arithmetic": "Counted separately; not new ranking/scoring",
+    "default_empty_and_frozen_old_contexts": "Legacy v2 and OOF v3 preserved at independently checked scope",
+    "recipe_support": "retrieval selector explicitly rejected; old OOF recipe unchanged",
+    "host_report": "Metadata identity summary; full original context retains supplied values",
+    "ui": "Existing JSON/CLI entry; no new webpage query selection widget"
+  },
+  "real_pilot_readonly": {
+    "project_id": "project-943409c583e54a5d88d414bddb997669",
+    "run_id": "run-78ce0add28fa454bb0ad72dd9b979bd1",
+    "state_version": 11,
+    "protected_files_unchanged": 41,
+    "two_actions_and_baseline_v1_unchanged": true,
+    "query": "qv",
+    "split": "validation",
+    "positive_doc_ids": [
+      "b"
+    ],
+    "both_rankings": [],
+    "both_arms_all_five_metrics": 0,
+    "category": "no_metric_loss_both_incomplete",
+    "code_changed_blocker_retained": true,
+    "no_host_prepare_consume_adopt_or_upgrade": true
+  },
+  "relevance_validation": {
+    "real_frozen_project_tree_unchanged": true,
+    "real_grade": 1,
+    "real_query_missing_positive_ids": [],
+    "real_sample_does_not_cover_missing_positive": true,
+    "independent_synthetic_review_grade": 2,
+    "independent_synthetic_review_missing_positive_exercised": true
+  },
+  "actual_guarded_runtime_scope": "no ranking/scoring/research execute/audit execute/fit/model/Host request/network/Popen call after guards; fixtures have independent guards after fixture bootstrap",
+  "bootstrap_scope": "imports precede guards; metadata probes unknown, not claimed zero",
+  "saved_read_counts": {
+    "new_pilot": {
+      "project_sqlite_readonly": 14,
+      "citation_saved_arithmetic": 6,
+      "relevance_saved_arithmetic": 6,
+      "saved_reader": 3,
+      "citation_source_checked": 3
+    },
+    "old_pin": {
+      "project_sqlite_readonly": 9,
+      "citation_source_checked": 2,
+      "citation_saved_arithmetic": 4,
+      "relevance_saved_arithmetic": 4
+    },
+    "relevance": {
+      "sqlite_readonly": 1,
+      "saved_reader": 1,
+      "source_checked": 1,
+      "saved_arithmetic": 1
+    }
+  },
+  "full_context_integrity": "selection_context SHA alone does not authenticate supplied values. Host saves whole context and _fresh rebuilds/equality-checks exact frozen selector contents; source/result validation binds retained records, not scientific truth.",
+  "no_new_research_dispatch": "S035 remains3/3 logical research delegations and2/2 specified tools. These are development agents/fixtures/read-only checks, no fourth product research delegation or fresh ranking.",
+  "new_source_identity": "saved_materials is part of project code identity. Old project/pending context retains original78acf implementation; this release does not upgrade/modify it.",
+  "original_pilot_checkpoint": "docs/execution/g5-local/model-feedback-pilot-results.json",
+  "limits": [
+    "No new model reading or plan adoption/effectiveness measured after the product fix.",
+    "No scientific/causal memory gain, method superiority, native Linux runtime, long-running autonomy or OS-seal claim.",
+    "Development and underlying model tokens/cost remain unknown; no paid provider API or procurement."
+  ],
+  "next": "S037 source-frozen wheel and fresh independent installation, with product-byte identity and bounded read-only smoke tests.",
+  "platform_run_result": "unknown",
+  "notification_delivery": "unknown"
+}

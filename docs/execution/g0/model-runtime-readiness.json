@@ -51,5 +51,15 @@
     "Delegatedimports canmove proposal/plan throughproduct, cannotestablishmodelactualexecution/costfromproductalone.",
     "Originalprojectmodelbudget0/tools2of2 remain; not authorized tocreate newresearchmodelallowance bydeveloperauthorization.",
     "Existingtrustedlocalauthorizationpersists; nonewprocurement/paidAPI/messages."
-  ]
+  ],
+  "subsequent_authorized_host_pilot": {
+    "results": "docs/execution/g5-local/model-feedback-pilot-results.json",
+    "logical_research_delegations_received": 3,
+    "tools_completed": 2,
+    "review": "needs_revision_leave_proposed",
+    "remaining_approved_delegations_and_tools": 0,
+    "underlying_requests_tokens_cost": "unknown",
+    "native_linux_runtime_verified": false,
+    "scope": "Separate explicit one-pilot user approval; original runtime audit and old budgets unchanged."
+  }
 }

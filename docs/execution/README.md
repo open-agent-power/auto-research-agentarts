@@ -2,7 +2,9 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
-最新[Sprint035](SPRINT-035.md)：已获批的一次模型选择/反馈计划/独审真实试跑完成，3逻辑委派/2指定工具用完；独审needs_revision，计划保留proposed。当前继续纯工程补齐明确选入的保存检索反馈，不追加研究调用；[精确证据](g5-local/model-feedback-pilot-results.json)。
+最新[Sprint036](SPRINT-036.md)：补齐计划显式指定保存不利查询材料，原文未供应、旧上下文及预算保持；已验证并冻结b2e05f8，继续S037离线安装交付。
+
+历史[Sprint035](SPRINT-035.md)：已获批的一次模型选择/反馈计划/独审真实试跑完成，3逻辑委派/2指定工具用完；独审needs_revision，计划保留proposed。当前继续纯工程补齐明确选入的保存检索反馈，不追加研究调用；[精确证据](g5-local/model-feedback-pilot-results.json)。
 
 历史[Sprint013](SPRINT-013.md)：完成CPU保存经验原生闭环、概览文案及CPU领域知识需求；三真实原包往返、工程target API/报告/双尺寸与当前wheel有限安装已验。保留实际失败/未知请求计数/原负例和预算，无新研究收益；见[验证](g5-local/cpu-experience-verification.json)、[安装](g6-local/cpu-experience-release.md)。持续进入下一研究预协议，未执行未冻结研究。
 
@@ -163,3 +165,7 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint035：实际模型反馈与未通过复核
 
 [S035](SPRINT-035.md)保留3委派/2工具原件、三文档零验证/打平、needs_revision及同ID恢复。计划未采纳，原预算保持；继续纯产品材料供应修复，不宣称科研或长期自主收益。
+
+## Sprint036：可明确选择保存检索失败细节
+
+[S036](SPRINT-036.md)把指定不利查询标注/两臂排名ID与指标接v3 plan，原pilot只读保护与同ID/完整context/旧OOF兼容均实测；新源码不升级原项目、不新增研究模型额度。

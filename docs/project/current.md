@@ -8,6 +8,12 @@
 
 ## 最新汇报入口
 
+### Sprint036：计划可明确取得保存失败查询，继续离线成品
+
+source `b2e05f80a76780834077a52fde58d20db4f5a27c`／clean pin `/workspace/work/saved-retrieval-materials-source-b2e05f8`。显式选择指定不利query，供应原qrel/两排名ID/指标及绑定，原文未供应；最多4条/完整64KiB，plan only，旧OOF/v2/v3冻结prompt保持。实现34相关检查、独审6新fixture与原pilot/ArguAna只读和Host/容量验证通过，原41文件/state11/proposed与CODE_CHANGED保持。[S036](../execution/SPRINT-036.md)／[精确范围](../execution/g5-local/saved-retrieval-plan-materials-verification.json)。
+
+S035研究授权3/3委派、2/2工具已用完，修复后没有新研究模型/采纳或效果验证。继续S037独立离线wheel/新venv，当前旧成品仍不含新接口，不宣称已安装。
+
 ### Sprint035：实际模型试跑完成，独审要求修订，未采纳
 
 已用完用户批准的3次逻辑研究委派/2指定工具；固定检索、反馈计划和独审均有原回复/真实保存结果。三文档三查询两臂打平，validation均0；独审发现计划漏写qv正例b及两空排名，返回needs_revision/leave_proposed。原project943409…/run78ce0…/state11仅baseline v1，修订保留proposed，不替模型改答或追加第4调用。[S035](../execution/SPRINT-035.md)／[精确身份、预算、失败与恢复](../execution/g5-local/model-feedback-pilot-results.json)。
