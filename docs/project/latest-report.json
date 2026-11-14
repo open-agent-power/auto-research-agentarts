@@ -1,120 +1,70 @@
 {
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
-  "start_time": "2026-11-15T00:42:14+08:00",
-  "last_checkpoint": "2026-11-15T02:59:22.044839+08:00",
-  "end_time": "2026-11-15T02:59:22.044839+08:00",
-  "status": "blocked_only_on_new_S050_real_model_scope_decision",
-  "confirmed_commit": "29564822df9705021753a2ad79c156b96fd0d8b1",
-  "origin_readback_matches": true,
+  "start_time": "2026-11-15T04:48:03+08:00",
+  "last_checkpoint": "2026-11-15T05:08:44.277686+08:00",
+  "end_time": null,
+  "status": "S051_pushed_continuing_S052",
+  "confirmed_commit": "c32dc77bb06c1b18cec081edd77c26c2d20c49a9",
   "completed": [
-    "S045 development-only native retrieval, separate preregistered private final package, validation-frozen fixed method, one original-budget final paired evaluation, same-ID/marker recovery, bounded public context/report",
-    "Related regression91/91, independent41/41 and adverse4/4; source188 unchanged",
-    "Independent SQuAD fixed300/100-100-100 protocol and source/license review; protocol committed before data download",
-    "S046 fixed driver independently reviewed; synthetic derivation2/2 and corrupted-body pre-dispatch0-call probe1/1; driver SHA5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619",
-    "S046 real public data:2067docs/100-100-100queries;3 original tools completed; same-ID resume36 files byte identical/0 new actions",
-    "S046 independent saved-value arithmetic and binary evidence audit passed;36 replay files and11 prepared files independently rehashed",
-    "S047 native Workbench audit/freeze/final/report continuation;101 related and19 independent tests; real loopback+new process same-ID no changed DB/actions/budget/report/source",
-    "S048 native adapter/dispatch/report integration99/99; independent staging12/integration7; actual S046 read-only capture574775B with36 original files/budget unchanged and no research action",
-    "S048 actual historical-case HTTP import/reference/report/replay/retire verified; target actions0, budget/candidates/evidence unchanged",
-    "S049 versioned original-manifest receipt adoption51 related/6 independent; real HTTP disconnect at serverexit86 then new process original-ID recovery with rerender disabled and all files/project/budget unchanged",
-    "Updated full global AAWv0.3.1 package7files; original package and long current note preserved; upstream11 local tests passed; actual owners read updated Skill",
-    "S050 one-shot synthetic probe code12 root/16 independent fake CLI checks; actual remote/source, approval-before-grant, marker no resend, source-only import and directory sync gates verified; src190 unchanged",
-    "Published S0502956482, actual original fixed preparation completed with CLI version/bin/context/source recorded; native state confirms0actions/models/fits/no Host grant/launch/approval",
-    "Actual S050 preparation independently verified17 files and zero Host/launch; actual missing-approval execute refused exit1 before grant/launch with all17 files unchanged"
+    "远端AAW已fetch，最新版02e72e3/v0.3.1与本地完整7文件相同",
+    "S051原生staged事前条件/保存反馈/原audit或wait已实现并推main",
+    "root60相关与独审4项通过，191冻结源未变",
+    "三组合成真实HTTP与不同PID原body重放：正2工具、负/零各1，无新增预算或行动",
+    "旧S046保存验证差−.01只读核验；S04636+S05017原件字节/状态/预算不变"
   ],
   "not_completed": [
-    "S050 actual1-call model scope not yet authorized; user question pending",
-    "No real Codex model invocation or production native transport validation"
+    "S052条件续作实现/独审/E2E仍在执行",
+    "S050一次新模型待真实用户答复；未执行"
   ],
-  "actual_research_results": {
-    "validation_delta_recall20": -0.01,
-    "selected_method": "bm25",
-    "final_recall20": 0.97,
-    "final_delta_recall20": 0.0,
-    "scientific_validation": false
-  },
+  "actual_research_results": null,
   "research_usage": {
-    "real_study_tools": 3,
-    "models": 0,
-    "fits": 0,
-    "old_cases_or_quota_reset": false,
+    "new_research_actions": 0,
+    "new_research_model_calls": 0,
+    "new_research_fits": 0,
     "development_tokens": "unknown",
-    "development_cost": "unknown"
+    "development_cost": "unknown",
+    "old_cases_reset": false
   },
   "activity": {
-    "owner": "root-evaluation-20261115T0042",
-    "root": "final handoff; release immediately after successful push, authoritative state in .agent/autonomy/lease.json",
-    "subagents_active": 0,
-    "pool_members_including_root": 6,
-    "old_disk_executor": "unknown",
-    "background_model_process_claim": false
+    "owner": "root-g5-continuation-20261115T0448",
+    "root": "active lease held; integrating S052",
+    "engineering": "S052 single writer local_workbench/staged_continuation/tests",
+    "capability_review": "S052 independent acceptance/probes",
+    "old_disk_executor": "unknown"
   },
-  "known_negative_results": [
-    "NFCorpus academic-use scope not confirmed; CQADupStack rights/capacity unresolved, not adopted",
-    "WIP source drift caused engineering CODE_CHANGED; later explicit source freeze used, original ID not replaced",
-    "Existing uploads.github.com 401 remains; no claimed remote raw bundle persistence"
-  ],
   "boundaries": [
-    "old research disk unavailable, history not reconstructed",
-    "same-user procedural holdout, not blind or OS-isolated",
-    "no native Linux model transport or real efficacy result yet",
-    "old model/fit budgets not expanded"
+    "old research disk/reference checkout not available; history not reconstructed",
+    "S050 still pending user decision, no model/API scope expanded",
+    "trusted local only, not OS/sealed/scientific benefit claim"
   ],
-  "next": "If user truly approves original prepared1-call scope, claim unique lease and execute original2956482 pin/request once; otherwise preserve0model and pending scope, continue authorized independent engineering without fabricating approval",
-  "user_decision_required": {
-    "scope": "S050 one Codex CLI process/one logical Host selection,3 synthetic docs,tool0/fit0,cost/token/providerrequestsunknown",
-    "prepare_sha256": "b2a2d3fe880e8dffdeb142bdc4a5495e862994b445eb59d1c13301070b7b9e2f",
-    "asked_in_this_conversation": true,
-    "answer": "pending; no user reply received at report close"
-  },
+  "next": "完成S052 opt-in条件续作，保留原五字段v1语义和原ID恢复",
+  "user_decision_required": "existing S0501-call question remains pending; no repeat question, independent S051 continues",
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
-    "next_planned_trigger": "2026-11-15T04:47:27+08:00",
-    "role": "alignment/reporting, not stop point",
+    "last_run_marker": "2026-11-14T20:47:50.809459+00:00",
+    "next_planned_trigger": "2026-11-15T07:47:27+08:00",
     "completion": "unknown",
-    "notification_delivery": "unknown",
-    "last_run_time_marker": "2026-11-14T17:46:26.567210+00:00",
-    "marker_not_completion": true,
-    "current_trigger_received_in_active_conversation": true,
-    "active_root_lease_owner": "root-evaluation-20261115T0042",
-    "alignment_checkpoint": "2026-11-15T01:47:06.309628+08:00"
+    "notification_delivery": "unknown"
   },
   "evidence": [
-    "docs/execution/SPRINT-045.md",
-    "docs/execution/g5-local/staged-retrieval-verification.json",
-    "docs/execution/g5-local/squad-paragraph-protocol-v1.json",
-    "/workspace/skill-refresh-20261114/review/s046-protocol-review.md",
-    "/workspace/skill-refresh-20261114/review/s046-driver-review.md",
-    "docs/execution/SPRINT-046.md",
-    "docs/execution/g5-local/squad-paragraph-results.json",
-    "docs/execution/SPRINT-047.md",
-    "docs/execution/g5-local/staged-continuation-verification.json",
-    "docs/execution/SPRINT-048.md",
-    "docs/staged-project-experience.md",
-    "docs/execution/g5-local/staged-experience-verification.json",
-    "docs/execution/SPRINT-049.md",
-    "docs/execution/g5-local/report-recovery-verification.json",
-    "docs/execution/SPRINT-050.md",
-    "docs/execution/g5-local/codex-selection-pilot-verification.json"
+    "runs/s051-exploration/staged-hypothesis-gap.md",
+    "runs/s051-review/acceptance-contract.md",
+    "runs/s051-verification/protected-before.json",
+    "runs/s051-verification/root-regression.log",
+    "runs/s051-review/independent-assessment.md",
+    "runs/s051-verification/original-read-verification.json",
+    "runs/s051-verification/http/result.json",
+    "runs/s051-verification/http/limits.json",
+    "runs/s052-exploration/next-contract.md"
   ],
-  "research_workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1",
-  "workflow": {
-    "version": "0.3.1",
-    "source_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
-    "global_native_files_verified": 7,
-    "live_hooks": "not activated; explicit owner loop",
-    "cloud_skill_body": "matches nativev0.3.1 with YAML quote-only difference",
-    "cloud_runtime_playbook": "exact match",
-    "cloud_executable_resource": "read unavailable; native full7files verified"
-  },
-  "code_commits": {
-    "S045": "42100fa79d6f4a6d96b924ba36fba2f769d2c468",
-    "S046_driver": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
-    "S046_results": "faee6ea38fa3509fcd0312917572fa438c312b6e",
-    "S047": "304c25a9989a8aa0c395500a5fb3834a771c0b7a",
-    "S048": "6cc5dd90ae1ce777324ccae328c7158025dd3480",
-    "S049": "052b76300d34e72b29076c39813f9157ede78f2d",
-    "S050": "29564822df9705021753a2ad79c156b96fd0d8b1"
+  "verification": {
+    "root_related": 60,
+    "independent": 4,
+    "source_freeze_sha256": "65969d7f332823198641f06add0f5b17e4d5fce201b12dbc925fb9cec6166ea2",
+    "core_identity": "c26292e780972ee40637ced8c6b5896eb73d4710a707723ced86162195c48cfa",
+    "synthetic_http_cases": 3,
+    "new_research_benefit_proven": false,
+    "private_io_scope": "server feedback/replay guarded; parent read synthetic private bytes for file hashing"
   }
 }
