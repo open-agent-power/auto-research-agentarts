@@ -1,0 +1,9 @@
+# Sprint037：新计划反馈接口的独立安装交付
+
+源码b2e05f80a76780834077a52fde58d20db4f5a27c固定后构建新wheel，保留全部旧成品。新venv为`/workspace/work/g6-saved-retrieval-plan-20261114/venv`；wheel1296590B/SHA707b49e47d05760f2baad13d057ae4cb58f35c8b27dfbd49a9751aed28af5a2e，产品identity1ed79dbb923875f154967e96ee0b0efef34391dba76e8ff1224b0d4ecc36ef8e。[精确交付与边界](g6-local/saved-retrieval-plan-release.json)。
+
+实现核190产品/184Python从Git、pin、archive、wheel到安装逐字节及产品RECORD，exact22依赖和产品共23分布明确安装reports,sources，pip check通过。独立验收另核pin/wheel/install全部190和94实际模块origins；安装包上的一份手造保存检索fixture13项通过，原pilot/manager没有读取或执行。独审定点核4变更模块、wheel与来源，并读独立验收；没有第三次重复全包。第三方RECORD、导入前bootstrap不在独立覆盖，产品RECORD195/384项为实现方范围。
+
+首轮按版本安装误选旧wheelhouse的同版本产品，因依赖不符失败；第二次明确新wheel绝对路径安装成功，原失败日志保留。安装和元数据进程实际存在，不能说所有进程0；所列守卫范围没有新的研究排名、评分、fit、模型或Host请求。
+
+用户随后明确提高自主研究优先级，允许查找/拉取参考。下一主线立即转向新固定参考的反馈决策/证伪/持久循环机制，补产品原生自主推进，停止继续堆展示包装。原3/2试跑额度和未采纳计划仍保持，不借新参考重开旧研究。

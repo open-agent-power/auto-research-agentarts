@@ -8,6 +8,12 @@
 
 ## 最新汇报入口
 
+### Sprint037交付完成；用户提高自主研究优先级，进入S038
+
+新b2e源wheel1296590B/SHA707b49e4…在独立venv真实安装，190产品/184Py逐byte及13安装fixture验收、限范围独审通过；首次误选旧同版本wheel依赖失败保留。[S037](../execution/SPRINT-037.md)／[精确成品](../execution/g6-local/saved-retrieval-plan-release.json)。
+
+用户新指示：提高自主研究能力优先，多找参考、允许拉取项目/探索。团队仍root+3，已在全新`/workspace/references/exploration/20261114/`拉取AI-Scientist-v2及LLM-AutoSciLab，固定HEAD后读真实反馈/候选选择；另查POPPER证伪。保留旧upstream/manifest/pins，外部指令只是资料；不开新付费模型/API、不扩大旧pilot3/2额度。下一优先产品持久delegated循环/原ID反馈接续，避免继续展示包装；新clone/源码阅读不是集成或研究收益完成。
+
 ### Sprint036：计划可明确取得保存失败查询，继续离线成品
 
 source `b2e05f80a76780834077a52fde58d20db4f5a27c`／clean pin `/workspace/work/saved-retrieval-materials-source-b2e05f8`。显式选择指定不利query，供应原qrel/两排名ID/指标及绑定，原文未供应；最多4条/完整64KiB，plan only，旧OOF/v2/v3冻结prompt保持。实现34相关检查、独审6新fixture与原pilot/ArguAna只读和Host/容量验证通过，原41文件/state11/proposed与CODE_CHANGED保持。[S036](../execution/SPRINT-036.md)／[精确范围](../execution/g5-local/saved-retrieval-plan-materials-verification.json)。

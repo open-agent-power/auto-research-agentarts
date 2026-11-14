@@ -2,7 +2,9 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
-最新[Sprint036](SPRINT-036.md)：补齐计划显式指定保存不利查询材料，原文未供应、旧上下文及预算保持；已验证并冻结b2e05f8，继续S037离线安装交付。
+最新[Sprint037](SPRINT-037.md)：S036接口新wheel及独立安装物已验；现在按用户新优先级研究新的自主反馈/证伪参考并继续产品循环能力。
+
+历史[Sprint036](SPRINT-036.md)：补齐计划显式指定保存不利查询材料，原文未供应、旧上下文及预算保持；已验证并冻结b2e05f8，继续S037离线安装交付。
 
 历史[Sprint035](SPRINT-035.md)：已获批的一次模型选择/反馈计划/独审真实试跑完成，3逻辑委派/2指定工具用完；独审needs_revision，计划保留proposed。当前继续纯工程补齐明确选入的保存检索反馈，不追加研究调用；[精确证据](g5-local/model-feedback-pilot-results.json)。
 

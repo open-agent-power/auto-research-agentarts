@@ -112,3 +112,6 @@ Sprint035：用户批准的固定pilot已实际3逻辑委派/2工具；原projec
 
 
 Sprint036 sourceb2e05f80a76780834077a52fde58d20db4f5a27c/pin saved-retrieval-materials-source-b2e05f8：v3 plan opt-in retrieval_adverse_query，原action/result/split/query固定，复制保存正例ID/两rank IDs/metrics，不含原文；4selector/64KiB整次拒绝，recipe拒绝、report元数据。实现34含新6，独审新6与OOF精确bytes/合成grade2missing，独立原pilot20/old4/Host6/capacity2/relevance14，41文件与Arg树不变。原pilot3/2用完/state11/proposed不改，CODE_CHANGED保持，旧pin继续恢复。继续S037离线成品，不计新研究model/fit/rank；bootstrapunknown、保存算术单列。
+
+
+Sprint037完成b2e新wheel707b49e4…1296590B与freshvenv g6-saved-retrieval-plan-20261114，identity1ed79dbb…，190/184产品字节+23dist/extras/13安装fixture、分范围独审通过；首次版本选择旧wheel失败保留。新用户提高自主研究优先，准许查/拉项目，继续S038：独立exploration目录AI-Scientist-v2 HEAD96bd51617cfdbb494a9fc283af00fe090edfae48、AutoSciLab467fa184ba537d26b2228ee3f3a8c052d9bfca58，后续POPPER；读核心反馈/证伪/循环机制，不跑上游/模型、不复制受限license、不改旧manifest或pilot3/2耗尽范围。下一产品原生delegated持久接续增量待静态差距诊断，不能称已实现runtime。

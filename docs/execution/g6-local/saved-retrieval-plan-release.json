@@ -1,0 +1,55 @@
+{
+  "schema_version": "saved-retrieval-plan-release-v1",
+  "source_commit": "b2e05f80a76780834077a52fde58d20db4f5a27c",
+  "pin": "/workspace/work/saved-retrieval-materials-source-b2e05f8",
+  "product_code_identity": "1ed79dbb923875f154967e96ee0b0efef34391dba76e8ff1224b0d4ecc36ef8e",
+  "wheel": {
+    "path": "/workspace/work/g6-saved-retrieval-plan-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+    "bytes": 1296590,
+    "sha256": "707b49e47d05760f2baad13d057ae4cb58f35c8b27dfbd49a9751aed28af5a2e"
+  },
+  "venv": "/workspace/work/g6-saved-retrieval-plan-20261114/venv",
+  "implementation": {
+    "path": "runs/sprint-037-saved-retrieval-plan-release-20261114/implementation/artifact-index.json",
+    "bytes": 5542,
+    "sha256": "285754f43323db2c88e3c75a7edb9f881e475d71c5338898abae4d07c9c72171"
+  },
+  "validation": {
+    "path": "runs/sprint-037-saved-retrieval-plan-release-20261114/validation/index.json",
+    "bytes": 1548,
+    "sha256": "098dd77506ec258d57a6df7551672632d6cdc5bf0530014482cf0fabb9b8bbc6"
+  },
+  "validation_findings": {
+    "path": "runs/sprint-037-saved-retrieval-plan-release-20261114/validation/FINDINGS.md",
+    "bytes": 1102,
+    "sha256": "d8a64d1bb5dbb49aa94eb305b50d34a4360f3c26267e3b9107cba57310860a8e"
+  },
+  "review": {
+    "path": "runs/sprint-037-saved-retrieval-plan-release-20261114/review/independent-final.json",
+    "bytes": 2341,
+    "sha256": "02e10757fb284955a32d3293956684e75aefef25428850a545a8531336b6e2e8"
+  },
+  "product_files": 190,
+  "product_python_files": 184,
+  "exact_dependencies": 22,
+  "total_distributions": 23,
+  "extras": [
+    "reports",
+    "sources"
+  ],
+  "source_pin_archive_wheel_install_product_bytes": "Implementation all190, validator independently pin/wheel/install all190; reviewer independently4modified modules and package metadata/origins. Scopes distinct.",
+  "product_RECORD": "Implementation wheel195/install384 rows; reviewer did not independently repeat all RECORD proof. Third-party RECORD not independently checked.",
+  "installed_fixture": {
+    "checks": 13,
+    "origins": 94,
+    "original_pilot_or_manager_read": false,
+    "scope": "Temporary hand-authored saved query: qv positive b/empty ranks/0 metrics/no original text/duplicates reject. Guarded no new research, imports before guard unknown."
+  },
+  "failure": "First version-only extras install picked an old same-version product wheel from old wheelhouse and failed dependency resolution; attempt02 used exact new wheel path and succeeded. Both logs retained; no old artifact overwritten.",
+  "limits": [
+    "Install/metadata Python and pip processes actually ran, distinct from zero product research calls.",
+    "No original pilot rerun, fourth research delegation, new fit/rank or native Linux model runtime verified.",
+    "Third-party byte proofs and preguard bootstrap are outside independent verification; no OS seal/scientific benefit claim."
+  ],
+  "next": "User reprioritized autonomous research: inspect newly pinned upstream adaptive loops, then implement a native persisted delegated research continuation instead of further presentation work."
+}
