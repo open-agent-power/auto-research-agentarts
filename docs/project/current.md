@@ -8,6 +8,20 @@
 
 ## 最新汇报入口
 
+[Sprint012](../execution/SPRINT-012.md)于北京时间2026-11-14 10:51:38实际接续，完成固定CPU研究页与紧凑只读协议接口、四真实case五页双尺寸及当前成品离线安装；最终35组独审通过。源码 `0775eab07426d7f52aeb8c649711db3449de6b1f`，clean pin `/workspace/work/fixed-cpu-protocol-source-0775eab`；原main起点b5919a6。三项精确primary隐藏不适用CSV/Ridge设计入口，其他方法保持原编辑/草稿行为；新GET直接核原source，不依赖报告/行动，不升级producer或执行研究。详见[协议](../fixed-cpu-protocol.md)。
+
+214真实GET=29诊断+175浏览器+10独立project，0POST；三CPU摘要4027/3948/3455B，9次手动读取，CPU自动目录/协议/大input请求0、Concrete原目录2次。52原截图team实际看图，viewport补证与fullpage固定栏弱帧分开；旧overview CSV词、未深测旧表格末列/旧reader全文的限制保留。12模块+6HTTP+108最终客户端检查通过；StageA73历史单列，失败未删。无报告原项目的展示fixture保留真实2行动，不当成真实零行动case。
+
+继续完成当前0775新wheel1244710B/SHA `95e5bbd776c32767c02d291a230f0ae2b71170ca97651556eda3bc2b171bb97b`，181产品/175Py源→wheel→新标准venv一致；23分发项明确[reports,sources]离线解析通过。7146RECORD含411pip缓存无声明hash边界，42导入后守卫0调用，bootstrap次数unknown；旧140/2de成品、所有源码pin、原失败均保持。见[安装交接](../execution/g6-local/fixed-cpu-protocol-release.md)及[精确验证索引](../execution/g5-local/fixed-cpu-protocol-verification.json)。
+
+572科研文件/421旧路径、四manager状态/预算、14其他源码worktree和8固定上游保持；原core8670、stored3945/Concrete1354不升级。新研究/工程fit、rank/gold/solve/jobs/model/API/source extraction/科研行动为0，历史50estimator不变，开发token/金额unknown。原亏损、186混合坏例、等臂无因果记忆收益及G0/SDK/runtime/OS/sealed/完整Gate/多代RSI边界不扩大。
+
+下一主线：为固定CPU保存结果制定独立经验合同并接已有方法经验/检索资格。现project_experience仅Ridge OOF，不能伪装CPU结果或放松原校验；绑定原action/result/producer/协议/范围与完整负结果，不新研究、不自动选臂/晋级、不重开预算。另有overview旧CSV措辞可窄修。环境曾短暂starting，wait恢复同盘同lease；旧子agent树未恢复，最终独审从既有raw接续，不重跑研究。
+
+每触发报告见[最新报告](latest-report.md)/[JSON](latest-report.json)。本轮观察配置的下次计划13:47:27北京时间，平台run/result及notification_delivery仍unknown；源码、报告保存与本会话final分别以实际回执核对，不根据enabled/marker认领投递。交付后释放lease，只读服务不等于轮间常驻模型。
+
+## Sprint011历史接续
+
 最新[Sprint011](../execution/SPRINT-011.md)于北京时间2026-11-14 07:51:48实际接续，完成原生relevance保存查询阅读、真实HTTP/UI与当前安装物验证。阅读器源码 `140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c`、clean pin `/workspace/work/relevance-reader-source-140d6ec`；新6字段contract/原grade/未标注null/缺失正例与BM25→TF-IDF角色明确，旧citation响应保持。原科学codeidentity8670、旧3945和所有源pin不升级；只是读取原case，工具仍2/预留0，历史50estimator不变。
 
 52验证GET+2startup、237browserGET+20独立API、43真实截图/2工程截图、两层独审通过；572保护文件/421旧路径及新case路径/预算保持。只读18842新/18843旧仍从140pin指原manager，无动作/模型权限。完整[阅读器证据](../execution/g5-local/saved-relevance-reader-verification.json)明确真实/fixture/错误/补图与无新科研计算边界。

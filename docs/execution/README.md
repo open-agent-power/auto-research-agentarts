@@ -2,7 +2,9 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
-最新[Sprint011](SPRINT-011.md)：新relevance保存查询阅读/旧citation兼容、实际HTTP/双尺寸界面及当前wheel离线安装已验证；另修reports声明并在新成品明确解析[reports,sources]。不新增研究/拟合/模型或扩大Gate；见[读取证据](g5-local/saved-relevance-reader-verification.json)及[安装交接](g6-local/relevance-reader-release.md)。
+最新[Sprint012](SPRINT-012.md)：固定CPU研究页与独立于报告的紧凑协议GET已实现，214真实GET/0POST、四case五页双尺寸和当前新wheel离线安装通过；52截图/原弱帧与既有overview措辞边界保留。0新研究/fit/model，原预算与负例保持。见[验证](g5-local/fixed-cpu-protocol-verification.json)、[安装](g6-local/fixed-cpu-protocol-release.md)。
+
+Sprint011历史[Sprint011](SPRINT-011.md)：新relevance保存查询阅读/旧citation兼容、实际HTTP/双尺寸界面及当前wheel离线安装已验证；另修reports声明并在新成品明确解析[reports,sources]。不新增研究/拟合/模型或扩大Gate；见[读取证据](g5-local/saved-relevance-reader-verification.json)及[安装交接](g6-local/relevance-reader-release.md)。
 
 最新[Sprint010](SPRINT-010.md)：独立ArguAna官方许可/全量原件审计、新relevance原生合同及一次冻结对照已运行。test Recall20 +0.15，保留186混合坏例；固定TF-IDF等臂对照使记忆增量为0，无完整Gate声明。见[真实结果](g5-local/retrieval-transfer-results.md)。
 

@@ -1,158 +1,104 @@
 {
-  "active_executors_at_capture": {
-    "development_finalizer": "root holding lease to save/commit/push this report",
-    "lease_owner": "root-sprint011-20261114T0752",
-    "lease_release_follows_delivery": true,
-    "note": "Final reply reports actual release; historical capture does not assert future ownership or round-between model execution.",
-    "readonly_preview_ports": [
-      18842,
-      18843
+  "schema_version": "project-automation-progress-report-v1",
+  "sprint": "Sprint012",
+  "timezone": "Asia/Shanghai",
+  "start_time": "2026-11-14T10:51:38+08:00",
+  "end_time": "2026-11-14T11:39:55.746639+08:00",
+  "captured_time": "2026-11-14T11:39:55.746639+08:00",
+  "status": "verified_report_captured_root_finalizing_git_delivery",
+  "repository": "open-agent-power/auto-research-agentarts",
+  "implementation_commit": "0775eab07426d7f52aeb8c649711db3449de6b1f",
+  "source_pin": "/workspace/work/fixed-cpu-protocol-source-0775eab",
+  "delivery_finalization": "main report commit, push receipt and lease release pending; no completion inferred",
+  "completed": [
+    "Fixed CPU research pages show applicable captured protocols with exact method gating, manual compact reading and stale-response protection; legacy tabular flow preserved.",
+    "Added bounded host-bound fixed-protocol GET directly verifying original source without requiring report/actions; no scientific dispatch.",
+    "Actual four-case five-page dual-viewport UI plus same-project hidden-report presentation and viewport supplements completed.",
+    "Built and installed current0775 product in a new standard venv with explicit offline reports,sources; all181 product bytes match source/wheel/install."
+  ],
+  "validation": {
+    "backend_checks": 18,
+    "final_compact_client_checks": 108,
+    "typecheck_lint_build": "passed",
+    "actual_GETs": 214,
+    "diagnostic_GETs": 29,
+    "browser_GETs": 175,
+    "independent_project_GETs": 10,
+    "POSTs": 0,
+    "actual_browser_captures_viewed": 52,
+    "CPU_auto_catalog_or_protocol_GETs": 0,
+    "browser_large_input_GETs": 0,
+    "manual_compact_GETs": 9,
+    "Concrete_catalog_GETs": 2,
+    "protocol_bytes": [
+      4027,
+      3948,
+      3455
     ],
-    "release_receipt": "runs/sprint-011-start-20261114/lease-release.json",
-    "research_workers": 0,
-    "running_collaboration_tasks": 0
+    "wheel_bytes": 1244710,
+    "wheel_sha256": "95e5bbd776c32767c02d291a230f0ae2b71170ca97651556eda3bc2b171bb97b"
   },
-  "automation_observation": {
-    "bytes": 318,
-    "path": "runs/sprint-011-start-20261114/automation-observation.json",
-    "sha256": "2f02241104cd722a5077f02658367e4245e564837842abfb1744aaf75c907cd0"
+  "preservation": {
+    "original_scientific_files": 572,
+    "old_paths": 421,
+    "manager_trees": 4,
+    "other_clean_source_worktrees": 14,
+    "fixed_upstream_checkouts": 8,
+    "historical_research_fits": 50,
+    "original_states_and_budgets": "unchanged",
+    "scientific_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30"
+  },
+  "usage": {
+    "new_research_actions": 0,
+    "new_research_fits": 0,
+    "new_engineering_fits": 0,
+    "new_rank_gold_solve_or_jobs_generated": 0,
+    "product_model_API_sends": 0,
+    "new_source_extraction": 0,
+    "development_tokens_currency_costs": null
+  },
+  "failures_and_limits": [
+    "Initial oversize HTTP fixture expected400, existing gateway actually500; corrected test expectation with original failure retained, no gateway mapping change.",
+    "StageA large-input validation gap and Chromium file:// restriction are preserved as historical engineering evidence, separate from final108compact cases.",
+    "Fullpage fixed HUD/skip-link weak frames retained; two viewport supplements prove access, no global overlap-free claim.",
+    "Legacy overview CSV wording remains; old table final columns/reader full details not deeply revalidated this turn.",
+    "No new scientific gain, causal memory improvement, automatic promotion, SDK/runtime integration, OS/sealed/fullGate or multi-generation RSI acceptance.",
+    "Installation RECORD7146 includes411generatedpipcache rows with observedSHA only;42guardszero apply after bootstrap, bootstrap countsunknown.",
+    "Environment brieflystarting then same disk/lease restored; old subagent tree absent, final independent review resumed from raw without rerunning research/HTTP."
+  ],
+  "active_execution": {
+    "root_finalizer": true,
+    "independent_reviewer": false,
+    "autonomous_research_executor": false,
+    "active_development_executors_at_capture": 1,
+    "lease_owner": "root-sprint012-20261114T1052",
+    "readonly_preview_services": 5,
+    "between_triggers_continuous_model_execution": "not claimed"
   },
   "blockers": [],
-  "budget": {
-    "development_token_currency_costs": "unknown",
-    "historical_research_estimator_attempts_unchanged": 50,
-    "new_engineering_estimator_fits": 0,
-    "new_gold_scoring": 0,
-    "new_product_model_api_calls": 0,
-    "new_projects": 0,
-    "new_rankings": 0,
-    "new_research_actions": 0,
-    "new_research_estimator_fits": 0,
-    "new_source_extractions": 0,
-    "original_relevance_state_version": 13,
-    "original_tools_reserved": 0,
-    "original_tools_used": 2
-  },
-  "completed": [
-    "Native relevance saved-query reader with explicit family/schema/roles, original grades/null/missing-positive preservation and legacy citation payload compatibility.",
-    "Actual saved-case HTTP and desktop/mobile Workbench verification with no new research dispatch.",
-    "Fresh current-product offline wheel/standardvenv verification, preserved initial failures and honest RECORD/module-origin boundaries.",
-    "Corrected reports metadata in separate commit, preserved original artifact and actual controlled-resolution failure, built a second fresh artifact and explicitly resolved reports,sources."
-  ],
-  "end_time": "2026-11-14T08:32:26.247854+08:00",
-  "evidence_index": {
-    "bytes": 15182,
-    "path": "docs/execution/g5-local/saved-relevance-reader-verification.json",
-    "sha256": "1f95b3e8f16e9ddce0ad8725950186283d0d30bfd345c7a8837b7bd38934a122"
-  },
-  "failures_retained": [
-    "All research outcomes are the original saved case, not new scoring or scientific gain; fixedTFIDF control has no identified memory causal benefit.",
-    "HTTP check01 expected nested errors but existing API is flat; 35 raw responses reused before 17 new requests, no successful request reissued.",
-    "Two initial screenshot frames had inadequate scroll positioning; retained, then targeted final captures verified notices/missing/last metric.",
-    "The first frontend evidence-index join assumed a child field name; fixed from raw schema without browser or research replay.",
-    "First installation verifier rejected standard411unhashedpipcache; preserved and verified as observedSHAonly, not deleted or relabeled declared hashes.",
-    "140module origins mislabeled total999 as thirdparty; clarified raw paths to99product+900nonproduct.",
-    "140reports extra mismatch actually fails under the controlled22constraints; 2de metadata repair passes in another fresh install without replacing old artifacts.",
-    "Guard0counts apply after explicit bootstrap/import phases, not all lifetime processes/network.",
-    "OptionalSDK/cloud runtime, sealed evaluation, OS isolation, multi-generation RSI and full Gates are not accepted by these results."
-  ],
-  "install_independent_review": {
-    "bytes": 6546,
-    "path": "runs/sprint-011-install-independent-20261114/extras-fixed-review.json",
-    "sha256": "1925e7ef7e03aa766f2a195945ac3555b6deac35bd43ef5aac33dd46b1bfb147"
-  },
-  "next_planned_trigger_time": "2026-11-14T10:47:27+08:00",
-  "next_task": "Make fixed CPU research pages show the applicable frozen protocol instead of irrelevant CSV/Ridge binding prompts; preserve tabular task flows, original ledgers and all budgets.",
-  "notification_delivery": "unknown",
+  "needs_user_decision": false,
+  "next_task": "Separate saved CPU result evidence contract for existing method-experience/retrieval eligibility; preserve Ridge-only OOF checks, original IDs, negative outcomes and budgets; no new study or automatic adoption. Legacy overview CSV wording remains a bounded follow-up.",
+  "next_planned_trigger_time": "2026-11-14T13:47:27+08:00",
+  "schedule_observation_time": "2026-11-14T10:58:48+08:00",
   "platform_run_result": "unknown",
-  "preservation": {
-    "historical_research_estimator_attempts": 50,
-    "input_paths": 10,
-    "new_case_paths": 68,
-    "old_case_file_paths": 421,
-    "scientific_files": 572,
-    "source_pins_clean": 9
+  "notification_delivery": "unknown",
+  "report_delivery_channel": "this conversation final only; no email/Slack",
+  "evidence_index": "docs/execution/g5-local/fixed-cpu-protocol-verification.json",
+  "independent_final_review": {
+    "path": "runs/sprint-012-final-review-20261114/review.json",
+    "bytes": 9244,
+    "sha256": "2b4d79e48b87b67c4140c552ae49ce17f89bb826570a4e32056d296681a9ddff",
+    "status": "passed",
+    "review_groups": 35
   },
-  "reader_commit": "140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c",
-  "reader_independent_review": {
-    "bytes": 10459,
-    "path": "runs/sprint-011-independent-20261114/final-reader-review.json",
-    "sha256": "1ad25a433af9b54690af7465297e9a6ac13247cfa49de4d02b22dfad79bce0c2"
+  "end_time_scope": "Implementation, actual validation, independent review and report capture; Git delivery and lease release follow in their exact receipts/final reply.",
+  "delivery_receipts": {
+    "git_and_focus": "runs/sprint-012-start-20261114/delivery.json",
+    "lease_release": "runs/sprint-012-start-20261114/lease-release.json",
+    "status_at_report_capture": "pending; actual results returned in conversation final"
   },
-  "reader_source_pin": "/workspace/work/relevance-reader-source-140d6ec",
-  "reading_results": {
-    "adverse_rows": 186,
-    "baseline_only_incomplete_no_loss": 81,
-    "both_incomplete_no_loss": 42,
-    "legacy_citation_adverse_rows": 133,
-    "metric_loss": 63,
-    "missing_positive_queries_preserved": 2,
-    "new_relevance_queries_longest_chars": 3519,
-    "query_grade2_or_over4096_real_data": false,
-    "real_long_document_display_chars": 4096,
-    "real_long_document_original_chars": 4671
-  },
-  "release": {
-    "declared_hash_size_verified": 6711,
-    "distributions": 23,
-    "initial140_artifact_preserved": true,
-    "installed_saved_details": 4,
-    "installed_saved_pages": 4,
-    "loaded_site_module_entries": 999,
-    "product_entries": 99,
-    "product_files": 180,
-    "record_rows": 7145,
-    "resolved_extras": [
-      "reports",
-      "sources"
-    ],
-    "runtime_missing_sdk_exit": 2,
-    "runtime_sdk_installed": false,
-    "self_record_unhashed": 23,
-    "standard_pip_cache_unhashed_observed_sha_only": 411,
-    "thirdparty_entries": 900,
-    "wheel": {
-      "bytes": 1237371,
-      "path": "/workspace/work/g6-relevance-extras-fixed-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
-      "sha256": "f36cdf8f41ebe2d3f188e3573d9060ecb79aba47821179b3f12b8a867ced3d58"
-    }
-  },
-  "release_config_commit": "2de2b854bf90404ce6288f8d3fed93e16ccf8581",
-  "release_source_pin": "/workspace/work/relevance-reader-release-source-2de2b85",
-  "remaining_limits": [
-    "Existing saved outcomes only; no new scientific gain, hidden/sealed evaluation, OS isolation, multi-generation RSI or complete Gates.",
-    "Original TF-IDF candidate/control equality does not identify memory causal benefit.",
-    "No SDK/cloud runtime integration or generic method-experience automatic selection completion.",
-    "RECORD caches retain observedSHA-only boundaries and bootstrap process counts remain unknown."
-  ],
-  "schema_version": "project-trigger-report-v2",
-  "sprint": "011",
-  "start_time": "2026-11-14T07:51:48+08:00",
-  "status": "reader_and_corrected_extras_install_verified; finalizing_delivery",
-  "time_scope": "Development/verification and report capture; subsequent git delivery and lease release observations are saved separately.",
-  "timezone": "Asia/Shanghai",
-  "verification": {
-    "all_screenshots_viewed_by_team": true,
-    "browser_extra_api_gets": 20,
-    "browser_gets": 237,
-    "controlled_browser_fixture_cases": 24,
-    "engineering_screenshots": 2,
-    "final_reader_review_groups": 10,
-    "http_posts": 0,
-    "http_startup_gets": 2,
-    "http_statuses": {
-      "200": 34,
-      "400": 9,
-      "404": 3,
-      "409": 6
-    },
-    "http_verifier_gets": 52,
-    "independent_reviewer_real_screenshots_viewed": 8,
-    "legacy_backend_previous_revision_tests": 17,
-    "legacy_real_exact_payloads": 16,
-    "new_backend_tests": 13,
-    "precommit_real_projection_groups": 14,
-    "reader_gets_subset": 117,
-    "real_screenshots_including_capture_weak_frames": 43
+  "evidence_index_identity": {
+    "bytes": 8148,
+    "sha256": "5b82092bdfe35d51c570a804ffe15ce94a054fb9fdef8a0f17283a1f568b4717"
   }
 }

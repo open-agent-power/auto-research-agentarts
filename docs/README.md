@@ -11,6 +11,7 @@
 | 当前主线与优先方向 | [项目计划](plan.md)（完整 ICT 工作区本机文件） |
 | 如何启动与使用 | [产品 README](../README.md)、[本地工作台](local-workbench.md)、[项目使用](project-slice.md) |
 | 研究方法与已有能力 | [研究设计](research-design.md)、[模型请求](host-model-selection.md)、[知识服务](knowledge.md) |
+| 固定CPU研究协议与只读接口 | [按需协议摘要](fixed-cpu-protocol.md) |
 | 状态、执行和恢复契约 | [研究契约](architecture/research-contracts.md)、[底层架构](architecture/foundation.md) |
 | 研究配方和持续改进 | [配方接入](recipe-research/integration.md)、[配方与 RSI](recipe-research/rsi-delivery.md) |
 | 用户界面与开发 | [DESIGN](../DESIGN.md)、[开发地图](development.md)、[Agent 导航](../.agent/README.md) |

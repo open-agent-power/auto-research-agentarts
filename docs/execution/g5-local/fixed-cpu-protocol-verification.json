@@ -1,0 +1,212 @@
+{
+  "schema_version": "fixed-cpu-protocol-verification-v1",
+  "status": "passed_limited_implementation_actual_HTTP_UI_install_and_independent_review",
+  "source_commit": "0775eab07426d7f52aeb8c649711db3449de6b1f",
+  "base_commit": "b5919a666de0474120a39eae4395d4cacb03c359",
+  "clean_source_pin": "/workspace/work/fixed-cpu-protocol-source-0775eab",
+  "scientific_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+  "engineering_checks": {
+    "backend_source": 12,
+    "host_HTTP": 6,
+    "final_compact_client": 108,
+    "historical_large_input_stageA_separate": 73,
+    "typecheck_lint_build": "passed"
+  },
+  "actual_HTTP": {
+    "total_GETs": 214,
+    "diagnostic_GETs": 29,
+    "browser_GETs": 175,
+    "independent_project_GETs": 10,
+    "POSTs": 0,
+    "browser_manual_compact_GETs": 9,
+    "CPU_auto_compact_GETs": 0,
+    "CPU_design_catalog_GETs": 0,
+    "Concrete_catalog_GETs": 2,
+    "large_input_browser_GETs": 0,
+    "after8_window": "After main and no-report UI, before two viewport supplements; final file/log checkpoint after supplement, no duplicate GET.",
+    "normal_CPU_response_bytes": {
+      "relevance": 4027,
+      "citation": 3948,
+      "scheduling": 3455
+    },
+    "hidden_report": "Same original ArguAna project and two actions; only presentation report mount hidden, original reports/DB unchanged; zero-action capability tested separately in unit fixtures."
+  },
+  "actual_UI": {
+    "saved_cases": 4,
+    "viewports": [
+      "1440x900",
+      "390x844"
+    ],
+    "pages_per_case": 5,
+    "captures": 52,
+    "captures_actually_viewed_by_team": 52,
+    "derived_crops_not_additional_captures": 4,
+    "capture_breakdown": {
+      "main": 48,
+      "no_report": 2,
+      "viewport_supplements": 2
+    },
+    "limitations": [
+      "Full-page fixed HUD and skip-link frames overlap some text; original frames retained, two viewport supplements verify button/status/first protocol text. Not a global overlap-free claim.",
+      "Legacy overview CSV wording remains.",
+      "Old table far-right columns and every saved-reader detail were not deeply revalidated in this protocol UI change."
+    ]
+  },
+  "source_qualification": {
+    "Python_files": 175,
+    "unchanged_from_base": 173,
+    "modified_from_base": [
+      "src/autoresearch/project_workbench.py"
+    ],
+    "added": [
+      "src/autoresearch/cpu_protocol_reader.py"
+    ],
+    "saved_query_reader_unchanged": true
+  },
+  "installation": {
+    "root": "/workspace/work/g6-fixed-cpu-protocol-20261114",
+    "wheel": {
+      "bytes": 1244710,
+      "sha256": "95e5bbd776c32767c02d291a230f0ae2b71170ca97651556eda3bc2b171bb97b"
+    },
+    "product_files": 181,
+    "Python_files": 175,
+    "distributions": 23,
+    "extras": "reports,sources explicitly resolved offline under existing exact22 lock",
+    "RECORD": {
+      "rows": 7146,
+      "declared_hash": 6712,
+      "self_without_hash": 23,
+      "generated_pip_cache_observed_SHA_only": 411
+    },
+    "loaded_modules": {
+      "product": 100,
+      "thirdparty": 900,
+      "total_site_entries": 1000
+    },
+    "post_bootstrap_guard_functions": 42,
+    "guard_calls": 0,
+    "bootstrap_process_count": "unknown",
+    "installed_original_source_protocol_reads": 3,
+    "manager_files_preserved": 39,
+    "SDK_runtime": "not installed or accepted"
+  },
+  "preservation": {
+    "scientific_files": 572,
+    "old_paths": 421,
+    "manager_trees": 4,
+    "clean_other_source_worktrees": 14,
+    "upstream_fixed_checkouts": 8,
+    "historical_research_estimator_attempts": 50,
+    "CPU_tool_calls_each": 2,
+    "reserved_tool_calls": 0
+  },
+  "usage": {
+    "new_research_actions": 0,
+    "new_projects": 0,
+    "new_research_estimator_fits": 0,
+    "new_engineering_fits": 0,
+    "new_rankings": 0,
+    "new_gold_scoring": 0,
+    "new_solver_calls": 0,
+    "new_jobs_generated": 0,
+    "product_model_API_sends": 0,
+    "new_source_extraction": 0,
+    "development_tokens_currency": null
+  },
+  "limits": [
+    "No new scientific gain or automatic promotion; fixedTFIDF control shows no identified causal memory benefit.",
+    "Original raw data, failures, negative results, protocols, evaluations, budgets and producer pins retained.",
+    "Reduced transport carries a projection, not content-equivalent full input; complete source is still validated on server.",
+    "OS isolation, sealed evaluation, full Gates, upstream SDK/runtime integration and multi-generation RSI remain unaccepted.",
+    "READER_TOO_LARGE retains existing HTTP500 mapping; initial mistaken HTTP400 fixture expectation is preserved."
+  ],
+  "evidence": [
+    {
+      "path": "runs/sprint-012-start-20261114/automation-observation.json",
+      "bytes": 328,
+      "sha256": "e0bde99e817d0ec44acba423f172d95cb930b1523531a84f5348131ece482fcf"
+    },
+    {
+      "path": "runs/sprint-012-start-20261114/reference-check.json",
+      "bytes": 729,
+      "sha256": "fb42ff271f752e08e5512c50fd4bd177690b2ecf59e8cc1e787e198cef0e9a09"
+    },
+    {
+      "path": "runs/sprint-012-start-20261114/preservation-checkpoint.json",
+      "bytes": 2689,
+      "sha256": "e99c1b67c7a7ee79b51e7779114c813221dfa0a6c4933e3807d00439e1112903"
+    },
+    {
+      "path": "runs/sprint-012-start-20261114/protocol-http-tests-v2.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/sprint-012-start-20261114/protocol-http-tests-v2.stderr",
+      "bytes": 1094,
+      "sha256": "be7a2f8953d0a6587baa3ba673d46aff9be8f714887a4fd63a25dbd1663c0fb2"
+    },
+    {
+      "path": "runs/sprint-012-protocol-implementation-20261114/validation.json",
+      "bytes": 6081,
+      "sha256": "ebd834a07296b8627f39db8941a1c66e26028711f101fa72995ed4e7e5520d37"
+    },
+    {
+      "path": "runs/sprint-012-frontend-20261114/frontend-build.json",
+      "bytes": 1891,
+      "sha256": "a33357806f413574dd2d6d9bb8bed5c7822bec7de743c8baff34f11bfdb7be85"
+    },
+    {
+      "path": "runs/sprint-012-frontend-20261114/client-fixtures/summary.json",
+      "bytes": 953,
+      "sha256": "39a1af99a97386e158e09347248d0a9a584013b5f11fc85fe8ba34c0a4810fb7"
+    },
+    {
+      "path": "runs/sprint-012-frontend-20261114/real-summary.json",
+      "bytes": 4537,
+      "sha256": "11be555fdc1db36075e59334a58d86fa0d8c37645745f75e47659099f5961023"
+    },
+    {
+      "path": "runs/sprint-012-http-20261114/summary.json",
+      "bytes": 9974,
+      "sha256": "e7c0982d19c3ba9470f0032320479eb5001e55d864bb448a40a25d8a911b7979"
+    },
+    {
+      "path": "runs/sprint-012-install-20261114/receipt.json",
+      "bytes": 8033,
+      "sha256": "7b930ddaa80e855d0aa477b7e82faa1f31d48f6bf4c76b60b5e03c87f57b6fb7"
+    },
+    {
+      "path": "runs/sprint-012-independent-20261114/precommit-compact-review.json",
+      "bytes": 6415,
+      "sha256": "cbf73a5c1e45604fd7af029db8d258e99c182f942f438dfadbd2e241619b3b7f"
+    },
+    {
+      "path": "runs/sprint-012-independent-20261114/precommit-clarification.json",
+      "bytes": 1130,
+      "sha256": "208ddc811d419b31712fbf3c2092f90bc7bfc682791395ed034e65be0055177f"
+    },
+    {
+      "path": "runs/sprint-012-final-review-20261114/review.json",
+      "bytes": 9244,
+      "sha256": "2b4d79e48b87b67c4140c552ae49ce17f89bb826570a4e32056d296681a9ddff"
+    },
+    {
+      "path": "runs/sprint-012-start-20261114/environment-restore.json",
+      "bytes": 477,
+      "sha256": "c1bdeb270795123ea6312b25d4f14de6c785b12bb21e7c6a294917fa91b2a394"
+    }
+  ],
+  "independent_final_review": {
+    "path": "runs/sprint-012-final-review-20261114/review.json",
+    "bytes": 9244,
+    "sha256": "2b4d79e48b87b67c4140c552ae49ce17f89bb826570a4e32056d296681a9ddff",
+    "status": "passed",
+    "raw_review_groups": 35,
+    "personally_opened_final_reviewer_original_images": 4,
+    "team_original_images_viewed": 52,
+    "no_new_requests_or_research": true
+  },
+  "next_task": "Define a separate saved CPU experience evidence contract before native adaptation into existing method-experience/retrieval eligibility; preserve strict Ridge-only OOF contract, all negative results, original IDs and budgets; no fresh study or automatic adoption."
+}

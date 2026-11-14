@@ -1,5 +1,7 @@
 # 后端索引
 
+[cpu_protocol_reader](../../src/autoresearch/cpu_protocol_reader.py)直接核验原项目source与注册身份，调用原生parse/checked一次后投影三类固定CPU协议；不依赖报告、行动或执行权限。沿用project_workbench宿主绑定及前后快照门禁，见[接口](../../docs/fixed-cpu-protocol.md)。
+
 保存查询阅读器按已登记citation/relevance家族选择固定validator和算法角色，relevance保留原grade/缺正例、核完整保存算术；旧citation响应保持。见[读取合同](../../docs/saved-retrieval-reader.md)。
 
 
