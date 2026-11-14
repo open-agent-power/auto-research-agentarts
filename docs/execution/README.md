@@ -142,3 +142,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint030–031：原请求语义交接及最终安装
 
 [S030](SPRINT-030.md)原3请求的core/manager不同用途摘要独立核验，原语义body只读展示，不代表原HTTP字节或执行许可；51GET/22图。[S031](SPRINT-031.md)最终33287wheel/190产品184Py/真实安装CLI17GET/19checks独审通过。下一转S032经验来源引用的原生决策接口，保持旧模型协议和额度，不再以新增展示当自主能力进展。
+
+
+## Sprint032：研究决定的历史经验引用
+
+[S032](SPRINT-032.md)直接proposal精确引用已绑定active案例，保存至原Controller决策/view/reportJSON；原双包+隔离工程47checks与独审通过，不加候选/额度或声称收益。当前模型/recipewire未扩，S033继续能力标记协议接线，0真实模型/API约束保持。

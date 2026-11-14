@@ -8,6 +8,14 @@
 
 ## 最新汇报入口
 
+### Sprint032：已绑定经验可明确引用到研究决定
+
+source `2cdff0a9152bb0855ec0a8822d4123514387cbda`／pin `/workspace/work/experience-decision-citations-source-2cdff0a`，直接proposal可选最多4个精确active case/version/bundleSHA，保存/核验至decision/view/reportJSON，保留scope_mismatch反例和原association，不加候选或预算。真实双原包+一个新隔离合成目标47checks/独审通过，退休后原ID历史重放和新提交拒绝明确。[S032](../execution/SPRINT-032.md)／[精确证据](../execution/g5-local/experience-case-citation-verification.json)。
+
+实际0工具/action，夹具声明工具上限1/证据8/fit0/model0；saved-only解析/SQLite写有实测计数，不称工程0工作。原17/39manager/574/421/ZIP与预算保持，原50科学fit及study唯一primary/audit不变。无真实模型/CLI/API/HTTP/UI，旧安装33287源de20不含S032；引用声明不证明适用或因果收益。
+
+继续S033模型协议能力标记：让新冻结context可以选择含经验引用的消息格式，所有新refs仍经原绑定验证；旧context构造wire/prompt/schema/hash逐字节兼容。跨源码pending仍受CODE_CHANGED/_fresh保护、用原pin/同ID/预算恢复，不能声称新代码无缝接旧pending。仅纯协议和工程验证，0真实模型/API授权不扩，源码实施中未计成果。
+
 ### Sprint030–031：原请求交接核对完成，转向经验决策接口
 
 source `de20ce4a6590a089839da8d5186ecbacc8a88f37`／pin `/workspace/work/saved-request-handoff-source-de20ce4`：只读核原3个core request SHA、重建manager canonical语义body与row/intent摘要全等，原ID/version2/7/12/proposal/producer一致；不是原HTTPbytes、执行授权或当前源码可恢复证明。源码真实78checks+两fixture各35、51GET/22图/独审通过，剥新增组旧DTO全等。[S030](../execution/SPRINT-030.md)／[证据](../execution/g5-local/saved-request-handoff-verification.json)。

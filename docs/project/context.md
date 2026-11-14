@@ -97,3 +97,6 @@ Sprint028–029：sourcec5bb通过外层manager同ID原status/response落盘，�
 
 
 Sprint030–031 source de20/wheel33287，原3请求canonical语义body与core/manager双purpose摘要和生产身份真实核对、51GET/22图及安装17GET/19checks/4图独审通过，不是原wirebytes或执行许可。用户明确需通俗解释目标差距，root承认近期偏页面/追溯/恢复；下一S032转原nativeproposal已绑定经验引用与决策保存/报告核验，旧模型/recipe协议和预算不变，不认领自动记忆或科研收益。差距审计指出CPU候选不因FTS/case新增，P02有FTS改变顺序例外；原50科研fit/预算/producer保持。
+
+
+Sprint032 source2cdff0a：直接proposal可选最多4 activecase三元组引用，decision/view/report保留原association；scope_mismatch可作反例不改资格。真实原citation/relevance两包+新合成target47工程checks及独审，工具上限1/证据8/fit0/model0但实际0tool/action；2imports/1目标退休，saved-only与17写75读另计。旧Host/model/recipewire不变，旧33287成品不含本接口。继续S033能力marker条件化消息协议，不调用模型或绕旧pending CODE_CHANGED/_fresh，老pin/预算保持。

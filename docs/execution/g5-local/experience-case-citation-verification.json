@@ -1,0 +1,197 @@
+{
+  "schema_version": "native-experience-case-citation-verification-v1",
+  "source_commit": "2cdff0a9152bb0855ec0a8822d4123514387cbda",
+  "source_pin": "/workspace/work/experience-decision-citations-source-2cdff0a",
+  "scope": "direct human/external selection proposal: optional references to already imported active cases, not model-generated or applicability/causal research benefit",
+  "contract": {
+    "field": "experience_case_refs",
+    "maximum_unique": 4,
+    "tuple": [
+      "case_id",
+      "case_version",
+      "bundle_sha256"
+    ],
+    "authority": "frozen active context; scope mismatch allowed as counterexample retaining originalassociation",
+    "does_not_change": [
+      "candidates",
+      "methodeligibility",
+      "budget",
+      "permissions",
+      "legacy Host/model/recipewire"
+    ],
+    "absent_field": "oldproposal/decision/viewshape preserved",
+    "retired_case": "newrequest rejects stale/nonactive; originalsameID replays savedcontext"
+  },
+  "implementation_final_checks": 21,
+  "implementation_log": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/implementation/unit-tests-after-review.log",
+    "bytes": 4128,
+    "sha256": "377327fad56ef7ebc6089ce53fb8c28105bc89672677d605d621ee8044d071bf"
+  },
+  "review_independent_pure_checks": 22,
+  "precommit": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/review/precommit.json",
+    "bytes": 2293,
+    "sha256": "3eca4cc62b85c69ac99bb11c223bd89e39f83636c5622e33447b1f78e7810273"
+  },
+  "root_freeze": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/root-freeze-check.json",
+    "bytes": 1200,
+    "sha256": "f2bb012a285bafad3b7a3d2c1d302da45467a8b4dfa313c4a2251e3628cfa81d"
+  },
+  "independent_final": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/review/independent-final.json",
+    "bytes": 2299,
+    "sha256": "8851e558b2e0785e0248fcff18394dca7e8b8a16b66e0fa049b3b4a9bc549207"
+  },
+  "fixture_receipt": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/validation/attempt-01/receipt.json",
+    "bytes": 62944,
+    "sha256": "b52aa3e6a7d211ebfaf2e5c001bffcfd431d0b724f6b4c234902997888590121"
+  },
+  "findings": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/validation/FINDINGS.md",
+    "bytes": 4265,
+    "sha256": "929de03126e6dbc3a4f2e771c0b3290e03a5159108c4c9dfec81e0853e24be9a"
+  },
+  "harness": {
+    "path": "runs/sprint-032-experience-decision-citations-20261114/validation/verify_fixture.py",
+    "bytes": 17560,
+    "sha256": "d900e25b0f1c47609968c92f6c5437d0ab9d2075d9e34faf138a9f09fdba3e35"
+  },
+  "checks": 47,
+  "status": "passed",
+  "fixture_counts": {
+    "project_create": 1,
+    "case_import": 2,
+    "case_retire": 1
+  },
+  "fixture_budget_before": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 8,
+    "existing_cash_cap_cny": 5,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "engineering:s032-no-research",
+    "local_tool_call_limit": 1,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "local_tool_calls_used": 0,
+    "local_tool_calls_reserved": 0,
+    "local_tool_dispatches": 0,
+    "evidence_reads_used": 0,
+    "evidence_reads_reserved": 0,
+    "fit_limit": 0,
+    "fit_attempts_used": 0,
+    "fits_reserved": 0,
+    "preprocessing_fits": 0,
+    "fits_completed": 0,
+    "ridge_fits_completed": 0,
+    "preprocessing_fits_completed": 0
+  },
+  "fixture_budget_final": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 8,
+    "existing_cash_cap_cny": 5,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "engineering:s032-no-research",
+    "local_tool_call_limit": 1,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "local_tool_calls_used": 0,
+    "local_tool_calls_reserved": 0,
+    "local_tool_dispatches": 0,
+    "evidence_reads_used": 0,
+    "evidence_reads_reserved": 0,
+    "fit_limit": 0,
+    "fit_attempts_used": 0,
+    "fits_reserved": 0,
+    "preprocessing_fits": 0,
+    "fits_completed": 0,
+    "ridge_fits_completed": 0,
+    "preprocessing_fits_completed": 0
+  },
+  "actual_actions": 0,
+  "saved_only_calls": {
+    "autoresearch.retrieval_adapter._checked": 20,
+    "autoresearch.retrieval_adapter._saved_checked": 41,
+    "autoresearch.retrieval_adapter._paired": 41,
+    "autoresearch.relevance_retrieval_adapter._checked": 0,
+    "autoresearch.relevance_retrieval_adapter._saved_checked": 40,
+    "autoresearch.relevance_retrieval_adapter._paired": 40,
+    "autoresearch.scheduling_adapter._checked": 0,
+    "autoresearch.scheduling_adapter._saved_checked": 0,
+    "autoresearch.scheduling_adapter._paired": 0,
+    "autoresearch.cpu_project_experience.parse_bundle": 0,
+    "autoresearch.cpu_project_experience._checked": 81
+  },
+  "SQLite_connections": {
+    "fixture_write": 17,
+    "fixture_ro": 75
+  },
+  "guards": {
+    "protected_write_open": 0,
+    "subprocess.Popen": 0,
+    "socket.connect": 0,
+    "socket.getaddrinfo": 0,
+    "os.system": 0,
+    "os.popen": 0,
+    "os.fork": 0,
+    "formal_verifier_module_import": 0,
+    "autoresearch.retrieval_adapter.execute": 0,
+    "autoresearch.retrieval_adapter.capture_source": 0,
+    "autoresearch.relevance_retrieval_adapter.execute": 0,
+    "autoresearch.relevance_retrieval_adapter.capture_source": 0,
+    "autoresearch.scheduling_adapter.execute": 0,
+    "autoresearch.scheduling_adapter._execute": 0,
+    "autoresearch.scheduling_adapter.capture_source": 0,
+    "autoresearch.retrieval_lexical.build_index": 0,
+    "autoresearch.retrieval_lexical.retrieve": 0,
+    "autoresearch.retrieval_lexical.metrics": 0,
+    "autoresearch.scheduling_kernel.jobs_for": 0,
+    "autoresearch.scheduling_kernel.schedule": 0,
+    "autoresearch.scheduling_kernel.brute_force": 0,
+    "ChatClient.complete": 0,
+    "LocalHTTP.request": 0,
+    "LocalHTTP._blocking_request": 0,
+    "sklearn.linear_model.Ridge.fit": 0,
+    "sqlite_nonfixture_write": 0
+  },
+  "bootstrap_uname_p": 1,
+  "services_started": 0,
+  "originals_before_after_equal": true,
+  "report_scope": "canonical serialization of project_report.collect_report, notHTTP/PDFexport",
+  "protection": {
+    "historical_bundles": [
+      "81b4b7b06256bc85f44eac67831fdd7bef2164eb92daabf0529c0afe6bd26ea4",
+      "0de61af557efc56c048692a8e4903cb961d9edd5a11ea9af8805d6d7869c4e66"
+    ],
+    "study_files": 17,
+    "original_managers_files": 39,
+    "protected_files": 574,
+    "old_paths": 421,
+    "historical_research_fits": 50,
+    "primary": 1,
+    "formal_audit": 1,
+    "scope": "receipt before/after equal; reviewer did not independently rehash wholeoldtree"
+  },
+  "new_scientific_fits_model_API_audit": 0,
+  "developer_cost_tokens": null,
+  "failures_and_limits": [
+    "First implementation test used wrongPYTHONPATH and imported old installed package causing3errors; terminalonly, no fabricated rawlog.",
+    "Reviewer first systemPython lackedh5py; sourcesvenv22purechecks passed.",
+    "Review fixed KeyError projecting unreferenced legacycase without/nonstring bundleSHA; oldcontext acceptance not tightened.",
+    "Root precommitcheck usedwrongsource_sha256key; shellmade localcommit before rootcheck; fixed four reviewedSHA/Gitblobs match recorded, no rewrite.",
+    "Synthetic toolcap1/evidencecap8, actualcalls/reservations/actions0; fit/modelcap0. Do not claim toolbudget0.",
+    "Saved-only checking is real engineering work with countedcalls, not newranking/fits/solver/scientificaudit.",
+    "No frontend/browser/HTTP/modeltransport execution; latest33287installedartifactsource de20 doesnot includeS032.",
+    "New structuredreferences are declarations only, not case truth/appropriateness/scientific transfer or modelagency."
+  ]
+}

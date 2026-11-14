@@ -54,3 +54,5 @@ A31 [hiMSC来源核对](../../docs/himsc-source-audit.md)取得此前缺失的�
 
 
 [知识拼法兼容](../../docs/knowledge-query-spellings.md)：`knowledge._query_tokens`有限字母数字alias，source404ef97/37相关tests及真实小索引双版本项目query对比过，旧OR/TopK/单字符索引限制保持。FTS、精确scope memory、显式项目经验context仍独立，不自动选臂或晋级；[精确验收](../../docs/execution/g5-local/knowledge-query-spellings-verification.json)。
+
+[S032经验决策引用](../../docs/experience-decision-citations.md)给直接proposal增加已绑定active case的精确来源引用，保留原association/反例，不自动跨项目recall或提升方法资格。真实双CPU包的等待/保存/退休/重放47工程检查不等于经验科研收益，内置模型wire尚未支持。

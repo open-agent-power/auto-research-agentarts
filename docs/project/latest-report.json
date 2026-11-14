@@ -1,11 +1,11 @@
 {
   "schema_version": "project-automation-progress-report-v1",
   "timezone": "Asia/Shanghai",
-  "sprint": "Sprint020–031",
+  "sprint": "Sprint020–032",
   "start_time": "2026-11-14T16:44:56+08:00",
   "end_time": null,
-  "updated_at": "2026-11-14T18:44:59.495748+08:00",
-  "status": "S020_031_verified_publishing_continuing_S032_experience_decision_refs",
+  "updated_at": "2026-11-14T18:56:05.036561+08:00",
+  "status": "S020_032_verified_publishing_continuing_S033_model_protocol",
   "base_commit": "b29a9cac5edd0c6406dc03246a0836d0aa7f1bcc",
   "implementation_commits": [
     "f85bc75f42bd486c43d85b67296bc662062a5454",
@@ -15,9 +15,10 @@
     "79218f16e10d0dbf58dff6dc669875febcb4d15c",
     "3b01b2a6d11c2661023c8301da0f55a02f30393a",
     "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783",
-    "de20ce4a6590a089839da8d5186ecbacc8a88f37"
+    "de20ce4a6590a089839da8d5186ecbacc8a88f37",
+    "2cdff0a9152bb0855ec0a8822d4123514387cbda"
   ],
-  "latest_verified_source_pin": "/workspace/work/saved-request-handoff-source-de20ce4",
+  "latest_verified_source_pin": "/workspace/work/experience-decision-citations-source-2cdff0a",
   "verified": [
     "Formal no-write manager opening and stored project budget/action projection",
     "Independent saved-study reading; real original-manager HTTP and desktop/mobile/keyboard/missing-state fixtures",
@@ -30,7 +31,8 @@
     "Original core returned response/status saved to same manager request; independent synthetic realwait/crash/unknown69checks; unknown reservation1 retained; no original case replay",
     "Sourcec5bb wheel a906/190product184Py/exact22offline/RECORD; installed isolated Python53checks98origins; not CLI/UI",
     "Original3request semanticbody/controller+managerpurpose SHA proof; 51GET/78mainchecks/22images/sourceindependentreview",
-    "Finalsource de20 wheel33287/190product184Py/exact22offline; actual installed CLI17GET/19checks/4images/99origins independentlyverified"
+    "Finalsource de20 wheel33287/190product184Py/exact22offline; actual installed CLI17GET/19checks/4images/99origins independentlyverified",
+    "Directproposal optional case/version/bundleSHA citations saved/verified in native decision/view/report; real2historicalbundles/synthetic target47checks+review; oldmodelwire untouched"
   ],
   "validation_index": "docs/execution/g5-local/readonly-study-view-verification.json",
   "installed_product_index": "docs/execution/g6-local/saved-request-handoff-release.json",
@@ -69,24 +71,43 @@
     "Unknown to completed source transition is mocked only, not real child or scientific completion.",
     "S030 canonical semantic reconstruction is not original HTTPbytes or current execution permission; no oldrequest sent.",
     "S030 mobile digest sourcehash partly obscured, separate producer frame full; no allpositionsclaim.",
-    "User priority clarified: recent UI/evidence/recovery is supporting work; pivot to decision/experience interface and independent comparisons rather than more presentation increments."
+    "User priority clarified: recent UI/evidence/recovery is supporting work; pivot to decision/experience interface and independent comparisons rather than more presentation increments.",
+    "S032 optionalrefs are external declarations; no modelgenerated field or memory benefit demonstrated.",
+    "S032 fixture toolcap1/evidence8, actualactions/toolcalls0, fit/modelcaps0; saved-only81CPUcheck and others separatelycounted.",
+    "S032 rootfreeze script wrongkey led localcommit before rootcheck; later4reviewSHA/Gitblobs/pin matched, source notpushed until actual47checks/review.",
+    "S032 initialwrongPYTHONPATH3errors terminalonly and reviewer missingh5py retained; unreferencedlegacycase projection defect fixed."
   ],
   "active_execution": {
     "owner": "root-sprint020-20261114T1644",
     "team_pool": 4,
     "research_executor_running": false,
-    "work": "root publishing S030–031; implementation/review S032 coreproposal native case citation interface; validator fixture ready pending freeze",
+    "work": "root publishing S032; implementation/review S033 conditional modelprotocol; validator old/new frozencontext bytegoldens, no real model calls",
     "lease": "active"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "S032 native directproposal structured experience case references; frozenactivecase triples saved with decision/view/report. Keep legacy model/recipe protocols and budgets; not model-generated references or causal memory gain.",
+  "next_task": "S033 capability-marker versioned model/Host request and response schema for experience refs; old frozencontext wirebytes/hash preserved; keep CODE_CHANGED/_fresh and old sourcepins for pending; 0 real models/API.",
   "next_planned_trigger_time": "2026-11-14T19:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
   "plan_report_validation_index": "docs/execution/g5-local/stored-plan-report-verification.json",
-  "published_main_last_readback": "20cfce3bc7b26ea41dab0416e6f8087d779cbbc7",
+  "published_main_last_readback": "c7c33f434c38c031e0ad31902f993e2f6ce2dd58",
   "receipt_validation_index": "docs/execution/g5-local/manager-advance-receipt-verification.json",
   "request_handoff_validation_index": "docs/execution/g5-local/saved-request-handoff-verification.json",
-  "plain_progress": "A trusted-local workbench can perform a few real experiment classes, retain plans/results/negative evidence and partially resume. Sustained autonomous problem-to-experiment decisions and causal benefit of experience reuse remain unproved."
+  "plain_progress": "A trusted-local workbench can perform a few real experiment classes, retain plans/results/negative evidence and partially resume. Sustained autonomous problem-to-experiment decisions and causal benefit of experience reuse remain unproved.",
+  "experience_citation_validation_index": "docs/execution/g5-local/experience-case-citation-verification.json",
+  "S032_fixture": {
+    "projects": 1,
+    "imports": 2,
+    "target_retirements": 1,
+    "tool_limit": 1,
+    "evidence_limit": 8,
+    "fit_limit": 0,
+    "model_limit": 0,
+    "actions": 0,
+    "tool_used_reserved": 0,
+    "SQLite_writes": 17,
+    "SQLite_ro": 75,
+    "scope": "synthetic engineering only, originalprojects untouched; not aggregate alltriggerfixtures"
+  }
 }
