@@ -136,3 +136,6 @@ A29 [research_recipe](../../src/autoresearch/research_recipe.py)把明确的 `or
 
 
 - 原始数据设计复用原step/controller，固定Ridge随机/分组CV适配器为`ridge_validation_adapter.py`，完整样本过滤统一，训练折独立预处理；`prediction_controls.py`仅消费保存OOF预测做折内重排。项目逐次保存Scaler/Ridge started/completed/failed，累计拟合预算与unknown预留不因改绑清零。见[研究设计](../../docs/research-design.md)。
+
+
+`bounded_study_ledger.py` 与 host-only `scripts/run_scheduling_policy_transfer.py` 实现固定主仓/唯一study/双阶段独审/逐回调预约/unknown保护/同boot原deadline。它们用于[已完成的Sprint014](../../docs/execution/SPRINT-014.md)，不是任意路径/代码执行工具，也没有把原ResearchProject双臂runtime改为三臂。当前固定study全部完成只读重放，旧预算不能重开。公共worker锁仅协调使用该路径的执行者。

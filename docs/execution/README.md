@@ -87,3 +87,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint 009：保存证据阅读与独立安装
 
 [Sprint009](SPRINT-009.md)实现原不利查询分页/原文定位，真实原项目HTTP、桌面/手机五页和异常状态检查通过；继续安装物验证并处理实际可选CLI帮助缺陷。原数据、负结果、预算与producer保持。[阅读器](../saved-retrieval-reader.md)、[精确证据索引](g5-local/saved-reader-verification.json)、[分阶段安装物验证](g6-local/reader-release.md)。安装/帮助可用不代表云runtime、重训、隔离或完整G6通过。
+
+
+## Sprint014：唯一调度阈值假设的真实负结果
+
+[Sprint014](SPRINT-014.md)已完成唯一小n调度阈值三臂真实比较及保存审计，主终点1.26118、12/12小n均慢，拒绝晋级，不改阈值补测。[实际结果](g5-local/scheduling-threshold-transfer-results.md)与[精确身份/恢复](g5-local/scheduling-threshold-transfer-results.json)保留全部case/计时/预算；29生成/1140kernel/29Fenwick/2穷举一次使用，旧预算保持，standalone三臂不冒称原生双臂adapter已升级。

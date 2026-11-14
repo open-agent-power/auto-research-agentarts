@@ -1,22 +1,24 @@
 {
   "schema_version": "project-automation-progress-report-v1",
-  "sprint": "Sprint013",
+  "sprint": "Sprint013+Sprint014",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-14T13:28:22+08:00",
   "end_time": null,
   "milestone_captured_at": "2026-11-14T14:33:27.401217+08:00",
-  "status": "three_increments_verified_continuing_next_research_preprotocol",
+  "status": "CPU_and_actual_scheduling_negative_result_milestones_complete_continuing_knowledge_retrieval",
   "implementation_commits": [
     "3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b",
     "cee2ead576af16a06788c9ecc078002d6305132b",
-    "79b6d7d7ca23bb0fa505d452d23171bd60e92c54"
+    "79b6d7d7ca23bb0fa505d452d23171bd60e92c54",
+    "62f09edbf15f90cdcd08450aab5d60199d44d63f"
   ],
-  "latest_source_pin": "/workspace/work/cpu-knowledge-source-79b6d7d",
+  "latest_source_pin": "/workspace/work/scheduling-threshold-source-62f09ed",
   "latest_runtime_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
   "completed": [
     "CPU complete saved evidence snapshots, exactscope memory/import/retire/restore and native project advisory/context/report/UI",
     "Task-neutral overview wording, precise original-manager LocalWorkbench screenshots",
-    "CPU domain-specific knowledge need routing; no FTS result or research gain claim"
+    "CPU domain-specific knowledge need routing; no FTS result or research gain claim",
+    "One bounded real three-arm scheduling policy study; negative endpoint1.261183787/12of12small-case losses; no adoption or retuning"
   ],
   "validation": {
     "backend_unit_checks": 24,
@@ -44,7 +46,11 @@
     "Python_files": 177,
     "latest_postimport_guard_count": 38,
     "guard_calls": 0,
-    "bootstrap_processes_network": "unknown"
+    "bootstrap_processes_network": "unknown",
+    "scheduling_engineering_fake_checks": 46,
+    "scheduling_completed_replay_guard_count": 5,
+    "scheduling_replay_callbacks": 0,
+    "scheduling_replay_unchanged_original_files": 10
   },
   "preservation": {
     "scientific_files": 572,
@@ -54,11 +60,11 @@
     "historical_research_fits": 50,
     "source_reference_checkouts": 8,
     "engineering_targets_created_in_root_checks": 5,
-    "engineering_target_real_API": 1
+    "engineering_target_real_API": 1,
+    "sprint014_protected_files": 574
   },
   "new_research_usage_so_far": {
     "fits": 0,
-    "rank_gold_solver_jobs": 0,
     "projects_actions": 0,
     "product_model_API": 0,
     "source_extraction": 0,
@@ -66,7 +72,18 @@
     "public_source_audit_pages": 8,
     "source_audit_404": 1,
     "source_audit_redirect_wire_count": "unknown",
-    "development_tokens_currency": null
+    "development_tokens_currency": null,
+    "generated_jobs": 2642,
+    "host_generator_calls": 29,
+    "native_scheduling_kernel_calls": 1140,
+    "independent_Fenwick_calls": 29,
+    "brute_force_calls": 2,
+    "exhaustive_subsets": 4352,
+    "scan_comparisons": 6080234,
+    "primary_attempts": 1,
+    "saved_audit_attempts": 1,
+    "rankings": 0,
+    "gold_scoring": 0
   },
   "negative_results_and_limits": [
     "No new scientific/causal memory benefit, no adoption, SDKruntime/OS/sealed/fullGates/multigen notaccepted",
@@ -75,22 +92,38 @@
     "Two overview loading frames and direct-project copy-view scope corrected with precise LocalWorkbench proof",
     "Installedknowledge raw description36guard typo corrected separately; actual38",
     "Needs-only routing does not demonstrate FTS exactunderscore token or retrieval quality",
-    "Third real retrieval corpus not admitted: missing licensed independent original data; SciDocs coverage/overlap/size open"
+    "Third real retrieval corpus not admitted: missing licensed independent original data; SciDocs coverage/overlap/size open",
+    "Threshold32 policy rejected in this finite same-host study: ratio1.26118 and all12primarycases slower. No retune/rerun/promotion; standalone not native3armruntime."
   ],
   "active_execution": {
     "lease_owner": "root-sprint013-20261114T1328",
-    "root_and_team": "continuing; next bounded study preprotocol only",
+    "root_and_team": "root evidence/delivery continuing; implementation reads knowledge query integration; verifier replay done; reviewer final negative-result review done",
     "team_pool": 4,
-    "new_study_executed": false,
+    "new_study_executed": true,
     "temporary_services_from_current_validation": "closed",
     "continuous_model_between_sessions": "not claimed"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "Freeze and independently review a bounded small-n scheduling policy transfer study before generating/solving any new workload; protect all old studies and budgets. Retrieval-source licensing audit stays pending.",
+  "next_task": "Verify actual CPU knowledge retrieval paths with small engineering fixtures, preserving FTS, exactscope memory and explicit project-experience context distinctions; no further study calls.",
   "next_planned_trigger_time": "2026-11-14T16:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
   "evidence_index": "docs/execution/g5-local/cpu-experience-verification.json",
-  "Git_delivery": "Ordinary main push/readback receipt: runs/sprint-013-start-20261114/milestone-delivery.json; report captured before delivery"
+  "Git_delivery": "Ordinary main push/readback receipt: runs/sprint-013-start-20261114/milestone-delivery.json; report captured before delivery",
+  "updated_at": "2026-11-14T15:47:46.556639+08:00",
+  "continuation": {
+    "sprint": "Sprint014",
+    "status": "real_primary_and_saved_audit_complete_negative_result",
+    "code_commit": "62f09edbf15f90cdcd08450aab5d60199d44d63f",
+    "study_id": "g5-scheduling-threshold-transfer-v1",
+    "inputs_sha256": "41ac3517af0f7cff5917c2e614d438902198eaeb6cea5aa3fb6818f6be2b89b8",
+    "result_sha256": "9d45e971b2e12448aabae5f80408dafc4c1ff3ee391bfc8f53906fd512b70f0f",
+    "setup_review": "approved_generate_only",
+    "input_review": "approved_primary_and_saved_audit",
+    "primary_ratio": 1.2611837872566352,
+    "primary_case_losses": 12,
+    "active_elapsed_seconds": 12.903210272,
+    "evidence": "docs/execution/g5-local/scheduling-threshold-transfer-results.json"
+  }
 }

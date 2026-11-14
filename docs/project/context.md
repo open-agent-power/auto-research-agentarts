@@ -61,3 +61,9 @@ Sprint012已完成固定CPU研究页及不依赖报告的紧凑协议GET，源�
 
 
 Sprint013持续推进完成三个原生增量：3ca7 CPU经验完整快照与项目案例资格、cee2概览文案、79b6 CPU知识需求领域路由。真实三原案同知识库恢复/完整包/预算保持，工程目标HTTP/报告/浏览器与三版成品源字节验证通过；当前e731 runtime不升级旧producer，旧Ridge-only校验保持。首次失败browser请求unknown、只记录成功阶段193GET/0POST，API17POST均新工程target。详细范围和原件见[current](current.md)及Sprint013。继续新研究前的来源/预协议准备，第三检索来源尚不合格，小n调度阈值仍假设，先冻预算和独审，不凭代码或查询词宣称新科研/检索收益。
+
+
+Sprint014在同一13:28 owner下接续，14:49记录正式协议定义，真实研究尚未执行。独立三臂harness的单次预算/全局claim/双阶段审批/unknown保护/同boot持久deadline工程准备中；fake测试不计新科研收益。详见SPRINT-014和current；原50fit、原state/budget/source/负例保持，公共worker仅协调遵守同锁的进程，实际重型窗口由root协调。
+
+
+Sprint014实际完成（15:41:58，北京时间）：code62f09ed，unique g5-scheduling-threshold-transfer-v1，inputs41ac3517/result9d45e971。小n主终点1.26118/12均慢，拒绝策略不调参、不补测；29gen/1140kernel/29Fenwick/2brute/4352subsets/6080234scan/1primary/1audit，活动12.903s。574/421保持，0fit/model/API/source，old50保持。4完成入口0callback/10文件不变，具体guard/bootstrap范围见结果JSON。standalone3arm不冒称native3arm接线；继续CPU知识实际检索链工程检查。

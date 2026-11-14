@@ -1,0 +1,586 @@
+{
+  "schema_version": "sprint014-scheduling-policy-results-v1",
+  "captured_at_asia_shanghai": "2026-11-14T15:45:36.231027+08:00",
+  "study_id": "g5-scheduling-threshold-transfer-v1",
+  "code_commit": "62f09edbf15f90cdcd08450aab5d60199d44d63f",
+  "source_pin": "/workspace/work/scheduling-threshold-source-62f09ed",
+  "source_fingerprints": {
+    "docs/execution/g5-local/scheduling-threshold-transfer-protocol.json": "10d4776de34285549cb0ff2f7a8fbcf764c808aff81118baa47f5dd78f75cacd",
+    "scripts/run_scheduling_policy_transfer.py": "b6d9387aafe9263798857d104975c18b1c23d8d1e8256455694ab45c4d7cf10e",
+    "scripts/verify_scheduling_policy_transfer.py": "ddf0bed45734a49692399bfed5bddebb8ee1a54097647d1c81c061fc1c9bdd46",
+    "src/autoresearch/bounded_study_ledger.py": "1d39b54dd4dcc6eb1c477cc7c1d8c5f78d8a8e8fc362390189fe8a8d9ba535a4",
+    "src/autoresearch/contracts.py": "ddd701df5dc9abfd834ea92a30bc96e2b831801603ff30d0d8910155d897f778",
+    "src/autoresearch/scheduling_kernel.py": "3a335e102279ce9e6a7a8861a3f203670fccfbfb3ea3d2941f8b9406ea92e401",
+    "src/autoresearch/scheduling_threshold_policy.py": "0915de51b14bf16bdf399d5ae5b0ee057cf5a78d4ac9a8f9adb06c41b020eff5"
+  },
+  "runtime": {
+    "boot_id": "d95715c6-d654-4eb0-b7d7-6080036f7ca8",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "dependencies": {
+      "numpy": "2.5.4",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.0"
+    },
+    "gc_enabled": true,
+    "native_code_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
+    "perf_counter": {
+      "adjustable": false,
+      "implementation": "clock_gettime(CLOCK_MONOTONIC)",
+      "monotonic": true,
+      "resolution": 1e-09
+    },
+    "python_executable": "/workspace/work/g6-cpu-knowledge-20261114/venv/bin/python",
+    "python_implementation": "CPython",
+    "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "thread_environment": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    }
+  },
+  "protocol": {
+    "path": "docs/execution/g5-local/scheduling-threshold-transfer-protocol.json",
+    "bytes": 13010,
+    "sha256": "10d4776de34285549cb0ff2f7a8fbcf764c808aff81118baa47f5dd78f75cacd"
+  },
+  "claim_sha256": "8a6dd0f5a9ebd3d3439364c39bbf4b7b97e01a09652ab14c25ab85d7b206f3bb",
+  "artifacts": {
+    "claim.json": {
+      "path": "runs/g5-scheduling-threshold-transfer-20261114-01/claim.json",
+      "bytes": 132,
+      "sha256": "8005ca608fae408613b5a12cf3935f5cebefe809be046e9869e8c7b56602ae95"
+    },
+    "inputs.json": {
+      "path": "runs/g5-scheduling-threshold-transfer-20261114-01/inputs.json",
+      "bytes": 50033,
+      "sha256": "41ac3517af0f7cff5917c2e614d438902198eaeb6cea5aa3fb6818f6be2b89b8"
+    },
+    "result.json": {
+      "path": "runs/g5-scheduling-threshold-transfer-20261114-01/result.json",
+      "bytes": 2163676,
+      "sha256": "9d45e971b2e12448aabae5f80408dafc4c1ff3ee391bfc8f53906fd512b70f0f"
+    },
+    "primary-ledger.json": {
+      "path": "runs/g5-scheduling-threshold-transfer-20261114-01/primary-ledger.json",
+      "bytes": 2097159,
+      "sha256": "7bc24feb282c6c606e69eac1a7d05320466369974c3733ca89c450cabf0c7298"
+    },
+    "setup_review": {
+      "path": ".agent/study-reviews/g5-scheduling-threshold-transfer-v1/setup-review.json",
+      "bytes": 2973,
+      "sha256": "986e80d6053080197985189f7e290cb35b1678a4efe122b7015453a5c1e37229"
+    },
+    "input_review": {
+      "path": ".agent/study-reviews/g5-scheduling-threshold-transfer-v1/input-review.json",
+      "bytes": 2913,
+      "sha256": "854add133d3777ecf3ad1ce9d0051874cb1bcf017e43d202a5fc4516a631045f"
+    },
+    "independent_result_review": {
+      "path": "runs/sprint-014-review-20261114/final-result-review.json",
+      "bytes": 2817,
+      "sha256": "25ec1724c893956d7f6a2b1c0334297213aca51bc6a27e30f4261ea400f0cea2"
+    },
+    "formal_audit": {
+      "path": "runs/sprint-014-setup-20261114/audit.stdout",
+      "bytes": 7321,
+      "sha256": "a570c746ba44675be179b29a5e79882a6c9f510eae404a0c37e27a0d8e7a1500"
+    },
+    "engineering_checks": {
+      "path": "runs/sprint-014-implementation-20261114/final-fake-resume-unit.log",
+      "bytes": 9048,
+      "sha256": "6a6d2748a3657e16abe42f798abadd052011b71b2c842a0305cb7ad03503fe1c"
+    },
+    "setup_descriptor": {
+      "path": "runs/sprint-014-setup-20261114/exact-setup-descriptor.json",
+      "bytes": 2856,
+      "sha256": "90804abc09e7a457fbf1ead6931fe0b8fd427a0817c7bbff1793815a1e3155b6"
+    }
+  },
+  "process_receipts": {
+    "prepare": {
+      "started_at": "2026-11-14T15:39:50.867723+08:00",
+      "ended_at": "2026-11-14T15:39:53.638896+08:00",
+      "elapsed_host_seconds": 2.7711825519945705,
+      "command": [
+        "/workspace/work/g6-cpu-knowledge-20261114/venv/bin/python",
+        "/workspace/work/scheduling-threshold-source-62f09ed/scripts/run_scheduling_policy_transfer.py",
+        "prepare"
+      ],
+      "returncode": 0,
+      "error": null,
+      "stdout_sha256": "3b51b755b0e3e13e4ed5879252041fd19e0d4b502d761da3baaca64867314a8b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "phase": "generate_only"
+    },
+    "primary": {
+      "started_at": "2026-11-14T15:41:23.019232+08:00",
+      "ended_at": "2026-11-14T15:41:36.769843+08:00",
+      "elapsed_host_seconds": 13.750624051011982,
+      "command": [
+        "/workspace/work/g6-cpu-knowledge-20261114/venv/bin/python",
+        "/workspace/work/scheduling-threshold-source-62f09ed/scripts/run_scheduling_policy_transfer.py",
+        "run"
+      ],
+      "returncode": 0,
+      "error": null,
+      "stdout_sha256": "4a3966c63e2e6ad782e8e61fd47798130dc517dd68d4e454526f5df7c77dff5a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "phase": "one_primary_attempt"
+    },
+    "audit": {
+      "started_at": "2026-11-14T15:41:56.697705+08:00",
+      "ended_at": "2026-11-14T15:41:58.918605+08:00",
+      "elapsed_host_seconds": 2.2209130030096276,
+      "command": [
+        "/workspace/work/g6-cpu-knowledge-20261114/venv/bin/python",
+        "/workspace/work/scheduling-threshold-source-62f09ed/scripts/run_scheduling_policy_transfer.py",
+        "verify"
+      ],
+      "returncode": 0,
+      "error": null,
+      "stdout_sha256": "a570c746ba44675be179b29a5e79882a6c9f510eae404a0c37e27a0d8e7a1500",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "phase": "saved_only_audit_no_generator_solver_oracle"
+    }
+  },
+  "active_elapsed_seconds": 12.903210272,
+  "budget_maximum_seconds": 120,
+  "actual_calls": {
+    "audit": 1,
+    "bruteforce": 2,
+    "correctness": 6,
+    "exhaustive_subsets": 4352,
+    "generate": 29,
+    "kernel_total": 1140,
+    "oracle": 29,
+    "scan_comparisons": 6080234,
+    "timed": 972,
+    "warmup": 162,
+    "primary_attempts": 1,
+    "estimator_fits": 0,
+    "product_model_sends": 0,
+    "external_API": 0,
+    "source_extraction": 0
+  },
+  "live_final_events": 2402,
+  "live_final_reservations": 1201,
+  "live_final_completions": 1201,
+  "unknown_failed_halt": "none; independent final live-ledger review",
+  "endpoint": {
+    "primary_case_count": 12,
+    "primary_policy_over_binary": 1.2611837872566352,
+    "primary_timing_interpretable": true
+  },
+  "primary_case_losses": 12,
+  "all_performance_cases": [
+    {
+      "case_id": "perf-n16-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 16429.0,
+        "fixed_scan": 18483.0,
+        "threshold32": 18738.5
+      },
+      "n": 16,
+      "outcome": "slower",
+      "policy_over_binary": 1.1405745937062512,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n16-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 17196.0,
+        "fixed_scan": 20756.5,
+        "threshold32": 21036.5
+      },
+      "n": 16,
+      "outcome": "slower",
+      "policy_over_binary": 1.2233368225168644,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n16-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 16179.5,
+        "fixed_scan": 18393.0,
+        "threshold32": 18698.0
+      },
+      "n": 16,
+      "outcome": "slower",
+      "policy_over_binary": 1.155659940047591,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n24-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 20156.0,
+        "fixed_scan": 25368.0,
+        "threshold32": 24932.0
+      },
+      "n": 24,
+      "outcome": "slower",
+      "policy_over_binary": 1.2369517761460607,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n24-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 20045.5,
+        "fixed_scan": 25443.0,
+        "threshold32": 25418.0
+      },
+      "n": 24,
+      "outcome": "slower",
+      "policy_over_binary": 1.2680152652715073,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n24-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 20851.0,
+        "fixed_scan": 26324.5,
+        "threshold32": 26154.5
+      },
+      "n": 24,
+      "outcome": "slower",
+      "policy_over_binary": 1.254352309241763,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n31-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 28563.0,
+        "fixed_scan": 34717.5,
+        "threshold32": 34457.0
+      },
+      "n": 31,
+      "outcome": "slower",
+      "policy_over_binary": 1.2063508735076847,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n31-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 30831.0,
+        "fixed_scan": 44061.0,
+        "threshold32": 44397.0
+      },
+      "n": 31,
+      "outcome": "slower",
+      "policy_over_binary": 1.4400116765593072,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n31-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 28804.0,
+        "fixed_scan": 43826.5,
+        "threshold32": 43675.5
+      },
+      "n": 31,
+      "outcome": "slower",
+      "policy_over_binary": 1.516299819469518,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n32-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 26866.0,
+        "fixed_scan": 35883.5,
+        "threshold32": 37256.0
+      },
+      "n": 32,
+      "outcome": "slower",
+      "policy_over_binary": 1.3867341621380183,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n32-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 30531.0,
+        "fixed_scan": 48092.5,
+        "threshold32": 47401.0
+      },
+      "n": 32,
+      "outcome": "slower",
+      "policy_over_binary": 1.5525531427074122,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n32-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 33565.0,
+        "fixed_scan": 45243.0,
+        "threshold32": 46405.0
+      },
+      "n": 32,
+      "outcome": "slower",
+      "policy_over_binary": 1.3825413377029645,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n33-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 30991.5,
+        "fixed_scan": 46034.5,
+        "threshold32": 31272.0
+      },
+      "n": 33,
+      "outcome": "slower",
+      "policy_over_binary": 1.0090508687866029,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n33-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 27516.5,
+        "fixed_scan": 36795.0,
+        "threshold32": 25809.0
+      },
+      "n": 33,
+      "outcome": "faster",
+      "policy_over_binary": 0.9379463231152217,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n33-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 31122.0,
+        "fixed_scan": 41572.5,
+        "threshold32": 31968.0
+      },
+      "n": 33,
+      "outcome": "slower",
+      "policy_over_binary": 1.0271833429728165,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n34-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 35112.5,
+        "fixed_scan": 41417.0,
+        "threshold32": 34051.0
+      },
+      "n": 34,
+      "outcome": "faster",
+      "policy_over_binary": 0.9697686009255962,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n34-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 35263.0,
+        "fixed_scan": 51888.0,
+        "threshold32": 35102.0
+      },
+      "n": 34,
+      "outcome": "faster",
+      "policy_over_binary": 0.9954343079148116,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n34-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 30711.0,
+        "fixed_scan": 43330.0,
+        "threshold32": 33570.5
+      },
+      "n": 34,
+      "outcome": "slower",
+      "policy_over_binary": 1.0931099606004364,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n64-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 42308.5,
+        "fixed_scan": 81607.5,
+        "threshold32": 42073.0
+      },
+      "n": 64,
+      "outcome": "faster",
+      "policy_over_binary": 0.9944337426285498,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n64-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 41067.0,
+        "fixed_scan": 82108.5,
+        "threshold32": 41742.5
+      },
+      "n": 64,
+      "outcome": "slower",
+      "policy_over_binary": 1.0164487301239438,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n64-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 42463.5,
+        "fixed_scan": 84122.0,
+        "threshold32": 42459.0
+      },
+      "n": 64,
+      "outcome": "faster",
+      "policy_over_binary": 0.9998940266346391,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n128-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 98067.0,
+        "fixed_scan": 269630.0,
+        "threshold32": 110030.0
+      },
+      "n": 128,
+      "outcome": "slower",
+      "policy_over_binary": 1.1219880285926969,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n128-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 90290.5,
+        "fixed_scan": 245964.0,
+        "threshold32": 87150.5
+      },
+      "n": 128,
+      "outcome": "faster",
+      "policy_over_binary": 0.9652233623692416,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n128-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 82458.5,
+        "fixed_scan": 257352.0,
+        "threshold32": 89885.0
+      },
+      "n": 128,
+      "outcome": "slower",
+      "policy_over_binary": 1.0900634864810783,
+      "seed": 603
+    },
+    {
+      "case_id": "perf-n512-seed601",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 282520.0,
+        "fixed_scan": 3502034.0,
+        "threshold32": 280130.5
+      },
+      "n": 512,
+      "outcome": "faster",
+      "policy_over_binary": 0.9915421917032422,
+      "seed": 601
+    },
+    {
+      "case_id": "perf-n512-seed602",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 318048.0,
+        "fixed_scan": 3559896.0,
+        "threshold32": 310051.0
+      },
+      "n": 512,
+      "outcome": "faster",
+      "policy_over_binary": 0.9748559965791327,
+      "seed": 602
+    },
+    {
+      "case_id": "perf-n512-seed603",
+      "invalid_warmups": [],
+      "median_ns": {
+        "fixed_binary": 322124.0,
+        "fixed_scan": 3733381.5,
+        "threshold32": 340677.0
+      },
+      "n": 512,
+      "outcome": "slower",
+      "policy_over_binary": 1.0575958326607144,
+      "seed": 603
+    }
+  ],
+  "all_performance_outcomes": {
+    "faster": 8,
+    "slower": 19,
+    "equal": 0,
+    "uninterpretable": 0
+  },
+  "decision": "reject threshold32 for adoption in this study; no retune/rerun/automatic promotion",
+  "scientific_validation": false,
+  "independent_review_scope": "Read-only source/identity/budget/result review; independently recomputed primary endpoint from288saved timings, no second formal audit/solver/oracle/RNG.",
+  "limitations": [
+    "Trustedlocal cooperative lease and source hashes, not OS/sealed isolation",
+    "Source hypothesis based on one slowdown with opposite same-n source result",
+    "Singlehost frequency/cache/order/timer overhead, no broad statistical or causal claim",
+    "Synthetic workloads and known DP algorithms, not scientific dataset or newalgorithm discovery",
+    "Third-arm research is standalone; old native2arm framework/runtime not falsely marked complete",
+    "Old studies/50fits/all raw and negative results/pins/budgets kept unchanged",
+    "Above32 candidate and binary use identical method; differences are dispatch/timing variation, not algorithm gain.",
+    "Common lock only protects cooperating users of that path; named process check does not establish OS isolation.",
+    "Standalone three-arm study is not implemented native three-arm ResearchProject runtime."
+  ],
+  "preservation": {
+    "files": 574,
+    "old_paths": 421,
+    "historical_research_fits": 50,
+    "old_manager_states_budgets_producers": "unchanged",
+    "source_pins": "preserved"
+  },
+  "engineering_failures": [
+    "Clock transition tests retained before correction",
+    "resume phase routing issue corrected and full fake fault injection passed",
+    "System python missing h5py at preclaim import; existing fully installed venv used, no research attempt consumed"
+  ],
+  "development_tokens_currency": null,
+  "recovery": "Fixed original study/request/output/claim only; completed callbacks read their immutable receipts. Unknown/pending never reexecute or reset IDs/directory/budget.",
+  "completed_replay": {
+    "path": "runs/sprint-014-verifier-preparation-20261114/completed-replay.stdout",
+    "bytes": 22571,
+    "sha256": "325fae450047063472525817fd8a49506fabd8df81caaba49f203b216591e801",
+    "entrypoints": [
+      "prepare",
+      "run_primary",
+      "resume",
+      "verify"
+    ],
+    "all_replayed": true,
+    "guarded_callbacks": 5,
+    "guard_attempts": 0,
+    "unchanged_original_files": 10,
+    "import_bootstrap": "before guards; subprocess/network unknown",
+    "in_process_not_child_CLI": true
+  }
+}

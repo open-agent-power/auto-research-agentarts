@@ -87,3 +87,6 @@ Concrete原计划明确请求未供应的保存预测范围；新plan/recipe con
 ## 验证强度提醒
 
 按本次改变选择最小有意义检查：文档查链接与声明；UI 看实际截图；接口走真实请求；持久化看重启；研究看原始计算和反馈。未改模型、协议或科学执行时，不重跑历史研究、全量拟合或多轮审查。
+
+
+Sprint014真实小n阈值三臂比较已完成且拒绝策略（预定耗时比1.26118，12/12小n均慢），见[完整结果](../../docs/execution/g5-local/scheduling-threshold-transfer-results.md)与[精确预算/身份/恢复](../../docs/execution/g5-local/scheduling-threshold-transfer-results.json)。29生成/1140kernel/29Fenwick/2穷举单次预算及唯一审计用完，不能重跑或改阈值补测；原负例/预算不变。standalone三臂不是原生双臂adapter升级。

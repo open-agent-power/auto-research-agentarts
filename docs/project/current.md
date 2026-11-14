@@ -8,7 +8,15 @@
 
 ## 最新汇报入口
 
-### Sprint013已完成三个增量，仍持续推进
+### Sprint014已完成真实比较，继续知识链路
+
+[Sprint014](../execution/SPRINT-014.md)已按两阶段独审执行唯一三臂调度策略，源码 `62f09edbf15f90cdcd08450aab5d60199d44d63f`，clean pin `/workspace/work/scheduling-threshold-source-62f09ed`。唯一study `g5-scheduling-threshold-transfer-v1`/output `runs/g5-scheduling-threshold-transfer-20261114-01`。主终点策略/固定二分耗时比1.261183787，小n12/12均慢，拒绝晋级、不改阈值或补测；完整27case19慢/8快及原相反n32源观察保留。
+
+真实29生成/2642jobs、1140kernel、29Fenwick、2穷举/4352子集、6080234扫描，单primary和唯一saved audit完成；累计活动12.903210272/120秒。全排程可行且目标/完整三臂一致，最终2402事件无unknown/failed/halt，独审从288保存计时另核主终点。4完成态入口/5守卫0回调、10文件不变。输入SHA41ac3517…、结果SHA9d45e971…；[完整结果/恢复](../execution/g5-local/scheduling-threshold-transfer-results.json)。
+
+这是standalone三臂研究，不能宣称现有ResearchProject双臂runtime已升级。574保护文件/421路径、50历史fit和旧预算/producer/source pins保持；新fit/模型/API/来源抽取0，开发成本unknown。46fake工程检查及恢复路由修复另计，不冒充研究收益。当前原4人团队同owner持续推进CPU知识实际检索：显式FTS、精确scope memory与项目案例context分开核对，不预称自动互检/因果收益。没有新用户决策项；平台16:47:27北京时间计划及投递/结果unknown沿用。
+
+### Sprint013已交付三个增量（14:35阶段交接，后续以Sprint014为准）
 
 13:28:22从main3d6df800接续，同盘lease `root-sprint013-20261114T1328`；13:47触发合并当前会话，没有第二writer。4人团队复用职责，已完成CPU保存经验 `3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b`、概览通用措辞 `cee2ead576af16a06788c9ecc078002d6305132b`、CPU领域知识需求 `79b6d7d7ca23bb0fa505d452d23171bd60e92c54`。最新clean sourcepin `/workspace/work/cpu-knowledge-source-79b6d7d`；旧3ca7/cee2及全部原研究pins保持。
 
