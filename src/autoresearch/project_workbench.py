@@ -11,7 +11,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from . import research_methods, snapshot_viewer, method_registry
+# Import the stored reader before _runtime_sources() snapshots startup code.
+from . import research_methods, snapshot_viewer, method_registry, stored_project_summary
 from .contracts import ResearchError, fingerprint, identifier
 from .project_knowledge import POINTS
 from .project_controller import ProjectController
@@ -496,7 +497,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
-                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/local-workbench/saved-study-reference", "/api/project/knowledge"}:
+                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/project/knowledge"}:
                     _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
@@ -513,8 +514,15 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     _require(not parsed.query, "INVALID_QUERY", "Workspace metadata does not accept a query.")
                     return self.send_json(200, {**local_workspace.describe(), "enabled": allow_local_actions, "csrf_token": csrf_token,
                                                 "read_only": getattr(local_workspace, "read_only", False)})
-                if getattr(local_workspace, "read_only", False) and parsed.path != "/api/local-workbench/saved-study-reference":
-                    return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and the saved study are available in this read-only host mode.")
+                if getattr(local_workspace, "read_only", False) and parsed.path not in {"/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary"}:
+                    return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and stored summaries are available in this read-only host mode.")
+                if parsed.path == "/api/local-workbench/project-summary":
+                    _require("?" not in self.path, "INVALID_QUERY", "The stored project summary does not accept a query.")
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    return self.send_json(200, local_workspace.project_summary())
+                if parsed.path.startswith("/api/local-workbench/project-summary"):
+                    return self.project_error(404, "LOCAL_WORKBENCH_ROUTE_NOT_FOUND", "Unknown local workbench route.")
                 if parsed.path == "/api/local-workbench/model" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Model journal does not accept a query.")
                     return self.send_json(200, local_workspace.model_view(enabled=claude_executable is not None))

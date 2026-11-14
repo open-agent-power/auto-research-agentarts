@@ -140,7 +140,7 @@ class LocalWorkbench:
 
     def __getattribute__(self, name):
         # No command is exposed by a read-only manager, even when invoked directly.
-        readers = {"describe", "saved_study_reference"}
+        readers = {"describe", "saved_study_reference", "project_summary"}
         if not name.startswith("_") and name not in readers and name not in {"root", "db", "read_only", "open_readonly"}:
             if object.__getattribute__(self, "__dict__").get("read_only", False):
                 raise ResearchError("READ_ONLY", "This workbench was opened read-only.")
@@ -479,6 +479,11 @@ class LocalWorkbench:
     def saved_study_reference():
         """Read the fixed standalone reference without selecting a project."""
         return ProjectController.saved_study_reference()
+
+    def project_summary(self):
+        """Read a bounded stored projection, without opening a project runtime."""
+        from .stored_project_summary import read_stored_project_summary
+        return read_stored_project_summary(self.root)
 
     def experiences(self):
         from .project_experience_binding import view_cases

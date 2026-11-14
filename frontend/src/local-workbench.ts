@@ -643,7 +643,8 @@ export async function mountLocalWorkbench(): Promise<void> {
       current = {}; context = null;
       document.body.classList.add("saved-study-only");
       $("nav-project-title").textContent = "只读宿主";
-      $("project-title").textContent = "独立保存研究";
+      $("project-label").textContent = "只读保存记录";
+      $("project-title").textContent = "当前项目与独立研究";
       if (statusLabel) statusLabel.textContent = "保存研究 · 只读";
       if (footer) footer.textContent = "独立保存引用 · 只读";
       await workspacePages.update({}, null, true);
@@ -887,7 +888,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   refreshButton.addEventListener("click", () => { void (async () => { busy = true; controls(); try { await refresh(); announce(description.enabled !== true ? "本地动作未启用，当前只读取保存记录。" : serverPending() || lastRequest?.uncertain ? "原请求仍待核对，仅刷新了保存状态。" : "已只读刷新保存状态，没有执行新行动。", description.enabled !== true); } catch (error) { announce(error instanceof Error ? error.message : "读取失败。", true); } finally { busy = false; controls(); downloads(); } })(); });
   document.querySelector(".skip-link")?.addEventListener("click", event => { event.preventDefault(); $("main-content").focus({ preventScroll: true }); });
   controls(); downloads();
-  try { await refresh(); announce(description.read_only === true ? "只读宿主仅提供独立保存研究；当前项目内容和预算未读取。" : description.enabled !== true ? "本地动作未启用，当前只读取保存记录；需宿主显式启动写模式。" : serverPending() ? "原请求尚待核对，只读状态已载入。" : activeId() ? "已恢复活动项目；所有新行动仍需你明确提交。" : "工作台已就绪，先提出问题并选择数据。", description.enabled !== true); }
+  try { await refresh(); announce(description.read_only === true ? "只读宿主提供独立研究引用及当前项目保存摘要；其他项目页面未加载。" : description.enabled !== true ? "本地动作未启用，当前只读取保存记录；需宿主显式启动写模式。" : serverPending() ? "原请求尚待核对，只读状态已载入。" : activeId() ? "已恢复活动项目；所有新行动仍需你明确提交。" : "工作台已就绪，先提出问题并选择数据。", description.enabled !== true); }
   catch (error) { announce(error instanceof Error ? error.message : "工作台读取失败，可只读刷新。", true); }
   controls(); downloads();
 }

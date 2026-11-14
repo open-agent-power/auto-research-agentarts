@@ -103,10 +103,16 @@ export function createProjectPages(host: HTMLElement, options: {
   async function update(project: Obj, context: Obj | null, readOnly = false): Promise<void> {
     current = project;
     for (const [page, target] of content) {
+      const subtitle = panes.get(page)?.querySelector<HTMLElement>(".page-heading p");
+      if (subtitle) subtitle.textContent = readOnly ? "此只读宿主未加载项目页面；可前往保存研究查看项目摘要和外部研究。" : subtitles[page];
       if (project.id) renderProjectPage(target, project, page, context);
-      else target.replaceChildren(el("p", "empty-state", readOnly ? "只读宿主未加载当前项目内容；可在保存研究中阅读独立研究。" : page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
+      else if (readOnly) {
+        const empty = el("div", "empty-state"), link = el("a", "text-button", "查看保存研究与项目摘要 →"); link.href = "#/saved-study";
+        empty.append(el("p", "", "只读宿主未加载当前项目页面。"), link); target.replaceChildren(empty);
+      } else target.replaceChildren(el("p", "empty-state", page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
       if (page === "outputs" && project.id) target.querySelector(".project-report-actions")!.prepend(options.reportButton);
     }
+    if (readOnly) caseLink.remove();
     manage.open = !project.id;
     flow.update(project); if (activePage === "research") flow.activate();
     requestAnimationFrame(focusRoute);
