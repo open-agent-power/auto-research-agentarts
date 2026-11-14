@@ -2,10 +2,10 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T00:42:14+08:00",
-  "last_checkpoint": "2026-11-15T02:48:47.941118+08:00",
-  "end_time": null,
-  "status": "running_S050_code_publication_then_zero_model_prepare",
-  "confirmed_commit": "052b76300d34e72b29076c39813f9157ede78f2d",
+  "last_checkpoint": "2026-11-15T02:59:22.044839+08:00",
+  "end_time": "2026-11-15T02:59:22.044839+08:00",
+  "status": "blocked_only_on_new_S050_real_model_scope_decision",
+  "confirmed_commit": "29564822df9705021753a2ad79c156b96fd0d8b1",
   "origin_readback_matches": true,
   "completed": [
     "S045 development-only native retrieval, separate preregistered private final package, validation-frozen fixed method, one original-budget final paired evaluation, same-ID/marker recovery, bounded public context/report",
@@ -19,11 +19,13 @@
     "S048 actual historical-case HTTP import/reference/report/replay/retire verified; target actions0, budget/candidates/evidence unchanged",
     "S049 versioned original-manifest receipt adoption51 related/6 independent; real HTTP disconnect at serverexit86 then new process original-ID recovery with rerender disabled and all files/project/budget unchanged",
     "Updated full global AAWv0.3.1 package7files; original package and long current note preserved; upstream11 local tests passed; actual owners read updated Skill",
-    "S050 one-shot synthetic probe code12 root/16 independent fake CLI checks; actual remote/source, approval-before-grant, marker no resend, source-only import and directory sync gates verified; src190 unchanged"
+    "S050 one-shot synthetic probe code12 root/16 independent fake CLI checks; actual remote/source, approval-before-grant, marker no resend, source-only import and directory sync gates verified; src190 unchanged",
+    "Published S0502956482, actual original fixed preparation completed with CLI version/bin/context/source recorded; native state confirms0actions/models/fits/no Host grant/launch/approval",
+    "Actual S050 preparation independently verified17 files and zero Host/launch; actual missing-approval execute refused exit1 before grant/launch with all17 files unchanged"
   ],
   "not_completed": [
-    "S050 code publication and actual zero-call preparation pending",
-    "New1-call scope not authorized, no real Codex model or production native provider"
+    "S050 actual1-call model scope not yet authorized; user question pending",
+    "No real Codex model invocation or production native transport validation"
   ],
   "actual_research_results": {
     "validation_delta_recall20": -0.01,
@@ -42,14 +44,11 @@
   },
   "activity": {
     "owner": "root-evaluation-20261115T0042",
-    "root": "S050 original-artifact integration and preparation, prior lease still held",
-    "engineering": "S050 pilot script/proposal fixes after concrete root review; no real model",
-    "capability_review": "S050 scope/0-before-approval independent review",
+    "root": "final handoff; release immediately after successful push, authoritative state in .agent/autonomy/lease.json",
+    "subagents_active": 0,
+    "pool_members_including_root": 6,
     "old_disk_executor": "unknown",
-    "background_model_process_claim": false,
-    "workbench_continuation": "S049 delivered; reusable",
-    "research_mechanisms": "S048 implementation frozen, reusable",
-    "runtime_evidence": "interrupted, reusable; no S048 draft executed"
+    "background_model_process_claim": false
   },
   "known_negative_results": [
     "NFCorpus academic-use scope not confirmed; CQADupStack rights/capacity unresolved, not adopted",
@@ -62,8 +61,13 @@
     "no native Linux model transport or real efficacy result yet",
     "old model/fit budgets not expanded"
   ],
-  "next": "Finish/publish S050 one-shot probe code, prepare fixed synthetic context with no Host grant or model sends, then require user decision before any new1-call model scope",
-  "user_decision_required": null,
+  "next": "If user truly approves original prepared1-call scope, claim unique lease and execute original2956482 pin/request once; otherwise preserve0model and pending scope, continue authorized independent engineering without fabricating approval",
+  "user_decision_required": {
+    "scope": "S050 one Codex CLI process/one logical Host selection,3 synthetic docs,tool0/fit0,cost/token/providerrequestsunknown",
+    "prepare_sha256": "b2a2d3fe880e8dffdeb142bdc4a5495e862994b445eb59d1c13301070b7b9e2f",
+    "asked_in_this_conversation": true,
+    "answer": "pending; no user reply received at report close"
+  },
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
     "next_planned_trigger": "2026-11-15T04:47:27+08:00",
@@ -103,5 +107,14 @@
     "cloud_skill_body": "matches nativev0.3.1 with YAML quote-only difference",
     "cloud_runtime_playbook": "exact match",
     "cloud_executable_resource": "read unavailable; native full7files verified"
+  },
+  "code_commits": {
+    "S045": "42100fa79d6f4a6d96b924ba36fba2f769d2c468",
+    "S046_driver": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
+    "S046_results": "faee6ea38fa3509fcd0312917572fa438c312b6e",
+    "S047": "304c25a9989a8aa0c395500a5fb3834a771c0b7a",
+    "S048": "6cc5dd90ae1ce777324ccae328c7158025dd3480",
+    "S049": "052b76300d34e72b29076c39813f9157ede78f2d",
+    "S050": "29564822df9705021753a2ad79c156b96fd0d8b1"
   }
 }

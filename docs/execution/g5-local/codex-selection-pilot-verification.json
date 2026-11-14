@@ -1,8 +1,8 @@
 {
   "schema_version": "s050-codex-pilot-preparation-verification-v1",
-  "status": "code_verified_pending_publication_and_zero_call_prepare",
-  "checkpoint": "2026-11-15T02:48:47.941118+08:00",
-  "source_commit": "resolve exact containing Git commit, not assigned before commit",
+  "status": "published_and_prepared_waiting_user_decision_no_model",
+  "checkpoint": "2026-11-15T02:59:22.044839+08:00",
+  "source_commit": "29564822df9705021753a2ad79c156b96fd0d8b1",
   "frozen_files": {
     "scripts/probe_codex_selection.py": "94bfbaf145470841ef47e159c46a31cbdedde7ced211d6aaa99482df79a301e0",
     "tests/test_codex_selection_pilot.py": "e5883d75f4380ca776503d785fc44f5440d0b51dde20c6ee28f84397f4f42ba1",
@@ -35,7 +35,7 @@
   },
   "real_model_authorization": false,
   "real_model_invocations": 0,
-  "actual_fixed_pilot_created": false,
+  "actual_fixed_pilot_created": true,
   "approval_file_created": false,
   "proposed_new_scope": {
     "cli_processes": 1,
@@ -51,5 +51,104 @@
     "Safe reasoning/JSON whitespace accepted while tools/unknown/multiple terminals remain rejected.",
     "Valid stale bytecode can execute despite -B; independent reproduction retained and fresh private bytecode namespace precedes project imports.",
     "Marker file and parent directory fsynced; failed sync stops before Host or model."
-  ]
+  ],
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/2956482",
+  "actual_preparation": {
+    "workspace": "/workspace/development-continuation-20261114/source-pins/2956482/runs/s050-codex-selection-pilot",
+    "prepare_sha256": "b2a2d3fe880e8dffdeb142bdc4a5495e862994b445eb59d1c13301070b7b9e2f",
+    "project_id": "project-bb2a04485e884de0be8b75c0fb4444ec",
+    "run_id": "run-4bd0041f48f04cda841a5dbc93cba9f3",
+    "context_sha256": "13ba706c88a42eeb4a30ef7a506d29db94b1d76816970c4369fb3c9b9d93c15e",
+    "cli": {
+      "executable": "/opt/codex/bin/codex",
+      "sha256": "57c94ea520df28beb76955316c5c48f672550fe42c6cff7003badb76e1ee10d8",
+      "version": "codex-cli 0.167.0-alpha.4"
+    },
+    "host_grant_file_exists": false,
+    "launch_marker_exists": false,
+    "approval_record_exists": false,
+    "actions": 0,
+    "evidence_actions": 0,
+    "budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 8,
+      "existing_cash_cap_cny": 5,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s050-synthetic-no-project-dispatch",
+      "local_tool_call_limit": 1,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "local_tool_calls_used": 0,
+      "local_tool_calls_reserved": 0,
+      "local_tool_dispatches": 0,
+      "evidence_reads_used": 0,
+      "evidence_reads_reserved": 0,
+      "fit_limit": 0,
+      "fit_attempts_used": 0,
+      "fits_reserved": 0,
+      "preprocessing_fits": 0,
+      "fits_completed": 0,
+      "ridge_fits_completed": 0,
+      "preprocessing_fits_completed": 0
+    },
+    "source_commit": "29564822df9705021753a2ad79c156b96fd0d8b1"
+  },
+  "actual_cli_command_scope": "only CLI --version metadata; no codex exec",
+  "preparation_stdout_sha256": "62bbf74708922154789b7c17167c247ccc006f4c9c17a0d05e777fc483348afa",
+  "preparation_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "direct_prepare_exit_code": "not separately captured by initial shell; success established by canonical prepared receipt and independent native state readback",
+  "worktree_failure_retained": "Initial manually transcribed commit suffix invalid; git rejected with128 and created no pin/project. Correct HEAD used for real pin. No research/model action occurred.",
+  "actual_preparation_independent_review": {
+    "path": "/workspace/skill-refresh-20261114/review/s050-actual-prepare-review.json",
+    "sha256": "6b27836f4772e92436974d4d7087077dcaed043080a8261cdc9e0b95d12a4cee",
+    "result": {
+      "status": "verified_read_only",
+      "prepare_sha256": "b2a2d3fe880e8dffdeb142bdc4a5495e862994b445eb59d1c13301070b7b9e2f",
+      "project_id": "project-bb2a04485e884de0be8b75c0fb4444ec",
+      "context_sha256": "13ba706c88a42eeb4a30ef7a506d29db94b1d76816970c4369fb3c9b9d93c15e",
+      "workspace_files_before_after_equal": 17,
+      "source_commit": "29564822df9705021753a2ad79c156b96fd0d8b1",
+      "source_clean_tracked": true,
+      "cli_binary_sha256": "57c94ea520df28beb76955316c5c48f672550fe42c6cff7003badb76e1ee10d8",
+      "cli_version_recorded_only": "codex-cli 0.167.0-alpha.4",
+      "cli_executed_by_this_review": false,
+      "project_tools_used": 0,
+      "prospective_tool_limit": 1,
+      "new_model_requests": 0,
+      "new_fits": 0,
+      "host_grant": null,
+      "host_requests": 0,
+      "launch_marker": false,
+      "approval_record": false,
+      "actual_user_approval": "not_established_by_this_file_review",
+      "remote_publication": "existing receipt only, no new network check",
+      "limitations": [
+        "CLI version was recorded during preparation, not re-executed here",
+        "operator approval attestation is not itself authorization",
+        "no OS isolation or hard spending cap proven"
+      ]
+    }
+  },
+  "actual_original_missing_approval_gate": {
+    "command": [
+      "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python",
+      "-B",
+      "/workspace/development-continuation-20261114/source-pins/2956482/scripts/probe_codex_selection.py",
+      "--execute"
+    ],
+    "started_at_utc": "2026-11-14T18:53:06.260143+00:00",
+    "ended_at_utc": "2026-11-14T18:53:10.038120+00:00",
+    "exit_code": 1,
+    "expected_refusal": "Explicit user approval record is required before a Host grant or CLI launch.",
+    "original_files_unchanged": true,
+    "original_file_count": 17,
+    "host_grant_created": false,
+    "launch_marker_created": false,
+    "real_model_invocations": 0
+  },
+  "actual_user_approval": "pending; no approval record or launch created"
 }
