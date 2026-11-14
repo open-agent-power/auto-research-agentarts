@@ -1,5 +1,7 @@
 # Master Execution Pack v2 · 云端执行
 
+[S052](SPRINT-052.md)显式条件续作已过修复后54相关/9独审与两组实际HTTP/异进程原body重放；wait不进入final，已知primary ID错绑定接受前拒绝。原v1及旧sourcepin保持。
+
 [S051](SPRINT-051.md)已接独立staged验证条件→原反馈audit/wait；60相关/4独审和旧S046只读−.01通过，三组实际HTTP/不同进程原ID重放通过，边界见Sprint与current/latest-report。S050新1次模型仍待答复，未扩额。
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)

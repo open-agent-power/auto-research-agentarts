@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+S052 原 `continue_staged` 新增六字段 opt-in registration/v2，原五字段v1保持；原反馈 wait/unknown持久停止且不锁路线，核原policy audit后才freeze/final/report，已知primary错绑定接受前拒绝。见[条件模式](../../docs/staged-evaluation-continuation.md#显式条件模式s052)。
+
 S051 `staged_feedback_reader`把独立 dev/validation primary 接入原事前假设与 `advance_feedback`，源/SQL/grades/坐标/完整覆盖核验，原 audit/wait 与同ID预算保持；不读取 final、不重排评分，旧家族消息保持。S047 固定续作尚不自动遵循 wait。见[合同](../../docs/hypothesis-feedback.md#独立-staged-development-的反馈)与[Sprint](../../docs/execution/SPRINT-051.md)。
 
 [S042](../../docs/execution/SPRINT-042.md)验证事前条件→真实保存结果→分支审计/wait及delegated同ID链路，使用构造工程输入和回复；不代表科研收益。已计算0按预定gt/gte比较，unknown保留原因；现有检索test已暴露，validation-only新投影不能宣称整个流程盲测。

@@ -65,6 +65,6 @@ S051 将 `research.relevance-validation-pair` 接入相同登记与 `advance_fee
 
 staged 的 context/prompt 使用独立说明：来源仅含 dev/validation，任何 final 需单独登记；读取反馈不建立此前未接触、盲测或科学有效性。旧家族说明和消息仍保留原范围，混用 family/说明会被拒绝。合成输入的条件分支及重放验证只证明工程接线；旧 SQuAD 验证负差的只读读取不能补造事前假设或证明新的研究收益。
 
-`continue_staged` 仍是另外一次明确授权的固定审计→冻结→final→报告流程，不自动遵循 `advance_feedback` 的等待分支。调用者不能在收到 wait/unknown 后把固定流程描述为本条件的自动续作。
+`continue_staged` 原五字段 v1 仍是另一次明确授权的固定审计→冻结→final→报告流程，不自动遵循 `advance_feedback` 的等待分支。S052 的显式六字段条件模式可绑定原登记并在 wait/unknown 停止，见[条件续作](staged-evaluation-continuation.md#显式条件模式s052)；两种授权不可混称。
 
 [S043](execution/SPRINT-043.md)补齐reader源身份与非终态恢复无写门禁；源码不符不会将原未完成parent永久拒绝或把child改成unknown，回到原pin仍可核对/恢复。可运行的[独立演示](../examples/hypothesis-feedback/README.md)展示登记、分进程执行和终态重放，使用独立工程输入和预算。

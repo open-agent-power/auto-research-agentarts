@@ -1,5 +1,7 @@
 # 接口索引
 
+S052 原 `continue_staged` 新增六字段 opt-in registration/v2，原五字段v1保持；原反馈 wait/unknown持久停止且不锁路线，核原policy audit后才freeze/final/report，已知primary错绑定接受前拒绝。见[条件模式](../../docs/staged-evaluation-continuation.md#显式条件模式s052)。
+
 S051 `staged_feedback_reader`把独立 dev/validation primary 接入原事前假设与 `advance_feedback`，源/SQL/grades/坐标/完整覆盖核验，原 audit/wait 与同ID预算保持；不读取 final、不重排评分，旧家族消息保持。S047 固定续作尚不自动遵循 wait。见[合同](../../docs/hypothesis-feedback.md#独立-staged-development-的反馈)与[Sprint](../../docs/execution/SPRINT-051.md)。
 
 `LocalWorkbench.continue_staged`复用原manager意图、Controller/Project和export，固定审计→冻结→final→报告；POST `/api/local-workbench/staged-continue`、GET同路径`/<request_id>.json`，原预算/ID/unknown/source pin不变。见[合同](../../docs/staged-evaluation-continuation.md)。

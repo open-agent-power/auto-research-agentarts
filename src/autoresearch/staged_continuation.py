@@ -23,6 +23,68 @@ def code_identity():
     return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
 
+def conditional_policy(state, registration_id, primary_action_id, context):
+    """Compile one sealed original feedback decision; do not dispatch or read private data."""
+    from . import feedback_policy, hypothesis_feedback
+    identifier(registration_id, "registration_request_id")
+    identifier(primary_action_id, "primary_action_id")
+    registrations = [item for item in state.get("hypothesis_registrations", []) if item.get("request_id") == registration_id]
+    _require(len(registrations) == 1, "EVIDENCE_CHANGED", "One original preregistration is required.")
+    registration = registrations[0]
+    hypothesis_feedback._check_record(registration)
+    _require(registration["candidate"]["method_id"] == staged.TOOL_ID and "branches" in registration
+             and registration["project_id"] == state["id"] and registration["run_id"] == state["run_id"]
+             and registration["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+             and registration["project_code_identity"] == state["code_identity"],
+             "EVIDENCE_CHANGED", "The original staged registration belongs to a different project or source.")
+    proposal = feedback_policy.select_from_feedback(context, registration=registration,
+        provider={"kind": "operator_assistant", "label": "preregistered-feedback-policy-v1"})
+    proposal["rationale"] = ("Preregistration " + registration_id + " sha256:"
+                             + registration["registration_sha256"] + ". " + proposal["rationale"])
+    selected = project_selection.validate_proposal(context, proposal)["candidate"]
+    items = [item for item in context.get("hypothesis_feedback", {}).get("items", []) if item["request_id"] == registration_id]
+    _require(len(items) == 1, "EVIDENCE_CHANGED", "The original registration feedback is unavailable.")
+    item = items[0]
+    if item["outcome"] != "unknown":
+        _require(item["action_id"] == primary_action_id, "EVIDENCE_CHANGED",
+                 "Known feedback belongs to a different original primary action.")
+    choice = "wait"
+    reason = "feedback_unknown" if item["outcome"] == "unknown" else "policy_wait"
+    if selected is not None:
+        _require(selected["method_id"] == staged.AUDIT_TOOL_ID
+                 and selected["evaluation_ref"] == registry.evaluation_ref(staged.AUDIT_TOOL_ID)
+                 and selected["parameters"] == {"based_on_action_id": item["action_id"],
+                                                 "based_on_result_sha256": item["result_sha256"]},
+                 "EVIDENCE_CHANGED", "The frozen policy may select only its original saved audit.")
+        choice, reason = "audit", None
+    return {"registration": copy.deepcopy(registration), "context": copy.deepcopy(context),
+            "feedback": copy.deepcopy(item), "proposal": proposal, "decision": choice, "reason": reason}
+
+
+def verify_conditional_policy(state, body, saved):
+    """Check a frozen decision against its original registration and sealed context."""
+    _require(type(saved) is dict and set(saved) == {"registration", "context", "feedback", "proposal", "decision", "reason"},
+             "EVIDENCE_CHANGED", "The frozen feedback decision is malformed.")
+    rebuilt = conditional_policy(state, body["registration_request_id"], body["primary_action_id"], saved["context"])
+    _require(canonical(rebuilt) == canonical(saved), "EVIDENCE_CHANGED", "The frozen feedback decision changed.")
+    return saved
+
+
+def verify_conditional_audit(state, body, saved, audit_id, inspection):
+    """Bind the completed ordinary audit to the original frozen policy decision."""
+    verify_conditional_policy(state, body, saved)
+    _require(saved["decision"] == "audit" and type(inspection.get("audit")) is dict
+             and inspection["audit"].get("status") == "completed"
+             and inspection["audit"].get("parent_request_id") == audit_id,
+             "EVIDENCE_CHANGED", "The original policy audit is unavailable.")
+    parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == audit_id]
+    _require(len(parents) == 1 and parents[0].get("selection_context") == saved["context"]
+             and parents[0].get("request", {}).get("proposal") == saved["proposal"]
+             and parents[0].get("state_version_before") == saved["context"]["state_version"]
+             and parents[0].get("snapshot_ref_before") == saved["context"]["snapshot_ref"],
+             "EVIDENCE_CHANGED", "The audit parent differs from the original policy decision.")
+
+
 def selection_proposal(context, method_id, primary_binding):
     """Compile exactly one original audit/final candidate in a sealed context."""
     _require(type(method_id) is str and method_id in (staged.AUDIT_TOOL_ID, retrieval_holdout.FINAL_TOOL_ID)

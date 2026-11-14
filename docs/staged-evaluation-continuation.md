@@ -33,3 +33,16 @@ manager现有busy门覆盖本命令；报告阶段可用固定原子报告请求
 返回原stage引用、版本/来源/源码身份、停点和报告manifest；开发source/context/manager记录不携final原文或标签。final原件仍由原Project保护、hash验证，未声称OS隔离或盲测。阶段编排和构造数据验证不等于模型自主提出假设、跨领域科研收益或完整Gate通过。
 
 S046真实研究固定在4a159a9 source pin并已耗尽3工具；S047新源码不能用于升级/续跑它。工程验收用单独明确标注的fixture，不重开旧研究。
+
+
+## 显式条件模式（S052）
+
+同一 POST 路径可使用原五字段再加唯一 `registration_request_id`，例如 `"registration_request_id": "prediction-1"`。这是明确的条件授权：只在该事前登记根据原 validation 反馈选择本家 saved-audit，并核实它完成后，才继续冻结策略、一次 final 和报告。返回版本 `local-staged-continuation-v2`；原五字段仍为原固定流程 v1，不会静默改变旧请求的行为。
+
+先保存原登记及 SHA、反馈、完整封存 context、policy proposal 和原因。指标/阈值来自原登记，不能用请求临时替换。unknown 或 policy wait 保存 `status=completed, phase=waiting` 的外层收据，`result.status=waiting`、`final_evaluation_performed=false`，不创建阶段行动、冻结策略或报告。外层 completed 只表示本次等待回执已保存；同 exact body 重放原等待结果，不永久占用 manager pending 锁，用户仍可另行明确改变路线。
+
+选择 audit 时，在派发前冻结其原 context/proposal/body，绑定原 primary/action/result SHA。后续先核原 controller parent、普通 child、SQLite 指纹及工件，再进入原 freeze/final/report。审计完成后当前候选通常已无 audit，因此恢复使用原封存决定，不基于新的候选重选或重复审计。原计划/来源/源码/Host 与预算门保持，未知 final 保留原请求，不能换顶层 ID 重算；报告沿 S049 原预封 manifest 与完整文件回执恢复。
+
+本版 v2 在初次接受时拒绝任何已有 audit/freeze/final，避免把另行执行的同方法 audit 冒称来自本策略。旧 v1 的已完成阶段复用继续按原合同核验。新模式不批准模型、扩大工具额度或迁移旧 pending/source pin；它按预声明的数值分支编排，不自动提出科学假设或证明科研收益。
+
+本轮实现/验收完成状态以 [current](project/current.md) 与 [latest-report](project/latest-report.json) 为准；未完成前不据本接口说明认领完成。
