@@ -12,6 +12,8 @@
 
 实际 HTTP 三组新合成项目通过：+1→met→原 saved-audit，共2工具；−1及0→not-met→wait，各1工具。登记/primary/branch 原 body 在不同 PID 的 server 重放，Project 全部文件字节/状态/预算一致，0模型/fit，未执行 final。primary 前从 HTTP context 读到 unknown 并以原纯 policy 编译 wait；未提前派发等待行动。反馈/重放的 server 路径有 private/index/rank/score 抛错哨兵；验证父进程为核文件哈希读取过 private 原字节，因此不声称整个验证过程零 private I/O，也不据此建立盲测。原件 `runs/s051-verification/http/`。
 
+[精确代码/输入/ID/预算/恢复索引](g5-local/staged-hypothesis-verification.json)保存源码提交和实际已检查范围；它是工程回执索引，不是旧研究账本的重建。
+
 ## 方法、原件与边界
 
 按 Adaptive Agent Workflow v0.3.1（远端已 fetch，`02e72e3e411bec53db2288651df01afb27d8904d`）显式 owner loop；root 集成，复用 engineering 实现/工程 E2E，capability_review 独审。实际读取项目 router/backend/interfaces/evaluation；复用成熟的已有协议校验、SQLite 意图/收据、unittest 和故障哨兵，不加载归档 dev-system，不新建团队。

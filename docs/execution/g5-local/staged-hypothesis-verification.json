@@ -1,0 +1,291 @@
+{
+  "schema_version": "s051-engineering-verification-v1",
+  "source_commit": "c32dc77bb06c1b18cec081edd77c26c2d20c49a9",
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/c32dc77",
+  "project_code_identity": "c26292e780972ee40637ced8c6b5896eb73d4710a707723ced86162195c48cfa",
+  "source_file_count": 191,
+  "workflow": {
+    "remote_head": "02e72e3e411bec53db2288651df01afb27d8904d",
+    "version": "0.3.1",
+    "fetched": true,
+    "installed_files_matching": 7,
+    "live_hooks_proven": false
+  },
+  "method": "Existing Project/Controller/Workbench, sealed policy and saved evidence validators, SQLite intents/receipts, unittest and targeted fault/private-I/O canaries",
+  "root_regression": {
+    "passed": 60,
+    "log": "runs/s051-verification/root-regression.log",
+    "modules": [
+      "test_staged_hypothesis_feedback",
+      "test_hypothesis_feedback",
+      "test_feedback_policy",
+      "test_feedback_source_pin",
+      "test_pending_source_pin",
+      "test_host_selection_protocol",
+      "test_research_plan_proposal",
+      "test_recipe_change_proposal",
+      "test_project_controller_selection",
+      "test_project_selection",
+      "test_staged_relevance_adapter",
+      "test_retrieval_holdout"
+    ]
+  },
+  "independent_review": {
+    "passed": 4,
+    "assessment": "runs/s051-review/independent-assessment.md",
+    "log": "runs/s051-review/independent-run-final.log",
+    "source_files_unchanged": 191
+  },
+  "synthetic_http": {
+    "cases": [
+      {
+        "action_ids": [
+          "action-5aaf5b2bac9c51f0cdbf953b80792d44",
+          "action-28ac4e17cd57e6fe933f219007ed09a6"
+        ],
+        "action_methods": [
+          "research.relevance-validation-pair",
+          "research.relevance-validation-saved-audit"
+        ],
+        "branch_id": "s051-feedback",
+        "branch_status": "completed",
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 8,
+          "evidence_reads_reserved": 0,
+          "evidence_reads_used": 0,
+          "existing_cash_cap_cny": 5,
+          "fit_attempts_used": 0,
+          "fit_limit": 0,
+          "fits_completed": 0,
+          "fits_reserved": 0,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "fixture",
+          "local_tool_call_limit": 3,
+          "local_tool_calls_reserved": 0,
+          "local_tool_calls_used": 2,
+          "local_tool_dispatches": 2,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "preprocessing_fits": 0,
+          "preprocessing_fits_completed": 0,
+          "ridge_fits_completed": 0
+        },
+        "case": "positive",
+        "first_pid": 13160,
+        "original_bodies_replayed": [
+          "hypothesis",
+          "primary",
+          "branch"
+        ],
+        "outcome": "condition_met",
+        "primary_id": "s051-primary",
+        "project_files_unchanged": true,
+        "project_id": "project-b3fb547bb22c49e1bb46b5f362e7cc29",
+        "registration_id": "s051-prediction",
+        "replay_pid": 13181,
+        "run_id": "run-b2948f599f7a4950a91f2601de60f4db",
+        "value": 1.0
+      },
+      {
+        "action_ids": [
+          "action-df7172816f5d24d447cec1ecc8f59b29"
+        ],
+        "action_methods": [
+          "research.relevance-validation-pair"
+        ],
+        "branch_id": "s051-feedback",
+        "branch_status": "waiting",
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 8,
+          "evidence_reads_reserved": 0,
+          "evidence_reads_used": 0,
+          "existing_cash_cap_cny": 5,
+          "fit_attempts_used": 0,
+          "fit_limit": 0,
+          "fits_completed": 0,
+          "fits_reserved": 0,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "fixture",
+          "local_tool_call_limit": 3,
+          "local_tool_calls_reserved": 0,
+          "local_tool_calls_used": 1,
+          "local_tool_dispatches": 1,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "preprocessing_fits": 0,
+          "preprocessing_fits_completed": 0,
+          "ridge_fits_completed": 0
+        },
+        "case": "negative",
+        "first_pid": 13195,
+        "original_bodies_replayed": [
+          "hypothesis",
+          "primary",
+          "branch"
+        ],
+        "outcome": "condition_not_met",
+        "primary_id": "s051-primary",
+        "project_files_unchanged": true,
+        "project_id": "project-649edcc22c084435b6a7b413b9575383",
+        "registration_id": "s051-prediction",
+        "replay_pid": 13213,
+        "run_id": "run-03eea1fe38ae4ce4b22a4e4ea21019f1",
+        "value": -1.0
+      },
+      {
+        "action_ids": [
+          "action-01f43d52772e6d99788cb420d948acdd"
+        ],
+        "action_methods": [
+          "research.relevance-validation-pair"
+        ],
+        "branch_id": "s051-feedback",
+        "branch_status": "waiting",
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 8,
+          "evidence_reads_reserved": 0,
+          "evidence_reads_used": 0,
+          "existing_cash_cap_cny": 5,
+          "fit_attempts_used": 0,
+          "fit_limit": 0,
+          "fits_completed": 0,
+          "fits_reserved": 0,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "fixture",
+          "local_tool_call_limit": 3,
+          "local_tool_calls_reserved": 0,
+          "local_tool_calls_used": 1,
+          "local_tool_dispatches": 1,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "preprocessing_fits": 0,
+          "preprocessing_fits_completed": 0,
+          "ridge_fits_completed": 0
+        },
+        "case": "zero",
+        "first_pid": 13227,
+        "original_bodies_replayed": [
+          "hypothesis",
+          "primary",
+          "branch"
+        ],
+        "outcome": "condition_not_met",
+        "primary_id": "s051-primary",
+        "project_files_unchanged": true,
+        "project_id": "project-fbbf0f18c1ec4d85873bf97943f8a348",
+        "registration_id": "s051-prediction",
+        "replay_pid": 13245,
+        "run_id": "run-bb640686ffbc4e3eb3407a7ac240e60e",
+        "value": 0.0
+      }
+    ],
+    "final_evaluation_performed": false,
+    "private_index_ranking_scoring_guards": true,
+    "schema_version": "s051-synthetic-http-evidence-v1",
+    "scientific_validation": false,
+    "source_freeze_sha256": "65969d7f332823198641f06add0f5b17e4d5fce201b12dbc925fb9cec6166ea2"
+  },
+  "private_io_scope": "HTTP server feedback and replay guarded. Verification parent separately read synthetic private bytes twice to hash file equality; did not parse queries/qrels. Holdout registration was not replayed. No whole-experiment no-private-I/O or blind-evaluation claim.",
+  "actual_saved_source_read": {
+    "source_freeze_sha256": "65969d7f332823198641f06add0f5b17e4d5fce201b12dbc925fb9cec6166ea2",
+    "current_project_code_identity": "c26292e780972ee40637ced8c6b5896eb73d4710a707723ced86162195c48cfa",
+    "original_project_code_identity": "6a5c9e47a19ceebe883930a51d9524788374245e9fd8d774a4e88af2db20c0ab",
+    "project_id": "project-7858ce02138a48e3bdeac39c26f7be06",
+    "action_id": "action-ef9810de9ce10da4eb378b94c5bd563b",
+    "result_sha256": "a7a0f4cf741671ca0cce3a64a7d83da33b50e931c91d4e60a44532d1f4d0a78d",
+    "saved_validation_delta_recall20": -0.01,
+    "read_mode": "original public dev/validation source plus saved action and read-only SQLite; no new hypothesis",
+    "private_final_read": false,
+    "ranking_calls": 0,
+    "scoring_calls": 0,
+    "new_research_actions": 0,
+    "new_research_models": 0,
+    "new_research_fits": 0,
+    "state_and_budget_unchanged": true,
+    "protected_files": {
+      "S046": 36,
+      "S050": 17
+    },
+    "all_protected_bytes_unchanged": true,
+    "frozen_product_files_unchanged": 191,
+    "original_budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "existing_cash_cap_cny": 5,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s046-squad-paragraph-retrieval-v1",
+      "local_tool_call_limit": 3,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "local_tool_calls_used": 3,
+      "local_tool_calls_reserved": 0,
+      "local_tool_dispatches": 3,
+      "evidence_reads_used": 0,
+      "evidence_reads_reserved": 0,
+      "fit_limit": 0,
+      "fit_attempts_used": 0,
+      "fits_reserved": 0,
+      "preprocessing_fits": 0,
+      "fits_completed": 0,
+      "ridge_fits_completed": 0,
+      "preprocessing_fits_completed": 0
+    }
+  },
+  "sha256": {
+    "runs/s051-verification/source-freeze.json": "65969d7f332823198641f06add0f5b17e4d5fce201b12dbc925fb9cec6166ea2",
+    "tests/test_retrieval_holdout.py": "02de93b7f6fba9996afe7450c0fabaa8c69c9f573fe15485eae4e095fb4ff089",
+    "tests/test_staged_hypothesis_feedback.py": "78dfb5e66bcef2d88e8acf158f8990e36bb38043587f61b2c8a7daf079ea2c06",
+    "runs/s051-review/test_independent_s051.py": "a8589696a251950c019c4a9ca0c285413e08f6926bf31319bae3e2c6e148e18a",
+    "runs/s051-verification/http/run.py": "573e07ec8c3376c8e0f10e9aedc8794792bdbd970bfed77a60eb5264e0eb8d59",
+    "runs/s051-verification/root-regression.log": "ea48e241b41d6222692776fbb138b7932db31425ada52d979507ff4712a7a6c5",
+    "runs/s051-review/independent-run-final.log": "1c51b89eba7d2ff927a27b27cbf5f69e3898d1770db4959543c47cb0255aa696"
+  },
+  "recovery": {
+    "same_original_bodies": [
+      "hypothesis",
+      "primary",
+      "branch"
+    ],
+    "different_server_pids": true,
+    "project_bytes_state_budget_unchanged": true,
+    "source_pin_required": true,
+    "evidence_root": "runs/s051-verification/http",
+    "old_S046_pin_not_upgraded": true,
+    "old_S050_pin_not_upgraded": true
+  },
+  "research_usage": {
+    "new_research_actions": 0,
+    "new_research_models": 0,
+    "new_research_fits": 0,
+    "development_tokens": "unknown",
+    "development_cost": "unknown",
+    "persistent_http_tool_actions": 4,
+    "all_regression_tool_dispatch_count": "not separately metered"
+  },
+  "boundaries": [
+    "synthetic engineering mechanism, not scientific efficacy",
+    "only staged advance_feedback; S047 fixed continuation does not obey conditional wait",
+    "trusted local, not OS/sealed isolation or native Linux model runtime",
+    "historical disk missing; not reconstructed",
+    "S050 one-call approval pending; no model launched"
+  ]
+}
