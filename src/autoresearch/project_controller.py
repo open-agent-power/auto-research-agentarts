@@ -266,6 +266,8 @@ class ProjectController:
                                       "evidence_citation_ids": selected["evidence_citation_ids"],
                                       "model_execution_verified": False,
                                       "external_usage": "unknown_not_counted_as_zero"}}
+        if "experience_case_refs" in selected:
+            decision["selection_ref"]["experience_case_refs"] = copy.deepcopy(selected["experience_case_refs"])
         return {"decision": decision, "executable": candidate is not None, "status": status,
                 "blockers": context["blockers"], "selection_context": context}
 

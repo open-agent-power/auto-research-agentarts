@@ -18,6 +18,7 @@ CONTEXT_FIELDS = {
 OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience"}
 CONDITION_PROJECTION_FIELDS = ("method_id", "condition", "outcome", "completed", "missing_information")
 PROPOSAL_FIELDS = {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
+OPTIONAL_PROPOSAL_FIELDS = {"experience_case_refs"}
 
 
 def _require(condition, code, message):
@@ -239,7 +240,7 @@ def validate_proposal(context, proposal) -> dict:
     _require(_hash(context["context_sha256"]) and context["context_sha256"] == fingerprint(payload),
              context_code, "Host context content or identity changed.")
     _json_value(proposal, MAX_PROPOSAL_BYTES, code)
-    _require(type(proposal) is dict and set(proposal) == PROPOSAL_FIELDS
+    _require(type(proposal) is dict and PROPOSAL_FIELDS <= set(proposal) <= PROPOSAL_FIELDS | OPTIONAL_PROPOSAL_FIELDS
              and proposal["schema_version"] == "project-selection-proposal-v1" and _hash(proposal["context_sha256"]),
              code, "Exact selection proposal schema and context binding required.")
     _require(proposal["context_sha256"] == context["context_sha256"],
@@ -254,6 +255,24 @@ def validate_proposal(context, proposal) -> dict:
     _require(type(cited) is list and len(cited) <= 16 and all(_text(item, 160) for item in cited)
              and len(set(cited)) == len(cited) and set(cited) <= known,
              code, "Citations must be distinct IDs actually present in this host context.")
+    if "experience_case_refs" in proposal:
+        refs = proposal["experience_case_refs"]
+        _require(type(refs) is list and len(refs) <= 4, code, "At most four historical case references are allowed.")
+        cases = context.get("experience", {}).get("cases", [])
+        active = {(case.get("case_id"), case.get("case_version"), case.get("bundle_sha256"))
+                  for case in cases if case.get("inclusion_status") == "active"
+                  and _text(case.get("case_id"), 160) and type(case.get("case_version")) is int
+                  and _hash(case.get("bundle_sha256"))}
+        seen = set()
+        for ref in refs:
+            _require(type(ref) is dict and set(ref) == {"case_id", "case_version", "bundle_sha256"}
+                     and _text(ref["case_id"], 160) and type(ref["case_version"]) is int
+                     and ref["case_version"] >= 1 and _hash(ref["bundle_sha256"]), code,
+                     "Historical case references require exact bounded identities.")
+            identity = (ref["case_id"], ref["case_version"], ref["bundle_sha256"])
+            _require(identity in active and identity not in seen, code,
+                     "Historical case references must be distinct active cases in the sealed context.")
+            seen.add(identity)
     choice = proposal["choice"]
     _require(type(choice) is dict, code, "Choice must be an exact execute or wait object.")
     if choice.get("kind") == "wait":
@@ -266,5 +285,8 @@ def validate_proposal(context, proposal) -> dict:
         candidate = next((item for item in context["candidates"] if item["id"] == choice["candidate_id"]), None)
         _require(candidate is not None, code, "Selected candidate is absent from the host context.")
     # Acceptance validates bindings, not provider truth, model calls, knowledge use or science.
-    return {"candidate": copy.deepcopy(candidate), "provider": copy.deepcopy(provider),
-            "rationale": proposal["rationale"], "evidence_citation_ids": copy.deepcopy(cited)}
+    result = {"candidate": copy.deepcopy(candidate), "provider": copy.deepcopy(provider),
+              "rationale": proposal["rationale"], "evidence_citation_ids": copy.deepcopy(cited)}
+    if "experience_case_refs" in proposal:
+        result["experience_case_refs"] = copy.deepcopy(proposal["experience_case_refs"])
+    return result

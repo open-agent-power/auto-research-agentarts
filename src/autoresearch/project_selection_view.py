@@ -134,6 +134,10 @@ def _verify(state, parent):
                 _require(parent["status"] in ("prepared", "running", "rejected"))
         # selection_ref is redundant display metadata, but must agree when saved.
         ref = decision.get("selection_ref")
+        if "experience_case_refs" in selected:
+            _require(type(ref) is dict and ref.get("experience_case_refs") == selected["experience_case_refs"])
+        elif ref is not None:
+            _require("experience_case_refs" not in ref)
         if ref is not None:
             _require(ref["context_sha256"] == context["context_sha256"]
                      and ref["candidate_id"] == (candidate["id"] if candidate else None)
@@ -180,6 +184,18 @@ def selection_view(state) -> dict:
             "child": copy.deepcopy((parent.get("result") or {}).get("child")),
             "request_sha256": parent["request_sha256"], "decision_sha256": parent["decision_sha256"],
         })
+        if "experience_case_refs" in selected:
+            records[-1]["experience_case_refs"] = copy.deepcopy(selected["experience_case_refs"])
+            identities = {(item["case_id"], item["case_version"], item["bundle_sha256"])
+                          for item in selected["experience_case_refs"]}
+            records[-1]["experience_case_associations"] = [
+                {"case_id": item["case_id"], "case_version": item["case_version"],
+                 "bundle_sha256": item["bundle_sha256"], "association": copy.deepcopy(item["association"]),
+                 "transfer_scope": item["transfer_scope"]}
+                for item in context["experience"]["cases"]
+                if type(item.get("bundle_sha256")) is str
+                and (item.get("case_id"), item.get("case_version"), item["bundle_sha256"]) in identities
+            ] if identities else []
         if parent["request"]["command"] == "controller.advance_recipe":
             records[-1]["recipe_decision"] = copy.deepcopy(parent["request"]["recipe_decision"])
     records.sort(key=lambda item: item["state_version_before"], reverse=True)
