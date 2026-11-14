@@ -1,0 +1,524 @@
+{
+  "schema_version": "stored-plan-report-verification-v1",
+  "source_commit": "3b01b2a6d11c2661023c8301da0f55a02f30393a",
+  "source_pin": "/workspace/work/stored-plan-report-source-3b01b2a",
+  "time_zone": "Asia/Shanghai",
+  "scope": "source actual original-manager HTTP/UI; not installed artifact",
+  "summary": {
+    "project_DTO_bytes": 9246,
+    "study_DTO_bytes": 13295,
+    "original_plans": 3,
+    "original_completed_actions": 2,
+    "wait_child": null,
+    "manager_advance_record_statuses": [
+      "preparing",
+      "preparing",
+      "preparing"
+    ],
+    "manager_advance_results": [
+      null,
+      null,
+      null
+    ],
+    "report_currentness": "unknown",
+    "wire_GETs": 110,
+    "browser_GETs": 98,
+    "direct_GETs": 12,
+    "study_reader_calls": 16,
+    "capsule_verified_reads": 15,
+    "report_runtime_manifest_opens": 12,
+    "report_runtime_report_json_opens": 16,
+    "generated_images": 32,
+    "validator_personally_viewed": 32,
+    "independent_personally_viewed": 15,
+    "root_personally_viewed": 4,
+    "image_scope": "overlapping counts, concrete viewports/scroll positions only"
+  },
+  "investigation": {
+    "path": "runs/sprint-026-stored-plan-report-20261114/investigation/stored-bindings-verification.json",
+    "bytes": 24957,
+    "sha256": "c6899c64672723608b49702f53572f8e4494b19befb49d3fe376770c9923eb8f"
+  },
+  "findings": {
+    "path": "runs/sprint-026-stored-plan-report-20261114/validation/FINDINGS.md",
+    "bytes": 5261,
+    "sha256": "a984da20c9debd69a8018b47b361c8279275bcd44c557b3c25ef0a406e4f7417"
+  },
+  "tests": {
+    "reported_checks": 29,
+    "log": {
+      "path": "runs/sprint-026-stored-plan-report-20261114/implementation/tests-review-fix.log",
+      "bytes": 128,
+      "sha256": "fe4d70f0f07f16f35b352d1ed528802b1160590a53030a739be16420ceffd5a4"
+    },
+    "frontend": "Node fakeDOM/build/lint/format terminal only"
+  },
+  "precommit": {
+    "path": "runs/sprint-026-stored-plan-report-20261114/review/precommit.json",
+    "bytes": 3189,
+    "sha256": "15bbedeba66602c08a90b111a65598b21ccb1967b07cdb458a77598a6080940d"
+  },
+  "independent_final": {
+    "path": "runs/sprint-026-stored-plan-report-20261114/review/independent-final.json",
+    "bytes": 9892,
+    "sha256": "51050e1d976d867684129963e06d94c9928733002320478c53879b7707d311a5"
+  },
+  "root_visual": {
+    "path": "runs/sprint-026-stored-plan-report-20261114/root-visual-review.json",
+    "bytes": 1658,
+    "sha256": "b26e368c61b820803437470b278b06fad729754505c42b02ded0b96afbf071c2"
+  },
+  "attempts": [
+    {
+      "name": "attempt-01-real",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-01-real/attempt-summary.json",
+        "bytes": 2794,
+        "sha256": "5ae408f5b91d6fff96debfb90bf49028b75f82bfb1264adc62bdaec8a402dd56"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-01-real/service-receipt.json",
+        "bytes": 54390,
+        "sha256": "4081a03232ad209cc796762d6697721010a8978379675ef13fbaf888aaa89438"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-01-real/browser-receipt.json",
+        "bytes": 53158,
+        "sha256": "be427c89bbe73f536f9cf744c2f03291250c4123042fdca6a6f21c9f88df596c"
+      },
+      "browser_status": "failed",
+      "passed_checks": 34,
+      "failed_checks": 1,
+      "wire_GETs": 2,
+      "reader_calls": 1,
+      "capsule_verified_reads": 0,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-02-real",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-02-real/attempt-summary.json",
+        "bytes": 2304,
+        "sha256": "37e5d160e2083467619296cbddf41ba8cfd94217a7cce656acb920d3dbddf980"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-02-real/service-receipt.json",
+        "bytes": 58142,
+        "sha256": "d1369260b2651a72a101957c52bc727bcc2f18bcdf7afa546f14d38683ac33d2"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-02-real/browser-receipt.json",
+        "bytes": 67625,
+        "sha256": "7fb71345ba7fd7368d572f857432a878bf1876f2a5fc3909d6b086b345f47199"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 128,
+      "failed_checks": 0,
+      "wire_GETs": 20,
+      "reader_calls": 3,
+      "capsule_verified_reads": 3,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-03-missing-project",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-03-missing-project/attempt-summary.json",
+        "bytes": 2304,
+        "sha256": "c20c77ab27db0295b62c8069f7c69db2cffd8d03dcca45789e86e2b6a81afd72"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-03-missing-project/service-receipt.json",
+        "bytes": 54903,
+        "sha256": "5abb8748344e93e407e4d024a58ed653e783d7571de1ba2a65bee1a1437e7c15"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-03-missing-project/browser-receipt.json",
+        "bytes": 4365,
+        "sha256": "490514aa6426bf6b3d2d8c9fde9d928bf51d2f46b8994acd005488e02386c0f0"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 7,
+      "failed_checks": 0,
+      "wire_GETs": 15,
+      "reader_calls": 2,
+      "capsule_verified_reads": 2,
+      "report_runtime_opens": [],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-04-corrupt-project",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-04-corrupt-project/attempt-summary.json",
+        "bytes": 2304,
+        "sha256": "c20c77ab27db0295b62c8069f7c69db2cffd8d03dcca45789e86e2b6a81afd72"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-04-corrupt-project/service-receipt.json",
+        "bytes": 54903,
+        "sha256": "6671afba2cab5b4bf8b1e1a6b614d83a332d9543723bf7e7227c6b6e299e6006"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-04-corrupt-project/browser-receipt.json",
+        "bytes": 4355,
+        "sha256": "dd6c62928771be361455d0f6a0cddede6c2c8b079b8e40a9dbb6e88edc5fa271"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 7,
+      "failed_checks": 0,
+      "wire_GETs": 15,
+      "reader_calls": 2,
+      "capsule_verified_reads": 2,
+      "report_runtime_opens": [],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-05-missing-report",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-05-missing-report/attempt-summary.json",
+        "bytes": 2304,
+        "sha256": "c20c77ab27db0295b62c8069f7c69db2cffd8d03dcca45789e86e2b6a81afd72"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-05-missing-report/service-receipt.json",
+        "bytes": 54898,
+        "sha256": "fc67d4c9d82ad3193a7371158a99928d855c5150c4f715a6d21f3e58f876d527"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-05-missing-report/browser-receipt.json",
+        "bytes": 29761,
+        "sha256": "4d16b50a9bb0e7cb89942856ca02002b0067d208ee7e3b7d8811032e21940c3e"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 37,
+      "failed_checks": 0,
+      "wire_GETs": 15,
+      "reader_calls": 2,
+      "capsule_verified_reads": 2,
+      "report_runtime_opens": [],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-06-corrupt-report",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-06-corrupt-report/attempt-summary.json",
+        "bytes": 2304,
+        "sha256": "c20c77ab27db0295b62c8069f7c69db2cffd8d03dcca45789e86e2b6a81afd72"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-06-corrupt-report/service-receipt.json",
+        "bytes": 55632,
+        "sha256": "bb355afd7d4aa00df6721a06a3a912062b284341a735793c7de4f0ed00fa23b5"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-06-corrupt-report/browser-receipt.json",
+        "bytes": 29767,
+        "sha256": "cf9c461740841af1e2e99735dceec217497d7b562faf195f62b7ccd249061686"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 37,
+      "failed_checks": 0,
+      "wire_GETs": 15,
+      "reader_calls": 2,
+      "capsule_verified_reads": 2,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-07-report-frames",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-07-report-frames/attempt-summary.json",
+        "bytes": 2794,
+        "sha256": "b1c40575e71e7d303218f6442dde611d4d689df5743faee08f74c096acb112c2"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-07-report-frames/service-receipt.json",
+        "bytes": 53180,
+        "sha256": "3e8ffcd2c8a93ec9220416041a3fc82723d62c588b6690b249abe5194ebc1f06"
+      },
+      "browser": null,
+      "browser_status": "not_recorded",
+      "passed_checks": 0,
+      "failed_checks": 0,
+      "wire_GETs": 0,
+      "reader_calls": 0,
+      "capsule_verified_reads": 0,
+      "report_runtime_opens": [],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-08-report-frames",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-08-report-frames/attempt-summary.json",
+        "bytes": 2304,
+        "sha256": "2d3b5e3f660e75dbbf5dfff152000a892d94552127dd6723cc5678f057af3b65"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-08-report-frames/service-receipt.json",
+        "bytes": 56476,
+        "sha256": "bb7e8e0b0d2a476a4441e9adaf72d49fb7e8a73e4499d89eaf0815bad8a57b80"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-08-report-frames/browser-receipt.json",
+        "bytes": 4630,
+        "sha256": "7e4c122483fbc7ba35d2b5cd94e23cc607590e285b13a1df2d1e3bd09e8c9408"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 0,
+      "failed_checks": 0,
+      "wire_GETs": 14,
+      "reader_calls": 2,
+      "capsule_verified_reads": 2,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-09-missing-report-frame",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-09-missing-report-frame/attempt-summary.json",
+        "bytes": 2303,
+        "sha256": "977937c62810121cd6a7170d732e72ff8fea2a554de29c4e40f93c9d8413685f"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-09-missing-report-frame/service-receipt.json",
+        "bytes": 54128,
+        "sha256": "326599e69523f558525d9b8fa90a8f78ca4e6f3efe34a515f9476610190517b9"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-09-missing-report-frame/browser-receipt.json",
+        "bytes": 1598,
+        "sha256": "a10c31d0226c95bbf1a4661d19e3fd161cf4a5bac7874dba6c1a7520c15f06d4"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 0,
+      "failed_checks": 0,
+      "wire_GETs": 7,
+      "reader_calls": 1,
+      "capsule_verified_reads": 1,
+      "report_runtime_opens": [],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "name": "attempt-10-corrupt-report-frame",
+      "summary": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-10-corrupt-report-frame/attempt-summary.json",
+        "bytes": 2303,
+        "sha256": "977937c62810121cd6a7170d732e72ff8fea2a554de29c4e40f93c9d8413685f"
+      },
+      "service": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-10-corrupt-report-frame/service-receipt.json",
+        "bytes": 54374,
+        "sha256": "9ff6993e9e3e5d196c0e0ee10854888dd9d920b8097d26bdf613810fe5676e85"
+      },
+      "browser": {
+        "path": "runs/sprint-026-stored-plan-report-20261114/validation/attempt-10-corrupt-report-frame/browser-receipt.json",
+        "bytes": 1597,
+        "sha256": "373241bae2814a2616ad02d4a35fbe263d7fac2cc756c020227e1764e0f33202"
+      },
+      "browser_status": "passed_pending_visual_inspection",
+      "passed_checks": 0,
+      "failed_checks": 0,
+      "wire_GETs": 7,
+      "reader_calls": 1,
+      "capsule_verified_reads": 1,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "allowed_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    }
+  ],
+  "protected": {
+    "files": 574,
+    "old_paths": 421,
+    "study_files": 17,
+    "manager_files": 13,
+    "original_zip_sha256": "3c12efc995a4a4e4e61763150b1d5de818755dbbdf6e892c15d43c9c96a0c598",
+    "historical_fits": 50,
+    "primary": 1,
+    "formal_audit": 1,
+    "scope": "before/after acceptance receipts; independent review did not rehash all574"
+  },
+  "new_research_fits_model_api_audit": 0,
+  "developer_cost_tokens": null,
+  "limits": [
+    "Service audit counts are separate from full protection hashes reading original file bytes.",
+    "Only report.json checked against manifest; other manifest entries are declarations; currentness unknown.",
+    "No original DB recovery/reconcile/run or source upgrade; no new native three-arm runtime.",
+    "01 old receipt alias comparison failure and07 missing browser dependency retained;02/05/06 insufficient scroll frames superseded only by08/09/10 clear captures.",
+    "SQLite immutable assumes no concurrent writer; no OS/sealed/full Gate or scientific benefit claim."
+  ]
+}

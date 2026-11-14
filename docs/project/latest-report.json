@@ -1,30 +1,33 @@
 {
   "schema_version": "project-automation-progress-report-v1",
   "timezone": "Asia/Shanghai",
-  "sprint": "Sprint020–025",
+  "sprint": "Sprint020–027",
   "start_time": "2026-11-14T16:44:56+08:00",
   "end_time": null,
-  "updated_at": "2026-11-14T17:51:53.223120+08:00",
-  "status": "readonly_evidence_milestones_verified_publishing_then_continuing_plan_report_investigation",
+  "updated_at": "2026-11-14T18:18:14.361751+08:00",
+  "status": "S020_027_verified_publishing_continuing_S028_manager_receipts",
   "base_commit": "b29a9cac5edd0c6406dc03246a0836d0aa7f1bcc",
   "implementation_commits": [
     "f85bc75f42bd486c43d85b67296bc662062a5454",
     "84cc5cbbac679077a07f7bdcae5157b472018f9e",
     "b1e707a387467e0febcf9712eee2fab44507594d",
     "e0db52ff3cfa206cb78f95c7a1ad2a0449fabab6",
-    "79218f16e10d0dbf58dff6dc669875febcb4d15c"
+    "79218f16e10d0dbf58dff6dc669875febcb4d15c",
+    "3b01b2a6d11c2661023c8301da0f55a02f30393a"
   ],
-  "latest_verified_source_pin": "/workspace/work/hypothesis-source-view-79218f1",
+  "latest_verified_source_pin": "/workspace/work/stored-plan-report-source-3b01b2a",
   "verified": [
     "Formal no-write manager opening and stored project budget/action projection",
     "Independent saved-study reading; real original-manager HTTP and desktop/mobile/keyboard/missing-state fixtures",
     "Fresh offline installed readonly CLI and188product/182Py five-way bytes; independent review",
     "Fixed original ZIP explicit downloads byte-equal on desktop/mobile; strict reject/missing/tamper/drift fixtures",
     "Frozen protocol hypothesis source/policy projection equals original; previous DTO fields unchanged",
-    "Finalwheel3770/189product/183Py and installed CLI4GET/originalZIPbytes independently verified"
+    "Finalwheel3770/189product/183Py and installed CLI4GET/originalZIPbytes independently verified",
+    "Original 3 plans/controllers/two completed actions/wait null child and manager preparing receipts projected distinctly; source110GET/main128checks/32captures/independent review",
+    "Source3b01 wheel3b127/190product184Py/offline newvenv/independent bytes and RECORD; actual installed CLI16GET/15checks/4images/originals unchanged"
   ],
   "validation_index": "docs/execution/g5-local/readonly-study-view-verification.json",
-  "installed_product_index": "docs/execution/g6-local/readonly-evidence-final-release.json",
+  "installed_product_index": "docs/execution/g6-local/stored-plan-report-release.json",
   "this_trigger_research_usage": {
     "new_scientific_projects": 0,
     "native_solver_calls": 0,
@@ -51,19 +54,24 @@
     "Original negative threshold result is displayed, not new research; no retuning/rerun.",
     "Missingh5py attempt01, legacy UI gaps02, English-label harness failure03 and build/RECORD checker failures retained with evidence scopes.",
     "06lastlabel ambiguity clarified by stable07 images on same unchanged installed artifact.",
-    "Only stored project budget, no fresh computed reserved/cost; historical cash unknown/null."
+    "Only stored project budget, no fresh computed reserved/cost; historical cash unknown/null.",
+    "S02601 prior receipt alias comparison failure and07 missing Playwright retained; all old study comparisons pass after harness fix.",
+    "S026 original manager preparing/null differs from saved child completion; no reconciliation or active executor inferred.",
+    "S026 original report metadata currentness unknown; reportPDF/input/MD are declarations only."
   ],
   "active_execution": {
     "owner": "root-sprint020-20261114T1644",
     "team_pool": 4,
     "research_executor_running": false,
-    "work": "root publishing milestone; reused validator investigating original stored plans/report only; implementation/review complete and available for reuse",
+    "work": "root publishing S026–027; same implementation/review agents working S028 receipt fix; validator protocol prepared",
     "lease": "active"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "Investigate original saved plans/report read-only without project runtime, then choose a bounded native visibility increment; no new research/paid API/budget.",
+  "next_task": "S028 minimal manager outer receipt persistence after original same-ID core call. Preserve existing core recovery/unknown/budgets; do not invoke or change old original case.",
   "next_planned_trigger_time": "2026-11-14T19:47:27+08:00",
   "platform_run_result": "unknown",
-  "notification_delivery": "unknown"
+  "notification_delivery": "unknown",
+  "plan_report_validation_index": "docs/execution/g5-local/stored-plan-report-verification.json",
+  "published_main_last_readback": "c58944d61148f7d5afb2a58a11da94ec685de175"
 }

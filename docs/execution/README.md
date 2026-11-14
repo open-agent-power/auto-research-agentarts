@@ -127,3 +127,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint023–025：原包取件、来源声明和最终安装
 
 [S023](SPRINT-023.md)固定ZIP显式下载、[S024](SPRINT-024.md)冻结假设来源、[S025](SPRINT-025.md)最终3770wheel已真实只读/字节/独审通过。[最新安装物](g6-local/readonly-evidence-final-release.json)区分源码图、安装HTTP、历史base环境与未覆盖Gate；不新运行科学或生成原包。
+
+
+## Sprint026–027：原计划与保存报告的追溯及安装
+
+[S026](SPRINT-026.md)在原只读project-summary保留三计划/两行动/第三等待和外层preparing差异，保存报告仅核metadata，当前性unknown；110GET和实际双尺寸独审通过。[S027](SPRINT-027.md)source3b01新独立wheel/190产品/安装CLI16GET/4图验收通过，旧包和原案预算保持，继续同ID外层收据缺口。

@@ -8,6 +8,14 @@
 
 ## 最新汇报入口
 
+### Sprint026–027：三版计划、分层行动与保存报告可追溯
+
+source `3b01b2a6d11c2661023c8301da0f55a02f30393a`／pin `/workspace/work/stored-plan-report-source-3b01b2a`，只读project-summary新增原计划/controller/manager收据和报告metadata。三计划全值匹配，两个真实行动completed、第三waiting/null；外层三preparing/null不改写、不作为活跃执行者。报告只读manifest/report.json，其他三文件SHA为原声明，currentness unknown。源码110GET/128主轮checks、32图及独审通过，失败/遮挡与补帧分开。[S026](../execution/SPRINT-026.md)／[精确验收](../execution/g5-local/stored-plan-report-verification.json)。
+
+新wheel1289743B/SHA3b12703bd0aadac6ac5eac90cd078925354abc8281abe4e4a36266958ea325eb，190产品/184Py多路字节与RECORD独审、缓存exact22离线安装通过。安装真实CLI16GET/15checks/4图、99origins，新venv `/workspace/work/g6-stored-plan-report-20261114/venv`，原件保持/服务已关。[S027](../execution/SPRINT-027.md)／[成品](../execution/g6-local/stored-plan-report-release.json)。旧3770/source792不含新投影，原producer、50研究fit和study唯一primary/audit不升级或重算。
+
+继续S028：原LocalWorkbench.advance/advance_recipe只存preparing intent，调查未来请求及显式原ID重放的外层结果收尾；须每次走原core、不重选、不把unknown封成completed，不自动修改旧案。原4人池继续兼任，无新增用户决策项。下次计划19:47:27北京时间，平台run/result和通知投递unknown。
+
 ### Sprint023–025：原包下载、假设来源与最终安装物已验
 
 source e0db52ff3cfa206cb78f95c7a1ad2a0449fabab6/79218f16e10d0dbf58dff6dc669875febcb4d15c完成固定ZIP显式下载、冻结protocol source_basis/policy原样引用。两端下载byte/SHA等原4671421B包，missing/tamper/drift只在fixture；S024新增字段之外与旧DTO全等，27case/两预算/16refs不变，原n32相反描述不推新因果。raw包原source62/docs93、不代表当前runtime或授权重置。见[S023](../execution/SPRINT-023.md)/[S024](../execution/SPRINT-024.md)。
@@ -24,7 +32,7 @@ source e0db52ff3cfa206cb78f95c7a1ad2a0449fabab6/79218f16e10d0dbf58dff6dc669875fe
 
 b1 wheel1279757B/SHA91afab07…、188产品/182Py五路一致，离线exact22/[reports,sources]/23dist/RECORD/pipcheck独审过；[安装及不含后续源码的范围](../execution/g6-local/readonly-workbench-release.json)。只读CLI完整源commit b1e707a387467e0febcf9712eee2fab44507594d，pin /workspace/work/readonly-workbench-release-source-b1e707a。不宣称科研新收益、三臂执行runtime、SDK或完整Gates。
 
-继续：S023固定既有证据ZIP显式下载source e0db52f已做真实双尺寸字节比对/异常拒绝，正式索引待保存；S024从原冻结协议投影假设来源/反证正在实现，未计成果。原study唯一primary/audit和50历史fit保持，本轮新研究/fit/model/API为0。下一计划19:47:27北京时间，平台run/result与通知投递unknown。
+该阶段交付与正式索引现已保存，后续S026–027见上方。原study唯一primary/audit和50历史fit保持；本轮新研究/fit/model/API为0。
 
 ### Sprint019只读原生API完成，本次接续已保存
 

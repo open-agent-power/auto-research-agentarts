@@ -171,3 +171,5 @@ S020–022增加正式readonly host入口与固定GET `/api/local-workbench/proj
 
 
 S023增加固定无query GET study-capsule/study-capsule.zip，先size/SHA/identity再回原bytes，UI显式点击；S024保存引用增加原protocol hypothesis_source字段，不重算/自动关联。[精确下载](../../docs/execution/g5-local/study-capsule-download-verification.json) · [原字段投影](../../docs/execution/g5-local/hypothesis-source-verification.json)。
+
+S026沿用固定project-summary GET，增加stored_history/stored_report，旧字段不变；每组256KiB上限，原manager/project双快照和新模块sourceguard覆盖。没有新增恢复或报告下载动作。[字段与真实边界](../../docs/execution/SPRINT-026.md)。

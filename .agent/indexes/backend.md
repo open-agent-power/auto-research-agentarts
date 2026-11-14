@@ -142,3 +142,5 @@ A29 [research_recipe](../../src/autoresearch/research_recipe.py)把明确的 `or
 
 
 S020–022正式LocalWorkbench.open_readonly/readonly_workbench模块、stored_project_summary及固定GET已验，不调用项目runtime/写原数据，保持无并发writer前提；[能力与真实证据](../../docs/readonly-study-workbench.md)。旧五页内容并未在只读host加载，不把stored预算当派生used/reserved。
+
+S026 [stored_project_history](../../src/autoresearch/stored_project_history.py)从同一只读快照投影原计划/完整context/子请求与外层收据；报告仅读manifest/report.json，其他SHA声明和当前性unknown明确分开。[原案110GET与独审](../../docs/execution/g5-local/stored-plan-report-verification.json)。不调用恢复/执行，不改旧preparing收据。
