@@ -2,6 +2,8 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
+最新持续执行：[S045](SPRINT-045.md)完成独立development/validation→固定策略冻结→一次私有final原生接线；[S046](SPRINT-046.md)已按发布协议真实运行SQuAD段落检索，validation TFIDF−BM25 Recall20=-.01，保留BM25，final=.97/delta0，同ID恢复36文件字节不变。继续S047原Workbench有界阶段接续；root lease保持。原Gate不扩张；精确状态见current/latest-report。
+
 最新源码续作：[S042](SPRINT-042.md)已交付事前预测、三态反馈、有限下一决定与工作台持久delegated链路；继续[S043](SPRINT-043.md)补源码pin恢复门禁和可运行演示。旧盘缺失、旧S041原合同未恢复；以current/latest-report记录的真实提交及证据为准，不重建旧研究账本。工作流已换Adaptive Agent Workflow，旧dev-system引用保留历史范围。
 
 [S044](SPRINT-044.md)本地工程交接包与原ID移址重放通过；仓库附件上传401，远端包未完成，不计完整G6或历史账本恢复。

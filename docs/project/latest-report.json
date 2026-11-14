@@ -2,23 +2,31 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T00:42:14+08:00",
-  "last_checkpoint": "2026-11-15T01:31:16.454297+08:00",
+  "last_checkpoint": "2026-11-15T01:37:02.304454+08:00",
   "end_time": null,
-  "status": "running_S046_driver_reviewed_pending_publication",
-  "confirmed_commit": "42100fa79d6f4a6d96b924ba36fba2f769d2c468",
+  "status": "running_S047_design_after_real_S046_completion",
+  "confirmed_commit": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
   "origin_readback_matches": true,
   "completed": [
     "S045 development-only native retrieval, separate preregistered private final package, validation-frozen fixed method, one original-budget final paired evaluation, same-ID/marker recovery, bounded public context/report",
     "Related regression91/91, independent41/41 and adverse4/4; source188 unchanged",
     "Independent SQuAD fixed300/100-100-100 protocol and source/license review; protocol committed before data download",
-    "S046 fixed driver independently reviewed; synthetic derivation2/2 and corrupted-body pre-dispatch0-call probe1/1; driver SHA5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619"
+    "S046 fixed driver independently reviewed; synthetic derivation2/2 and corrupted-body pre-dispatch0-call probe1/1; driver SHA5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619",
+    "S046 real public data:2067docs/100-100-100queries;3 original tools completed; same-ID resume36 files byte identical/0 new actions",
+    "S046 independent saved-value arithmetic and binary evidence audit passed;36 replay files and11 prepared files independently rehashed"
   ],
   "not_completed": [
-    "real SQuAD download/ranking/final study has not begun"
+    "S047 native Workbench staged continuation implementing"
   ],
-  "actual_research_results": null,
+  "actual_research_results": {
+    "validation_delta_recall20": -0.01,
+    "selected_method": "bm25",
+    "final_recall20": 0.97,
+    "final_delta_recall20": 0.0,
+    "scientific_validation": false
+  },
   "research_usage": {
-    "real_study_tools": 0,
+    "real_study_tools": 3,
     "models": 0,
     "fits": 0,
     "old_cases_or_quota_reset": false,
@@ -28,10 +36,11 @@
   "activity": {
     "owner": "root-evaluation-20261115T0042",
     "root": "active continuing work, lease held",
-    "engineering": "driver finished and frozen",
-    "capability_review": "driver independent review complete",
+    "engineering": "designing native staged continuation",
+    "capability_review": "S046 evidence review complete; reused for S047 independent review",
     "old_disk_executor": "unknown",
-    "background_model_process_claim": false
+    "background_model_process_claim": false,
+    "workbench_continuation": "co-designing existing Workbench integration"
   },
   "known_negative_results": [
     "NFCorpus academic-use scope not confirmed; CQADupStack rights/capacity unresolved, not adopted",
@@ -44,7 +53,7 @@
     "no native Linux model transport or real efficacy result yet",
     "old model/fit budgets not expanded"
   ],
-  "next": "Freeze and publish exact driver+protocol+source; then run one fixed new 3-tool/0model/0fit/0-source-action study via original native project, preserve zero/negative outcomes and raw inputs",
+  "next": "Implement bounded native Workbench continuation using original Controller/holdout/final/report; retain completed S046 source pin and exhausted budget",
   "user_decision_required": null,
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
@@ -58,6 +67,9 @@
     "docs/execution/g5-local/staged-retrieval-verification.json",
     "docs/execution/g5-local/squad-paragraph-protocol-v1.json",
     "/workspace/skill-refresh-20261114/review/s046-protocol-review.md",
-    "/workspace/skill-refresh-20261114/review/s046-driver-review.md"
-  ]
+    "/workspace/skill-refresh-20261114/review/s046-driver-review.md",
+    "docs/execution/SPRINT-046.md",
+    "docs/execution/g5-local/squad-paragraph-results.json"
+  ],
+  "research_workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1"
 }

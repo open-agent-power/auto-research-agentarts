@@ -1,3 +1,9 @@
+## S046真实研究已完成，持续S047原生接续
+
+[S046](../execution/SPRINT-046.md)已按发布在先的协议和driver4a159a9执行真实SQuAD段落检索：2067段落、100/100/100问题，验证TFIDF Recall20=0.95低于BM25=0.96，按规则保留BM25；最终BM25=0.97，delta0，无候选收益。3/3工具、0model/fit/来源行动，原ID恢复全部36文件不变。精确唯一workspace/source/预算见[原件索引](../execution/g5-local/squad-paragraph-results.json)，原pin不得升级、原研究不得另建。独立证据审查通过；只重算保存数值和二进制hash，不重跑研究。
+
+继续S047原Workbench显式有界接续，复用现有成员，root仍持有原lease；里程碑不是停工点。下文历史项保持原范围。
+
 # 当前接续
 
 ## S045持续执行：分阶段检索已验，继续真实公开数据协议

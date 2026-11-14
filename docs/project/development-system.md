@@ -4,18 +4,18 @@
 
 ## 工作区与所有权
 
-源基线 `ea3d92e9ebb194262170a4cc56bb0cb838a97b04`，origin 为 `open-agent-power/auto-research-agentarts`。新 checkout 在 `/workspace/development-continuation-20261114/auto-research-agentarts`。原 `/workspace/auto-research-agentarts`、参考原盘、S041 v2合同和历史 runs 不可见；这是源码续作，绝非历史研究恢复。原全局执行者/lease 状态 unknown；仅此新工作树使用 `project_autonomy_guard.py`、独有 owner `root-source-continuation-20261114T1538`。修改、执行和提交前 heartbeat，结束 release。
+源基线 `ea3d92e9ebb194262170a4cc56bb0cb838a97b04`，origin 为 `open-agent-power/auto-research-agentarts`。新 checkout 在 `/workspace/development-continuation-20261114/auto-research-agentarts`。原 `/workspace/auto-research-agentarts`、参考原盘、S041 v2合同和历史 runs 不可见；这是源码续作，绝非历史研究恢复。原全局执行者/lease 状态 unknown；仅此新工作树使用 `project_autonomy_guard.py`、当前独有 owner `root-evaluation-20261115T0042`（前owner已release）。修改、执行和提交前 heartbeat，结束 release。
 
 宿主最多并发7人。本轮实际建立6人可复用池（含root），不为小目标再开新人；角色可调整，独审不由实现者兼任。同工作树按文件明确单writer，提示边界不是安全沙箱。
 
 | 实际成员 | 本轮输出与文件范围 | 能力状态 |
 |---|---|---|
 | root | 契约、Controller/HTTP/报告接线、集成测试、文档、提交 | 已读取新版工作流、项目router及相关索引；使用Git/本地执行工具 |
-| engineering · Terra/ultra | hypothesis_feedback内核及其测试 | 已读取工作流、router、相关索引；原生Project/reader复用 |
-| workbench_continuation · Terra/ultra | LocalWorkbench、Host批次ID helper及其测试 | 已读取工作流、现有持久批次及接续合同；新增预览/导入/恢复 |
-| research_mechanisms · Terra/ultra | 三上游固定版本机制复核、feedback_policy与测试 | 已读取能力发现方法及上游实际代码；方法参考，不安装上游runtime |
-| runtime_evidence · Luna/max | 独立venv、真实HTTP/跨进程重启证据，仅ignored runs | 已读取工作流、router、依赖合同；工具实际执行，不编辑产品 |
-| capability_review · Terra/ultra（复用） | 专业能力评估、规格/实现独立审查、负例验证 | 已读取工作流及相关参考、项目代码；未实现被审产品 |
+| engineering · Terra/ultra | S047 staged_continuation只读helper及其测试（S042/045已交付） | 已读取工作流、router、相关索引；原生Project/reader复用 |
+| workbench_continuation · Terra/ultra | S047 LocalWorkbench固定阶段接续、HTTP和集成测试 | 已读取工作流、现有持久批次及接续合同；新增预览/导入/恢复 |
+| research_mechanisms · Terra/ultra | S048负结果经验复用设计；S042反馈策略/S045holdout已交付 | 已读取能力发现方法及上游实际代码；方法参考，不安装上游runtime |
+| runtime_evidence · Luna/max | S047独立真实HTTP/跨进程恢复证据，仅ignored runs | 已读取工作流、router、依赖合同；工具实际执行，不编辑产品 |
+| capability_review · Terra/ultra（复用） | S046真实原件独核完成；接续S047独审 | 已读取工作流及相关参考、项目代码；未实现被审产品 |
 
 表格记录已经存在的成员及本轮职责，**不表示所有成员始终活跃**。实时状态以宿主agent列表为准，完成成员通过follow-up复用。
 

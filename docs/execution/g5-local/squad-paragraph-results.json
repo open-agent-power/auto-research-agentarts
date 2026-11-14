@@ -1,0 +1,183 @@
+{
+  "schema_version": "s046-real-study-verification-v1",
+  "checkpoint": "2026-11-15T01:37:02.304454+08:00",
+  "status": "completed_independently_verified",
+  "source_commit": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/4a159a9",
+  "workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1",
+  "summary_sha256": "08e7d124f8b72906cb1df34639f43f706c471620977e65af926d675a7ec0decd",
+  "study_summary": {
+    "actions": [
+      {
+        "command": "research.relevance-validation-pair",
+        "id": "action-ef9810de9ce10da4eb378b94c5bd563b",
+        "request_id": "controller-child-314bd9c7f61eebd7b311ec6fba92267c",
+        "result_sha256": "a7a0f4cf741671ca0cce3a64a7d83da33b50e931c91d4e60a44532d1f4d0a78d",
+        "status": "completed"
+      },
+      {
+        "command": "research.relevance-validation-saved-audit",
+        "id": "action-d8c77292c38934d6c58efb2cc2e30874",
+        "request_id": "controller-child-fba842d778229b14926f88f055fb49c6",
+        "result_sha256": "49347f738bb3b6b0357387cabbe1343b4a57fcdc7ca60569e78b5848db2fbae4",
+        "status": "completed"
+      },
+      {
+        "command": "research.relevance-final-evaluation",
+        "id": "action-9db1c8d71e0489cfd3553da2ee8703f4",
+        "request_id": "controller-child-80d82cadd184cc7614249dfc7feee59c",
+        "result_sha256": "92bb7cade77171f07cfb84e35efe0e13446e02955c6646f39825ba7ab55a8722",
+        "status": "completed"
+      }
+    ],
+    "budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "evidence_reads_reserved": 0,
+      "evidence_reads_used": 0,
+      "existing_cash_cap_cny": 5,
+      "fit_attempts_used": 0,
+      "fit_limit": 0,
+      "fits_completed": 0,
+      "fits_reserved": 0,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s046-squad-paragraph-retrieval-v1",
+      "local_tool_call_limit": 3,
+      "local_tool_calls_reserved": 0,
+      "local_tool_calls_used": 3,
+      "local_tool_dispatches": 3,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "preprocessing_fits": 0,
+      "preprocessing_fits_completed": 0,
+      "ridge_fits_completed": 0
+    },
+    "document_count": 2067,
+    "driver_sha256": "5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619",
+    "final_summary": {
+      "baseline": {
+        "mrr@10": 0.8332896825396826,
+        "ndcg@10": 0.8568386584609118,
+        "recall@10": 0.93,
+        "recall@20": 0.97,
+        "recall@5": 0.9
+      },
+      "delta": {
+        "mrr@10": 0.0,
+        "ndcg@10": 0.0,
+        "recall@10": 0.0,
+        "recall@20": 0.0,
+        "recall@5": 0.0
+      },
+      "selected": {
+        "mrr@10": 0.8332896825396826,
+        "ndcg@10": 0.8568386584609118,
+        "recall@10": 0.93,
+        "recall@20": 0.97,
+        "recall@5": 0.9
+      }
+    },
+    "final_usage": {
+      "index_builds": 1,
+      "model_calls": 0,
+      "native_fits": 0,
+      "ranking_calls": 100,
+      "scoring_calls": 100
+    },
+    "limitations": [
+      "Public SQuAD development data and same-user procedural separation are not blind or OS-isolated.",
+      "One positive paragraph mapping is not exhaustive relevance or QA answer quality.",
+      "This single fixed subset does not prove general research benefit or statistical significance."
+    ],
+    "original_question_count": 10570,
+    "original_source_sha256": "95aa6a52d5d6a735563366753ca50492a658031da74f301ac5238b03966972c9",
+    "project_code_identity": "6a5c9e47a19ceebe883930a51d9524788374245e9fd8d774a4e88af2db20c0ab",
+    "project_id": "project-7858ce02138a48e3bdeac39c26f7be06",
+    "protocol_sha256": "ef60211bae645b0c059e900359bb2f3927ba086d4ff4b84e4e89e8a2682443d9",
+    "report_snapshot_ref": "4b0385b6f099b35c5910b79d2afec9a02c2e3ad71ca5af6d43b34f1a46d15aba",
+    "run_id": "run-fca64a904db14a928d9b21defb7ccaab",
+    "schema_version": "s046-study-summary-v1",
+    "scientific_validation": false,
+    "selected_method": "bm25",
+    "source_commit": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
+    "source_snapshot_sha256": "f7b9c00a52243ed9f08de48c4311bb0036a5bc8eda4696ef4c17978efae613e3",
+    "split_counts": {
+      "dev": 100,
+      "final": 100,
+      "validation": 100
+    },
+    "study_id": "s046-squad-paragraph-retrieval-v1",
+    "unique_question_count": 10530,
+    "validation_delta_recall20": -0.01
+  },
+  "publication": {
+    "source_commit": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
+    "observed_origin_main": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0\trefs/heads/main",
+    "observed_at_utc": "2026-11-14T17:31:31.838642+00:00",
+    "pin": "/workspace/development-continuation-20261114/source-pins/4a159a9",
+    "study_workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1",
+    "script_sha256": "5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619",
+    "src_unchanged_since_S045": true
+  },
+  "first_execution": {
+    "command": [
+      "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python",
+      "-B",
+      "/workspace/development-continuation-20261114/source-pins/4a159a9/scripts/run_squad_paragraph_study.py",
+      "--source-commit",
+      "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0"
+    ],
+    "cwd": "/workspace/development-continuation-20261114/source-pins/4a159a9",
+    "PYTHONPATH": "/workspace/development-continuation-20261114/source-pins/4a159a9/src",
+    "started_at": "2026-11-14T17:31:42.407128+00:00",
+    "ended_at": "2026-11-14T17:31:49.573029+00:00",
+    "exit_code": 0
+  },
+  "same_id_resume": {
+    "command": [
+      "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python",
+      "-B",
+      "/workspace/development-continuation-20261114/source-pins/4a159a9/scripts/run_squad_paragraph_study.py",
+      "--source-commit",
+      "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
+      "--resume"
+    ],
+    "started_at_utc": "2026-11-14T17:32:20.040208+00:00",
+    "ended_at_utc": "2026-11-14T17:32:23.475886+00:00",
+    "exit_code": 0,
+    "all_files_byte_identical": true,
+    "changed_files": [],
+    "file_count": 36,
+    "stdout_identical": true
+  },
+  "independent_review": {
+    "path": "/workspace/skill-refresh-20261114/review/s046-real-study-review.json",
+    "sha256": "df731ee445d64f61755dd8ef3367b605ab4de735d9f5307d2290af75f8d4ecef",
+    "status": "passed",
+    "private_byte_audit": {
+      "original_source_sha256": "95aa6a52d5d6a735563366753ca50492a658031da74f301ac5238b03966972c9",
+      "original_source_bytes": 4854279,
+      "holdout_sha256": "3e7161a75bf1d516431f5ef1db7b46d35589d0c352de26ee7fe44dfe529e7c79",
+      "holdout_copy_matches": true,
+      "current_replay_files_independently_rehashed": 36,
+      "prepared_files_independently_rehashed": 11,
+      "mode": "raw binary hash/length only; final queries, answers and qrels not decoded or displayed"
+    },
+    "limits": [
+      "Private source, derived selection and holdout bytes were independently hashed as binary only; final queries, answers and qrels were not decoded or displayed.",
+      "Arithmetic was recomputed once from saved metric values only; no retrieval, reranking or rescoring was performed.",
+      "Replay snapshots are two previously recorded file-hash manifests; the independent audit did not execute another resume.",
+      "Public SQuAD development data, procedural query split and shared corpus are not blind or OS-isolated; no causal or general scientific benefit is established."
+    ],
+    "sampling_counts_scope": "original10570/unique10530/300 split counts bound to runtime records; independent review did not rederive from private source"
+  },
+  "no_new_ranking_or_scoring_in_verification": true,
+  "raw_files_not_committed": true,
+  "remote_raw_artifacts": "not uploaded; release asset upload401 unresolved; source Git is not raw evidence recovery",
+  "prior_historical_cases": "unavailable and not recreated",
+  "negative_result": "Validation TFIDF0.95 versus BM250.96 Recall20; BM25 chosen by preregistered rule. Final selected==baseline0.97, delta0, one actual rank/score per query. No final TFIDF comparison or gain claim."
+}
