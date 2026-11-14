@@ -184,6 +184,20 @@ class _Guard:
     def _anchor_path(self):
         return Path(str(self.p.claim) + ".initialized")
 
+    def _witness_path(self, phase):
+        return Path(str(self.p.ledger) + "." + phase + ".reserved")
+
+    def _witness(self, phase, claim_sha, request_sha):
+        return _canonical({"schema_version": "model-feedback-reservation-witness-v1",
+                           "claim_sha256": claim_sha, "phase": phase,
+                           "request_id": PHASES[phase][1], "request_sha256": request_sha})
+
+    def _witness_names(self):
+        parent = _safe_path(self.p.ledger.parent)
+        prefix = self.p.ledger.name + "."
+        with os.scandir(parent) as entries:
+            return {entry.name for entry in entries if entry.name.startswith(prefix) and entry.name.endswith(".reserved")}
+
     def _project_path(self):
         return self.p.target / "project"
 
@@ -240,7 +254,9 @@ class _Guard:
             auth2, digest2 = self._authorization()
             _require(digest == digest2 and auth == auth2, "AUTHORIZATION_CHANGED")
             self._provenance()
-            for path in (self.p.claim, self.p.ledger, self._anchor_path(), self.p.target, self._project_path()):
+            _require(not self._witness_names(), "CLAIM_EXISTS")
+            for path in (self.p.claim, self.p.ledger, self._anchor_path(), self.p.target, self._project_path(),
+                         *(self._witness_path(phase) for phase in PHASES)):
                 _require(not _safe_path(path).exists(), "CLAIM_EXISTS")
             claim = {"schema_version": "model-feedback-pilot-claim-v1", "study": self.m.study,
                      "pin": self.m.pin, "proposal_sha256": self.m.proposal_sha,
@@ -300,6 +316,15 @@ class _Guard:
             last = _sha(line)
         _require(sum(PHASES[k][0] == "delegation" for k in states) <= auth["delegation_limit"]
                  and sum(PHASES[k][0] == "tool" for k in states) <= auth["tool_limit"], "LEDGER_INVALID")
+        known_names = {self._witness_path(phase).name for phase in PHASES}
+        _require(self._witness_names() <= known_names, "WITNESS_MISMATCH")
+        for phase in PHASES:
+            path = _safe_path(self._witness_path(phase))
+            if phase in states:
+                _require(path.is_file() and _read(path, 65536) == self._witness(phase, _sha(raw), states[phase]["request_sha256"]),
+                         "WITNESS_MISMATCH")
+            else:
+                _require(not path.exists(), "WITNESS_MISMATCH")
         for phase, state in states.items():
             _require(_sha(_read(self._artifact(phase, request=True), 65536)) == state["request_sha256"], "REQUEST_CHANGED")
             if state["status"] == "completed":
@@ -341,6 +366,8 @@ class _Guard:
             elif phase == "independent-review":
                 _require(completed("plan-revision"), "PHASE_ORDER")
             request_sha = _sha(_read(self._artifact(phase, request=True), 65536))
+            claim_sha = _sha(_read(self.p.claim, 65536))
+            _create(self._witness_path(phase), self._witness(phase, claim_sha, request_sha))
             self._append(phase, "reserved", request_sha, None, last)
             return {"phase": phase, "request_id": PHASES[phase][1], "request_sha256": request_sha,
                     "status": "unknown_do_not_redispatch"}

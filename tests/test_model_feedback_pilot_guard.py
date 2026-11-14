@@ -210,6 +210,62 @@ class ModelFeedbackPilotGuardTests(unittest.TestCase):
         self.artifact("selection", b"different")
         self.assert_error("RESPONSE_CHANGED", self.guard.reserve, "fixed-pair")
 
+    def test_valid_ledger_prefix_rollback_is_blocked_by_reservation_witness(self):
+        self.authorize(); self.guard.initialize()
+        original_prefix = self.paths.ledger.read_bytes()
+        self.request("selection"); self.guard.reserve("selection")
+        witness = self.guard._witness_path("selection")
+        self.assertTrue(witness.is_file())
+        self.paths.ledger.write_bytes(original_prefix)
+        self.assert_error("WITNESS_MISMATCH", self.guard.reserve, "selection")
+        self.assertTrue(witness.is_file())
+        self.assertEqual(self.paths.ledger.read_bytes(), original_prefix)
+
+    def test_rollback_of_completion_keeps_reserved_phase_nonredispatchable(self):
+        self.authorize(); self.guard.initialize(); self.request("selection"); self.guard.reserve("selection")
+        reserved_prefix = self.paths.ledger.read_bytes()
+        digest = self.artifact("selection")
+        self.guard.complete("selection", digest)
+        self.paths.ledger.write_bytes(reserved_prefix)
+        self.assert_error("ALREADY_RESERVED", self.guard.reserve, "selection")
+        self.assertEqual(self.guard.status()["states"]["selection"]["status"], "unknown")
+
+    def test_missing_empty_or_mismatched_witness_blocks_recovery(self):
+        self.authorize(); self.guard.initialize(); self.request("selection"); self.guard.reserve("selection")
+        witness = self.guard._witness_path("selection")
+        original = witness.read_bytes()
+        for value in (b"", b'{}', original.replace(b'"selection"', b'"other"')):
+            witness.write_bytes(value)
+            self.assert_error("WITNESS_MISMATCH", self.guard.status)
+        witness.unlink()
+        self.assert_error("WITNESS_MISMATCH", self.guard.status)
+
+    def test_orphan_witness_or_unknown_witness_fails_closed(self):
+        self.authorize()
+        unknown = self.guard._witness_path("invented")
+        unknown.write_bytes(b"orphan")
+        self.assert_error("CLAIM_EXISTS", self.guard.initialize)
+        self.assertFalse(self.paths.claim.exists())
+        unknown.unlink(); self.guard.initialize()
+        unknown.write_bytes(b"orphan")
+        self.assert_error("WITNESS_MISMATCH", self.guard.status)
+
+    def test_witness_fsync_failure_leaves_orphan_and_blocks_redispatch(self):
+        self.authorize(); self.guard.initialize(); self.request("selection")
+        with patch.object(pilot, "_fsync_dir", side_effect=OSError("fixture fsync failure")):
+            with self.assertRaises(OSError):
+                self.guard.reserve("selection")
+        self.assertTrue(self.guard._witness_path("selection").is_file())
+        self.assert_error("WITNESS_MISMATCH", self.guard.reserve, "selection")
+
+    def test_ledger_append_failure_leaves_orphan_and_blocks_redispatch(self):
+        self.authorize(); self.guard.initialize(); self.request("selection")
+        with patch.object(self.guard, "_append", side_effect=OSError("fixture append failure")):
+            with self.assertRaises(OSError):
+                self.guard.reserve("selection")
+        self.assertTrue(self.guard._witness_path("selection").is_file())
+        self.assert_error("WITNESS_MISMATCH", self.guard.reserve, "selection")
+
 
 if __name__ == "__main__":
     unittest.main()
