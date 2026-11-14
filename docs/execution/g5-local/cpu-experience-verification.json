@@ -1,0 +1,346 @@
+{
+  "schema_version": "cpu-experience-verification-v1",
+  "status": "passed_CPU_snapshots_native_inclusion_real_HTTP_UI_report_and_limited_installs",
+  "captured_at_asia_shanghai": "2026-11-14T14:33:27.401217+08:00",
+  "base_commit": "3d6df8003605897ee76bb645e3c5c0cb7f264b30",
+  "CPU_source": {
+    "commit": "3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b",
+    "pin": "/workspace/work/cpu-experience-source-3ca7c89"
+  },
+  "overview_source": {
+    "commit": "cee2ead576af16a06788c9ecc078002d6305132b",
+    "pin": "/workspace/work/cpu-experience-overview-source-cee2ead",
+    "change": "only unique CSV-to-research wording substitution in source+bundle;177Python unchanged"
+  },
+  "runtime_code_identity": "920dd92004da60e670d08607ba61d5d596ea37018c0b586838d74099496d4988",
+  "legacy_Ridge_validator_unchanged": true,
+  "checks": {
+    "CPU_unit": 11,
+    "memory_binding_unit": 9,
+    "native_integration_unit": 4,
+    "frontend_typecheck_lint_build": "passed",
+    "DOM_fixture": "synthetic only; not browser evidence"
+  },
+  "real_saved_roundtrip": {
+    "CLI_output_bytes": [
+      1524204,
+      829864,
+      1126750
+    ],
+    "summary_bytes": [
+      7730,
+      7393,
+      10881
+    ],
+    "CLI_execution": "actual CLI main invoked in guarded Python process; no separate CLI child process claim",
+    "complete_original_envelope_action_spec_and_spec_bytes_preserved": true,
+    "all_rankings_metrics_adverse_cases_jobs_runs_schedules_retained": true,
+    "source_asset_bytes": "not included; SHA/size references, no offline original packet reconstruction proof",
+    "same_knowledge_memory": "runs/g5-cpu-experience-20261114-01/memory",
+    "active_entries": 3,
+    "events_each": 3,
+    "same_scope_reentry_retirement_restore_and_same_request_replay": "passed",
+    "successful_stage_saved_checks": {
+      "native_packets_each_family": 3,
+      "saved_structure_each_family": 15,
+      "saved_arithmetic_each_family": 15,
+      "scheduling_saved_feasibility": 1200
+    },
+    "new_rank_gold_fit_solver_or_jobs_calls": 0
+  },
+  "engineering_target": {
+    "handmade_source_documents": 3,
+    "created_projects": 1,
+    "allowance": 1,
+    "used": 0,
+    "reserved": 0,
+    "actions": 0,
+    "model_calls": 0,
+    "purpose": "isolated_adapter_regression_not_new_research",
+    "same_candidate_list_and_budget": true,
+    "case_types": "three real CPU bundles plus one saved real Ridge bundle"
+  },
+  "recorded_transport": {
+    "engineering_API_GET": 7,
+    "engineering_API_POST": 17,
+    "POST_commands": {
+      "import": 8,
+      "status": 4,
+      "resume": 5
+    },
+    "browser_successful_stages_GET": 193,
+    "browser_POST": 0,
+    "first_failed_browser_request_count": "unknown; excluded from exact recorded sum",
+    "scope": "All POST writes only synthetic engineering target; original research managers readonly",
+    "report_export": "direct manager.export then HTTP GET; no report POST claim",
+    "browser": "viewing and choosing upload draft; HTTP script verified actual submission/replay/retirement"
+  },
+  "visual": {
+    "completed_script_captures": 55,
+    "stable_or_representative": 53,
+    "loading_frames_retained": 2,
+    "additional_interrupted_script_captures": 2,
+    "validation_reviewed_capture_list_count": 24,
+    "final_independent_reviewer_actual_views": 4,
+    "root_actual_views_of_existing_captures": 2,
+    "do_not_sum_overlapping_viewer_counts": true,
+    "limits": [
+      "First3ca7 overview two frames are loading; later LocalWorkbench captures replace their proof.",
+      "Original cee2 direct-project frames are display-only; precise wording is proven by LocalWorkbench original-manager full sentence captures.",
+      "Mobile rightmost columns demonstrated with scroll offsets and representative screenshot; no claim every original image was visually reviewed."
+    ]
+  },
+  "reports": {
+    "files": [
+      "input.json",
+      "report.json",
+      "report.md",
+      "report.pdf"
+    ],
+    "original_case_bundles_in_input": 4,
+    "all_original_bundle_bytes_and_SHA_retained": true,
+    "MD_PDF_include_case_ids_and_adverse_counts": [
+      186,
+      133,
+      1
+    ],
+    "specific_scheduling_adverse_id": "not in MD/PDF summary; retained in full original bundle and knowledge view"
+  },
+  "installations": [
+    {
+      "source": "3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b",
+      "wheel_bytes": 1253352,
+      "wheel_sha256": "d54964c86146ec115aeb67c8467f397798843ee3a17e38743d59af6502bce4be",
+      "product_files": 183,
+      "Python_files": 177,
+      "distributions": 23,
+      "RECORD": {
+        "rows": 7148,
+        "declared_hash": 6714,
+        "self": 23,
+        "generated_pip_cache_observed_SHA_only": 411
+      },
+      "loaded_modules": {
+        "product": 102,
+        "thirdparty": 900
+      },
+      "guards_after_import": 36,
+      "guard_calls": 0,
+      "bootstrap_processes": "unknown",
+      "functional_scope": "hand-authored saved-value bundle only; no real-project reads"
+    },
+    {
+      "source": "cee2ead576af16a06788c9ecc078002d6305132b",
+      "wheel_bytes": 1253353,
+      "wheel_sha256": "f6e8e8b36357ae1af02281e717ec72a39bbb07e1a3e6939d40f09312e358b0f2",
+      "product_files": 183,
+      "Python_files": 177,
+      "distributions": 23,
+      "product_RECORD": {
+        "rows": 193,
+        "declared_hash": 192,
+        "self": 1
+      },
+      "only_product_difference_from_previous": "app.js exact wording substitution",
+      "dependency_RECORD": "unchanged22pins; reference3ca7 full proof, not rerun",
+      "product_imports_or_guards": "none; byte/install/pipcheck scope only"
+    },
+    {
+      "source": "79b6d7d7ca23bb0fa505d452d23171bd60e92c54",
+      "wheel_bytes": 1253924,
+      "wheel_sha256": "a59e0fb240a7cef445772c53996513d84b75a6992ff05e13125f714c48ec6dc3",
+      "product_files": 183,
+      "Python_files": 177,
+      "distributions": 23,
+      "product_RECORD": {
+        "rows": 193,
+        "declared_hash": 192,
+        "self": 1
+      },
+      "only_product_difference_from_cee2": "project_knowledge.py; app.js remains identical",
+      "installed_smoke": "3handmade method states, new runtime identity; no original manager or FTS/HTTP/research",
+      "post_import_guard_count": 38,
+      "guard_calls": 0,
+      "raw_description_typo": "Original description says36guards; numeric field/countfile38 actual, correction retained separately",
+      "bootstrap_processes_network": "unknown",
+      "dependency_RECORD": "unchanged22pins reference3ca7 proof, not repeated"
+    }
+  ],
+  "preservation": {
+    "original_scientific_files": 572,
+    "old_paths": 421,
+    "real_CPU_manager_files": 39,
+    "old_CPU_state": 13,
+    "old_CPU_tool_calls_each": 2,
+    "old_CPU_reserved": 0,
+    "historical_research_estimator_fits": 50,
+    "source_pins_checked_before_next_active_dev_worktree": 16,
+    "fixed_reference_checkouts": 8,
+    "root_unit_synthetic_targets_total": 5,
+    "real_engineering_target_total": 1,
+    "new_research_projects": 0
+  },
+  "independent_review": {
+    "path": "runs/sprint-013-review-20261114/final-cpu-review.json",
+    "bytes": 4142,
+    "sha256": "fd5a3281af36d3f38be24cbbd165d198853b3eae18c1bab201b4565b893ea793"
+  },
+  "failures_preserved": [
+    "Three precommit findings closed: verification-mode collision, retained source commitment, native request/action ID.",
+    "Implementation-side partial memory attempt interrupted before full receipt; one scheduling entry retained, not counted completed real验收.",
+    "Two roundtrip harness failures: counts key mistaken for arrays and StringIO.reconfigure; same entry/store resumed.",
+    "One browser selector failure, retained loading frames and initially insufficient copy-view scope."
+  ],
+  "usage": {
+    "new_research_fits": 0,
+    "new_engineering_fits": 0,
+    "new_ranking_gold_scoring_solver_jobs": 0,
+    "new_product_model_API": 0,
+    "new_source_extraction": 0,
+    "development_tokens_currency": null
+  },
+  "not_claimed": [
+    "new scientific or causal memory benefit",
+    "candidate promotion",
+    "SDK/runtime integration",
+    "OS/sealed/fullGate/multi-generationRSI"
+  ],
+  "evidence": [
+    {
+      "path": "runs/sprint-013-start-20261114/precommit-root-checks.json",
+      "bytes": 523,
+      "sha256": "701ca54b4a670a3fefd8354a2ca3224172f0d6a05456ffe9cf9a0a6f5a8a97db"
+    },
+    {
+      "path": "runs/sprint-013-start-20261114/preservation-checkpoint.json",
+      "bytes": 200,
+      "sha256": "36a3cbf7bfb8e2fcbcf0f3152099eee2e3e73e0fa72e00e24b7ea71666b9e67c"
+    },
+    {
+      "path": "runs/sprint-013-start-20261114/reference-check.json",
+      "bytes": 1163,
+      "sha256": "c3bbfccadf106765ead2abd6f594bc5a104615825b2139435ac589e9e5eee98f"
+    },
+    {
+      "path": "runs/sprint-013-start-20261114/source-pins.json",
+      "bytes": 2375,
+      "sha256": "89bfc8d41ab64ba860ee421d47f9ea0f1fe5f56f0e561733c0ef0007e6652312"
+    },
+    {
+      "path": "runs/sprint-013-start-20261114/automation-observation.json",
+      "bytes": 653,
+      "sha256": "06398a9d62d27c6f653ae64e6801cdb28d95b249bac57833e542b00153cebe5b"
+    },
+    {
+      "path": "runs/sprint-013-review-20261114/precommit-review.json",
+      "bytes": 2375,
+      "sha256": "73ac286b67c3a9b4234156ba8486113b242690b9c57d11493a1d10df0a97366b"
+    },
+    {
+      "path": "runs/sprint-013-review-20261114/final-cpu-review.json",
+      "bytes": 4142,
+      "sha256": "fd5a3281af36d3f38be24cbbd165d198853b3eae18c1bab201b4565b893ea793"
+    },
+    {
+      "path": "runs/sprint-013-implementation-20261114/implementation-notes.json",
+      "bytes": 1897,
+      "sha256": "81fa987d0f01373086a783104dc3c9181c589463fc8381d0f6e550fef669760c"
+    },
+    {
+      "path": "runs/sprint-013-implementation-20261114/overview-copy-check.json",
+      "bytes": 605,
+      "sha256": "f15fe2ee077df15108accc19fdaa0e6e077c0a1ea28dcf7f5edcf81ea6249c7b"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/cpu-validation-consolidated.json",
+      "bytes": 20674,
+      "sha256": "dc38b8520dfe9e3d0c5a0547ea266380b6fc7ee5c9d322e85f415458c1e37801"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/cpu-validation-final-guard.json",
+      "bytes": 3441,
+      "sha256": "54c49c5c0d8a006dfdba6a2489d88cc10ab9064bb029eabb9e2576fd4a48bd14"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/real-roundtrip-resume2-summary.json",
+      "bytes": 6433,
+      "sha256": "f5bce7e1e50009c171fcfa614c64c3d8ef440e2ca0f0f915a3a2c99183ffba4e"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/engineering-http-summary.json",
+      "bytes": 26294,
+      "sha256": "73f7ccb299cf9f433743a2f8aa965996cd14713373ae538ff2be90176ea69687"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/engineering-report-assets-audit.json",
+      "bytes": 2000,
+      "sha256": "ea449b7364a6def10d7d595c3512a810e9c555d461056870f0c75c2164309bd5"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/install-manifest.json",
+      "bytes": 3524,
+      "sha256": "d97ae28aa0cf8a3bfa8cb0caf09adc0e46deea8f03104eccf61247357031507c"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/installed-cpu-result.json",
+      "bytes": 3066,
+      "sha256": "9431aee2dffed64306a7fe8781bf614e1648a60f6df96990bd56029d40ce5e0a"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/overview-final/install-manifest.json",
+      "bytes": 3212,
+      "sha256": "2334274b097c2b355c00eba1f42c663a682a47b13fb0137fc9201e2bd1611f84"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/overview-final/installed-overview-result.json",
+      "bytes": 1279,
+      "sha256": "fe4bb31a24f07cdd566ad76fb0edf0ed45a5eedf5a2d11a4843b1dccee1d2f4b"
+    },
+    {
+      "path": "runs/sprint-013-knowledge-needs-20261114/final-typeguard-result.json",
+      "bytes": 6071,
+      "sha256": "85c3b966df9f3b55ed7b2210a34083eb39c7416b1e2a3b3b31b40c5a5d090a58"
+    },
+    {
+      "path": "runs/sprint-013-knowledge-needs-20261114/final-typeguard-comparison.json",
+      "bytes": 267,
+      "sha256": "e64acc8cd409bc89195888c3fa41a90b3ada234b35fb174139e9ee2374e2b1c4"
+    },
+    {
+      "path": "runs/sprint-013-review-20261114/knowledge-needs-precommit.json",
+      "bytes": 1953,
+      "sha256": "9253cc866ea03bbd4c9c4d685f33a5a9ec8639c94a401986f238a0bf5061e514"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/knowledge-final/installed-knowledge-result.json",
+      "bytes": 1572,
+      "sha256": "f04f234dfa8b8b24986ea8617f0d75570ecd9b03e1f09d09d7df9ddb05f027cc"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/knowledge-final/install-manifest.json",
+      "bytes": 3334,
+      "sha256": "4d99d8e2c46a0ce46630a1c2137cc869ffff632a4608fe16f9e020aceeea80b8"
+    },
+    {
+      "path": "runs/sprint-013-install-20261114/knowledge-final/guard-count-correction.json",
+      "bytes": 726,
+      "sha256": "cf456ce9bda7bc20a6ac8ab9f31ed55820302a7b58910b1c0da1416327eb70b1"
+    },
+    {
+      "path": "runs/sprint-013-start-20261114/knowledge-context-integration.stderr",
+      "bytes": 98,
+      "sha256": "7df3a1627b357a27e200bf5f19ca0fb2189b68f391e688b0fcd2185089c9a58b"
+    }
+  ],
+  "knowledge_needs": {
+    "source_commit": "79b6d7d7ca23bb0fa505d452d23171bd60e92c54",
+    "source_pin": "/workspace/work/cpu-knowledge-source-79b6d7d",
+    "runtime_code_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
+    "change": "three exact CPU primary need maps replace legacy ALP fallback; nonCPU and malformed method fallback preserved",
+    "pure_state_checks": 3,
+    "additional_controller_context_integration_checks": 1,
+    "old_project_states_files_and_budgets": "three real states plus6files each byte unchanged",
+    "validation": "pure need mapping, no FTS execution/hit quality/rank/science measurement",
+    "FTS_limit": "Python preprocessor retains underscore identifiers; SQLite default unicode61 splits underscores, no exact single-token matching claim"
+  }
+}

@@ -2,7 +2,9 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
-最新[Sprint012](SPRINT-012.md)：固定CPU研究页与独立于报告的紧凑协议GET已实现，214真实GET/0POST、四case五页双尺寸和当前新wheel离线安装通过；52截图/原弱帧与既有overview措辞边界保留。0新研究/fit/model，原预算与负例保持。见[验证](g5-local/fixed-cpu-protocol-verification.json)、[安装](g6-local/fixed-cpu-protocol-release.md)。
+最新[Sprint013](SPRINT-013.md)：完成CPU保存经验原生闭环、概览文案及CPU领域知识需求；三真实原包往返、工程target API/报告/双尺寸与当前wheel有限安装已验。保留实际失败/未知请求计数/原负例和预算，无新研究收益；见[验证](g5-local/cpu-experience-verification.json)、[安装](g6-local/cpu-experience-release.md)。持续进入下一研究预协议，未执行未冻结研究。
+
+Sprint012历史[Sprint012](SPRINT-012.md)：固定CPU研究页与独立于报告的紧凑协议GET已实现，214真实GET/0POST、四case五页双尺寸和当前新wheel离线安装通过；52截图/原弱帧与既有overview措辞边界保留。0新研究/fit/model，原预算与负例保持。见[验证](g5-local/fixed-cpu-protocol-verification.json)、[安装](g6-local/fixed-cpu-protocol-release.md)。
 
 Sprint011历史[Sprint011](SPRINT-011.md)：新relevance保存查询阅读/旧citation兼容、实际HTTP/双尺寸界面及当前wheel离线安装已验证；另修reports声明并在新成品明确解析[reports,sources]。不新增研究/拟合/模型或扩大Gate；见[读取证据](g5-local/saved-relevance-reader-verification.json)及[安装交接](g6-local/relevance-reader-release.md)。
 

@@ -8,6 +8,20 @@
 
 ## 最新汇报入口
 
+### Sprint013已完成三个增量，仍持续推进
+
+13:28:22从main3d6df800接续，同盘lease `root-sprint013-20261114T1328`；13:47触发合并当前会话，没有第二writer。4人团队复用职责，已完成CPU保存经验 `3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b`、概览通用措辞 `cee2ead576af16a06788c9ecc078002d6305132b`、CPU领域知识需求 `79b6d7d7ca23bb0fa505d452d23171bd60e92c54`。最新clean sourcepin `/workspace/work/cpu-knowledge-source-79b6d7d`；旧3ca7/cee2及全部原研究pins保持。
+
+CPU独立schema、完整原结果/spec、binding-only memory、4MiB CLI、原项目案例账本/条件context/报告/界面已实测闭合。三原包1524204/829864/1126750B保持全部原数组/负例，资产原字节仅SHA引用，不冒称原包离线重算/科学证明。24CPU相关后端检查+3知识needs检查+1额外context检查、前端与真实验收过。新原生微型工程target1个，另root单测累计5个，0科研行动/工具实际消耗/fit；实际HTTP24=7GET/17POST只写工程target。浏览器成功阶段193GET/0POST，首次失败请求数unknown，55capture含2loading且另2中断capture，各自实际看图范围明确。报告4个包原字节同SHA；慢例具体ID在完整包/知识页，MD/PDF仅不利数。详见[Sprint013](../execution/SPRINT-013.md)、[验证](../execution/g5-local/cpu-experience-verification.json)。
+
+当前wheel1253924B/SHA a59e0fb240a7cef445772c53996513d84b75a6992ff05e13125f714c48ec6dc3，183产品/177Py源→wheel→freshvenv一致，22pins+产品23项明确[reports,sources]离线解析。新runtime e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a，原capture920d/producer8670/3945/Concrete1354不改。独审与三套有限成品范围各自保留，不扩大SDK/runtime/OS/sealed/多代RSI/完整Gate。新needs只修四类查询词/方法角色，未执行FTS或证明命中/收益；默认SQLite仍拆下划线。
+
+原572文件/421路径/39CPU manager及预算保持，原各2tools/reserved0、历史50fit不变。本阶段研究/工程fit、rank/gold/solver/jobsgen、产品模型/API/来源抽取0；保存算术/调度可行性1200另计，开发token/费用unknown，外部许可只读8页面（一404，redirect次数unknown）。原失败/负结果/全部pins保留。
+
+继续：第三检索独立来源未准入，不下载/不看target标签。当前只读准备唯一小n调度阈值策略对照的预协议；原n32两个样本方向相反，阈值不是已知交叉点。尚未生成新jobs、求解或研究预算消耗；先冻结策略/input/code/独立有限预算/共享claim并独审，再执行。不重跑旧study/不重开额度，不为Worker重复提问。活动状态在 `.agent/focus.json`，保持同owner连续推进；平台下次配置计划16:47:27北京时间，完成/投递unknown。
+
+### Sprint012已交付
+
 [Sprint012](../execution/SPRINT-012.md)于北京时间2026-11-14 10:51:38实际接续，完成固定CPU研究页与紧凑只读协议接口、四真实case五页双尺寸及当前成品离线安装；最终35组独审通过。源码 `0775eab07426d7f52aeb8c649711db3449de6b1f`，clean pin `/workspace/work/fixed-cpu-protocol-source-0775eab`；原main起点b5919a6。三项精确primary隐藏不适用CSV/Ridge设计入口，其他方法保持原编辑/草稿行为；新GET直接核原source，不依赖报告/行动，不升级producer或执行研究。详见[协议](../fixed-cpu-protocol.md)。
 
 214真实GET=29诊断+175浏览器+10独立project，0POST；三CPU摘要4027/3948/3455B，9次手动读取，CPU自动目录/协议/大input请求0、Concrete原目录2次。52原截图team实际看图，viewport补证与fullpage固定栏弱帧分开；旧overview CSV词、未深测旧表格末列/旧reader全文的限制保留。12模块+6HTTP+108最终客户端检查通过；StageA73历史单列，失败未删。无报告原项目的展示fixture保留真实2行动，不当成真实零行动case。

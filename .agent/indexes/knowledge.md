@@ -49,3 +49,5 @@ A16 [表格输入](../../docs/tabular-quality.md)保存spec与CSV的原字节、
 A31 [hiMSC来源核对](../../docs/himsc-source-audit.md)取得此前缺失的作者CTC图像元数据并保留完整公开清单。只读 [inspect_himsc_source_linkage.py](../../scripts/inspect_himsc_source_linkage.py)复用现有XML读取器，核对原CSV/工作簿、联合零值及保存layout；它是独立取证脚本，没有增加运行时方法或自动调用。实际发现216行Chem0/28差异、17条全零行未建立同序对应，拒绝完整连接。新原件选区与明确标记的操作者派生结果沿原source-selection进入同一项目与FTS；命中不等于模型阅读或作者确认。
 
 同轮实际发现data默认解释词无法命中当前原件，`project_knowledge.decision_needs`现保留通用词并追加source_scope的完整target/numeric/group/key字段名，限512字符/64词元，放不下的整字段跳过；不以claim充检索原文。新context可引用已保存片段，旧提取/决定不重写，不据命中推断科学有效性。
+
+三项固定CPU primary的decision_needs已有独立领域词、正确方法角色及原标识，优先保留有效remaining question；不落ALP默认，非CPU/异常method旧fallback保持。这里只核有界词串，未证明FTS命中；SQLite默认拆下划线，不声称数据库精确单token。

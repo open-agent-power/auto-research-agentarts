@@ -1,104 +1,96 @@
 {
   "schema_version": "project-automation-progress-report-v1",
-  "sprint": "Sprint012",
+  "sprint": "Sprint013",
   "timezone": "Asia/Shanghai",
-  "start_time": "2026-11-14T10:51:38+08:00",
-  "end_time": "2026-11-14T11:39:55.746639+08:00",
-  "captured_time": "2026-11-14T11:39:55.746639+08:00",
-  "status": "verified_report_captured_root_finalizing_git_delivery",
-  "repository": "open-agent-power/auto-research-agentarts",
-  "implementation_commit": "0775eab07426d7f52aeb8c649711db3449de6b1f",
-  "source_pin": "/workspace/work/fixed-cpu-protocol-source-0775eab",
-  "delivery_finalization": "main report commit, push receipt and lease release pending; no completion inferred",
+  "start_time": "2026-11-14T13:28:22+08:00",
+  "end_time": null,
+  "milestone_captured_at": "2026-11-14T14:33:27.401217+08:00",
+  "status": "three_increments_verified_continuing_next_research_preprotocol",
+  "implementation_commits": [
+    "3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b",
+    "cee2ead576af16a06788c9ecc078002d6305132b",
+    "79b6d7d7ca23bb0fa505d452d23171bd60e92c54"
+  ],
+  "latest_source_pin": "/workspace/work/cpu-knowledge-source-79b6d7d",
+  "latest_runtime_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
   "completed": [
-    "Fixed CPU research pages show applicable captured protocols with exact method gating, manual compact reading and stale-response protection; legacy tabular flow preserved.",
-    "Added bounded host-bound fixed-protocol GET directly verifying original source without requiring report/actions; no scientific dispatch.",
-    "Actual four-case five-page dual-viewport UI plus same-project hidden-report presentation and viewport supplements completed.",
-    "Built and installed current0775 product in a new standard venv with explicit offline reports,sources; all181 product bytes match source/wheel/install."
+    "CPU complete saved evidence snapshots, exactscope memory/import/retire/restore and native project advisory/context/report/UI",
+    "Task-neutral overview wording, precise original-manager LocalWorkbench screenshots",
+    "CPU domain-specific knowledge need routing; no FTS result or research gain claim"
   ],
   "validation": {
-    "backend_checks": 18,
-    "final_compact_client_checks": 108,
-    "typecheck_lint_build": "passed",
-    "actual_GETs": 214,
-    "diagnostic_GETs": 29,
-    "browser_GETs": 175,
-    "independent_project_GETs": 10,
-    "POSTs": 0,
-    "actual_browser_captures_viewed": 52,
-    "CPU_auto_catalog_or_protocol_GETs": 0,
-    "browser_large_input_GETs": 0,
-    "manual_compact_GETs": 9,
-    "Concrete_catalog_GETs": 2,
-    "protocol_bytes": [
-      4027,
-      3948,
-      3455
+    "backend_unit_checks": 24,
+    "pure_needs_checks": 3,
+    "additional_context_check": 1,
+    "real_saved_bundles_bytes": [
+      1524204,
+      829864,
+      1126750
     ],
-    "wheel_bytes": 1244710,
-    "wheel_sha256": "95e5bbd776c32767c02d291a230f0ae2b71170ca97651556eda3bc2b171bb97b"
+    "API_GETs": 7,
+    "API_POSTs": 17,
+    "API_write_scope": "synthetic engineering target only",
+    "recorded_successful_browser_GETs": 193,
+    "browser_POSTs": 0,
+    "first_failed_browser_requests": "unknown",
+    "script_captures": 55,
+    "loading_frames_in55": 2,
+    "additional_interrupted_script_captures": 2,
+    "actual_visual_review": "validation24 listed, independent4, root2; overlapping, no all57claim",
+    "full_report_bundle_assets": 4,
+    "latest_wheel_bytes": 1253924,
+    "latest_wheel_sha256": "a59e0fb240a7cef445772c53996513d84b75a6992ff05e13125f714c48ec6dc3",
+    "product_source_wheel_install_files": 183,
+    "Python_files": 177,
+    "latest_postimport_guard_count": 38,
+    "guard_calls": 0,
+    "bootstrap_processes_network": "unknown"
   },
   "preservation": {
-    "original_scientific_files": 572,
+    "scientific_files": 572,
     "old_paths": 421,
-    "manager_trees": 4,
-    "other_clean_source_worktrees": 14,
-    "fixed_upstream_checkouts": 8,
+    "CPU_manager_files": 39,
+    "old_states_budgets_producers": "unchanged",
     "historical_research_fits": 50,
-    "original_states_and_budgets": "unchanged",
-    "scientific_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30"
+    "source_reference_checkouts": 8,
+    "engineering_targets_created_in_root_checks": 5,
+    "engineering_target_real_API": 1
   },
-  "usage": {
-    "new_research_actions": 0,
-    "new_research_fits": 0,
-    "new_engineering_fits": 0,
-    "new_rank_gold_solve_or_jobs_generated": 0,
-    "product_model_API_sends": 0,
-    "new_source_extraction": 0,
-    "development_tokens_currency_costs": null
+  "new_research_usage_so_far": {
+    "fits": 0,
+    "rank_gold_solver_jobs": 0,
+    "projects_actions": 0,
+    "product_model_API": 0,
+    "source_extraction": 0,
+    "saved_scheduling_feasibility_checks_successful_stage": 1200,
+    "public_source_audit_pages": 8,
+    "source_audit_404": 1,
+    "source_audit_redirect_wire_count": "unknown",
+    "development_tokens_currency": null
   },
-  "failures_and_limits": [
-    "Initial oversize HTTP fixture expected400, existing gateway actually500; corrected test expectation with original failure retained, no gateway mapping change.",
-    "StageA large-input validation gap and Chromium file:// restriction are preserved as historical engineering evidence, separate from final108compact cases.",
-    "Fullpage fixed HUD/skip-link weak frames retained; two viewport supplements prove access, no global overlap-free claim.",
-    "Legacy overview CSV wording remains; old table final columns/reader full details not deeply revalidated this turn.",
-    "No new scientific gain, causal memory improvement, automatic promotion, SDK/runtime integration, OS/sealed/fullGate or multi-generation RSI acceptance.",
-    "Installation RECORD7146 includes411generatedpipcache rows with observedSHA only;42guardszero apply after bootstrap, bootstrap countsunknown.",
-    "Environment brieflystarting then same disk/lease restored; old subagent tree absent, final independent review resumed from raw without rerunning research/HTTP."
+  "negative_results_and_limits": [
+    "No new scientific/causal memory benefit, no adoption, SDKruntime/OS/sealed/fullGates/multigen notaccepted",
+    "All old losses retained; complete arrays/source declarations not proof of source authenticity",
+    "Two roundtrip harness failures plus browser selector failure preserved, same store restored",
+    "Two overview loading frames and direct-project copy-view scope corrected with precise LocalWorkbench proof",
+    "Installedknowledge raw description36guard typo corrected separately; actual38",
+    "Needs-only routing does not demonstrate FTS exactunderscore token or retrieval quality",
+    "Third real retrieval corpus not admitted: missing licensed independent original data; SciDocs coverage/overlap/size open"
   ],
   "active_execution": {
-    "root_finalizer": true,
-    "independent_reviewer": false,
-    "autonomous_research_executor": false,
-    "active_development_executors_at_capture": 1,
-    "lease_owner": "root-sprint012-20261114T1052",
-    "readonly_preview_services": 5,
-    "between_triggers_continuous_model_execution": "not claimed"
+    "lease_owner": "root-sprint013-20261114T1328",
+    "root_and_team": "continuing; next bounded study preprotocol only",
+    "team_pool": 4,
+    "new_study_executed": false,
+    "temporary_services_from_current_validation": "closed",
+    "continuous_model_between_sessions": "not claimed"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "Separate saved CPU result evidence contract for existing method-experience/retrieval eligibility; preserve Ridge-only OOF checks, original IDs, negative outcomes and budgets; no new study or automatic adoption. Legacy overview CSV wording remains a bounded follow-up.",
-  "next_planned_trigger_time": "2026-11-14T13:47:27+08:00",
-  "schedule_observation_time": "2026-11-14T10:58:48+08:00",
+  "next_task": "Freeze and independently review a bounded small-n scheduling policy transfer study before generating/solving any new workload; protect all old studies and budgets. Retrieval-source licensing audit stays pending.",
+  "next_planned_trigger_time": "2026-11-14T16:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
-  "report_delivery_channel": "this conversation final only; no email/Slack",
-  "evidence_index": "docs/execution/g5-local/fixed-cpu-protocol-verification.json",
-  "independent_final_review": {
-    "path": "runs/sprint-012-final-review-20261114/review.json",
-    "bytes": 9244,
-    "sha256": "2b4d79e48b87b67c4140c552ae49ce17f89bb826570a4e32056d296681a9ddff",
-    "status": "passed",
-    "review_groups": 35
-  },
-  "end_time_scope": "Implementation, actual validation, independent review and report capture; Git delivery and lease release follow in their exact receipts/final reply.",
-  "delivery_receipts": {
-    "git_and_focus": "runs/sprint-012-start-20261114/delivery.json",
-    "lease_release": "runs/sprint-012-start-20261114/lease-release.json",
-    "status_at_report_capture": "pending; actual results returned in conversation final"
-  },
-  "evidence_index_identity": {
-    "bytes": 8148,
-    "sha256": "5b82092bdfe35d51c570a804ffe15ce94a054fb9fdef8a0f17283a1f568b4717"
-  }
+  "evidence_index": "docs/execution/g5-local/cpu-experience-verification.json",
+  "Git_delivery": "Ordinary main push/readback receipt: runs/sprint-013-start-20261114/milestone-delivery.json; report captured before delivery"
 }
