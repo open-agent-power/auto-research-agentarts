@@ -1,0 +1,84 @@
+{
+  "schema_version": "sprint017-query-alias-installed-release-v1",
+  "captured_at_asia_shanghai": "2026-11-14T16:12:08.199230+08:00",
+  "source_commit": "404ef9772c2160c036788d3fd5b156f512e4f172",
+  "source_pin": "/workspace/work/knowledge-query-alias-source-404ef97",
+  "wheel": {
+    "path": "/workspace/work/g6-knowledge-query-alias-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+    "bytes": 1264600,
+    "sha256": "c2bba632cc73a69ee19b97a5664feb019eb181894a7e2a9de220645b5e8794b4"
+  },
+  "source_archive": {
+    "bytes": 11253760,
+    "sha256": "ddeb8177a9fc20c8bc0ad4fcc8205280064fdd3970fc6651133fbc9d95abdede"
+  },
+  "runtime_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
+  "product_files": 185,
+  "python_files": 179,
+  "product_RECORD_rows": 195,
+  "product_RECORD_self_unhashed": 1,
+  "installed_distributions": {
+    "agentarts-autoresearch": "0.1.0",
+    "charset-normalizer": "3.5.2",
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.61.1",
+    "h5py": "3.16.0",
+    "joblib": "1.5.3",
+    "kiwisolver": "1.4.9",
+    "matplotlib": "3.10.8",
+    "numpy": "2.5.4",
+    "packaging": "26.3",
+    "pillow": "13.0.0",
+    "pip": "25.0.1",
+    "pyparsing": "3.3.2",
+    "pypdf": "6.21.4",
+    "python-dateutil": "4.0.0",
+    "reportlab": "4.4.9",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.17.0",
+    "setuptools": "84.2.1",
+    "threadpoolctl": "3.6.0",
+    "tzdata": "2026.6",
+    "wheel": "0.48.0"
+  },
+  "dependency_record_scope": "not rechecked in full; previous 3ca7 artifact verification applies only to that installation",
+  "offline_resolver": "explicit reports,sources with exact 22 pins; pip check passed",
+  "exact_pins": {
+    "bytes": 370,
+    "sha256": "77b3dfe3dd77576955d81e989c823314a886bec73e9c7acc4a4b6c13f35e9aef"
+  },
+  "changed_vs_79b": [
+    "autoresearch/bounded_study_ledger.py",
+    "autoresearch/knowledge.py",
+    "autoresearch/scheduling_threshold_policy.py"
+  ],
+  "installed_query_scope": "Two synthetic top20 spellings through KnowledgeIndex.search and project_knowledge.query; quote/source SHA/scope/limits checked; no new research project/case.",
+  "loaded_product_modules_observed": 98,
+  "guard_count_after_imports": 42,
+  "guarded_calls": 0,
+  "bootstrap_process_network": "unknown",
+  "artifact_evidence": {
+    "path": "runs/sprint-017-query-alias-release-20261114/installed-release-result.json",
+    "bytes": 2134,
+    "sha256": "df279307080e0b02f4e5d669a7cf31135b3aa6a54191192c8d3ffca33952750c"
+  },
+  "independent_release_review": {
+    "path": "runs/sprint-017-query-alias-release-20261114/independent-release-review.json",
+    "bytes": 2707,
+    "sha256": "187d2bca7d935c6a0c6ca25187a0177ced721249201fe768afc946ca15d6d3c8"
+  },
+  "independent_scope": "All185product bytes across clean source/Git archive/wheel/newinstall; product RECORD195=194hash+self; installed23metadata/exact22 and existing pipcheck log; observed98module origins/42guards; no reinstall/query rerun or full third-partyRECORD verification by reviewer.",
+  "study_host_scripts": "not installed in wheel; no claim of three-arm runtime or OS isolation",
+  "sdk_runtime": "not installed or verified",
+  "original_wheel_and_claim_memory": "Preserved; previous wheel hashes and real memory/ArguAna claim bindings checked within stated review scope.",
+  "limits": [
+    "Fresh product artifact for source404. Later host-only readers are separate source work until explicitly packaged.",
+    "Original research producer/code/runtime pins remain unchanged; this artifact does not upgrade historical projects.",
+    "No native three-arm ResearchProject runtime, OS/sealed/fullGates or multi-generationRSI acceptance.",
+    "Installed synthetic query success is not real-corpus Recall or scientific/causal memory benefit.",
+    "Bootstrap process/network were outside guards; full third-partyRECORD was not reverified by independent reviewer."
+  ],
+  "new_research_fit_model_API": 0,
+  "development_tokens_currency": null
+}

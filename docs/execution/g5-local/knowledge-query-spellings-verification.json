@@ -1,0 +1,110 @@
+{
+  "schema_version": "knowledge-query-spellings-verification-v1",
+  "captured_at_asia_shanghai": "2026-11-14T16:02:38.435414+08:00",
+  "code_commit": "404ef9772c2160c036788d3fd5b156f512e4f172",
+  "source_pin": "/workspace/work/knowledge-query-alias-source-404ef97",
+  "source": {
+    "path": "src/autoresearch/knowledge.py",
+    "bytes": 25004,
+    "sha256": "e2325d807862ffa26faba81dbe7d44521450a6777dd5805d26d5357243d8d86c"
+  },
+  "tests": {
+    "path": "tests/test_knowledge_identifier_aliases.py",
+    "bytes": 5183,
+    "sha256": "87aeaedb92f2b37d8866c5f9a335871fed20c4037e418d3db242350b11a1a809"
+  },
+  "native_code_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
+  "old_native_code_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
+  "old_cases_and_study": "Keep original pins/producer; no upgrade or re-execution. Sprint014 code62f09ed/runtimee731 remains unchanged.",
+  "engineering_tests": {
+    "passed": 37,
+    "time_seconds": 0.358,
+    "log": {
+      "path": "runs/sprint-015-knowledge-retrieval-20261114/fts-tests-reviewed.log",
+      "bytes": 6523,
+      "sha256": "013cfb804136cbcc318311f5925f2a9f040eff0d297a0a2867da4d5869814dd4"
+    }
+  },
+  "independent_code_review": {
+    "path": "runs/sprint-015-query-alias-20261114/independent-code-review.json",
+    "bytes": 2116,
+    "sha256": "1e122b2e0492dc86c7650664b8db955e83d7c9872674ae6efc5bf050beb9e87f"
+  },
+  "independent_actual_query_comparison": {
+    "path": "runs/sprint-015-query-alias-20261114/side-by-side.stdout",
+    "bytes": 63005,
+    "sha256": "8cd02057f59902817fda867d35d94bfb350b93997b5f89ff05335fcc45250777"
+  },
+  "fixture": {
+    "documents": 7,
+    "queries": [
+      "top20",
+      "top 20",
+      "Factor47",
+      "Factor 47"
+    ],
+    "old_source_pin": "/workspace/work/scheduling-threshold-source-62f09ed",
+    "new_source_sha256": "e2325d807862ffa26faba81dbe7d44521450a6777dd5805d26d5357243d8d86c",
+    "newly_observed_ids": {
+      "Factor 47": [
+        "joined"
+      ],
+      "Factor47": [
+        "separated"
+      ],
+      "top 20": [
+        "joined"
+      ],
+      "top20": [
+        "separated"
+      ]
+    },
+    "removed_ids_in_this_fixture": {
+      "Factor 47": [],
+      "Factor47": [],
+      "top 20": [],
+      "top20": []
+    },
+    "index_bytes_unchanged": true,
+    "index_files": {
+      "knowledge/action-synthetic/index.json": {
+        "bytes": 511,
+        "sha256": "b72e3aa36d146fbcbf5002223217f9fb74de1a9e968bf1b5ca8d8425f846fde5"
+      },
+      "knowledge/action-synthetic/index.sqlite": {
+        "bytes": 49152,
+        "sha256": "ec1dc7c04a759eb97002136526d85741c3e884288ef72b350ab3f50617ecf94f"
+      }
+    },
+    "methods": "KnowledgeIndex.search and existing project_knowledge.query on same hand-authored frozen index; no ResearchProject created",
+    "scope_citation_checks": "same quote/lines/source SHA/text SHA; may_execute=false; no authority to execute"
+  },
+  "behavior": {
+    "change": "Additional bounded ordered split phrases and adjacent space-joined letter/digit spellings",
+    "original_terms_and_Chinese_aliases_prioritized": true,
+    "maximum_terms": 64,
+    "query_character_limit": 512,
+    "returned_limit_max": 8,
+    "old_index_rebuilt": false,
+    "filters_source_citations_warnings_permissions": "unchanged"
+  },
+  "limitations": [
+    "Original spaced-query OR still admits wrong numbers, unrelated words and nonadjacent terms.",
+    "Aliases may change BM25 ordering and TopK; no full-result superset guarantee.",
+    "Old index removes one-character terms: x1/x12 split aliases cannot recover missing x. Negative test retained.",
+    "NFKC-compatible ASCII boundaries only; no general Unicode identifier normalization or punctuation/tab joining.",
+    "FTS references, exactscope memory and explicitly imported project experiences remain separate paths.",
+    "Seven-doc engineering evidence does not establish actual corpus Recall, scientific or causal memory benefit.",
+    "Previous79b6 wheel remains old product; this source404 change requires its own new installed-artifact validation."
+  ],
+  "real_memory_sha256_unchanged": "8cc9445c343770dd6be6d42485749dd1ddda9f7cc372a92922bf4af62feb3e3d",
+  "new_research_usage": {
+    "generated_research_jobs": 0,
+    "solver_oracle_calls": 0,
+    "fits": 0,
+    "product_model_API": 0,
+    "source_extraction": 0,
+    "project_created": 0
+  },
+  "development_tokens_currency": null
+}

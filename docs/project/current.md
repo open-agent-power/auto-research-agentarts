@@ -8,6 +8,24 @@
 
 ## 最新汇报入口
 
+### Sprint017新成品已验证，继续固定研究只读引用
+
+[Sprint017](../execution/SPRINT-017.md)已完成source404新wheel **1264600B/SHA c2bba632…** 与独立venv验收：185产品/179Py四处字节相同、产品RECORD195/23发行项/exact22离线安装/pipcheck，安装态两种查询经两入口通过；独审逐产品核对，98观察origins/42导入后guard0，bootstrapunknown、全第三方RECORD未在独审重核。[精确成品范围](../execution/g6-local/query-alias-release.json)。原research62/e731和旧case/pins保持，0新研究/fit/API。
+
+当前继续S018 host-only固定study只读reference：现有CPU经验严格要求原native project/action双臂，不能伪造三臂；result+primary-ledger同时base64超过4MiB，且最终audit在SQLite末2事件，不能只看result的旧phase误报完成。先提供固定原ID/真实spent/原审批与最终审计绑定的≤64KiB引用视图，raw仍SHA引用；不创建项目/候选、不改预算、不做经验import/UI或宣称三臂runtime。当前实施中，不属于404wheel，尚未验收。
+
+### Sprint016证据包完成，Sprint017安装验证推进中
+
+[Sprint016](../execution/SPRINT-016.md)已交付原研究静态ZIP：4671421B/976成员、SHA3c12efc9…，879源码/10文档分别绑定62f/93bb；全部CRC/路径/manifest与Git对象独审通过。[精确交付索引](../execution/delivery-sprint-016.json)。组装前后574/421保持，独审保护范围与有限敏感模式检查明确，不称完整离线环境/跨机执行恢复或复制claim可重开预算。没有新增研究调用。
+
+原实现成员继续构建source404的新wheel和独立venv验收（S017）；当前未完成，不能把任务启动/成品文件出现当安装通过。仍是原4人团队，同owner连续推进。
+
+### Sprint015已完成查询修复，继续交付物
+
+[Sprint015](../execution/SPRINT-015.md)源码 `404ef9772c2160c036788d3fd5b156f512e4f172`，clean pin `/workspace/work/knowledge-query-alias-source-404ef97`。局部FTS别名兼容`top20`/`top 20`等写法，37项工程检查、独立代码审查与同一七文档旧/新源码和项目query实际对比通过；原引用/文件字节保持。OR噪声、TopK排序可变、单字符丢失负例保留，不称真实Recall或经验收益；[使用范围](../knowledge-query-spellings.md)/[精确证据](../execution/g5-local/knowledge-query-spellings-verification.json)。
+
+当前source nativeidentity4b93246c…；原study62/e731与旧producer/pins不替代、不upgrade。新研究/fit/API/项目创建0，S014已用预算保持不重开。已完成study的静态证据胶囊正在持久交付（S016），另由原实现成员补404独立wheel/新venv安装（S017，尚未验收）；旧79b6成品保持，不能称已包含新alias。root与原4人团队继续同一lease，无新用户决策项。
+
 ### Sprint014已完成真实比较，继续知识链路
 
 [Sprint014](../execution/SPRINT-014.md)已按两阶段独审执行唯一三臂调度策略，源码 `62f09edbf15f90cdcd08450aab5d60199d44d63f`，clean pin `/workspace/work/scheduling-threshold-source-62f09ed`。唯一study `g5-scheduling-threshold-transfer-v1`/output `runs/g5-scheduling-threshold-transfer-20261114-01`。主终点策略/固定二分耗时比1.261183787，小n12/12均慢，拒绝晋级、不改阈值或补测；完整27case19慢/8快及原相反n32源观察保留。

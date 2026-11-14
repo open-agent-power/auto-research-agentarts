@@ -51,3 +51,6 @@ A31 [hiMSC来源核对](../../docs/himsc-source-audit.md)取得此前缺失的�
 同轮实际发现data默认解释词无法命中当前原件，`project_knowledge.decision_needs`现保留通用词并追加source_scope的完整target/numeric/group/key字段名，限512字符/64词元，放不下的整字段跳过；不以claim充检索原文。新context可引用已保存片段，旧提取/决定不重写，不据命中推断科学有效性。
 
 三项固定CPU primary的decision_needs已有独立领域词、正确方法角色及原标识，优先保留有效remaining question；不落ALP默认，非CPU/异常method旧fallback保持。这里只核有界词串，未证明FTS命中；SQLite默认拆下划线，不声称数据库精确单token。
+
+
+[知识拼法兼容](../../docs/knowledge-query-spellings.md)：`knowledge._query_tokens`有限字母数字alias，source404ef97/37相关tests及真实小索引双版本项目query对比过，旧OR/TopK/单字符索引限制保持。FTS、精确scope memory、显式项目经验context仍独立，不自动选臂或晋级；[精确验收](../../docs/execution/g5-local/knowledge-query-spellings-verification.json)。

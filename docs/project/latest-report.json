@@ -1,24 +1,28 @@
 {
   "schema_version": "project-automation-progress-report-v1",
-  "sprint": "Sprint013+Sprint014",
+  "sprint": "Sprint013–Sprint017",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-14T13:28:22+08:00",
   "end_time": null,
   "milestone_captured_at": "2026-11-14T14:33:27.401217+08:00",
-  "status": "CPU_and_actual_scheduling_negative_result_milestones_complete_continuing_knowledge_retrieval",
+  "status": "milestones_through_installed_product_complete_continuing_readonly_study_reference",
   "implementation_commits": [
     "3ca7c89902aa83b3d04ffcfbe56d29e19af7ed3b",
     "cee2ead576af16a06788c9ecc078002d6305132b",
     "79b6d7d7ca23bb0fa505d452d23171bd60e92c54",
-    "62f09edbf15f90cdcd08450aab5d60199d44d63f"
+    "62f09edbf15f90cdcd08450aab5d60199d44d63f",
+    "404ef9772c2160c036788d3fd5b156f512e4f172"
   ],
-  "latest_source_pin": "/workspace/work/scheduling-threshold-source-62f09ed",
-  "latest_runtime_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
+  "latest_source_pin": "/workspace/work/knowledge-query-alias-source-404ef97",
+  "latest_runtime_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
   "completed": [
     "CPU complete saved evidence snapshots, exactscope memory/import/retire/restore and native project advisory/context/report/UI",
     "Task-neutral overview wording, precise original-manager LocalWorkbench screenshots",
     "CPU domain-specific knowledge need routing; no FTS result or research gain claim",
-    "One bounded real three-arm scheduling policy study; negative endpoint1.261183787/12of12small-case losses; no adoption or retuning"
+    "One bounded real three-arm scheduling policy study; negative endpoint1.261183787/12of12small-case losses; no adoption or retuning",
+    "Bounded letter-digit query aliases:37 engineering tests, independent code review and actual same7doc index old/new project query comparison",
+    "Static completed-study capsule4671421B/976members, independently checked879source+10docs and all member hashes; no execution",
+    "Fresh404wheel1264600B/c2bba632;185product/179Py fourway identity, productRECORD/23metadata/offline22pins and installed synthetic queries; independently reviewed"
   ],
   "validation": {
     "backend_unit_checks": 24,
@@ -40,17 +44,27 @@
     "additional_interrupted_script_captures": 2,
     "actual_visual_review": "validation24 listed, independent4, root2; overlapping, no all57claim",
     "full_report_bundle_assets": 4,
-    "latest_wheel_bytes": 1253924,
-    "latest_wheel_sha256": "a59e0fb240a7cef445772c53996513d84b75a6992ff05e13125f714c48ec6dc3",
-    "product_source_wheel_install_files": 183,
-    "Python_files": 177,
-    "latest_postimport_guard_count": 38,
+    "latest_wheel_bytes": 1264600,
+    "latest_wheel_sha256": "c2bba632cc73a69ee19b97a5664feb019eb181894a7e2a9de220645b5e8794b4",
+    "product_source_wheel_install_files": 185,
+    "Python_files": 179,
+    "latest_postimport_guard_count": 42,
     "guard_calls": 0,
     "bootstrap_processes_network": "unknown",
     "scheduling_engineering_fake_checks": 46,
     "scheduling_completed_replay_guard_count": 5,
     "scheduling_replay_callbacks": 0,
-    "scheduling_replay_unchanged_original_files": 10
+    "scheduling_replay_unchanged_original_files": 10,
+    "query_alias_tests": 37,
+    "query_alias_comparison_documents": 7,
+    "capsule": {
+      "bytes": 4671421,
+      "members": 976,
+      "sha256": "3c12efc995a4a4e4e61763150b1d5de818755dbbdf6e892c15d43c9c96a0c598",
+      "evidence": "docs/execution/delivery-sprint-016.json"
+    },
+    "latest_loaded_product_origins": 98,
+    "independent_thirdparty_RECORD": "not rehashed"
   },
   "preservation": {
     "scientific_files": 572,
@@ -93,11 +107,12 @@
     "Installedknowledge raw description36guard typo corrected separately; actual38",
     "Needs-only routing does not demonstrate FTS exactunderscore token or retrieval quality",
     "Third real retrieval corpus not admitted: missing licensed independent original data; SciDocs coverage/overlap/size open",
-    "Threshold32 policy rejected in this finite same-host study: ratio1.26118 and all12primarycases slower. No retune/rerun/promotion; standalone not native3armruntime."
+    "Threshold32 policy rejected in this finite same-host study: ratio1.26118 and all12primarycases slower. No retune/rerun/promotion; standalone not native3armruntime.",
+    "Query aliases retain original OR noise/TopK changes and cannot recover dropped single-character index terms; no actual corpus Recall claim."
   ],
   "active_execution": {
     "lease_owner": "root-sprint013-20261114T1328",
-    "root_and_team": "root evidence/delivery continuing; implementation reads knowledge query integration; verifier replay done; reviewer final negative-result review done",
+    "root_and_team": "root delivery/current/report; reused implementation fixed readonly study reader in progress; reused validator gap investigation done; reused reviewer installed artifact review done",
     "team_pool": 4,
     "new_study_executed": true,
     "temporary_services_from_current_validation": "closed",
@@ -105,13 +120,13 @@
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "Verify actual CPU knowledge retrieval paths with small engineering fixtures, preserving FTS, exactscope memory and explicit project-experience context distinctions; no further study calls.",
+  "next_task": "Complete fixed original-study readonly reference reader/CLI with actual final audit binding and spent counters; no project/action fabrication, no new study or budget, no claim it is in404wheel.",
   "next_planned_trigger_time": "2026-11-14T16:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
-  "evidence_index": "docs/execution/g5-local/cpu-experience-verification.json",
-  "Git_delivery": "Ordinary main push/readback receipt: runs/sprint-013-start-20261114/milestone-delivery.json; report captured before delivery",
-  "updated_at": "2026-11-14T15:47:46.556639+08:00",
+  "evidence_index": "docs/execution/g5-local/scheduling-threshold-transfer-results.json",
+  "Git_delivery": "Sprint014 ordinary push/readback main93bb5d92b3de1953571a48b394c29d42714bbf5e; runs/sprint-014-setup-20261114/milestone-delivery.json. Sprint015 source404 committed, later publish pending actual receipt.",
+  "updated_at": "2026-11-14T16:12:08.199230+08:00",
   "continuation": {
     "sprint": "Sprint014",
     "status": "real_primary_and_saved_audit_complete_negative_result",
@@ -124,6 +139,14 @@
     "primary_ratio": 1.2611837872566352,
     "primary_case_losses": 12,
     "active_elapsed_seconds": 12.903210272,
-    "evidence": "docs/execution/g5-local/scheduling-threshold-transfer-results.json"
-  }
+    "evidence": "docs/execution/g5-local/scheduling-threshold-transfer-results.json",
+    "next_completed_engineering": {
+      "sprint": "Sprint015",
+      "code_commit": "404ef9772c2160c036788d3fd5b156f512e4f172",
+      "native_code_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
+      "evidence": "docs/execution/g5-local/knowledge-query-spellings-verification.json",
+      "new_research_calls": 0
+    }
+  },
+  "current_product_release": "docs/execution/g6-local/query-alias-release.json"
 }

@@ -14,3 +14,9 @@
 下次配置计划 **今天16:47:27北京时间**；平台run/result与通知投递回执仍 **unknown**。本里程碑后继续推进，不假称会话外常驻模型，不另发邮件/Slack。
 
 [完整Sprint014](../execution/SPRINT-014.md) · [全部case](../execution/g5-local/scheduling-threshold-transfer-results.md) · [精确身份/预算/恢复](../execution/g5-local/scheduling-threshold-transfer-results.json) · [Sprint013成品验收](../execution/SPRINT-013.md) · [机器报告](latest-report.json)
+
+持续更新（2026-11-14T16:02:38.435414+08:00）：Sprint015 query别名源码404ef977/新core4b93246c已完成，37工程检查及同7文档新旧两入口实际引用对比过，原字节/引用保持；OR噪声/TopK/单字符缺失保留，无新研究。原study62/e731不变。原4人团队继续静态胶囊交付与404新wheel独立安装，后者尚未验收，旧79b6成品不冒称带新改动。见[Sprint015](../execution/SPRINT-015.md)。
+
+持续更新（2026-11-14T16:03:44.025786+08:00）：Sprint016静态研究ZIP4671421B/976成员已完成并独审，SHA3c12efc9…；原代码62/文档93+全部payload字节/CRC绑定，非跨机可执行研究环境。[交付范围](../execution/delivery-sprint-016.json)。新研究调用0，继续S017当前source404新wheel/独立安装验证，尚未验收。
+
+持续更新（2026-11-14T16:12:08.199230+08:00）：Sprint017新404成品1264600B/SHA c2bba632…、185产品/179Py四处相同及离线独立venv/安装态查询完成且独审通过；[范围](../execution/g6-local/query-alias-release.json)。仍在原owner连续推进S018固定研究只读reference，绑定最终audit/预算状态，不伪造native action/project、不扩额、不执行研究。

@@ -67,3 +67,12 @@ Sprint014在同一13:28 owner下接续，14:49记录正式协议定义，真实�
 
 
 Sprint014实际完成（15:41:58，北京时间）：code62f09ed，unique g5-scheduling-threshold-transfer-v1，inputs41ac3517/result9d45e971。小n主终点1.26118/12均慢，拒绝策略不调参、不补测；29gen/1140kernel/29Fenwick/2brute/4352subsets/6080234scan/1primary/1audit，活动12.903s。574/421保持，0fit/model/API/source，old50保持。4完成入口0callback/10文件不变，具体guard/bootstrap范围见结果JSON。standalone3arm不冒称native3arm接线；继续CPU知识实际检索链工程检查。
+
+
+Sprint015：source404ef977/newcore4b93246c，37SQLite checks+独审+同七文档新旧两入口真实引用对比通过，query字母数字alias局部补漏。原空格OR/TopK/单字词丢失负例不抹去，真实memory8cc9445c保持，无新研究/项目/fit/API。原study62/e731的输入和预算不变；静态胶囊与新成品安装继续，不称旧wheel已带新alias。
+
+
+Sprint016静态证据胶囊完成：ZIP4671421B/976，SHA3c12efc9…；879源62+10docs93字节绑定、全成员CRC/manifest/安全路径独审过。574/421组装前后保持（独审未再全核，只依自检+8关键抽查），新研究调用0。非可迁移/可执行账本恢复，旧runtime/boot边界及缺依赖原数据明确；继续source404产品安装S017。
+
+
+Sprint017成品完成：404source、wheel1264600B/SHA c2bba632…、185/179产品四处相同；离线exact22/23项、RECORD195、98origins/42导入后guards0，独审scope和bootstrap/thirdpartyRECORD限制明确。继续S018固定study只读引用，先解决最终audit不在result、经验包超4MiB、原nativeaction不可伪造的真实边界；不混新旧nativeidentity，不新增科研或扩预算。

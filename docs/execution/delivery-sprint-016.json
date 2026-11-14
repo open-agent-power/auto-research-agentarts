@@ -1,0 +1,76 @@
+{
+  "schema_version": "sprint016-study-evidence-capsule-v1",
+  "at_asia_shanghai": "2026-11-14T16:03:44.025786+08:00",
+  "status": "assembled_and_independently_byte_reviewed",
+  "purpose": "Reviewable export of completed original study, not executable recovery or research authorization",
+  "original_study_id": "g5-scheduling-threshold-transfer-v1",
+  "original_code_commit": "62f09edbf15f90cdcd08450aab5d60199d44d63f",
+  "documentation_commit": "93bb5d92b3de1953571a48b394c29d42714bbf5e",
+  "original_native_identity": "e7310118c4af6bfad580aaef1b357019c4427d22c3189a235a8371bf7bc2711a",
+  "capsule": {
+    "path": "runs/sprint-016-study-capsule-20261114/study-review-capsule.zip",
+    "bytes": 4671421,
+    "sha256": "3c12efc995a4a4e4e61763150b1d5de818755dbbdf6e892c15d43c9c96a0c598"
+  },
+  "manifest": {
+    "path": "runs/sprint-016-study-capsule-20261114/manifest.json",
+    "bytes": 169803,
+    "sha256": "2b7914e7927c3066ecd8e562411485c03e776fdc310ae0a4ecc68c01d0c3a8f6"
+  },
+  "assembly_receipt": {
+    "path": "runs/sprint-016-study-capsule-20261114/assembly.stdout",
+    "bytes": 1451,
+    "sha256": "cdbaf400a3278ee041a4b9eb56e91f9a24a63f0d4088b45a4868cfa3d1a52e76"
+  },
+  "independent_review": {
+    "path": "runs/sprint-016-study-capsule-20261114/independent-review.json",
+    "bytes": 2596,
+    "sha256": "ae7773e4a5c49f20f52171bce878fa9d9b8a23fd3a847c92d03708f5ea86e6ec"
+  },
+  "ZIP_members": 976,
+  "payload_files": 975,
+  "payload_bytes": 17734686,
+  "source_files": 879,
+  "separately_bound_docs_files": 10,
+  "scope": {
+    "included": "Four study artifacts; original claim/SQLite/locks and two reviews; explicit selected research setup/failure/implementation/verifier/review evidence; original tracked source snapshot; exact dependency pins and runtime descriptor; documentation from93bb.",
+    "excluded": "Private automation/focus/browser/credential configuration, unrelated runs, Git history, venv/dependency wheels, full574old protected data.",
+    "no_executable_cross_machine_recovery": true,
+    "no_new_research_id_or_budget": true,
+    "original_lease_and_main_root_required_for_actual_resumption": true
+  },
+  "assembly_protection": {
+    "before": {
+      "historical_paths": 421,
+      "path_sets_sha256": "18daffd2a5b08cd80dd906c5772e15a1ee719241c928ae2bf491ba98023516ca",
+      "protected_files": 574,
+      "protected_manifest_sha256": "18538a055da3db3258581c501d243ed1a0c57195ef7e8ccf7929db3e65ddc0aa",
+      "status": "matched"
+    },
+    "after": {
+      "historical_paths": 421,
+      "path_sets_sha256": "18daffd2a5b08cd80dd906c5772e15a1ee719241c928ae2bf491ba98023516ca",
+      "protected_files": 574,
+      "protected_manifest_sha256": "18538a055da3db3258581c501d243ed1a0c57195ef7e8ccf7929db3e65ddc0aa",
+      "status": "matched"
+    },
+    "all_payload_sources_bytes_unchanged": true
+  },
+  "independent_review_actual_scope": "All976CRC/path/types/manifest hashes; all879source against62Gitobjects and10docs against93bb;8keyoriginal payloads compared; no new full574protection recomputation (relies on assembly before/after).",
+  "secret_scan": "Finite names/common credential patterns only, not full secret audit",
+  "new_study_calls": {
+    "bruteforce": 0,
+    "formal_saved_audit": 0,
+    "generate": 0,
+    "oracle": 0,
+    "schedule": 0
+  },
+  "limits": [
+    "The capsule does not contain a whole independently installable environment or all previous raw data.",
+    "Copying its claim/SQLite or changing directory/ID does not authorize or reset execution.",
+    "Completed in-process replay was verified only on original pinned source/runtime/thread/affinity/boot; changed boot/runtime may reject executor, status and JSON remain readable.",
+    "Current source404/native4b93 is separate from original62/e731 and must not upgrade original research provenance.",
+    "No sealed/OS/fullGates/multi-generation RSI or native three-arm ResearchProject integration claim."
+  ],
+  "development_tokens_currency": null
+}

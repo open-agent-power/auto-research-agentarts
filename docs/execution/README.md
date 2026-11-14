@@ -92,3 +92,18 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint014：唯一调度阈值假设的真实负结果
 
 [Sprint014](SPRINT-014.md)已完成唯一小n调度阈值三臂真实比较及保存审计，主终点1.26118、12/12小n均慢，拒绝晋级，不改阈值补测。[实际结果](g5-local/scheduling-threshold-transfer-results.md)与[精确身份/恢复](g5-local/scheduling-threshold-transfer-results.json)保留全部case/计时/预算；29生成/1140kernel/29Fenwick/2穷举一次使用，旧预算保持，standalone三臂不冒称原生双臂adapter已升级。
+
+
+## Sprint015：已有知识检索的拼法兼容
+
+[Sprint015](SPRINT-015.md)以局部词串别名和37相关检查，补`top20`/`top 20`等双向工程命中；独立七文档两源码/两入口实际引用对比通过。原OR噪声、单字符丢失、TopK变化保留，不称真实研究Recall收益；[使用说明](../knowledge-query-spellings.md)。
+
+
+## Sprint016：可审阅静态研究交付
+
+[Sprint016](SPRINT-016.md)完成4.67MB/976成员证据ZIP，原代码62/文档93与全部payload字节、CRC和路径独审通过。[包与限制](delivery-sprint-016.json)明确它不含完整原环境或授权复制账本重跑，正式研究audit不增次。当前source404的新安装物另行验证。
+
+
+## Sprint017：source404安装物验证
+
+[Sprint017](SPRINT-017.md)已完成新wheel/独立venv、185产品逐字节/RECORD/23依赖元数据及实际安装态微型检索，独审通过。[成品](g6-local/query-alias-release.md)明确host脚本、原producer、bootstrap与依赖审查范围；下一固定study只读引用属于独立后续源码。
