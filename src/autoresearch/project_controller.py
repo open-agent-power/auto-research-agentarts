@@ -231,6 +231,8 @@ class ProjectController:
                                            ("status", "matching_candidate_ids", "missing_information")}
                 context["experience"] = {"schema_version": "project-experience-context-v1", "cases": cases,
                                          "scientific_validation": False}
+                if project_selection.active_experience_case_refs(context):
+                    context["selection_capabilities"] = copy.deepcopy(project_selection.EXPERIENCE_CASE_CAPABILITY)
         baseline = context["baseline_decision"]
         fields = project_selection.CONDITION_PROJECTION_FIELDS
         shared = [{key: copy.deepcopy(option[key]) for key in fields if key in option}

@@ -172,7 +172,9 @@ class HostModelSelection:
         record.update(_cli_metadata(raw) if record["provider"] == "claude_cli" else {"reported_cost_usd": None})
         try:
             response_protocol = _request_protocol(record.get("purpose", "selection"))
-            parsed = response_protocol.parse_host_response(raw, record["provider"])
+            parsed = (response_protocol.parse_host_response(raw, record["provider"], context=record["context"])
+                      if record.get("purpose", "selection") == "selection"
+                      else response_protocol.parse_host_response(raw, record["provider"]))
             record.update(parsed, status="received")
         except ResearchError as error:
             record.update(status="invalid", error={"code": error.code, "message": str(error)})
@@ -293,7 +295,9 @@ class HostModelSelection:
                      "EVIDENCE_CHANGED", "Original model response changed after receipt.")
             proposal_request = record.get("purpose") in ("plan", "recipe")
             response_protocol = _request_protocol(record.get("purpose", "selection"))
-            parsed = response_protocol.parse_host_response(raw, record["provider"])
+            parsed = (response_protocol.parse_host_response(raw, record["provider"], context=record["context"])
+                      if record.get("purpose", "selection") == "selection"
+                      else response_protocol.parse_host_response(raw, record["provider"]))
             label = ("Claude CLI; reported route " + (", ".join(parsed["reported_models"]) or "unknown")
                      if record["provider"] == "claude_cli" else "Operator-imported delegated decision; execution/model/usage unverified")
             try:

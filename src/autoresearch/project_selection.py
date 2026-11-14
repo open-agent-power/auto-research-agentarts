@@ -15,7 +15,8 @@ CONTEXT_FIELDS = {
     "project_code_identity", "controller_code_identity", "need", "goal", "domain_scope", "budget",
     "conditions", "candidates", "blockers", "baseline_decision", "evidence", "scientific_validation",
 }
-OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience"}
+OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience", "selection_capabilities"}
+EXPERIENCE_CASE_CAPABILITY = {"experience_case_refs": "v1"}
 CONDITION_PROJECTION_FIELDS = ("method_id", "condition", "outcome", "completed", "missing_information")
 PROPOSAL_FIELDS = {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
 OPTIONAL_PROPOSAL_FIELDS = {"experience_case_refs"}
@@ -94,6 +95,16 @@ def _experience(value, candidates):
                  code, "Cases can only associate already supplied host candidates, never create them.")
 
 
+def active_experience_case_refs(context):
+    """Return complete active identities only; incomplete legacy cases remain readable."""
+    cases = context.get("experience", {}).get("cases", [])
+    return [{"case_id": case["case_id"], "case_version": case["case_version"],
+             "bundle_sha256": case["bundle_sha256"]}
+            for case in cases if case.get("inclusion_status") == "active"
+            and _text(case.get("case_id"), 160) and type(case.get("case_version")) is int
+            and case["case_version"] >= 1 and _hash(case.get("bundle_sha256"))]
+
+
 def experience_notice(context):
     if not context.get("experience", {}).get("cases"):
         return ""
@@ -168,6 +179,10 @@ def _context(payload):
         citations.add(item["citation_id"])
     if "experience" in payload:
         _experience(payload["experience"], candidates)
+    if "selection_capabilities" in payload:
+        _require(payload["selection_capabilities"] == EXPERIENCE_CASE_CAPABILITY
+                 and bool(active_experience_case_refs(payload)), code,
+                 "Case-reference capability requires a complete active historical case.")
     if "research_plan" in payload:
         plan = payload["research_plan"]
         text_limits = {"question": 4000, "basis": 6000, "steps": 12000, "expected_feedback": 4000, "reason": 2000}

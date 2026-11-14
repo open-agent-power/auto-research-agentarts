@@ -62,7 +62,9 @@ def _verify(record, files):
             _require(hashlib.sha256(raw).hexdigest() == record["response_sha256"], "Original host-model response bytes changed.")
             if "arguments" in record:
                 response_protocol = {"selection": protocol, "plan": plan_protocol, "recipe": recipe_protocol}[record.get("purpose", "selection")]
-                parsed = response_protocol.parse_host_response(raw, record["provider"])
+                parsed = (response_protocol.parse_host_response(raw, record["provider"], context=record["context"])
+                          if record.get("purpose", "selection") == "selection"
+                          else response_protocol.parse_host_response(raw, record["provider"]))
                 _require(all(record.get(key) == value for key, value in parsed.items()),
                          "Host-model parsed response or reported usage differs from its original bytes.")
             elif record["provider"] == "claude_cli" and any(record.get(key) is not None for key in
