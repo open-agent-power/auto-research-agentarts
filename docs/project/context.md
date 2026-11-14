@@ -103,3 +103,6 @@ Sprint032 source2cdff0a：直接proposal可选最多4 activecase三元组引用�
 
 
 Sprint033 source78acf，project身份0574266b/controller5c5c86ef/nativejournal6099ede3，新context能力marker可选经验ref，旧4真实contexts八wire独立byte同；合成Host/native日志与省略字段及跨pin门禁已验，0真实model/CLI/API。原4b及producer/pins不迁移，nativefixturecap1/used1 != 实际调用，delegatedcostunknown。Linuxreadiness证Claude/Ollama Windows-only、Codex缺nativeadapter且help未证明全tool禁用/hardUSD；3metadataCLI隐式networkunknown。下一先完成三逻辑委派/2tools的待授权toy工程闭环方案/dispatchguard，再请求新研究模型范围，不把已有开发授权当model预算。
+
+
+Sprint034：旧AA guard96checks证prefix回滚可重预留；1d19f06独立witness修复单日志回退，54定点/3fork通过，仍非OS/hardcost/实际dispatch证明。用户已在本会话明确批准一次固定3逻辑研究委派/2工具的工程反馈试跑，原0预算不重开；当前未create/auth/claim/execute。产品源78acf/core057，guard1d19，新轮领取新owner后按固定claim/输入/ID推进。19:49新timer只读见旧owner仍活跃，无并发executor；下一计划22:47:27，平台run/result/notification unknown。

@@ -1,11 +1,11 @@
 {
   "schema_version": "project-automation-progress-report-v1",
   "timezone": "Asia/Shanghai",
-  "sprint": "Sprint020–033",
+  "sprint": "Sprint020–034",
   "start_time": "2026-11-14T16:44:56+08:00",
-  "end_time": null,
-  "updated_at": "2026-11-14T19:26:12.399214+08:00",
-  "status": "S020_033_verified_publishing_preparing_guarded_real_model_pilot_proposal",
+  "end_time": "2026-11-14T19:57:48.506951+08:00",
+  "updated_at": "2026-11-14T19:57:48.506951+08:00",
+  "status": "engineering_round_verified_closing_then_approved_pilot",
   "base_commit": "b29a9cac5edd0c6406dc03246a0836d0aa7f1bcc",
   "implementation_commits": [
     "f85bc75f42bd486c43d85b67296bc662062a5454",
@@ -17,9 +17,11 @@
     "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783",
     "de20ce4a6590a089839da8d5186ecbacc8a88f37",
     "2cdff0a9152bb0855ec0a8822d4123514387cbda",
-    "78acfbe09c7d689b94e4787e83a32b3e7be9dd9c"
+    "78acfbe09c7d689b94e4787e83a32b3e7be9dd9c",
+    "aa0131ac02860b89c627c5ea78b701289c7c83df",
+    "1d19f06f16e69b20afe5667aa0bd0d500e8272ef"
   ],
-  "latest_verified_source_pin": "/workspace/work/model-experience-protocol-source-78acfbe",
+  "latest_verified_source_pin": "/workspace/work/model-feedback-guard-source-1d19f06",
   "verified": [
     "Formal no-write manager opening and stored project budget/action projection",
     "Independent saved-study reading; real original-manager HTTP and desktop/mobile/keyboard/missing-state fixtures",
@@ -35,7 +37,8 @@
     "Finalsource de20 wheel33287/190product184Py/exact22offline; actual installed CLI17GET/19checks/4images/99origins independentlyverified",
     "Directproposal optional case/version/bundleSHA citations saved/verified in native decision/view/report; real2historicalbundles/synthetic target47checks+review; oldmodelwire untouched",
     "Model selection wire optionalcase refs bound to new contextmarker; old4truecontexts8wirebytes independentlyidentical; syntheticjournals/crosspin gates including absence verified; not realmodelrun",
-    "Linux runtime readiness: Windows-only Claude/Ollama path, no Codex nativeadapter; CLIhelp schema not evidence alltools disabled/hardUSDcap."
+    "Linux runtime readiness: Windows-only Claude/Ollama path, no Codex nativeadapter; CLIhelp schema not evidence alltools disabled/hardUSDcap.",
+    "Pilot cooperative outerticket guard fixed singleledgerrollback using independentwitness; new54checks+independentreview; old96negative preserved; no realclaim/target yet"
   ],
   "validation_index": "docs/execution/g5-local/readonly-study-view-verification.json",
   "installed_product_index": "docs/execution/g6-local/saved-request-handoff-release.json",
@@ -81,23 +84,25 @@
     "S032 initialwrongPYTHONPATH3errors terminalonly and reviewer missingh5py retained; unreferencedlegacycase projection defect fixed.",
     "S03301finalization and06missingfingerprint harness failures retained; fixture accounting perattempt, no backfill missing06budget.",
     "S033 native fixture cap0to1 used1/reserved0 != actualmodelcall; Hostdelegated inference/usage/costunknown; newcore057 old4b kept.",
-    "Linux Codex metadata3processes only; implicitnetworkunmonitoredunknown, not zero. No inferenceprompt/login/newpaidmodelAPI invoked."
+    "Linux Codex metadata3processes only; implicitnetworkunmonitoredunknown, not zero. No inferenceprompt/login/newpaidmodelAPI invoked.",
+    "AA guard could rereserve after legalprefixrollback; fixed independentwitness blocks singleledgerrollback, but coordinated evidence deletion/whole-diskrollback still notprevented.",
+    "Guard onlycooperative tickets/fileSHA, not actualsendbytes/methodproof/hardUSD/OSbound; lowerHost/Projectchecks remainrequired."
   ],
   "active_execution": {
     "owner": "root-sprint020-20261114T1644",
     "team_pool": 4,
     "research_executor_running": false,
-    "work": "root publishing S033; sameimplementation+review+validation preparing/test-only fixed pilotguard; all realmodelresearch blocked by existing0authorization",
-    "lease": "active"
+    "work": "root closing engineering handoff, allthree reusedagents complete; approved pilot notstarted",
+    "lease": "held at report snapshot; release after this delivery then newownerclaim"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "Finish/test minimal fixed-scope dispatch guard for reviewed model-feedback pilot proposal; only after concrete protection ready ask new research model grant, existing0slice unchanged. No actual model or target yet.",
-  "next_planned_trigger_time": "2026-11-14T19:47:27+08:00",
+  "next_task": "After engineering handoff and unique newlease, execute exactly the user-approved model-feedback-pilot scope (<=3logicaldelegations/<=2namedtools), product78acf+guard1d19, no oldbudget reset.",
+  "next_planned_trigger_time": "2026-11-14T22:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
   "plan_report_validation_index": "docs/execution/g5-local/stored-plan-report-verification.json",
-  "published_main_last_readback": "3d3806076327b651a15e2c3ec0c7bfc15a1a73a0",
+  "published_main_last_readback": "4ac4bbc38ea8afd0e1f49b91e69c51d5960f54ef",
   "receipt_validation_index": "docs/execution/g5-local/manager-advance-receipt-verification.json",
   "request_handoff_validation_index": "docs/execution/g5-local/saved-request-handoff-verification.json",
   "plain_progress": "A trusted-local workbench can perform a few real experiment classes, retain plans/results/negative evidence and partially resume. Sustained autonomous problem-to-experiment decisions and causal benefit of experience reuse remain unproved.",
@@ -130,5 +135,28 @@
     "delegated": "external import supported, productcannotverifyactualmodel/cost",
     "CLI_metadata_processes": 3,
     "CLI_metadata_implicit_network": "unknown"
+  },
+  "pilot_preparation_index": "docs/execution/g5-local/model-feedback-pilot-preparation.json",
+  "user_decision": {
+    "schema_version": "research-pilot-user-decision-v1",
+    "source": "this conversation; explicit request_user_input_async reply",
+    "question_item_id": "[\"request_user_input_async\",\"call_194ff34ff1824636bfac96f1aca20baf\",0]",
+    "answer": "批准这一次受限试跑",
+    "scope": {
+      "logical_research_delegations_max": 3,
+      "named_research_tools_max": 2,
+      "new_paid_API_procurement": false,
+      "actual_provider_requests_tokens_cost": "unknown",
+      "purpose": "three-document engineering feedback workflow, not scientific gain"
+    },
+    "recorded_at_asia_shanghai": "2026-11-14T19:57:48.506951+08:00",
+    "old_research_budgets_unchanged": true,
+    "actual_execution_started": false
+  },
+  "additional_trigger": {
+    "received_marker": "2026-11-14T19:49:07.970588+08:00",
+    "checked_at": "2026-11-14T19:49:55.453366+08:00",
+    "lease_owner": "root-sprint020-20261114T1644",
+    "scope": "readonlycheck, no secondexecutor; originalowner closing authorizedhandoff"
   }
 }

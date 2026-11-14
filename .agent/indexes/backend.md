@@ -152,3 +152,5 @@ S030 stored_project_history对原controller request和manager row/intent三方SH
 S032 project_selection/Controller/selection_view接受直接proposal可选active经验三元组，核冻结context并保存原association；不造候选/权限/预算，旧无字段不补默认值。退休新提交与原ID历史重放分开。[原包工程验证和使用](../../docs/experience-decision-citations.md)。
 
 S033 Controller新active完整case context声明能力版本，Host/native模型消息按保存context选择parser，receive/consume/report三处接线；旧pending CODE_CHANGED/_fresh不绕，原pin仍恢复。当前project身份0574266b…与原4b独立。[协议/模拟日志/跨pin的真实边界](../../docs/execution/g5-local/model-experience-protocol-verification.json)，不称Linux模型runtime或实际模型研究。
+
+S034 host-only [model_feedback_pilot_guard.py](../../scripts/model_feedback_pilot_guard.py)仅固定外层票据与request/response SHA，预留先独立凭据；原AA日志回退负例与新54check修复分别存证。它不派发模型/工具、不替代Host/Project或证明硬预算，真实试跑尚未授权。[范围](../../docs/execution/SPRINT-034.md)。

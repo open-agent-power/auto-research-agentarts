@@ -1,0 +1,118 @@
+{
+  "schema_version": "model-feedback-pilot-preparation-v1",
+  "status": "user_approved_bounded_scope_not_yet_executed",
+  "product_source": "78acfbe09c7d689b94e4787e83a32b3e7be9dd9c",
+  "guard_old_source": "aa0131ac02860b89c627c5ea78b701289c7c83df",
+  "guard_fixed_source": "1d19f06f16e69b20afe5667aa0bd0d500e8272ef",
+  "guard_fixed_pin": "/workspace/work/model-feedback-guard-source-1d19f06",
+  "proposal": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/implementation/pilot.md",
+    "bytes": 15792,
+    "sha256": "cbb86b359b51f22ebb0a1dad33111e4bda055869b7979bb7bb63d1e3d842fe49"
+  },
+  "proposal_manifest": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/implementation/pilot.json",
+    "bytes": 2582,
+    "sha256": "23fae563664cbd8a001767b912a02b62ba930f581aba9613a28b588feccdc99d"
+  },
+  "proposal_review": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/review/review.md",
+    "bytes": 4838,
+    "sha256": "7964a5cad2e417f2b7bd7694ac5615b5869b4b0edf0986c9dee2d73926fc7067"
+  },
+  "proposal_static_api_review": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/validation.md",
+    "bytes": 7286,
+    "sha256": "7e1885a6dce6fa10be91ea37fb3c3c208a111c70c728f60cc7d12f861be621f3"
+  },
+  "guard_precommit": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/review/guard-precommit.json",
+    "bytes": 2767,
+    "sha256": "f755bfca305e727395b7e61c4cad671e61e37c7b3d11f110ebd027b2f8aed423"
+  },
+  "guard_old_findings": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/validation/guard-FINDINGS.md",
+    "bytes": 6018,
+    "sha256": "1260afccbf88074de16ab8f1dc5e29dd51c3e916ddd3722d7c2ee4f443dfc62e"
+  },
+  "guard_old_index": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/validation/guard-index.json",
+    "bytes": 3582,
+    "sha256": "a617afa5aa6c6270f9e16001c75b7b47b18f9a12377761e7db4383d351172466"
+  },
+  "guard_fixed_precommit": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/review/guard-witness-precommit.json",
+    "bytes": 2082,
+    "sha256": "5fcf7f19d163bbe1ad43ce9346895a6deb144026568251b844f1af7f7d63f801"
+  },
+  "guard_fixed_review": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/review/guard-witness-final.json",
+    "bytes": 2335,
+    "sha256": "71a8fe654c553e9f3e06fbb82eaaf0f978485d2dcfe3ff8d67bb90ae7d852939"
+  },
+  "guard_fixed_findings": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/validation/guard-witness-FINDINGS.md",
+    "bytes": 3864,
+    "sha256": "decdefa448a054ab735f473ec67bf4501ffca37b9f866d419054dd18050b226f"
+  },
+  "guard_fixed_index": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/validation/guard-witness-index.json",
+    "bytes": 1144,
+    "sha256": "46ebd6abc811d437e2445798deed3d01b74f8e3d8912a7ade6bb11d81fa4cdd4"
+  },
+  "guard_fixed_receipt": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/validation/guard-witness-attempt-01/receipt.json",
+    "bytes": 70818,
+    "sha256": "706382504c3f3557ac8570f35fb2ad971a75b9e0cea30600aaace599c6ace8f5"
+  },
+  "guard_fixed_implementation_log": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/implementation/witness-tests/unit.log",
+    "bytes": 3701,
+    "sha256": "c3a8c51677f325abbb99652b39787e1415e03bc6a067b0d366294297595abd22"
+  },
+  "root_freeze": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/root-witness-freeze.json",
+    "bytes": 325,
+    "sha256": "e09067887e5a7124a619c760bff6ac036443c21470d27102e1f505755c6f8f8f"
+  },
+  "fixed_checks": 54,
+  "independent_unit_checks": 20,
+  "engineering_os_forks": 3,
+  "old_checks_final": 96,
+  "old_engineering_os_forks_per_attempt": 6,
+  "counts_scope": "oldnegative96 andnewtargeted54 separateversions, notadded researchbenefit",
+  "known_negative": "AA validledgerprefix truncation permitsrereserve. Newsingleledgerrollback mismatchesindependentwitness andblocks. Deletingwitnessandrollbackcoherently still permitsrereserve under sameuser; noOS/hardbudgetclaim.",
+  "guard_scope": "fixedouterlogicaltickets/request+responsefileSHA only; notparsingmethods, actualsendproof, Hostauthority, hardUSD or completedaction",
+  "proposed_budget": {
+    "logical_research_delegations": 3,
+    "host_selection_plan_slots": 2,
+    "outer_review_delegations": 1,
+    "native_model_allowance": 0,
+    "tools_max": 2,
+    "tools": [
+      "research.retrieval-fixed-pair",
+      "research.retrieval-saved-error-audit"
+    ],
+    "fit_solver_extraction_downloads": 0,
+    "new_paid_API_or_procurement": false,
+    "platform_requests_tokens_cost": null
+  },
+  "real_authorization_claim_target_created": false,
+  "actual_research_model_tool_dispatches": 0,
+  "question_state": "explicit_user_reply_approved_not_merely_UI_ack",
+  "scientific_scope": "three-document synthetic workflowpilot, no novelresearch or causal experiencebenefit",
+  "stop_rules": [
+    "wait/invalid/unknown/stale/blocked stop, noforcedtools",
+    "claimcollision/persistentuncertainty stop, no directory/IDreset",
+    "sameoriginalrequest recovery only, no model redispatch onunknown"
+  ],
+  "user_constraint": "既有0模型/API切片和受保护预算不扩额",
+  "requires_new_scope": "Only an explicit newboundedresearchdelegation authorization; existingdevelopment/Workeracceptance remains",
+  "time_zone": "Asia/Shanghai",
+  "prepared_at": "2026-11-14T19:46:54.936403+08:00",
+  "user_approval": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/user-approval.json",
+    "bytes": 694,
+    "sha256": "ab0d6c1c60dfe77876a17fc88804156f9ce261c0c3caf639cded8fbfa90be588"
+  }
+}

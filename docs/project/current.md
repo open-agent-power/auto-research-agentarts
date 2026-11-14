@@ -8,6 +8,12 @@
 
 ## 最新汇报入口
 
+### Sprint034：试跑前保护已验证，受限范围已获批准
+
+guard source `1d19f06f16e69b20afe5667aa0bd0d500e8272ef`／pin `/workspace/work/model-feedback-guard-source-1d19f06`，产品仍锁78acf/core057。旧AA版96工程检查保留单日志合法前缀回退可重预留的负例；新独立逐阶段凭据先持久再记日志，定点54checks/3fork通过，单日志回退、缺错孤儿和写故障停止。协同删全部证据/整盘回滚仍不防，且不证明实际发送或替代Host预算/选择门禁。[S034](../execution/SPRINT-034.md)／[完整准备与负结果](../execution/g5-local/model-feedback-pilot-preparation.json)。
+
+下一[可审阅小试跑](../execution/g5-local/model-feedback-pilot-proposal.md)固定三文档工程输入和原两经验包，最多3逻辑研究委派（Host选择/计划2槽、外层复核1）/2指定工具；native模型预算0，不采购/接新付费API，平台实际请求/费用unknown。真实auth/claim/target均未创建，0实际研究模型或工具。已在本会话收到明确“批准这一次受限试跑”，仅对本固定新工程范围增加最多3逻辑委派/2工具；原研究0模型约束和预算保持。授权不计作执行完成；下一将旧轮交接后领取新独有lease/claim启动，不重复确认。
+
 ### Sprint033：模型消息接口已接线，真实运行时与新额度仍缺
 
 source `78acfbe09c7d689b94e4787e83a32b3e7be9dd9c`／pin `/workspace/work/model-experience-protocol-source-78acfbe`，新activecase context带能力版本，Host/native消息可选案例引用，receive/consume/report按保存context核验。旧四真实context的八份wire独立逐byte相同，实际合成journal/跨pin门禁与省略字段路径通过，0真实模型/CLI/API。[S033](../execution/SPRINT-033.md)／[逐次证据](../execution/g5-local/model-experience-protocol-verification.json)。

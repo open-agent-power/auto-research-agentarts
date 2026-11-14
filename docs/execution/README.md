@@ -152,3 +152,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint033：模型消息经验引用与真实执行缺口
 
 [S033](SPRINT-033.md)新增context能力版本，Host/native可选经验ref且旧wirebyte同，合成journal和跨pin门禁通过，0真实模型研究。[Linux运行时审计](g0/model-runtime-readiness.json)表明当前产品模型执行链仍未接通；下一待授权小工程试跑使用宿主delegated而非冒称native runtime，固定额度与保护须先可审。
+
+
+## Sprint034：固定试跑保护与新增受限授权
+
+[S034](SPRINT-034.md)保留AA合法前缀回退负例，1d19独立凭据修复单日志回退并过54检查/独审；它只是外层合作式票据。用户已明确批准[一次3逻辑委派/2工具工程试跑](g5-local/model-feedback-pilot-proposal.md)，尚未实际执行，原研究预算和sourcepins不改。继续领取新owner/唯一claim后按上限推进。
