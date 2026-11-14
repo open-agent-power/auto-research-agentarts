@@ -13,6 +13,7 @@ import stat
 
 from .contracts import ResearchError
 from .research_project import safe_path
+from . import stored_project_history
 
 _MAX_RECORD = 4 * 1024 * 1024
 _MAX_ACTIONS = 2048
@@ -108,12 +109,12 @@ def _manager_selection(con):
     _need(len(active) == 1 and type(active[0][0]) is str and 0 < len(active[0][0]) <= 256,
           'integrity_error', 'The active project identity is invalid.')
     project_id = active[0][0]
-    projects = con.execute('SELECT id, slot FROM projects WHERE id=?', (project_id,)).fetchall()
+    projects = con.execute('SELECT id, slot, report FROM projects WHERE id=?', (project_id,)).fetchall()
     _need(len(projects) == 1 and projects[0][0] == project_id, 'integrity_error', 'The active project binding is missing or ambiguous.')
     slot = projects[0][1]
     _need(type(slot) is str and re.fullmatch(r'[a-f0-9]{64}', slot) is not None,
           'integrity_error', 'The stored project slot is unsafe.')
-    return project_id, slot
+    return project_id, slot, projects[0][2]
 
 
 def read_stored_project_summary(root):
@@ -124,7 +125,7 @@ def read_stored_project_summary(root):
             selection = _manager_selection(manager)
             if selection is None:
                 return {'schema_version': _SCHEMA, 'status': 'no_active', 'reason': 'No active project is recorded.'}
-            project_id, slot = selection
+            project_id, slot, report_slot = selection
             with _database(root / 'projects' / slot / 'project.sqlite') as project_db:
                 rows = project_db.execute('SELECT id, length(CAST(record AS BLOB)) FROM project LIMIT 2').fetchall()
                 _need(len(rows) == 1 and rows[0][0] == 1 and type(rows[0][1]) is int and rows[0][1] <= _MAX_RECORD,
@@ -160,6 +161,8 @@ def read_stored_project_summary(root):
                                     'command': action.get('command'), 'producer_code_identity': action.get('code_identity'),
                                     'method': {key: definition.get(key) for key in ('id', 'version')}
                                     if type(definition) is dict else None})
+                history = stored_project_history.read_history(manager, project, actions)
+                report = stored_project_history.read_report(manager, root, project_id, report_slot)
                 _need(_manager_selection(manager) == selection, 'unknown', 'The active project changed during reading.')
                 producer = {'code_identity': project.get('code_identity'), 'runtime_dependencies': project.get('runtime_dependencies')}
                 partial = not isinstance(producer['code_identity'], str) or producer['runtime_dependencies'] is None
@@ -167,6 +170,7 @@ def read_stored_project_summary(root):
                         'reason': 'Stored producer identity is incomplete.' if partial else None,
                         'project_id': project_id, 'run_id': project['run_id'], 'state_version': project['state_version'],
                         'producer': producer, 'stored_budget': project['budget'], 'stored_actions': actions,
+                        'stored_history': history, 'stored_report': report,
                         'budget_scope': 'stored_project_record_not_computed_usage',
                         'notice': 'Stored facts only; no usage, reservations, costs or tokens were independently computed. Requires no concurrent writer.'}
     except _Unavailable as error:

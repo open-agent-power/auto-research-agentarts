@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 # Import the fixed readers before _runtime_sources() snapshots startup code.
-from . import research_methods, snapshot_viewer, method_registry, stored_project_summary, saved_study_capsule
+from . import research_methods, snapshot_viewer, method_registry, stored_project_summary, stored_project_history, saved_study_capsule
 from .contracts import ResearchError, fingerprint, identifier
 from .project_knowledge import POINTS
 from .project_controller import ProjectController

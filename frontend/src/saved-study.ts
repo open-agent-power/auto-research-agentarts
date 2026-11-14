@@ -2,6 +2,7 @@
 import { el, numeric, text } from "./dom";
 import { createSavedCapsule } from "./saved-capsule";
 import { createHypothesisSource } from "./hypothesis-source";
+import { createStoredPlanReport } from "./stored-plan-report";
 type Obj = Record<string, unknown>;
 const obj = (value: unknown): Obj => value && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const list = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
@@ -33,7 +34,7 @@ function drawProject(target: HTMLElement, project: Obj): void {
   const actions = list(project.stored_actions), details = el("details"), actionsRead = Array.isArray(project.stored_actions); details.open = true; details.append(el("summary", "", "项目保存的行动（" + (actionsRead ? actions.length : "未读取") + "）"));
   if (actionsRead && !actions.length) details.append(el("p", "detail-note", "原行动表没有记录。"));
   for (const action of actions) { const entry = el("div", "saved-study-reference"); entry.append(el("strong", "", text(action.id)), el("p", "", "状态：" + text(action.status) + " · 方法：" + text(obj(action.method).id, text(action.command, "未记录"))), el("p", "", "原请求：" + text(action.request_id)), el("p", "", "行动原代码身份：" + text(action.producer_code_identity, "未记录"))); details.append(entry); }
-  target.append(details);
+  target.append(details, createStoredPlanReport(project.stored_history, project.stored_report));
 }
 function draw(host: HTMLElement, data: Obj, project: Obj): void {
   const status = text(data.status, "unknown");
