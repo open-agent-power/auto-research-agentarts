@@ -165,3 +165,9 @@ A64已在已有构造项目通过一次实际子代理候选v2和一次允许来
 
 
 S019 sourcee88c3f5已接唯一 `GET /api/local-workbench/saved-study-reference`，无query/路径参数、不在POST动作表、不取项目binding，外部保存引用scope；[实际8HTTP/异常态/构造器及bootstrap边界](../../docs/execution/g5-local/saved-study-reference-http-verification.json)。getter无项目预算访问，UI/关联/三臂执行不冒称完成。
+
+
+S020–022增加正式readonly host入口与固定GET `/api/local-workbench/project-summary`，无query/路径选择、拒写，读取真实active原项目记录，项目状态与source62/e731外部study分开。[使用](../../docs/readonly-study-workbench.md) · [成品](../../docs/execution/g6-local/readonly-workbench-release.json)。后续fixed capsule下载另行验证，旧b1包不含该路由。
+
+
+S023增加固定无query GET study-capsule/study-capsule.zip，先size/SHA/identity再回原bytes，UI显式点击；S024保存引用增加原protocol hypothesis_source字段，不重算/自动关联。[精确下载](../../docs/execution/g5-local/study-capsule-download-verification.json) · [原字段投影](../../docs/execution/g5-local/hypothesis-source-verification.json)。

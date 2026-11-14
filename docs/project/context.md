@@ -82,3 +82,9 @@ Sprint018：a1152b4 reader最终pin系统PythonCLI真实一次，12137含换行/
 
 
 Sprint019完成：e88c3f5 fixed GET→真实Controller/Workbench/reader，22fake+8HTTP+独审；原17/13manager、state13/两completed actions/预算、574/421同。验收__new__绕过原会写constructor、bootstrap仅放行1 uname-p/首失败留存、mockunknown单列，准确限定scope。当前404成品不含reader/API；下一任务先明确无写启动再做独立只读study UI/预算分栏/桌面手机，拒绝新研究/项目/预算，原source62/e731/1audit/50oldfit保持。
+
+
+Sprint020–022同盘16:44接续，正式factory无写/f85、stored预算投影84、安装CLI与手机分行b1相继完成，旧case17/13manager/574/421保持。真CLI+UI/键盘/异常fixture与独审分scope记录；project3945/外部study62e731/当前core4b区分，无新研究/fit/paidAPI。b1安装wheel91af…188/182，后续S023/S024不在该包；继续原ZIP下载和原协议假设来源可读，不混入项目预算。
+
+
+S023–025已完成：e0固定原ZIP显式下载byte匹配，792原协议来源/policy逐值相同旧DTO不变，最终wheel3770/189产品/183Py五路/23dist离线装及独立真CLI4GET过。安装无浏览器重跑，源UI证据分开；原case/预算/pins/50fit与primary1/audit1不变，开发成本unknown。继续调查原保存plans/report，不执行/重算/写旧数据，不自动把source关系当科学因果或projectaction。

@@ -82,3 +82,9 @@ A27 [local-model.ts](../../frontend/src/local-model.ts)复用同一页面提交�
 A35同一模型面板使用“CLI配置阈值”，说明单次调用可能超出且现金结算未知；独立展示达到/超阈值、费用尚未核对的停止原因，每条原请求显示已报告估值，失败或无效回答也计入累计，未启动不填0。保留原grant、请求和发送门禁。A34真实合计0.124035USD超过0.10USD、第二次失败；A35不追加调用。静态页面更新不代表18791缓存的Python后端已加载修复，只读保存记录投影也不构成执行验证，范围见[用法](../../docs/local-workbench.md#a35阈值与费用提示)。
 
 local-experience按saved_cpu_fixed_pair显示CPU原对照/不利表/出处与摘要边界，Ridge旧分支保持；概览改为“当前研究项目”。真实原包导入由API验，浏览器只读和文件草稿/两尺寸表格见[Sprint013](../../docs/execution/SPRINT-013.md)。
+
+
+保存研究页面由[ saved-study.ts ](../../frontend/src/saved-study.ts)提供独立hash阅读，原项目原budget/actions和standalone study分栏、27case详情及16rawrefs；[真实viewport/安装边界](../../docs/execution/g5-local/readonly-study-view-verification.json)。旧页只提示未加载，不复活报告/导入写入口。
+
+
+保存研究页面另有[saved-capsule.ts](../../frontend/src/saved-capsule.ts)显式byte/SHA核验下载、[hypothesis-source.ts](../../frontend/src/hypothesis-source.ts)冻结来源/反证原样阅读；不能把ID相等当项目关联。最终source792与wheel3770对应，旧b1/91af不含这些能力。

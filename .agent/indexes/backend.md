@@ -139,3 +139,6 @@ A29 [research_recipe](../../src/autoresearch/research_recipe.py)把明确的 `or
 
 
 `bounded_study_ledger.py` 与 host-only `scripts/run_scheduling_policy_transfer.py` 实现固定主仓/唯一study/双阶段独审/逐回调预约/unknown保护/同boot原deadline。它们用于[已完成的Sprint014](../../docs/execution/SPRINT-014.md)，不是任意路径/代码执行工具，也没有把原ResearchProject双臂runtime改为三臂。当前固定study全部完成只读重放，旧预算不能重开。公共worker锁仅协调使用该路径的执行者。
+
+
+S020–022正式LocalWorkbench.open_readonly/readonly_workbench模块、stored_project_summary及固定GET已验，不调用项目runtime/写原数据，保持无并发writer前提；[能力与真实证据](../../docs/readonly-study-workbench.md)。旧五页内容并未在只读host加载，不把stored预算当派生used/reserved。

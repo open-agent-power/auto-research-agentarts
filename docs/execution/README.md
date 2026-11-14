@@ -117,3 +117,13 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint019：固定保存研究接已有只读API
 
 [Sprint019](SPRINT-019.md)已完成Controller/Workbench固定GET及22相关检查、窄原manager8真实HTTP与独审。[精确回执](g5-local/saved-study-reference-http-verification.json)区分真实/fixture、会写构造器绕过与bootstrap探测，原件/预算不变；UI/项目关联/三臂执行未完成。
+
+
+## Sprint020–022：正式只读宿主、原项目投影和安装模块
+
+[S020](SPRINT-020.md)→[S021](SPRINT-021.md)→[S022](SPRINT-022.md)补正式factory、预算/actions分栏、安装CLI及手机阅读。原manager真实服务/双尺寸/异常/键盘及188产品五路字节独审通过；[证据范围](g5-local/readonly-study-view-verification.json)与[使用](../readonly-study-workbench.md)区分source/安装、已存预算/派生费用、bootstrap与旧五页未测，不称新科研或完整Gate。
+
+
+## Sprint023–025：原包取件、来源声明和最终安装
+
+[S023](SPRINT-023.md)固定ZIP显式下载、[S024](SPRINT-024.md)冻结假设来源、[S025](SPRINT-025.md)最终3770wheel已真实只读/字节/独审通过。[最新安装物](g6-local/readonly-evidence-final-release.json)区分源码图、安装HTTP、历史base环境与未覆盖Gate；不新运行科学或生成原包。

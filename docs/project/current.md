@@ -8,6 +8,24 @@
 
 ## 最新汇报入口
 
+### Sprint023–025：原包下载、假设来源与最终安装物已验
+
+source e0db52ff3cfa206cb78f95c7a1ad2a0449fabab6/79218f16e10d0dbf58dff6dc669875febcb4d15c完成固定ZIP显式下载、冻结protocol source_basis/policy原样引用。两端下载byte/SHA等原4671421B包，missing/tamper/drift只在fixture；S024新增字段之外与旧DTO全等，27case/两预算/16refs不变，原n32相反描述不推新因果。raw包原source62/docs93、不代表当前runtime或授权重置。见[S023](../execution/SPRINT-023.md)/[S024](../execution/SPRINT-024.md)。
+
+最新wheel1283708B/SHA3770f06eded3159d747c499b7582e1999d0f025a7442afdfa9228702a2f252c1、189产品/183Py五路byte一致，离线exact22/[reports,sources]/23dist/RECORD与独审过；[S025准确范围](../execution/g6-local/readonly-evidence-final-release.json)。独立安装runpy真实CLI/4GET/ZIPbyte通过、原manager未改，无installed browser重跑，sourceUI证据单列。旧91af/b1及原case/protocol/pins保持。
+
+当前root保存本轮里程碑并准备普通推送，后续只读调查原project的plans/report存储用于下一可验证切片（尚未计成果）；不新科学/fit/模型/API/正式audit，不重新声明旧负结果为新研究收益。原4人池继续复用，无需要用户选择的新阻塞。
+
+### Sprint020–022：真实只读宿主、预算分栏与安装CLI已验
+
+本轮16:44:56从b29a9ca继承，同盘/干净工作树/旧lease释放后领取root-sprint020-20261114T1644。旧agent树不可调用，实际小团队4人重建后持续复用。source f85bc75→84cc5cb→b1e707a分别补正式无写factory、原项目budget/action投影、安装CLI/手机详情；[完整证据](../execution/g5-local/readonly-study-view-verification.json)。当前项目原producer3945/state13/两completed/原budget与外部source62/e731的study分栏，现金unknown/null，不计算used/reserved，不共享预算/伪造action。
+
+84cc实际双尺寸34图/261checks及键盘补验通过；b1已安装CLI14图/155checks、400/405拒绝与手机稳定补帧通过。原574/421、17study/13manager保持，服务均已关；每次允许一次已知uname-p，其余列举guard0。旧默认五页真实内容未测，只读host旧页明确未加载。32root相关回归有raw日志，旧reported24/31/3只有terminal，不能补造日志。
+
+b1 wheel1279757B/SHA91afab07…、188产品/182Py五路一致，离线exact22/[reports,sources]/23dist/RECORD/pipcheck独审过；[安装及不含后续源码的范围](../execution/g6-local/readonly-workbench-release.json)。只读CLI完整源commit b1e707a387467e0febcf9712eee2fab44507594d，pin /workspace/work/readonly-workbench-release-source-b1e707a。不宣称科研新收益、三臂执行runtime、SDK或完整Gates。
+
+继续：S023固定既有证据ZIP显式下载source e0db52f已做真实双尺寸字节比对/异常拒绝，正式索引待保存；S024从原冻结协议投影假设来源/反证正在实现，未计成果。原study唯一primary/audit和50历史fit保持，本轮新研究/fit/model/API为0。下一计划19:47:27北京时间，平台run/result与通知投递unknown。
+
 ### Sprint019只读原生API完成，本次接续已保存
 
 最新源码 `e88c3f5c8b69a32cc2418e81abaddd78619e27d9`，clean pin `/workspace/work/saved-study-reference-api-source-e88c3f5`；[Sprint019](../execution/SPRINT-019.md)完成ProjectController/LocalWorkbench/ProjectWorkbench固定GET引用。22相关fake回归、独审及原manager窄真实HTTP8请求通过，实际reader1/12198B/27cases/16refs；3×400、2×405、邻路404及另1mockunknown明确分开。原17study/13manager/state13/两completed actions/预算及574/421不变；没有新research/audit/fit/model/API。

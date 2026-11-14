@@ -1,0 +1,118 @@
+{
+  "bootstrap_process_network": "unknown",
+  "component_hashes": {
+    "local_workbench": {
+      "bytes": 107885,
+      "sha256": "2b05eb28e5403b28baf133836f9b8279aa4f77ac93b86706452d275d8d9cf48d"
+    },
+    "project_workbench": {
+      "bytes": 52044,
+      "sha256": "ba3dea3daa2fd098c81f81a27a5748c5cb0465957a14e8c3eb833e96ee6d357b"
+    },
+    "readonly_workbench": {
+      "bytes": 2286,
+      "sha256": "9077d054c82871a77bebefcbd487975730339d9c74b87a4e4ed1c8dbccdc8650"
+    },
+    "research_project": {
+      "bytes": 87296,
+      "sha256": "4426d2501c2583776a3966ca118c11131712c1b1f1105ff30ee7ccea64eae17d"
+    },
+    "saved_study_capsule": {
+      "bytes": 3434,
+      "sha256": "3cc018458a96df789adc41b935637dec07ebf5b37a8c1cf4e782af09178644de"
+    },
+    "saved_study_reference": {
+      "bytes": 18004,
+      "sha256": "46332db3d2c7af964444d324a3254a13163c12c1534681da27a99ae6caf67f73"
+    },
+    "stored_project_summary": {
+      "bytes": 9591,
+      "sha256": "1084da1c965df3f263995bd9cbc67b6ccdc74f6c1f523345df6ddfabd08e8c39"
+    }
+  },
+  "dependency_record_scope": "third-party RECORD content not independently verified",
+  "distributions": {
+    "agentarts-autoresearch": "0.1.0",
+    "charset-normalizer": "3.5.2",
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.61.1",
+    "h5py": "3.16.0",
+    "joblib": "1.5.3",
+    "kiwisolver": "1.4.9",
+    "matplotlib": "3.10.8",
+    "numpy": "2.5.4",
+    "packaging": "26.3",
+    "pillow": "13.0.0",
+    "pip": "25.0.1",
+    "pyparsing": "3.3.2",
+    "pypdf": "6.21.4",
+    "python-dateutil": "4.0.0",
+    "reportlab": "4.4.9",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.17.0",
+    "setuptools": "84.2.1",
+    "threadpoolctl": "3.6.0",
+    "tzdata": "2026.6",
+    "wheel": "0.48.0"
+  },
+  "guard_scope": "only code_identity after import; no project or study read",
+  "guarded_calls": 0,
+  "installed_product_record_rows": 382,
+  "installed_venv": "/workspace/work/g6-readonly-evidence-final-20261114/venv",
+  "model_api_fits_research": 0,
+  "native_runtime_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
+  "no_sources_boundary": "prior b1 fresh base-only installation: help works and startup returned DEPENDENCY_NOT_AVAILABLE h5py; no root created. CLI and pyproject byte-identical; not rerun for this source",
+  "observed_product_module_origins": 106,
+  "product_files": 189,
+  "product_record_unhashed_pyc": 183,
+  "product_record_unhashed_self": 1,
+  "python_files": 183,
+  "real_manager_access": false,
+  "sdk_runtime": "not installed or verified",
+  "source_commit": "79218f16e10d0dbf58dff6dc669875febcb4d15c",
+  "source_tar": {
+    "bytes": 11468800,
+    "sha256": "3ea6b4df31fec3bf84d38626ed8e71463e0d1598d4b4ce0e5f3f281c78b247ef"
+  },
+  "wheel": {
+    "bytes": 1283708,
+    "sha256": "3770f06eded3159d747c499b7582e1999d0f025a7442afdfa9228702a2f252c1"
+  },
+  "wheel_path": "/workspace/work/g6-readonly-evidence-final-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+  "wheel_record_rows": 194,
+  "schema_version": "final-readonly-evidence-release-v1",
+  "captured_at_asia_shanghai": "2026-11-14T17:51:53.223120+08:00",
+  "source_pin": "/workspace/work/hypothesis-source-view-79218f1",
+  "source_archive_scope": "189product/183Py source→Gitarchive→extractedbuildtree→wheel→installed exact; actual dependencyversions/pipcheck.",
+  "self_evidence": {
+    "path": "runs/sprint-025-readonly-evidence-release-20261114/installed-release-result.json",
+    "bytes": 3036,
+    "sha256": "6523d4f81080db341b129f8dfa37de5fc75b4626ce034204f30e1f02f7564be5"
+  },
+  "independent_review": {
+    "path": "runs/sprint-025-readonly-evidence-release-20261114/review/independent-final.json",
+    "bytes": 3128,
+    "sha256": "e171f4ec5a904a6fc8001038a4eb630a19945a45eef27295f4bc69795c44fc41"
+  },
+  "actual_installed_CLI_service": {
+    "path": "runs/sprint-024-hypothesis-source-20261114/validation/attempt-03-installed/service-receipt.json",
+    "bytes": 73549,
+    "sha256": "c89995dcb1ab3cdf174abd40a782d0f2cf0c0311f57451c389680d2e82229cdd"
+  },
+  "actual_installed_CLI_HTTP": {
+    "path": "runs/sprint-024-hypothesis-source-20261114/validation/attempt-03-installed/installed-http-receipt.json",
+    "bytes": 2329,
+    "sha256": "58fbb9ff0e634f39538c441c43ca0b8463fe577ea95bd64e2f787516f16136d4"
+  },
+  "installed_scope": "isolated child runpy real CLI/factory on originalmanager,98loadedproduct origins installed;4GET+rawZIPbytecomparison; no new browser UI in this smoke. SourceUI S023/S024 separately verified.",
+  "record_accounting": "wheel194rows;installed382=198declaredhash+183generatedunhashedpycactualSHA+RECORDself. No blanket declaredhash claim for caches.",
+  "no_sources_scope": "Base-onlymissingh5py realboundary inherited fromb1 test; CLI/pyproject bytes independently compared unchanged, not rerun in this env.",
+  "preservation": "Oldwheel91af/b1venv/sourcepins retained; newwheel3770 includes fixed ZIP and frozen hypothesis source. Old research is not upgraded.",
+  "limits": [
+    "No full thirdpartyRECORD rehash by reviewer.",
+    "Self-check bootstrap process/network before guards unknown; actual serviceallows1uname-p, named guards0.",
+    "No SDK/cloudworker/sealed/fullG5G6 or new research reproduction claim.",
+    "No estimatorfit/model/externalAPI/scientific solver/audit; developer token/cost unknown."
+  ]
+}
