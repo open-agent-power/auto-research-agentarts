@@ -424,16 +424,65 @@ class LocalWorkbench:
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "proposal"))
         _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
                  "INVALID_REQUEST", "An exact saved state version is required.")
+        return self._advance_receipt(body, digest, "advance", evidence=False)
+
+    def _advance_receipt(self, body, digest, command, *, evidence):
+        terminal = {"completed", "failed", "waiting", "needs_review"}
         with self._writer():
             with self._connect() as con:
                 _, project = self._project(con, body["project_id"], active=True)
-                self._no_pending_batch(con, body["project_id"])
+                self._no_pending_batch(con, body["project_id"], evidence=evidence)
                 old = self._old(con, body, digest)
                 if old is None:
-                    self._accept(con, body, digest, "advance", {"project_id": body["project_id"], "request_sha256": digest})
-            # The original core request ID performs all replay, unknown and version checks.
-            return ProjectController(project.root).advance_selection(request_id=body["request_id"], proposal=body["proposal"],
-                                                                     expected_state_version=body["expected_state_version"])
+                    self._accept(con, body, digest, command, {"project_id": body["project_id"], "request_sha256": digest})
+                else:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == command and type(old) is dict and type(old.get("intent")) is dict
+                             and old["intent"].get("project_id") == body["project_id"]
+                             and old["intent"].get("request_sha256") == digest
+                             and type(old.get("status")) is str and old["status"] in terminal | {"preparing", "unknown"},
+                             "WORKBENCH_CHANGED", "The original manager receipt binding changed.")
+                    if old["status"] == "preparing":
+                        _require("result" in old and old["result"] is None,
+                                 "EVIDENCE_CHANGED", "The unfinished manager receipt has a missing or unexpected result.")
+                    else:
+                        saved = old.get("result")
+                        _require(type(saved) is dict and saved.get("schema_version") == "project-controller-advance-v1"
+                                 and saved.get("project_id") == body["project_id"] and saved.get("request_id") == body["request_id"]
+                                 and saved.get("status") == old["status"],
+                                 "EVIDENCE_CHANGED", "The saved manager receipt has an inconsistent core identity or status.")
+            # Always ask the original controller to check and replay its own ID.
+            controller = ProjectController(project.root)
+            if command == "advance":
+                response = controller.advance_selection(request_id=body["request_id"], proposal=body["proposal"],
+                                                        expected_state_version=body["expected_state_version"])
+            else:
+                response = controller.advance_recipe(request_id=body["request_id"], recipe=body["recipe"],
+                                                     expected_state_version=body["expected_state_version"])
+            _require(type(response) is dict and response.get("schema_version") == "project-controller-advance-v1"
+                     and response.get("project_id") == body["project_id"] and response.get("request_id") == body["request_id"]
+                     and type(response.get("status")) is str and response["status"] in terminal | {"unknown"},
+                     "EVIDENCE_CHANGED", "The original controller response is incomplete or belongs to another request.")
+            if response["status"] == "completed":
+                child = (response.get("result") or {}).get("child") if type(response.get("result")) is dict else None
+                _require(type(child) is dict and child.get("status") == "completed"
+                         and type(response.get("child_request_id")) is str and bool(response["child_request_id"])
+                         and child.get("request_id") == response["child_request_id"],
+                         "EVIDENCE_CHANGED", "A completed controller response requires its original completed child.")
+            if old is not None and (old["status"] in terminal or old["status"] == response["status"] == "unknown"):
+                saved = old.get("result")
+                _require(type(saved) is dict and {k: v for k, v in saved.items() if k != "replayed"}
+                         == {k: v for k, v in response.items() if k != "replayed"},
+                         "EVIDENCE_CHANGED", "The saved manager receipt differs from the replayed core response.")
+                return response
+            record = copy.deepcopy(old) if old is not None else {"intent": {"project_id": body["project_id"], "request_sha256": digest}}
+            if old is not None and old["status"] == "unknown" and response["status"] != "unknown":
+                _require("previous_unknown" not in record, "EVIDENCE_CHANGED", "The original unknown receipt history changed.")
+                record["previous_unknown"] = copy.deepcopy(old["result"])
+            record.update(status=response["status"], result=copy.deepcopy(response))
+            with self._connect() as con:
+                self._save(con, body["request_id"], record)
+            return response
 
     def save_plan(self, body):
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "plan", "reason"))
@@ -635,15 +684,7 @@ class LocalWorkbench:
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "recipe"))
         _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
                  "INVALID_REQUEST", "An exact saved state version is required.")
-        with self._writer():
-            with self._connect() as con:
-                _, project = self._project(con, body["project_id"], active=True)
-                self._no_pending_batch(con, body["project_id"], evidence=True)
-                old = self._old(con, body, digest)
-                if old is None:
-                    self._accept(con, body, digest, "advance_recipe", {"project_id": body["project_id"], "request_sha256": digest})
-            return ProjectController(project.root).advance_recipe(request_id=body["request_id"], recipe=body["recipe"],
-                                                                  expected_state_version=body["expected_state_version"])
+        return self._advance_receipt(body, digest, "advance_recipe", evidence=True)
 
     def model_view(self, *, enabled=False):
         with self._connect(readonly=True) as con:
