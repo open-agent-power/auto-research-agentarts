@@ -1,3 +1,7 @@
+## S047原生接续已验，继续S048历史案例
+
+[S047](../execution/SPRINT-047.md)完成Workbench一次授权后的原audit→freeze→final→report接续；原ID/预算、unknown停点及新source pin保持。相关101/101+独审19/19、真实HTTP新进程同ID恢复/全部报告及SQLite字节不变通过。见[精确验证](../execution/g5-local/staged-continuation-verification.json)。报告文件已完成而manager receipt丢失仍停原ID，未自动收敛。继续S048负结果经验适配器（staging独审修复中，尚未接入）。root原lease继续，不以里程碑停止。
+
 ## S046真实研究已完成，持续S047原生接续
 
 [S046](../execution/SPRINT-046.md)已按发布在先的协议和driver4a159a9执行真实SQuAD段落检索：2067段落、100/100/100问题，验证TFIDF Recall20=0.95低于BM25=0.96，按规则保留BM25；最终BM25=0.97，delta0，无候选收益。3/3工具、0model/fit/来源行动，原ID恢复全部36文件不变。精确唯一workspace/source/预算见[原件索引](../execution/g5-local/squad-paragraph-results.json)，原pin不得升级、原研究不得另建。独立证据审查通过；只重算保存数值和二进制hash，不重跑研究。

@@ -449,6 +449,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/recipe-adopt": "adopt_recipe_round",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
                             "/api/local-workbench/continue": "continue_research",
+                            "/api/local-workbench/staged-continue": "continue_staged",
                             "/api/local-workbench/continuation-preview": "preview_continuation",
                             "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume",
                             "/api/local-workbench/model-plan-advance": "model_plan_advance",
@@ -584,6 +585,15 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                         raise ResearchError("INVALID_REQUEST", "Invalid continuation identifier encoding.") from None
                     identifier(request_id)
                     return self.send_json(200, local_workspace.continuation_record(request_id), request_id + ".json")
+                if parsed.path.startswith("/api/local-workbench/staged-continue/") and local_workspace is not None:
+                    _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved staged continuation identifier.")
+                    encoded = parsed.path.removeprefix("/api/local-workbench/staged-continue/")[:-5]
+                    try:
+                        request_id = unquote(encoded, encoding="utf-8", errors="strict")
+                    except UnicodeError:
+                        raise ResearchError("INVALID_REQUEST", "Invalid staged continuation identifier encoding.") from None
+                    identifier(request_id)
+                    return self.send_json(200, local_workspace.staged_continuation_record(request_id), request_id + ".json")
                 project, iteration_snapshot, report = binding()
                 if parsed.path == "/api/project":
                     _require(not parsed.query, "INVALID_QUERY", "Project status does not accept a query.")

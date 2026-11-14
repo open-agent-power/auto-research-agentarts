@@ -27,7 +27,7 @@ def code_identity():
     from . import project_recipe, recipe_improvement
     from . import project_model_protocol
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
-    from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy, saved_retrieval_reader
+    from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy, saved_retrieval_reader, staged_continuation
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
@@ -42,6 +42,7 @@ def code_identity():
                         "hypothesis_feedback": hashlib.sha256(Path(hypothesis_feedback.__file__).read_bytes()).hexdigest(),
                         "feedback_policy": hashlib.sha256(Path(feedback_policy.__file__).read_bytes()).hexdigest(),
                         "saved_retrieval_reader": hashlib.sha256(Path(saved_retrieval_reader.__file__).read_bytes()).hexdigest(),
+                        "staged_continuation": hashlib.sha256(Path(staged_continuation.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})

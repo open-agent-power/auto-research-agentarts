@@ -1,5 +1,7 @@
 # 接口索引
 
+`LocalWorkbench.continue_staged`复用原manager意图、Controller/Project和export，固定审计→冻结→final→报告；POST `/api/local-workbench/staged-continue`、GET同路径`/<request_id>.json`，原预算/ID/unknown/source pin不变。见[合同](../../docs/staged-evaluation-continuation.md)。
+
 分阶段检索新增本机POST `/api/local-workbench/retrieval-holdout` 与 `/api/local-workbench/retrieval-freeze`，分别是有界base64登记和原primary冻结；final继续用原advance候选/预算/ID，见[数据流与字段](../../docs/staged-retrieval-evaluation.md)。
 
 本地操作新增 `/api/local-workbench/hypothesis`、`advance-feedback`、`delegated-response`、`continuation-preview`，沿现有Origin/CSRF/活动项目边界；`continue`明确delegated模式并要求post_action_plan。预览只计算ID，不检查准备状态/未来资格。请求字段和同ID恢复见[预测/持久委派](../../docs/hypothesis-feedback.md)。

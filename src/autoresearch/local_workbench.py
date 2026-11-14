@@ -141,7 +141,7 @@ class LocalWorkbench:
 
     def __getattribute__(self, name):
         # No command is exposed by a read-only manager, even when invoked directly.
-        readers = {"describe", "saved_study_reference", "project_summary", "preview_continuation"}
+        readers = {"describe", "saved_study_reference", "project_summary", "preview_continuation", "staged_continuation_record"}
         if not name.startswith("_") and name not in readers and name not in {"root", "db", "read_only", "open_readonly"}:
             if object.__getattribute__(self, "__dict__").get("read_only", False):
                 raise ResearchError("READ_ONLY", "This workbench was opened read-only.")
@@ -234,7 +234,7 @@ class LocalWorkbench:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]
             active = self._active(con)
             pending = []
-            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged') ORDER BY rowid DESC"):
                 record = tabular._parse(row["record"].encode("utf-8"))
                 if record["status"] not in ("completed", "rejected"):
                     pending.append({"request_id": row["id"], "command": row["command"], "status": record["status"],
@@ -374,6 +374,7 @@ class LocalWorkbench:
                         _require(hashlib.sha256(original).hexdigest() == old["intent"][identity],
                                  "EVIDENCE_CHANGED", "Preserved uploaded original bytes changed.")
                     return response
+                self._no_staged_switch(con, self._active(con))
                 _require(con.execute("SELECT COUNT(*) FROM requests WHERE command IN ('create','import')").fetchone()[0] < MAX_PROJECTS,
                          "PROJECT_LIMIT", "At most 32 project intake intents are allowed in this workbench.")
                 intent = {"slot": digest, "goal": body["goal"], "budget_ref": body["budget_ref"], "max_tool_calls": body["max_tool_calls"],
@@ -413,6 +414,8 @@ class LocalWorkbench:
             old = self._old(con, body, digest)
             if old is not None:
                 return self._completed(old)
+            if self._active(con) != body["project_id"]:
+                self._no_staged_switch(con, self._active(con))
             self._project(con, body["project_id"])
             response = self._response("select", body["request_id"], body["project_id"], status="selected")
             record = self._accept(con, body, digest, "select", {"project_id": body["project_id"]})
@@ -876,9 +879,18 @@ class LocalWorkbench:
         return False
 
     @staticmethod
+    def _no_staged_switch(con, project_id):
+        if project_id is None:
+            return
+        for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
+            record = tabular._parse(row["record"].encode("utf-8"))
+            _require(record.get("status") == "completed" or record.get("intent", {}).get("project_id") != project_id,
+                     "OPERATION_INCOMPLETE", "Reconcile the original staged continuation before switching projects.")
+
+    @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        commands = ("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy")
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy')"))
+        commands = ("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged")
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":
@@ -1527,6 +1539,266 @@ class LocalWorkbench:
             return self._complete_continuation_batch(latest, project, native)
 
     @staticmethod
+    def _check_staged_continuation(record, digest):
+        _require(type(record) is dict and record.get("schema_version") == "local-staged-continuation-v1"
+                 and record.get("status") in {"incomplete", "completed"} and record.get("phase") in {"audit", "freeze", "final", "report", "done"}
+                 and type(record.get("body")) is dict and fingerprint(record["body"]) == digest
+                 and record.get("intent", {}).get("request_sha256") == digest
+                 and record["intent"].get("project_id") == record["body"].get("project_id")
+                 and type(record.get("steps")) is dict
+                 and record.get("record_sha256") == fingerprint({k: v for k, v in record.items() if k != "record_sha256"}),
+                 "EVIDENCE_CHANGED", "The saved staged continuation differs from its original authorization.")
+
+    def staged_continuation_record(self, request_id):
+        identifier(request_id)
+        with self._connect(readonly=True) as con:
+            row = con.execute("SELECT digest,record FROM requests WHERE id=? AND command='continue_staged'", (request_id,)).fetchone()
+            _require(row is not None, "ARTIFACT_NOT_FOUND", "No saved staged continuation matches this ID.")
+            record = tabular._parse(row["record"].encode("utf-8"))
+            self._check_staged_continuation(record, row["digest"])
+        return copy.deepcopy(record)
+
+    def _save_staged_continuation(self, record):
+        record["record_sha256"] = fingerprint({k: v for k, v in record.items() if k != "record_sha256"})
+        _require(len(canonical(record).encode("utf-8")) <= 2 * 1024 * 1024,
+                 "WORKBENCH_TOO_LARGE", "Staged continuation metadata exceeds its bound.")
+        with self._connect() as con:
+            self._save(con, record["body"]["request_id"], record)
+
+    def _stop_staged_continuation(self, record, code, reason):
+        record["status"] = "incomplete"
+        record["stop"] = {"code": code, "reason": reason, "resume_allowed": True}
+        self._save_staged_continuation(record)
+        return copy.deepcopy(record)
+
+    def _verify_completed_staged(self, record, project, digest):
+        from . import staged_continuation as staged
+        _require(record["phase"] == "done" and type(record.get("result")) is dict
+                 and record["result"].get("status") == "completed"
+                 and set(record["steps"]) == {"audit", "freeze", "final", "report"}
+                 and all(record["steps"][key].get("status") == "completed" for key in ("audit", "freeze", "final", "report")),
+                 "EVIDENCE_CHANGED", "The completed staged receipt is incomplete.")
+        state = project.status()
+        _require(record["intent"]["helper_code_identity"] == staged.code_identity()
+                 and record["intent"]["batch_code_identity"] == batch_code_identity()
+                 and record["intent"]["controller_code_identity"] == project_controller.code_identity(),
+                 "CODE_CHANGED", "Use the original staged continuation implementation.")
+        report_step, body = record["steps"]["report"], record["body"]
+        report_body = {"request_id": "staged-" + digest[:32] + "-report", "project_id": body["project_id"],
+                       "expected_state_version": state["state_version"]}
+        _require(report_step.get("body") == report_body and report_step.get("snapshot_ref_before") == state["snapshot_ref"]
+                 and record["result"].get("report_request_id") == report_body["request_id"]
+                 and record["result"].get("manifest") == report_step.get("manifest"),
+                 "EVIDENCE_CHANGED", "The completed report binding differs from the original project.")
+        inspection = staged.inspect(project, state, body["primary_action_id"])
+        _require(not inspection["blockers"] and all(record["steps"][key].get("reference") == inspection[key] for key in ("audit", "freeze", "final")),
+                 "EVIDENCE_CHANGED", "The original completed staged evidence changed.")
+        manifest = self._verify_report(fingerprint(report_body), report_step["manifest"])
+        _require(manifest.get("project_id") == body["project_id"] and manifest.get("project_snapshot_ref") == state["snapshot_ref"]
+                 and host_model_report_current(project.root, manifest), "EVIDENCE_CHANGED", "The original report or host evidence changed.")
+
+    def _verify_staged_report_ready(self, record, project):
+        from . import staged_continuation as staged
+        state, intent = project.status(), record["intent"]
+        _require(state["id"] == intent["project_id"] and state["run_id"] == intent["run_id"]
+                 and state["source_snapshot_sha256"] == intent["source_snapshot_sha256"]
+                 and state["snapshot_ref"] == record["cursor_snapshot_ref"]
+                 and state["code_identity"] == intent["project_code_identity"]
+                 and project_controller.code_identity() == intent["controller_code_identity"]
+                 and batch_code_identity() == intent["batch_code_identity"] and staged.code_identity() == intent["helper_code_identity"],
+                 "EVIDENCE_CHANGED", "The original staged project, cursor or implementation changed.")
+        self._continuation_host_gate(HostModelSelection(project.root), state)
+        inspection = staged.inspect(project, state, record["body"]["primary_action_id"])
+        _require(not inspection["blockers"] and all(record["steps"].get(key, {}).get("status") == "completed"
+                 and record["steps"][key].get("reference") == inspection[key] for key in ("audit", "freeze", "final")),
+                 "EVIDENCE_CHANGED", "Original completed stages changed before the report.")
+        return state
+
+    def continue_staged(self, body):
+        from . import staged_continuation as staged
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "primary_action_id", "reason"))
+        identifier(body["primary_action_id"], "primary_action_id")
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
+                 and _text(body["reason"], 4000), "INVALID_REQUEST", "Use an exact version, primary action and bounded authorization reason.")
+        ids = {phase: "staged-" + digest[:32] + "-" + phase for phase in ("audit", "freeze", "final", "report")}
+        with self._writer():
+            with self._connect() as con:
+                old = self._old(con, body, digest)
+                _, project = self._project(con, body["project_id"], active=old is None or old["status"] != "completed")
+                if old is not None:
+                    self._check_staged_continuation(old, digest)
+                    if old["status"] == "completed":
+                        self._verify_completed_staged(old, project, digest)
+                        return copy.deepcopy(old)
+                self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
+                if old is None:
+                    state = project.status()
+                    project._require_fresh(state, state, body["expected_state_version"])
+                    self._continuation_host_gate(HostModelSelection(project.root), state)
+                    for row in con.execute("SELECT record FROM requests WHERE command='export'"):
+                        existing = tabular._parse(row["record"].encode("utf-8"))
+                        _require(existing.get("status") == "completed" or existing.get("intent", {}).get("project_id") != body["project_id"],
+                                 "OPERATION_INCOMPLETE", "Resolve the original unfinished report before continuing.")
+                    inspection = staged.inspect(project, state, body["primary_action_id"])
+                    if inspection["blockers"]:
+                        blocker = inspection["blockers"][0]
+                        raise ResearchError(blocker["code"], blocker["reason"])
+                    _require(inspection["required_tool_calls"] <= 2 and inspection["required_tool_calls"] <= inspection["available_tool_calls"],
+                             "BUDGET_EXHAUSTED", "The existing project budget cannot cover the missing authorized stages.")
+                    _require(body["request_id"] not in ids.values(), "IDEMPOTENCY_CONFLICT", "The parent and stage IDs must differ.")
+                    project._require_unclaimed(state, body["request_id"])
+                    with project._connect(readonly=True) as project_con:
+                        _require(project._action(project_con, body["request_id"]) is None, "IDEMPOTENCY_CONFLICT", "The parent ID is already an action.")
+                    for phase, child_id in ids.items():
+                        _require(con.execute("SELECT 1 FROM requests WHERE id=?", (child_id,)).fetchone() is None,
+                                 "IDEMPOTENCY_CONFLICT", "A derived stage ID is already a manager request.")
+                        project._require_unclaimed(state, child_id)
+                        with project._connect(readonly=True) as project_con:
+                            _require(project._action(project_con, child_id) is None, "IDEMPOTENCY_CONFLICT", "A derived stage ID is already an action.")
+                            if phase in {"audit", "final"}:
+                                controller_child = "controller-child-" + fingerprint({"project_id": state["id"], "request_id": child_id})[:32]
+                                project._require_unclaimed(state, controller_child)
+                                _require(project._action(project_con, controller_child) is None,
+                                         "IDEMPOTENCY_CONFLICT", "A derived controller child ID is already an action.")
+                    intent = {"project_id": state["id"], "run_id": state["run_id"], "request_sha256": digest,
+                              "source_snapshot_sha256": state["source_snapshot_sha256"], "project_code_identity": state["code_identity"],
+                              "controller_code_identity": project_controller.code_identity(), "batch_code_identity": batch_code_identity(),
+                              "helper_code_identity": staged.code_identity(), "initial_snapshot_ref": state["snapshot_ref"]}
+                    record = self._accept(con, body, digest, "continue_staged", intent)
+                    record.update(schema_version="local-staged-continuation-v1", status="incomplete", body=copy.deepcopy(body),
+                                  phase="audit", steps={}, cursor_snapshot_ref=state["snapshot_ref"], stop=None, result=None)
+                    record["record_sha256"] = fingerprint({k: v for k, v in record.items() if k != "record_sha256"})
+                    self._save(con, body["request_id"], record)
+                else:
+                    record = old
+            try:
+                while record["phase"] != "report":
+                    state = project.status()
+                    intent = record["intent"]
+                    _require(state["id"] == intent["project_id"] and state["run_id"] == intent["run_id"]
+                             and state["source_snapshot_sha256"] == intent["source_snapshot_sha256"]
+                             and state["code_identity"] == intent["project_code_identity"]
+                             and project_controller.code_identity() == intent["controller_code_identity"]
+                             and batch_code_identity() == intent["batch_code_identity"] and staged.code_identity() == intent["helper_code_identity"],
+                             "CODE_CHANGED", "Resume the original continuation with its original project and implementation.")
+                    self._continuation_host_gate(HostModelSelection(project.root), state)
+                    inspection = staged.inspect(project, state, body["primary_action_id"])
+                    if inspection["blockers"]:
+                        blocker = inspection["blockers"][0]
+                        raise ResearchError(blocker["code"], blocker["reason"])
+                    phase = record["phase"]
+                    ref = inspection[phase]
+                    entry = record["steps"].get(phase)
+                    if ref is not None:
+                        _require(ref.get("status", "completed") == "completed", "EXECUTION_UNKNOWN", "The original stage is not completed.")
+                        if entry is not None:
+                            _require(entry["status"] == "completed" or
+                                     (ref["request_id"] == ids[phase] if phase == "freeze" else ref["parent_request_id"] == ids[phase]),
+                                     "EVIDENCE_CHANGED", "The completed stage does not match its frozen request.")
+                            if entry["status"] == "completed":
+                                _require(entry["reference"] == ref, "EVIDENCE_CHANGED", "The original completed stage changed.")
+                            else:
+                                saved_body = entry["body"]
+                                if phase == "freeze":
+                                    _require(ref["state_version_before"] == saved_body["expected_state_version"]
+                                             and state["state_version"] == saved_body["expected_state_version"] + 1,
+                                             "EVIDENCE_CHANGED", "The frozen strategy does not match its original version.")
+                                else:
+                                    parent = ProjectController._parent(state, ids[phase])
+                                    expected_request = {"project_id": state["id"], "command": "controller.advance_selection",
+                                                        "need": "next_check", "expected_state_version": saved_body["expected_state_version"],
+                                                        "proposal": saved_body["proposal"]}
+                                    _require(parent is not None and parent["request"] == expected_request
+                                             and parent["request_sha256"] == fingerprint(expected_request)
+                                             and parent["snapshot_ref_before"] == entry["snapshot_ref_before"]
+                                             and parent["state_version_before"] == saved_body["expected_state_version"]
+                                             and parent["state_version_after"] == state["state_version"],
+                                             "EVIDENCE_CHANGED", "The controller result differs from the frozen original stage.")
+                        else:
+                            _require(state["snapshot_ref"] == record["cursor_snapshot_ref"], "STALE_STATE", "Project changed outside this continuation.")
+                            entry = {"status": "completed", "reused": True, "reference": copy.deepcopy(ref)}
+                            record["steps"][phase] = entry
+                        entry.update(status="completed", reference=copy.deepcopy(ref))
+                        record["cursor_snapshot_ref"] = state["snapshot_ref"]
+                        record["phase"] = {"audit": "freeze", "freeze": "final", "final": "report"}[phase]
+                        record["stop"] = None
+                        self._save_staged_continuation(record)
+                        continue
+                    if entry is None:
+                        _require(state["snapshot_ref"] == record["cursor_snapshot_ref"], "STALE_STATE", "Project changed before the original stage was frozen.")
+                        if phase == "freeze":
+                            stage_body = {"request_id": ids[phase], "expected_state_version": state["state_version"],
+                                          "primary_action_id": body["primary_action_id"]}
+                        else:
+                            context = ProjectController(project.root).selection_context()
+                            method = "research.relevance-validation-saved-audit" if phase == "audit" else "research.relevance-final-evaluation"
+                            proposal = staged.selection_proposal(context, method, inspection["primary"])
+                            stage_body = {"request_id": ids[phase], "expected_state_version": state["state_version"], "proposal": proposal}
+                        entry = {"status": "prepared", "reused": False, "body": stage_body, "snapshot_ref_before": state["snapshot_ref"]}
+                        record["steps"][phase] = entry
+                        self._save_staged_continuation(record)
+                    _require(entry["status"] == "prepared" and state["snapshot_ref"] == entry["snapshot_ref_before"],
+                             "STALE_STATE", "The original undispatched stage changed; no replacement will be prepared.")
+                    if phase == "freeze":
+                        expected_body = {"request_id": ids[phase], "expected_state_version": state["state_version"],
+                                         "primary_action_id": body["primary_action_id"]}
+                        _require(entry["body"] == expected_body, "EVIDENCE_CHANGED", "The original freeze body changed.")
+                        project.freeze_retrieval_strategy(**entry["body"])
+                    else:
+                        method = "research.relevance-validation-saved-audit" if phase == "audit" else "research.relevance-final-evaluation"
+                        context = ProjectController(project.root).selection_context()
+                        expected_body = {"request_id": ids[phase], "expected_state_version": state["state_version"],
+                                         "proposal": staged.selection_proposal(context, method, inspection["primary"])}
+                        _require(entry["body"] == expected_body, "EVIDENCE_CHANGED", "The original selection body changed.")
+                        parent = ProjectController._parent(state, ids[phase])
+                        _require(parent is None, "EXECUTION_UNKNOWN", "Reconcile the original controller request; do not dispatch it again.")
+                        ProjectController(project.root).advance_selection(**entry["body"])
+                    # Re-read and verify the actual original parent/child or freeze before advancing.
+                state = self._verify_staged_report_ready(record, project)
+                if "report" not in record["steps"]:
+                    record["steps"]["report"] = {"status": "prepared", "body": {"request_id": ids["report"], "project_id": body["project_id"],
+                                                   "expected_state_version": state["state_version"]}, "snapshot_ref_before": state["snapshot_ref"]}
+                    self._save_staged_continuation(record)
+                report_body = copy.deepcopy(record["steps"]["report"]["body"])
+                _require(report_body == {"request_id": ids["report"], "project_id": body["project_id"],
+                                         "expected_state_version": state["state_version"]}
+                         and record["steps"]["report"]["snapshot_ref_before"] == state["snapshot_ref"],
+                         "EVIDENCE_CHANGED", "The original report body or snapshot changed.")
+            except ResearchError as error:
+                return self._stop_staged_continuation(record, error.code, str(error))
+            except Exception as error:
+                return self._stop_staged_continuation(record, getattr(error, "code", "STAGED_INTERRUPTED"),
+                    "Inspect the original stage and request; no replacement was created.")
+        # Report uses the existing manager export and the original frozen child ID.
+        try:
+            report = self._export(report_body, staged_parent=body["request_id"])
+        except Exception as error:
+            with self._writer():
+                with self._connect(readonly=True) as con:
+                    latest = self._old(con, body, digest)
+                self._check_staged_continuation(latest, digest)
+                if latest["status"] == "completed":
+                    return copy.deepcopy(latest)
+                return self._stop_staged_continuation(latest, getattr(error, "code", "REPORT_INTERRUPTED"),
+                    "Inspect the original report request and directory; no replacement was created.")
+        with self._writer():
+            with self._connect(readonly=True) as con:
+                latest = self._old(con, body, digest)
+                _, project = self._project(con, body["project_id"], active=True)
+            self._check_staged_continuation(latest, digest)
+            if latest["status"] == "completed":
+                return copy.deepcopy(latest)
+            _require(latest["phase"] == "report" and latest["steps"]["report"]["body"] == report_body
+                     and project.status()["snapshot_ref"] == latest["steps"]["report"]["snapshot_ref_before"]
+                     and host_model_report_current(project.root, report["manifest"]),
+                     "EVIDENCE_CHANGED", "The original staged report or project changed.")
+            latest["steps"]["report"].update(status="completed", manifest=copy.deepcopy(report["manifest"]))
+            latest.update(status="completed", phase="done", stop=None,
+                          result={"status": "completed", "report_request_id": report_body["request_id"], "manifest": copy.deepcopy(report["manifest"])})
+            self._save_staged_continuation(latest)
+            return copy.deepcopy(latest)
+
+    @staticmethod
     def _evidence_upload(body):
         submitted = body["sources"]
         _require(type(submitted) is list and 1 <= len(submitted) <= 8, "INVALID_BUNDLE", "Upload one to eight evidence originals.")
@@ -1680,12 +1952,30 @@ class LocalWorkbench:
             raise ResearchError("EVIDENCE_CHANGED", "Saved report is incomplete or changed.") from None
 
     def export(self, body):
+        return self._export(body)
+
+    def _export(self, body, *, staged_parent=None):
         digest = _body(body, ("request_id", "project_id", "expected_state_version"))
         _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
                  "INVALID_REQUEST", "An exact saved state version is required.")
         with self._writer():
             with self._connect() as con:
                 _, project = self._project(con, body["project_id"], active=True)
+                if staged_parent is not None:
+                    row = con.execute("SELECT digest,record FROM requests WHERE id=? AND command='continue_staged'", (staged_parent,)).fetchone()
+                    _require(row is not None, "EVIDENCE_CHANGED", "The original staged authorization is unavailable.")
+                    staged = tabular._parse(row["record"].encode("utf-8"))
+                    self._check_staged_continuation(staged, row["digest"])
+                    state = self._verify_staged_report_ready(staged, project)
+                    _require(staged["status"] == "incomplete" and staged["phase"] == "report"
+                             and staged["body"]["project_id"] == body["project_id"]
+                             and staged["steps"].get("report", {}).get("body") == body
+                             and body == {"request_id": "staged-" + row["digest"][:32] + "-report",
+                                         "project_id": staged["body"]["project_id"],
+                                         "expected_state_version": state["state_version"]}
+                             and staged["steps"]["report"].get("snapshot_ref_before") == state["snapshot_ref"],
+                             "EVIDENCE_CHANGED", "Report request differs from the frozen staged authorization.")
+                self._no_pending_batch(con, body["project_id"], staged_parent, evidence=True)
                 old = self._old(con, body, digest)
                 if old is not None:
                     response = self._completed(old)
