@@ -1,0 +1,398 @@
+{
+  "schema_version": "scheduling-policy-transfer-protocol-v1",
+  "status": "protocol_definition_requires_code_and_input_reviews_before_execution",
+  "study_id": "g5-scheduling-threshold-transfer-v1",
+  "main_repository": "/workspace/auto-research-agentarts",
+  "output_relative": "runs/g5-scheduling-threshold-transfer-20261114-01",
+  "global_ledger_relative": ".agent/study-claims/scheduling-threshold-transfer.sqlite",
+  "reviews_relative": ".agent/study-reviews/g5-scheduling-threshold-transfer-v1",
+  "requests": {
+    "prepare": "prepare-g5-scheduling-threshold-transfer-v1",
+    "primary": "primary-g5-scheduling-threshold-transfer-v1",
+    "audit": "audit-g5-scheduling-threshold-transfer-v1"
+  },
+  "scope": "new bounded trusted-local synthetic CPU algorithm study; standalone three-arm harness, not an extension or replay of the old two-arm native adapter",
+  "source_basis": {
+    "old_source_commit": "8e8a206ed0b71479a6e774e36ed91fdb06e21c22",
+    "old_source_project_id": "project-148dac5d531144008498449cb16a54ea",
+    "old_source_primary_action": "action-60d069e0125cdd173de796b10ab8f17f",
+    "old_source_producer": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+    "old_result_sha256": "4eeda3def5e6002a39ed20fcd5208b086cdd78202c646bca1014c5ce427c6490",
+    "source_counterevidence": "n32seed102 binary slower0.839691x; another n32seed101 binary faster2.339x, each a single timer; threshold is posthoc hypothesis, not an identified crossover",
+    "source_informed_rule_choices": 1
+  },
+  "policy": {
+    "id": "source-small-n-scan-v1",
+    "threshold": 32,
+    "if_n_le_threshold": "quadratic_scan_dp",
+    "otherwise": "binary_search_dp",
+    "allowed_arm_ids": [
+      "fixed_binary",
+      "fixed_scan",
+      "threshold32"
+    ],
+    "controls": {
+      "fixed_binary": "binary_search_dp",
+      "fixed_scan": "quadratic_scan_dp"
+    },
+    "candidate_changes_after_target_input_or_scores": false
+  },
+  "cases_in_generation_and_primary_order": [
+    {
+      "id": "correct-n8-seed601",
+      "phase": "correctness",
+      "n": 8,
+      "seed": 601
+    },
+    {
+      "id": "correct-n12-seed601",
+      "phase": "correctness",
+      "n": 12,
+      "seed": 601
+    },
+    {
+      "id": "perf-n16-seed601",
+      "phase": "performance",
+      "n": 16,
+      "seed": 601
+    },
+    {
+      "id": "perf-n16-seed602",
+      "phase": "performance",
+      "n": 16,
+      "seed": 602
+    },
+    {
+      "id": "perf-n16-seed603",
+      "phase": "performance",
+      "n": 16,
+      "seed": 603
+    },
+    {
+      "id": "perf-n24-seed601",
+      "phase": "performance",
+      "n": 24,
+      "seed": 601
+    },
+    {
+      "id": "perf-n24-seed602",
+      "phase": "performance",
+      "n": 24,
+      "seed": 602
+    },
+    {
+      "id": "perf-n24-seed603",
+      "phase": "performance",
+      "n": 24,
+      "seed": 603
+    },
+    {
+      "id": "perf-n31-seed601",
+      "phase": "performance",
+      "n": 31,
+      "seed": 601
+    },
+    {
+      "id": "perf-n31-seed602",
+      "phase": "performance",
+      "n": 31,
+      "seed": 602
+    },
+    {
+      "id": "perf-n31-seed603",
+      "phase": "performance",
+      "n": 31,
+      "seed": 603
+    },
+    {
+      "id": "perf-n32-seed601",
+      "phase": "performance",
+      "n": 32,
+      "seed": 601
+    },
+    {
+      "id": "perf-n32-seed602",
+      "phase": "performance",
+      "n": 32,
+      "seed": 602
+    },
+    {
+      "id": "perf-n32-seed603",
+      "phase": "performance",
+      "n": 32,
+      "seed": 603
+    },
+    {
+      "id": "perf-n33-seed601",
+      "phase": "performance",
+      "n": 33,
+      "seed": 601
+    },
+    {
+      "id": "perf-n33-seed602",
+      "phase": "performance",
+      "n": 33,
+      "seed": 602
+    },
+    {
+      "id": "perf-n33-seed603",
+      "phase": "performance",
+      "n": 33,
+      "seed": 603
+    },
+    {
+      "id": "perf-n34-seed601",
+      "phase": "performance",
+      "n": 34,
+      "seed": 601
+    },
+    {
+      "id": "perf-n34-seed602",
+      "phase": "performance",
+      "n": 34,
+      "seed": 602
+    },
+    {
+      "id": "perf-n34-seed603",
+      "phase": "performance",
+      "n": 34,
+      "seed": 603
+    },
+    {
+      "id": "perf-n64-seed601",
+      "phase": "performance",
+      "n": 64,
+      "seed": 601
+    },
+    {
+      "id": "perf-n64-seed602",
+      "phase": "performance",
+      "n": 64,
+      "seed": 602
+    },
+    {
+      "id": "perf-n64-seed603",
+      "phase": "performance",
+      "n": 64,
+      "seed": 603
+    },
+    {
+      "id": "perf-n128-seed601",
+      "phase": "performance",
+      "n": 128,
+      "seed": 601
+    },
+    {
+      "id": "perf-n128-seed602",
+      "phase": "performance",
+      "n": 128,
+      "seed": 602
+    },
+    {
+      "id": "perf-n128-seed603",
+      "phase": "performance",
+      "n": 128,
+      "seed": 603
+    },
+    {
+      "id": "perf-n512-seed601",
+      "phase": "performance",
+      "n": 512,
+      "seed": 601
+    },
+    {
+      "id": "perf-n512-seed602",
+      "phase": "performance",
+      "n": 512,
+      "seed": 602
+    },
+    {
+      "id": "perf-n512-seed603",
+      "phase": "performance",
+      "n": 512,
+      "seed": 603
+    }
+  ],
+  "host_generator": {
+    "implementation": "autoresearch.scheduling_kernel.jobs_for(seed,n)",
+    "seed_formula": "random.Random(seed*100000+n)",
+    "new_calls_max": 29,
+    "new_jobs_total": 2642,
+    "generator_is_not_a_model_service": true,
+    "input_generation_phase_requires_setup_review_and_claim": true
+  },
+  "measurement": {
+    "performance_cases": 27,
+    "correctness_cases": 2,
+    "warmup_arm_orders": [
+      [
+        "fixed_binary",
+        "fixed_scan",
+        "threshold32"
+      ],
+      [
+        "threshold32",
+        "fixed_scan",
+        "fixed_binary"
+      ]
+    ],
+    "timed_arm_permutations_per_block": [
+      [
+        "fixed_binary",
+        "fixed_scan",
+        "threshold32"
+      ],
+      [
+        "fixed_binary",
+        "threshold32",
+        "fixed_scan"
+      ],
+      [
+        "fixed_scan",
+        "fixed_binary",
+        "threshold32"
+      ],
+      [
+        "fixed_scan",
+        "threshold32",
+        "fixed_binary"
+      ],
+      [
+        "threshold32",
+        "fixed_binary",
+        "fixed_scan"
+      ],
+      [
+        "threshold32",
+        "fixed_scan",
+        "fixed_binary"
+      ]
+    ],
+    "identical_ordered_blocks": 2,
+    "timed_repetitions_each_arm_case": 12,
+    "common_timing_boundary": "same wrapper includes arm dispatch and native scheduling, excluding reservation, IO, feasibility, oracle and aggregation",
+    "clock": "time.perf_counter_ns",
+    "zero_or_nonfinite": "preserve every raw run; timing_interpretable=false and no ratio for affected case, no rerun or deletion",
+    "case_n_over32": "policy and fixedbinary use same native method; timing differences include dispatch/noise, not algorithmic novelty",
+    "timer_noise_policy": "no trimming, best-of, adaptive repetition, reseeding or threshold selection"
+  },
+  "primary_endpoint": {
+    "case_filter": "phase=performance and n<=32",
+    "case_count": 12,
+    "per_case": "median(threshold32 elapsed_ns)/median(fixed_binary elapsed_ns)",
+    "portfolio": "equal-case median of all12per-case ratios",
+    "lower_than1": "conditional policy faster in this finite same-host comparison only",
+    "invalid_case": "endpoint uninterpretable; do not drop or replace cases",
+    "not_a_claim": "not significance, causal memory gain, generalization, new algorithm discovery or automatic promotion"
+  },
+  "budget": {
+    "generation": 29,
+    "kernel_warmup": 162,
+    "kernel_timed": 972,
+    "kernel_correctness": 6,
+    "kernel_total": 1140,
+    "fenwick": 29,
+    "brute": 2,
+    "exhaustive_subsets": 4352,
+    "scan_comparisons": 6080234,
+    "primary_attempts": 1,
+    "saved_audit_attempts": 1,
+    "maximum_elapsed_seconds": 120,
+    "research_concurrency": 1,
+    "estimator_fits": 0,
+    "model_sends": 0,
+    "external_API": 0,
+    "source_extraction": 0
+  },
+  "correctness": {
+    "oracle": "exact frozen independent Fenwick source segment",
+    "old_oracle_file": "work/native-cpu-source-8e8a206/scripts/verify_native_cpu_cases.py",
+    "old_oracle_file_sha256": "ba82a2afe5e765ccf02ac12765cbfb6f2213a0b815f6d0f4f12e539176cf2f0d",
+    "oracle_function_sha256": "ed8da57ef6eca1061e513fc328e2c5c95084ef599099ca401808fc841bd504a9",
+    "oracle_function_source_bytes": 620,
+    "old_kernel_sha256": "3a335e102279ce9e6a7a8861a3f203670fccfbfb3ea3d2941f8b9406ea92e401",
+    "all_saved_runs": "unique IDs, positive durations, feasible selected jobs, correct weight sum and native(end,start,id) order; all3arms objective and full schedule agree",
+    "oracle_once_per_case": "independent objective equality only, no independent tie schedule claim",
+    "brute_small_cases_only": [
+      8,
+      12
+    ]
+  },
+  "freeze_stages": [
+    "immutable protocol+code/runtime/budget+fixed request IDs independently reviewed as generate_only",
+    "global uniqueclaim persisted before first generator reservation",
+    "29generator calls each reserved before and receipt after; missing receipt unknown, never reexecute",
+    "immutable complete input manifest and SHA plus shared claim independently reviewed",
+    "one primary acceptance and percall reservations for oracle,brute,warm,timed,correct; same-request resume only future unreserved operations",
+    "one saved-only audit with no generator/kernel/oracle/brute execution"
+  ],
+  "review_contract": {
+    "common_fields": [
+      "schema_version",
+      "status",
+      "reviewer",
+      "study_id",
+      "request_id",
+      "protocol_sha256",
+      "code_commit",
+      "output_root",
+      "budget_sha256",
+      "source_fingerprints",
+      "runtime",
+      "allowed_phase",
+      "limitations"
+    ],
+    "setup_schema": "scheduling-policy-setup-review-v1",
+    "setup_phase": "generate_only",
+    "input_schema": "scheduling-policy-input-review-v1",
+    "input_phase": "primary_and_saved_audit",
+    "input_extra_fields": [
+      "inputs_sha256",
+      "shared_claim_sha256"
+    ],
+    "status": "approved",
+    "receipts_are_trusted_local_review_records_not_cryptographic_signatures": true
+  },
+  "source_files": [
+    "src/autoresearch/contracts.py",
+    "src/autoresearch/bounded_study_ledger.py",
+    "src/autoresearch/scheduling_threshold_policy.py",
+    "src/autoresearch/scheduling_kernel.py",
+    "scripts/run_scheduling_policy_transfer.py",
+    "scripts/verify_scheduling_policy_transfer.py",
+    "docs/execution/g5-local/scheduling-threshold-transfer-protocol.json"
+  ],
+  "protected": {
+    "manifest": "/workspace/auto-research-agentarts/runs/sprint-014-setup-20261114/protected-before.json",
+    "manifest_sha256": "18538a055da3db3258581c501d243ed1a0c57195ef7e8ccf7929db3e65ddc0aa",
+    "old_paths": "/workspace/auto-research-agentarts/runs/sprint-014-setup-20261114/old-path-sets-before.json",
+    "old_paths_sha256": "18daffd2a5b08cd80dd906c5772e15a1ee719241c928ae2bf491ba98023516ca",
+    "old_case_and_claims_immutable": true,
+    "file_count": 574
+  },
+  "standalone_budget_notice": "attempt/generator/solver counters are this new study journal; no claim old ResearchProject tool ledger is extended or replenished",
+  "failures_and_recovery": {
+    "completed_same_op": "read original immutable receipt only",
+    "pending_missing_receipt": "unknown stop globally; no callback rerun, new ID/output/code or budget reset",
+    "known_failed_call": "charged, keep failure stop, no retry",
+    "input_runtime_code_or_budget_change": "reject without execution",
+    "partial_or_torn_evidence": "preserve and report, no reset/clean/overwrite"
+  },
+  "limitations": [
+    "Trustedlocal cooperative lease and source hashes, not OS/sealed isolation",
+    "Source hypothesis based on one slowdown with opposite same-n source result",
+    "Singlehost frequency/cache/order/timer overhead, no broad statistical or causal claim",
+    "Synthetic workloads and known DP algorithms, not scientific dataset or newalgorithm discovery",
+    "Third-arm research is standalone; old native2arm framework/runtime not falsely marked complete",
+    "Old studies/50fits/all raw and negative results/pins/budgets kept unchanged"
+  ],
+  "elapsed_budget_policy": {
+    "maximum_active_seconds_total": 120,
+    "prepare": "Persist monotonic start and Linux boot identity; completed input sealing records elapsed including phase bookkeeping/generation/IO.",
+    "input_review_wait": "excluded after sealed prepare completion and before first primary acceptance",
+    "primary": "Persist deadline once at first acceptance: monotonic now +120seconds minus completed prepare elapsed; same-boot resume uses original deadline, no reset.",
+    "past_deadline": "metadata-only read/replay allowed, no new callback; primary pause counts within original deadline",
+    "clock_or_boot_unknown_changed_backwards": "fail closed, keep partial, no new IDs/directories or budget migration",
+    "enforcement": "cooperative local percall checks plus external process timeout; not OS isolation"
+  }
+}
