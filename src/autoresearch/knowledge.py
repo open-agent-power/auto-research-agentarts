@@ -126,6 +126,21 @@ def _query_tokens(query):
     for word, alias in _ALIASES.items():
         if word in query and alias not in result:
             result.append(alias)
+    # FTS treats letters and digits as one token, so preserve the original
+    # terms while also trying adjacent identifier spellings as a phrase or a
+    # single token. Do not join across punctuation or other word characters.
+    normalized = unicodedata.normalize("NFKC", query).lower()
+    aliases = []
+    for match in re.finditer(r"(?<!\w)[a-z0-9]+(?!\w)", normalized):
+        token = match.group()
+        split = re.sub(r"(?<=[a-z])(?=[0-9])|(?<=[0-9])(?=[a-z])", " ", token)
+        if split != token:
+            aliases.append(split)
+    for match in re.finditer(r"(?=(?<!\w)([a-z]+ +[0-9]+|[0-9]+ +[a-z]+)(?!\w))", normalized):
+        aliases.append(match.group(1).replace(" ", ""))
+    for alias in aliases:
+        if alias not in result:
+            result.append(alias)
     return result[:64]
 
 
