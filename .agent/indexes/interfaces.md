@@ -179,3 +179,5 @@ S028沿既有advance/advance_recipe body与响应，不增新POST或自动恢复
 S030在project-summary原controller子项增加request_handoff，固定GET不变；原body仅canonical语义与双用途摘要验证，非原wirebytes/执行许可，缺失或错配无body。S031最新安装不改变旧原案。[字段与精确边界](../../docs/execution/SPRINT-030.md)。
 
 S032直接project-selection-proposal-v1可选experience_case_refs（最多4唯一case_id/case_version/bundle_sha256）；Controller原接口不增权限，结果view/report留原association。Host/local-model/recipe当前仍旧wire，不称模型可生成。[边界](../../docs/experience-decision-citations.md)。
+
+S033新context带selection_capabilities={experience_case_refs:v1}时Host/native selection消息可选相同引用；省略仍旧三字段，不靠响应猜版本，旧无marker消息byte同、plan/recipe不变。只是协议能力，实际模型输出未验证。[范围](../../docs/execution/SPRINT-033.md)。

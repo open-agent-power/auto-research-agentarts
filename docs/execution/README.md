@@ -147,3 +147,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint032：研究决定的历史经验引用
 
 [S032](SPRINT-032.md)直接proposal精确引用已绑定active案例，保存至原Controller决策/view/reportJSON；原双包+隔离工程47checks与独审通过，不加候选/额度或声称收益。当前模型/recipewire未扩，S033继续能力标记协议接线，0真实模型/API约束保持。
+
+
+## Sprint033：模型消息经验引用与真实执行缺口
+
+[S033](SPRINT-033.md)新增context能力版本，Host/native可选经验ref且旧wirebyte同，合成journal和跨pin门禁通过，0真实模型研究。[Linux运行时审计](g0/model-runtime-readiness.json)表明当前产品模型执行链仍未接通；下一待授权小工程试跑使用宿主delegated而非冒称native runtime，固定额度与保护须先可审。

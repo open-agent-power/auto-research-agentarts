@@ -7,3 +7,5 @@
 Controller将原引用保存到selection_ref，历史selection view核对它与原proposal/冻结context一致，报告JSON保留对应原association。新请求不能使用退休前旧context；已接受的原ID同内容重放继续使用原冻结记录，不根据今天状态改历史。
 
 本阶段只有直接human/external proposal入口支持。内置Host/local-model及recipe仍保留旧格式，不能据此声称它们会主动引用经验。真实工程验证使用两个原CPU经验包、一个新隔离合成目标，等待决策、报告序列化、退休/重放和非法引用47检查通过；工具上限1但实际0调用，fit/model上限0。它证明来源可核对，不证明自主研究或记忆因果收益。[完整S032验收](execution/g5-local/experience-case-citation-verification.json)。旧sourcepins/科学预算和原case不改变；已安装source de20/wheel33287不含此新增接口。
+
+后续[S033](execution/SPRINT-033.md)增加按新context能力标记选择的Host/local-model可选引用消息，旧无标记协议字节保持；recipe未扩。已有模拟日志证明接线，未证明真实模型生成引用。跨源码pending保留原身份门禁，须按原pin恢复，不能把格式兼容当作执行兼容。[当前运行时缺口](model-research-readiness.md)。

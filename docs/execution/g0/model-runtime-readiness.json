@@ -1,0 +1,55 @@
+{
+  "schema_version": "model-research-runtime-readiness-v1",
+  "scope": "Read-only source/files and3CLIversion/help processes. No intentionally invoked research/modelprompt/login/inference/providerAPI; metadata implicitnetwork unmonitored unknown.",
+  "runtime_audit": {
+    "path": "runs/model-research-readiness-20261114/implementation.json",
+    "bytes": 4458,
+    "sha256": "f95ba93231586fc309083034eb00e3270cc31eb46bb28c5e92841dd61b202311"
+  },
+  "runtime_findings": {
+    "path": "runs/model-research-readiness-20261114/implementation.md",
+    "bytes": 8370,
+    "sha256": "78887645d43e5d2bab4da3c4a08d13af6cf42b218527db61e48715caef85339b"
+  },
+  "codex_help_receipt": {
+    "path": "runs/linux-model-adapter-prep-20261114/implementation/receipt.json",
+    "bytes": 1458,
+    "sha256": "d8e983b6eb57509025de37c3fd55dac905741a38358cee3ced4db6e55d13a39d"
+  },
+  "codex_design": {
+    "path": "runs/linux-model-adapter-prep-20261114/implementation/design.md",
+    "bytes": 7572,
+    "sha256": "36e14aa7294faefd410ffe4f3337c7cb74f58bcd9e8668707d5218af232216d1"
+  },
+  "independent_design_review": {
+    "path": "runs/linux-model-adapter-prep-20261114/review/review.md",
+    "bytes": 3867,
+    "sha256": "554a402c898dccdb7b505779008500179ec33edd49dececb3fb279012d5a8626"
+  },
+  "platform": "Linux 6.18.57 x86_64",
+  "claude_ollama": {
+    "path_lookup": "not found",
+    "limited_workspace_name_search": "not found",
+    "platform": "existing ManagedJob Windows-only; this Linux unsupported",
+    "ollama_publisher_manifest_expected": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "actual_weights_version_and_licensing": "unknown",
+    "default_listener_11434_and_owned_11449": "not listed in ss snapshot"
+  },
+  "codex_help": {
+    "binary": "/opt/codex/bin/codex",
+    "binary_sha256": "57c94ea520df28beb76955316c5c48f672550fe42c6cff7003badb76e1ee10d8",
+    "version": "codex-cli 0.167.0-alpha.4",
+    "tool_disable_proven": false,
+    "budget_hard_cap_proven": false,
+    "real_adapter_status": "disabled/not_implemented",
+    "help_process_implicit_network_activity": "not separately monitored"
+  },
+  "known_limits": [
+    "ManagedJobWindows-only; theseproductrunnersnotusableoncurrentLinux; no repeatWorkerask.",
+    "Codexbinaryexistsbutproductnativeadapterabsent; helpJSONschemafinaloutputdoesnotprovealltools/networkdisabledorhardUSDcap.",
+    "Three metadata CLIprocessesareactualprocesses; implicitnetworknotinstrumented, reportunknown. No inferenceprompt/login/modelrequest performed.",
+    "Delegatedimports canmove proposal/plan throughproduct, cannotestablishmodelactualexecution/costfromproductalone.",
+    "Originalprojectmodelbudget0/tools2of2 remain; not authorized tocreate newresearchmodelallowance bydeveloperauthorization.",
+    "Existingtrustedlocalauthorizationpersists; nonewprocurement/paidAPI/messages."
+  ]
+}

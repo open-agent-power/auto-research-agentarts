@@ -8,6 +8,14 @@
 
 ## 最新汇报入口
 
+### Sprint033：模型消息接口已接线，真实运行时与新额度仍缺
+
+source `78acfbe09c7d689b94e4787e83a32b3e7be9dd9c`／pin `/workspace/work/model-experience-protocol-source-78acfbe`，新activecase context带能力版本，Host/native消息可选案例引用，receive/consume/report按保存context核验。旧四真实context的八份wire独立逐byte相同，实际合成journal/跨pin门禁与省略字段路径通过，0真实模型/CLI/API。[S033](../execution/SPRINT-033.md)／[逐次证据](../execution/g5-local/model-experience-protocol-verification.json)。
+
+新core **0574266b3fe6c99026647007c2865afc7e5d2a217f46392f9847ddb54ee45841**，旧4b/3945/e731和全部sourcepins不升级。native fixture额度0→1/记used1与实际model调用0分开；Host delegated推理/费用unknown。旧terminal同ID读取有效，旧pending保留CODE_CHANGED/_fresh，非跨源码无缝继续。原科学预算/50fit/唯一primary/audit不变。
+
+实际Linux产品模型执行链未接通：Claude/Ollama依赖Windows ManagedJob；Codex程序存在但无nativeadapter/全工具禁用或硬费用cap证据。三次版本/帮助进程无推理prompt，隐式网络unknown。[通俗缺口与精确审计](../model-research-readiness.md)。下一拟准备最多3逻辑研究委派/2指定工具的宿主工程试跑，尚未授权、未创建target或claim、不调用模型；固定输入/预算/保护代码审完后才请求新的研究模型范围，原0切片不扩。
+
 ### Sprint032：已绑定经验可明确引用到研究决定
 
 source `2cdff0a9152bb0855ec0a8822d4123514387cbda`／pin `/workspace/work/experience-decision-citations-source-2cdff0a`，直接proposal可选最多4个精确active case/version/bundleSHA，保存/核验至decision/view/reportJSON，保留scope_mismatch反例和原association，不加候选或预算。真实双原包+一个新隔离合成目标47checks/独审通过，退休后原ID历史重放和新提交拒绝明确。[S032](../execution/SPRINT-032.md)／[精确证据](../execution/g5-local/experience-case-citation-verification.json)。

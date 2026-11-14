@@ -100,3 +100,6 @@ Sprint030–031 source de20/wheel33287，原3请求canonical语义body与core/ma
 
 
 Sprint032 source2cdff0a：直接proposal可选最多4 activecase三元组引用，decision/view/report保留原association；scope_mismatch可作反例不改资格。真实原citation/relevance两包+新合成target47工程checks及独审，工具上限1/证据8/fit0/model0但实际0tool/action；2imports/1目标退休，saved-only与17写75读另计。旧Host/model/recipewire不变，旧33287成品不含本接口。继续S033能力marker条件化消息协议，不调用模型或绕旧pending CODE_CHANGED/_fresh，老pin/预算保持。
+
+
+Sprint033 source78acf，project身份0574266b/controller5c5c86ef/nativejournal6099ede3，新context能力marker可选经验ref，旧4真实contexts八wire独立byte同；合成Host/native日志与省略字段及跨pin门禁已验，0真实model/CLI/API。原4b及producer/pins不迁移，nativefixturecap1/used1 != 实际调用，delegatedcostunknown。Linuxreadiness证Claude/Ollama Windows-only、Codex缺nativeadapter且help未证明全tool禁用/hardUSD；3metadataCLI隐式networkunknown。下一先完成三逻辑委派/2tools的待授权toy工程闭环方案/dispatchguard，再请求新研究模型范围，不把已有开发授权当model预算。

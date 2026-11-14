@@ -1,11 +1,11 @@
 {
   "schema_version": "project-automation-progress-report-v1",
   "timezone": "Asia/Shanghai",
-  "sprint": "Sprint020–032",
+  "sprint": "Sprint020–033",
   "start_time": "2026-11-14T16:44:56+08:00",
   "end_time": null,
-  "updated_at": "2026-11-14T18:56:05.036561+08:00",
-  "status": "S020_032_verified_publishing_continuing_S033_model_protocol",
+  "updated_at": "2026-11-14T19:26:12.399214+08:00",
+  "status": "S020_033_verified_publishing_preparing_guarded_real_model_pilot_proposal",
   "base_commit": "b29a9cac5edd0c6406dc03246a0836d0aa7f1bcc",
   "implementation_commits": [
     "f85bc75f42bd486c43d85b67296bc662062a5454",
@@ -16,9 +16,10 @@
     "3b01b2a6d11c2661023c8301da0f55a02f30393a",
     "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783",
     "de20ce4a6590a089839da8d5186ecbacc8a88f37",
-    "2cdff0a9152bb0855ec0a8822d4123514387cbda"
+    "2cdff0a9152bb0855ec0a8822d4123514387cbda",
+    "78acfbe09c7d689b94e4787e83a32b3e7be9dd9c"
   ],
-  "latest_verified_source_pin": "/workspace/work/experience-decision-citations-source-2cdff0a",
+  "latest_verified_source_pin": "/workspace/work/model-experience-protocol-source-78acfbe",
   "verified": [
     "Formal no-write manager opening and stored project budget/action projection",
     "Independent saved-study reading; real original-manager HTTP and desktop/mobile/keyboard/missing-state fixtures",
@@ -32,7 +33,9 @@
     "Sourcec5bb wheel a906/190product184Py/exact22offline/RECORD; installed isolated Python53checks98origins; not CLI/UI",
     "Original3request semanticbody/controller+managerpurpose SHA proof; 51GET/78mainchecks/22images/sourceindependentreview",
     "Finalsource de20 wheel33287/190product184Py/exact22offline; actual installed CLI17GET/19checks/4images/99origins independentlyverified",
-    "Directproposal optional case/version/bundleSHA citations saved/verified in native decision/view/report; real2historicalbundles/synthetic target47checks+review; oldmodelwire untouched"
+    "Directproposal optional case/version/bundleSHA citations saved/verified in native decision/view/report; real2historicalbundles/synthetic target47checks+review; oldmodelwire untouched",
+    "Model selection wire optionalcase refs bound to new contextmarker; old4truecontexts8wirebytes independentlyidentical; syntheticjournals/crosspin gates including absence verified; not realmodelrun",
+    "Linux runtime readiness: Windows-only Claude/Ollama path, no Codex nativeadapter; CLIhelp schema not evidence alltools disabled/hardUSDcap."
   ],
   "validation_index": "docs/execution/g5-local/readonly-study-view-verification.json",
   "installed_product_index": "docs/execution/g6-local/saved-request-handoff-release.json",
@@ -75,23 +78,26 @@
     "S032 optionalrefs are external declarations; no modelgenerated field or memory benefit demonstrated.",
     "S032 fixture toolcap1/evidence8, actualactions/toolcalls0, fit/modelcaps0; saved-only81CPUcheck and others separatelycounted.",
     "S032 rootfreeze script wrongkey led localcommit before rootcheck; later4reviewSHA/Gitblobs/pin matched, source notpushed until actual47checks/review.",
-    "S032 initialwrongPYTHONPATH3errors terminalonly and reviewer missingh5py retained; unreferencedlegacycase projection defect fixed."
+    "S032 initialwrongPYTHONPATH3errors terminalonly and reviewer missingh5py retained; unreferencedlegacycase projection defect fixed.",
+    "S03301finalization and06missingfingerprint harness failures retained; fixture accounting perattempt, no backfill missing06budget.",
+    "S033 native fixture cap0to1 used1/reserved0 != actualmodelcall; Hostdelegated inference/usage/costunknown; newcore057 old4b kept.",
+    "Linux Codex metadata3processes only; implicitnetworkunmonitoredunknown, not zero. No inferenceprompt/login/newpaidmodelAPI invoked."
   ],
   "active_execution": {
     "owner": "root-sprint020-20261114T1644",
     "team_pool": 4,
     "research_executor_running": false,
-    "work": "root publishing S032; implementation/review S033 conditional modelprotocol; validator old/new frozencontext bytegoldens, no real model calls",
+    "work": "root publishing S033; sameimplementation+review+validation preparing/test-only fixed pilotguard; all realmodelresearch blocked by existing0authorization",
     "lease": "active"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "S033 capability-marker versioned model/Host request and response schema for experience refs; old frozencontext wirebytes/hash preserved; keep CODE_CHANGED/_fresh and old sourcepins for pending; 0 real models/API.",
+  "next_task": "Finish/test minimal fixed-scope dispatch guard for reviewed model-feedback pilot proposal; only after concrete protection ready ask new research model grant, existing0slice unchanged. No actual model or target yet.",
   "next_planned_trigger_time": "2026-11-14T19:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
   "plan_report_validation_index": "docs/execution/g5-local/stored-plan-report-verification.json",
-  "published_main_last_readback": "c7c33f434c38c031e0ad31902f993e2f6ce2dd58",
+  "published_main_last_readback": "3d3806076327b651a15e2c3ec0c7bfc15a1a73a0",
   "receipt_validation_index": "docs/execution/g5-local/manager-advance-receipt-verification.json",
   "request_handoff_validation_index": "docs/execution/g5-local/saved-request-handoff-verification.json",
   "plain_progress": "A trusted-local workbench can perform a few real experiment classes, retain plans/results/negative evidence and partially resume. Sustained autonomous problem-to-experiment decisions and causal benefit of experience reuse remain unproved.",
@@ -109,5 +115,20 @@
     "SQLite_writes": 17,
     "SQLite_ro": 75,
     "scope": "synthetic engineering only, originalprojects untouched; not aggregate alltriggerfixtures"
+  },
+  "model_protocol_validation_index": "docs/execution/g5-local/model-experience-protocol-verification.json",
+  "runtime_readiness_index": "docs/execution/g0/model-runtime-readiness.json",
+  "current_new_identities": {
+    "project": "0574266b3fe6c99026647007c2865afc7e5d2a217f46392f9847ddb54ee45841",
+    "controller": "5c5c86ef4cf07e57cf42c9557195c384e3dba3f546bc163b0358eb33fd84043e",
+    "native_journal": "6099ede3a49c18902a5b9e6aa9623e9c99b5d9c9d4f1a1b1f502dd3ca1cde247"
+  },
+  "runtime_readiness": {
+    "linux_Claude_Ollama": "Windows-only ManagedJob, not operational here",
+    "Codex": "executableexists0.167.0alpha4; no nativeproductadapter; alltoolsdisable/hardUSDunproved",
+    "nativeauth_model_quota": "unknown",
+    "delegated": "external import supported, productcannotverifyactualmodel/cost",
+    "CLI_metadata_processes": 3,
+    "CLI_metadata_implicit_network": "unknown"
   }
 }
