@@ -8,7 +8,7 @@
 
 全部 query/arm 排名完成后先计算内存内容 SHA，再计算指标；最终随不可变行动工件保存。没有在评分前将排名独立封存落盘，不构成 OS 或 sealed 评价。完整排名、原文行号、标注及 grade 定位、逐 query 指标和坏例均保留。后续 audit 只核保存结构与配对算术，不新建 index、不排名、不对 gold 重评分。工件封套与行动绑定沿现有核心校验。
 
-原生报告 kind 为 `relevance`，指标表按 BM25→TF-IDF 展示，保留全部坏例及输入 SHA。工作台识别新的观察种类。旧 citation 专用逐 query GET 阅读器没有接到新工具；当前通过完整行动 JSON/报告附件读取原证据，不能把旧阅读器验收算作新合同已验收。
+原生报告 kind 为 `relevance`，指标表按 BM25→TF-IDF 展示，保留全部坏例及输入 SHA。工作台识别新的观察种类。后续保存逐query阅读复用同一GET路径和工作台阅读组件，以独立relevance schema/contract、原grade和missing IDs区分语义；接口与边界见[保存阅读器](saved-retrieval-reader.md)。Sprint010原验收仅覆盖JSON/报告，本轮新实现须以Sprint011真实HTTP/浏览器证据为准，不能追溯认领旧阅读器已支持新合同。
 
 ## 独立迁移课题
 

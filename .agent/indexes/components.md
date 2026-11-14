@@ -1,5 +1,8 @@
 # 组件搭建索引
 
+相关性原行动复用retrieval-reader组件，按需分页/原文/grade/缺正例显示BM25基线→TF-IDF候选，拒绝家族/响应/失效绑定混淆；原citation显示保持。[合同](../../docs/saved-retrieval-reader.md)。
+
+
 `retrieval-reader.ts`从原CPU卡显式加载保存不利查询，25条分页、原文/指标/排名、来源定位、返回焦点。无自动GET，绑定错误/失效异步不显示，手机三列指标表核末列文字范围；[用法与限制](../../docs/saved-retrieval-reader.md)。
 
 `cpu-results.ts`由`project-view.ts`原comparison reader复用，读取保存的检索宏指标/配对数/下降与调度慢例/完整任务。缺失不填0，原JSON与下载保留；手机表格核固定首列与末列文字范围，不改研究或预算。[用法](../../docs/local-workbench.md#原生-cpu-保存结果)、[实际验收](../../docs/execution/g5-local/cpu-results-ui.md)。

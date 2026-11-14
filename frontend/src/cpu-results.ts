@@ -101,7 +101,11 @@ export function cpuResultSummary(observations: Obj[], table: ResultTable, contex
     return summary;
   }
   const relevance = observations.find(item => item.kind === "relevance_retrieval_pair" || item.kind === "saved_relevance_error_audit");
-  if (relevance) return retrievalSummary(relevance, table, true);
+  if (relevance) {
+    const summary = retrievalSummary(relevance, table, true), reader = context ? createRetrievalReader(context, table, "relevance") : null;
+    if (reader) summary.append(reader);
+    return summary;
+  }
   const scheduling = observations.find(item => item.kind === "weighted_interval_fixed_pair" || item.kind === "saved_weighted_interval_audit");
   return scheduling ? schedulingSummary(scheduling, table) : null;
 }

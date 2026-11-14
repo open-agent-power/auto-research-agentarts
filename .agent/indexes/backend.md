@@ -1,5 +1,8 @@
 # 后端索引
 
+保存查询阅读器按已登记citation/relevance家族选择固定validator和算法角色，relevance保留原grade/缺正例、核完整保存算术；旧citation响应保持。见[读取合同](../../docs/saved-retrieval-reader.md)。
+
+
 新 `relevance_retrieval_adapter` 以独立相关性合同复用原生 Project/Controller/Workbench；BM25→TF-IDF、same-ID 截断前排除、缺失正例留分母，保存原 grade，旧 citation producer 不改。见[合同与迁移边界](../../docs/relevance-retrieval.md)。
 
 

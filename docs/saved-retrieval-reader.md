@@ -1,5 +1,20 @@
 # 保存不利查询阅读器
 
+阅读器现按已登记的方法家族读取引用检索和正相关性检索。原SciFact引用协议响应保持，新增relevance响应具有独立schema及显式contract；不由客户端参数切换方法语义。以下原133条证据属于Sprint009；本轮ArguAna186条读取的实际验收另记Sprint011。
+
+## 相关性保存记录
+
+原`research.relevance-fixed-pair`和`research.relevance-saved-error-audit`也从实验中心同一按钮按需读取。角色为BM25基线、TF-IDF候选，两个接口/选择器/25条分页/1MiB响应/原项目快照门禁均复用，不增加研究工具或执行器。新schema分别为`saved-relevance-adverse-page-v1`、`saved-relevance-query-v1`；引用响应继续为旧`saved-retrieval-*-v1`，不追加新contract/grade字段。
+
+新响应顶层`contract`精确含：`id=relevance-retrieval-fixed-pair-v1`、`qrels_semantics=positive_relevance_binary_projection`、`baseline=bm25`、`candidate=tfidf_cosine`、`ignore_identical_ids=true`、`missing_document_policy=retain_in_denominator`。服务端以已登记action及项目registration选固定家族，拒绝source/result/primary/audit不一致；前端再次校验contract、主行动、算法角色和保存指标绑定。
+
+详情的`arms`按BM25、TF-IDF顺序返回；`qrel`保留`doc_ids/source_sha256/role`并新增原始`grades`（严格整数1/2）及`missing_doc_ids`（正标签目标缺于捕获语料）。每篇保存文档新增`original_grade`，原qrels未标注时为null，不填0或声称确证无关。原grade保留，现指标按grade>0做二元投影，不称任意graded benchmark官方分数。缺失正例仍在原指标分母，只显示原ID和grade，不补造原文、排名或命中。原排名不得含同query ID文档。
+
+相关性分支额外核原action请求SHA、method instance、source/input binding、audit参数→保存前驱，以及完整保存指标的配对算术/坏例集合；这些校验不对gold重评分。原source/action/result/行号/SHA及完整保存覆盖继续验证。新query原文可大于4096字符，但展示仍按4096截断并标记；ArguAna实际186条中最长query3519字符，因此更长query的展示边界只能由明确工程fixture验证。
+
+ArguAna原186条混合集合中，63条有指标下降，42条无指标下降但两臂召回不全，81条无指标下降但仅BM25不全。两条缺正例也保留；旧SciFact133条及其语义不改。程序划分/公开标签不构成封存盲测，固定TF-IDF等臂对照没有识别记忆因果收益。
+
+
 已经完成的原生引用检索项目，可在实验中心的原行动卡点击“查看不利查询原记录”。页面不会自动读取，也不提交研究。每页最多25条，保留原顺序和原分类；选择查询后才读取原查询、两臂各最多20篇保存文档及原指标。主检索行动和保存审计行动均沿同一已登记项目读取。
 
 133条原记录包括60条指标损失，以及73条无指标损失但召回不全（65两臂不足、8仅基线不足）。这些数字来自完整保存结果，不能由只有总数的observation投影补造。指标改善不自动采用候选；未列入原引用标签不等于文献与查询无关，引用标签也不是支持／反驳或答案真伪判定。
