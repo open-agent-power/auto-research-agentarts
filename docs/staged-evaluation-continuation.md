@@ -46,3 +46,5 @@ S046真实研究固定在4a159a9 source pin并已耗尽3工具；S047新源码�
 本版 v2 在初次接受时拒绝任何已有 audit/freeze/final，避免把另行执行的同方法 audit 冒称来自本策略。旧 v1 的已完成阶段复用继续按原合同核验。新模式不批准模型、扩大工具额度或迁移旧 pending/source pin；它按预声明的数值分支编排，不自动提出科学假设或证明科研收益。
 
 本轮实现/验收完成状态以 [current](project/current.md) 与 [latest-report](project/latest-report.json) 为准；未完成前不据本接口说明认领完成。
+
+S059可选registration-v2把两个事前validation条件作为一个整体outcome交给本显式路径；失败/未知分支按原登记等待或审计，未知必等待。新门不改变本路径后续Recall@20冻结算法，不绕过原source/父子/预算门。详见[双指标合同](hypothesis-feedback.md#显式双指标联合条件s059)。

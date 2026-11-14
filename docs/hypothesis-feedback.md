@@ -31,6 +31,33 @@ POST 路径是 `/api/local-workbench/hypothesis`；沿原本地 Host、Origin、
 
 指标限现有 `recall@5/10/20`、`mrr@10`、`ndcg@10`，固定为 **validation 的 candidate-minus-baseline 配对均值差**；比较符为 `gt/gte/lt/lte/eq`，阈值为 [-1,1] 有限数值。最多登记16条，不支持任意表达式、test 指标或事后改条件。登记捕获候选内容、来源、范围、协议、计划、代码及原状态身份，先持久保存，再允许目标行动创建。保存使状态版本增加1，后续行动须重新取得 context；不能继续使用登记前的 context SHA。
 
+### 显式双指标联合条件（S059）
+
+以后新建的 staged development 项目，可以在同一事前登记中用 `conditions` 替代上例三个标量字段。它恰好包含两项**不同**的现有 validation 指标，含义为两项同时满足，例如覆盖率改善且排名质量不退化：
+
+```json
+{
+  "candidate_id": "当前staged主方法候选ID",
+  "controller_request_id": "尚未执行的原Controller请求ID",
+  "conditions": [
+    {"metric": "recall@20", "operator": "gt", "threshold": 0},
+    {"metric": "mrr@10", "operator": "gte", "threshold": 0}
+  ],
+  "branches": {
+    "condition_met": {"kind": "method", "method_id": "research.relevance-validation-saved-audit"},
+    "condition_not_met": {"kind": "wait"}
+  }
+}
+```
+
+这是原 `hypothesis` 字段内容，外层工作台请求字段和路径不变。不得混用原 `metric/operator/threshold` 标量字段，不接受同一指标两次、第三项、任意布尔表达式、test/final 指标、布尔或非有限阈值；旧 citation/relevance 家族不接受新模式。它不为同一个未来 Controller ID 新建两条登记，而是一次冻结两项及其顺序，仍要求在原 primary 之前登记。
+
+新记录使用 `hypothesis-registration-v2`，规范条件为 `condition: {"all": [两个完整条件]}`。反馈使用 `hypothesis-feedback-context-v2`，`value` 是与条件同序的两个保存配对差。一份已完整核验的原 primary/source/SQLite/结果 summary 提供两值，不重复排名或评分。只有两值都有效时才判定：`[0.01, 0]` 满足示例，`[0.01, -0.01]` 不满足，`[0, 0]` 因第一项不满足而失败。任一结果缺失、损坏、未完成、非有限或布尔冒充数值，则整体为 `unknown`，`value/action_id/result_sha256` 均为空，保留原因并等待，不能用部分已知值继续。
+
+纯标量登记仍生成原 v1 记录、反馈和提示字节；同一 staged 项目混有标量与联合登记时，整体 context 为 v2，每条 item 保持各自的条件和值形状。v2 必须至少有一条联合条件；不能混检索家族。联合条件顺序、数值表示与原登记进行 canonical 精确绑定，重新封存 context 不允许将原 `0` 改成 `0.0` 来替换原条件。原 ID/全部原参数重放及异内容冲突规则保持。
+
+联合结果沿原 `advance_feedback` 和 S052 显式条件续作消费，只有配置为相应原 saved-audit 的分支才派发；示例的失败分支等待。它不强制所有低层接口等待，不自动采用计划或科学结论。**S052 后续冻结方法仍按原 Recall@20 规则，未变成多指标优化器**；研究者须在以后研究前确定指标、阈值及分支，不能依据 S054 已曝光结果补登记、改变原协议或重开原预算。此功能的合成分支/HTTP验证不证明新科研收益，真实模型反馈循环仍未由本增量执行。
+
 同登记 ID 和全部原参数重放返回原记录，异内容冲突。未来 Controller ID 是事前引用，**不是全局预留**：用户可以改变路线；其他命令占用该 ID、错误候选、不同计划或无原普通 child 时不会被认作有效反馈。
 
 新 selection context 的可选 `hypothesis_feedback` 使用 `hypothesis-feedback-context-v1`，有记录时才出现。它只读核对原 parent、普通 child、数据库请求指纹、工件字节/结果 SHA 和保存指标算术，不派发、不恢复、不重新排名或按 qrel 评分。有效的0是已知值：`0 > 0` 为 `condition_not_met`，`0 >= 0` 为 `condition_met`。未完成、来源/绑定不符、工件缺失或损坏返回 `unknown` 及原因；未知不填0。登记本身损坏则拒绝读取。

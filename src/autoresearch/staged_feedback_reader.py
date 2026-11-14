@@ -74,6 +74,16 @@ def read_validation_delta(project, state, action, metric):
     return value["summary"]["splits"]["validation"]["paired_candidate_minus_baseline"][metric]["mean"]
 
 
+def read_validation_deltas(project, state, action, metrics):
+    """Read both saved means from one validated public development snapshot."""
+    _require(type(metrics) is list and len(metrics) == 2
+             and all(type(metric) is str and metric in lexical.METRICS for metric in metrics)
+             and metrics[0] != metrics[1])
+    checked = _checked_primary(project, state, action)
+    paired = checked["summary"]["splits"]["validation"]["paired_candidate_minus_baseline"]
+    return [paired[metric]["mean"] for metric in metrics]
+
+
 def _view(project, state, action_id):
     if type(action_id) is not str or not action_id:
         raise ResearchError("INVALID_QUERY", "Use one saved primary action identifier.")

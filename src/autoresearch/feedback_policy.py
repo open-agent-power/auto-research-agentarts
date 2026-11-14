@@ -6,7 +6,7 @@ caller must obtain the registration and sealed context from the original project
 import copy
 
 from . import method_registry, project_selection, retrieval_adapter, relevance_retrieval_adapter, staged_relevance_adapter
-from .contracts import ResearchError, fingerprint
+from .contracts import ResearchError, canonical, fingerprint
 
 
 _AUDITS = {
@@ -78,7 +78,9 @@ def select_from_feedback(context, *, registration, provider):
             or fingerprint(context.get("research_plan")) != registration["plan_sha256"]
             or item["registration_sha256"] != registration["registration_sha256"]
             or item["controller_request_id"] != registration["controller_request_id"]
-            or item["candidate"] != candidate or item["condition"] != registration["condition"]
+            or item["candidate"] != candidate
+            or (canonical(item["condition"]) != canonical(registration["condition"])
+                if registration["schema_version"] == "hypothesis-registration-v2" else item["condition"] != registration["condition"])
             or item.get("branches") != branches):
         return proposal
     if item["outcome"] == "unknown":

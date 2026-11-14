@@ -129,10 +129,12 @@ def hypothesis_notice(selection):
         return ""
     from .hypothesis_feedback import STAGED_NOTICE
     if selection["hypothesis_feedback"].get("test_notice") == STAGED_NOTICE:
+        joint_notice = (" Two-condition feedback is met only when both registered validation predicates hold; "
+                        "both values must be known and unknown always waits.") if selection["hypothesis_feedback"].get("schema_version") == "hypothesis-feedback-context-v2" else ""
         return (" Hypothesis feedback compares a preregistered validation condition with the original saved action. "
                 "condition_met and condition_not_met are numeric predicate outcomes, not scientific approval or "
                 "hypothesis rankings. Preserve unknown and its reason; zero is a known value. Choose only current "
-                "eligible candidates or wait, without new permissions or budget. " + STAGED_NOTICE)
+                "eligible candidates or wait, without new permissions or budget. " + STAGED_NOTICE + joint_notice)
     return (" Hypothesis feedback compares a preregistered validation condition with the original saved action. "
             "condition_met and condition_not_met are numeric predicate outcomes, not scientific approval or "
             "hypothesis rankings. Preserve unknown and its reason; zero is a known value. Choose only current "

@@ -1,0 +1,108 @@
+{
+  "schema_version": "s059-conjunctive-validation-verification-v1",
+  "status": "fixed_verified",
+  "source_freeze_sha256": "4903d279ad6a31045de7b1ec4090cdd29cc67dbfa73c501e050d075d853c98dd",
+  "core_identity": "a05f668cb8de230b134ab4e0394c17297b7aa5cd026c378172bce2001325b4b5",
+  "source_count": 191,
+  "source_sha256": {
+    "src/autoresearch/feedback_policy.py": "2506ce30926ba5875e4cca6f585437164b1f000dc9a3dc72ded72dd08b873426",
+    "src/autoresearch/hypothesis_feedback.py": "bc5be0ceac9f88f266d4314be5aaa87a4ac08c39a2ec81e5716097c0f8100a1d",
+    "src/autoresearch/project_selection.py": "119573235176cff89e0f3cc472fcb730d34d61e1b8c3dabb3fb20ba87dcd3cba",
+    "src/autoresearch/staged_feedback_reader.py": "b996d644f8c43835ce0e5b219b1b4eb4058a1500264d4c82e58debf8a3312df0"
+  },
+  "test_sha256": "fb51e05c9e791c2322bfbe0f04a44ce5ebc719015e0cd1a9874af313d6dcf582",
+  "author_fixed_tests": 8,
+  "root_related_final": 49,
+  "independent_pure_mechanism": 6,
+  "actual_http": {
+    "cases": [
+      {
+        "case": "audit",
+        "pid": 19098,
+        "project_id": "project-da4d63508f264984821d1469373e9765",
+        "run_id": "run-317bea6fefe640d2946e716ad850ac8d",
+        "validation_values": [
+          1.0,
+          0.0
+        ],
+        "outcome": "condition_met",
+        "phase": "done",
+        "tool_calls_used": 3,
+        "model_calls": 0,
+        "fits": 0,
+        "scientific_validation": false
+      },
+      {
+        "case": "tradeoff-wait",
+        "pid": 19098,
+        "project_id": "project-2359dc433c5d407987ef1c5bd1e41ded",
+        "run_id": "run-392d729ce2c6453ebf6db1e862b6a44e",
+        "validation_values": [
+          0.5,
+          -0.04444444444444445
+        ],
+        "outcome": "condition_not_met",
+        "phase": "waiting",
+        "tool_calls_used": 1,
+        "model_calls": 0,
+        "fits": 0,
+        "scientific_validation": false
+      },
+      {
+        "case": "unknown-wait",
+        "pid": 19098,
+        "project_id": "project-5a8eeaf126ca490d88d04ac6684f2597",
+        "run_id": "run-be97edfb207c41cea8e4f472807a3d18",
+        "validation_values": null,
+        "outcome": "unknown",
+        "phase": "waiting",
+        "tool_calls_used": 0,
+        "model_calls": 0,
+        "fits": 0,
+        "scientific_validation": false
+      }
+    ],
+    "source_freeze_sha256": "4903d279ad6a31045de7b1ec4090cdd29cc67dbfa73c501e050d075d853c98dd",
+    "three_exact_new_process_HTTP_replays": true,
+    "fixture_fitting": "deliberately chosen qrels from earlier synthetic rankings for branch coverage; no scientific gain claim",
+    "private_scope": "feedback and wait/replay guarded; audit branch authorized synthetic final/report reads private fixture; inventories exclude private bytes"
+  },
+  "original_S054_scalar_feedback_notice_state_budget_exact_old_new_bytes_equal": true,
+  "original_cases_bytes_unchanged": {
+    "S046": 36,
+    "S050": 17,
+    "S054": 47
+  },
+  "new_research_actions_models_fits": 0,
+  "engineering_fixture_tool_counts": [
+    3,
+    1,
+    0
+  ],
+  "engineering_dispatches_overall": "not separately metered",
+  "development_cost": "unknown",
+  "development_tokens": "unknown",
+  "private_scope": "feedback and wait/replay guarded; audit branch authorized synthetic final/report reads private fixture; inventories exclude private bytes",
+  "not_claimed": [
+    "New scientific benefit or model research executed",
+    "Global guard for all low-level APIs or multimetric freeze optimizer",
+    "Original cloud history restored or OS/sealed isolation"
+  ],
+  "failures_preserved": [
+    "initial source v1 canonical check tightened old behavior; retained191-source snapshot, restored v1 original equality in final",
+    "initial root HTTP fixture source directory included workspace; existing product gate rejected before dispatch; initial runner/log/failed directory retained"
+  ],
+  "evidence": {
+    "root_final": "runs/s059-verification/root-regression-fixed.log",
+    "independent_tests": "runs/s059-review/fixed-independent-tests.log",
+    "independent_real_cases": "runs/s059-review/http-independent.json",
+    "HTTP": "runs/s059-verification/http-fixed/result.json",
+    "original_v1_before": "runs/s059-verification/original-v1-before.json",
+    "original_v1_after": "runs/s059-verification/original-v1-after.json"
+  },
+  "checked_at": "2026-11-15T07:57:44.833867+08:00",
+  "independent_assessment": {
+    "path": "runs/s059-review/independent-assessment.md",
+    "sha256": "a56a6fff01e7b6a09aae9ff648ffc78500a3ae387f8d491171b5577cfcea3e81"
+  }
+}

@@ -32,19 +32,37 @@ def _family(method_id):
     return reader._family(method_id)
 
 
+def _metric_condition(value):
+    require(type(value) is dict and set(value) == {"metric", "operator", "threshold"},
+            "INVALID_REQUEST", "Use exactly a metric, comparison operator and threshold.")
+    threshold = value["threshold"]
+    require(type(value["metric"]) is str and value["metric"] in reader.METRICS
+            and type(value["operator"]) is str and value["operator"] in OPS
+            and type(threshold) in (int, float) and -1 <= threshold <= 1 and math.isfinite(threshold),
+            "INVALID_REQUEST", "Use a saved validation metric, comparison operator and finite delta threshold in [-1, 1].")
+    return {"split": "validation", "measure": "candidate_minus_baseline", "metric": value["metric"],
+            "operator": value["operator"], "threshold": threshold}
+
+
 def _condition(hypothesis):
+    require(type(hypothesis) is dict, "INVALID_REQUEST", "Use the exact preregistration fields.")
+    if "conditions" in hypothesis:
+        fields = {"candidate_id", "controller_request_id", "conditions"}
+        require(fields <= set(hypothesis) <= fields | {"branches"}
+                and type(hypothesis["conditions"]) is list and len(hypothesis["conditions"]) == 2,
+                "INVALID_REQUEST", "Use exactly two preregistered metric conditions, without scalar fields.")
+        identifier(hypothesis["candidate_id"], "candidate_id")
+        identifier(hypothesis["controller_request_id"], "controller_request_id")
+        conditions = [_metric_condition(value) for value in hypothesis["conditions"]]
+        require(conditions[0]["metric"] != conditions[1]["metric"],
+                "INVALID_REQUEST", "The two conditions must use different validation metrics.")
+        return {"all": conditions}
     fields = {"candidate_id", "controller_request_id", "metric", "operator", "threshold"}
-    require(type(hypothesis) is dict and fields <= set(hypothesis) <= fields | {"branches"},
-        "INVALID_REQUEST", "Use the exact preregistration fields; test metrics are not supported.")
+    require(fields <= set(hypothesis) <= fields | {"branches"},
+            "INVALID_REQUEST", "Use the exact preregistration fields; test metrics are not supported.")
     identifier(hypothesis["candidate_id"], "candidate_id")
     identifier(hypothesis["controller_request_id"], "controller_request_id")
-    value = hypothesis["threshold"]
-    require(type(hypothesis["metric"]) is str and hypothesis["metric"] in reader.METRICS
-            and type(hypothesis["operator"]) is str and hypothesis["operator"] in OPS
-            and type(value) in (int, float) and -1 <= value <= 1 and math.isfinite(value),
-            "INVALID_REQUEST", "Use a saved validation metric, comparison operator and finite delta threshold in [-1, 1].")
-    return {"split": "validation", "measure": "candidate_minus_baseline", "metric": hypothesis["metric"],
-            "operator": hypothesis["operator"], "threshold": value}
+    return _metric_condition({key: hypothesis[key] for key in ("metric", "operator", "threshold")})
 
 
 def _branches(value, primary_method_id):
@@ -110,8 +128,11 @@ def register(project, *, request_id, expected_state_version, hypothesis):
         require(candidate["method_id"] == family.module.TOOL_ID and not candidate["parameters"]
                 and candidate["method_id"] == stored["registration"]["method_id"],
                 "CONDITION_NOT_SATISFIED", "Only the existing primary citation or relevance pair can be predicted.")
+        if "all" in condition:
+            require(candidate["method_id"] == staged.TOOL_ID, "CONDITION_NOT_SATISFIED",
+                    "Two-condition feedback requires the staged development primary.")
         branches = _branches(hypothesis["branches"], candidate["method_id"]) if "branches" in hypothesis else None
-        record = {"schema_version": "hypothesis-registration-v1", "request_id": request_id,
+        record = {"schema_version": "hypothesis-registration-v2" if "all" in condition else "hypothesis-registration-v1", "request_id": request_id,
                   "request_sha256": fingerprint(request), "request": request, "controller_request_id": target,
                   "project_id": stored["id"], "run_id": stored["run_id"],
                   "state_version_before": expected_state_version, "candidate": copy.deepcopy(candidate),
@@ -133,11 +154,15 @@ def register(project, *, request_id, expected_state_version, hypothesis):
 
 
 def _check_record(record):
-    require(type(record) is dict and record.get("schema_version") == "hypothesis-registration-v1"
+    require(type(record) is dict and record.get("schema_version") in ("hypothesis-registration-v1", "hypothesis-registration-v2")
             and record.get("scientific_validation") is False
             and record.get("registration_sha256") == fingerprint({k: v for k, v in record.items() if k != "registration_sha256"})
             and record.get("request_sha256") == fingerprint(record.get("request"))
-            and record.get("condition") == _condition(record["request"]["hypothesis"])
+            and (canonical(record.get("condition")) == canonical(_condition(record["request"]["hypothesis"]))
+                 if record.get("schema_version") == "hypothesis-registration-v2"
+                 else record.get("condition") == _condition(record["request"]["hypothesis"]))
+            and (record.get("schema_version") == "hypothesis-registration-v2") == ("all" in record.get("condition", {}))
+            and (record.get("schema_version") != "hypothesis-registration-v2" or record.get("candidate", {}).get("method_id") == staged.TOOL_ID)
             and record.get("controller_request_id") == record["request"]["hypothesis"]["controller_request_id"]
             and record.get("request_id") == record["request"]["request_id"]
             and record.get("state_version_before") == record["request"]["expected_state_version"]
@@ -242,13 +267,21 @@ def _outcome(project, state, record):
                 or type(result["recovered"]) is not bool or result["reused"] is not False
                 or parent_child != {key: action[key] for key in fields}):
             return None, "child_binding_changed", None, None
-        metric = record["condition"]["metric"]
+        condition = record["condition"]
+        joint = "all" in condition
         if candidate["method_id"] == staged.TOOL_ID:
             if fingerprint(staged.COMPARISON) != record["protocol_sha256"]:
                 return None, "protocol_binding_changed", None, None
-            from .staged_feedback_reader import read_validation_delta
-            value = read_validation_delta(project, state, action, metric)
+            if joint:
+                from .staged_feedback_reader import read_validation_deltas
+                value = read_validation_deltas(project, state, action, [item["metric"] for item in condition["all"]])
+            else:
+                from .staged_feedback_reader import read_validation_delta
+                value = read_validation_delta(project, state, action, condition["metric"])
         else:
+            if joint:
+                return None, "unsupported_joint_family", None, None
+            metric = condition["metric"]
             family, binding, _, _, metric_rows, *_ = reader._bundle(project, state, action["id"])
             if (family.module.TOOL_ID != candidate["method_id"] or fingerprint(family.module.COMPARISON) != record["protocol_sha256"]
                     or binding["primary_action_id"] != action["id"]):
@@ -258,7 +291,8 @@ def _outcome(project, state, record):
             if canonical(result["paired_summary"]) != canonical(summary):
                 return None, "saved_summary_changed", None, None
             value = result["paired_summary"]["splits"]["validation"]["paired_candidate_minus_baseline"][metric]["mean"]
-        if type(value) not in (int, float) or not math.isfinite(value) or not -1 <= value <= 1:
+        values = value if joint and type(value) is list and len(value) == 2 else [value] if not joint else []
+        if len(values) != (2 if joint else 1) or any(type(v) not in (int, float) or not -1 <= v <= 1 or not math.isfinite(v) for v in values):
             return None, "invalid_saved_metric", None, None
         return value, None, action["id"], action["result_sha256"]
     except ResearchError as exc:
@@ -279,7 +313,10 @@ def feedback_context(project, state):
         except (KeyError, TypeError, ValueError, RecursionError):
             raise ResearchError("EVIDENCE_CHANGED", "Saved prediction registration is malformed.") from None
         value, reason, action_id, result_sha = _outcome(project, state, record)
-        outcome = "unknown" if reason else ("condition_met" if OPS[record["condition"]["operator"]](value, record["condition"]["threshold"]) else "condition_not_met")
+        condition = record["condition"]
+        matched = None if reason else (all(OPS[item["operator"]](v, item["threshold"]) for item, v in zip(condition["all"], value))
+                                       if "all" in condition else OPS[condition["operator"]](value, condition["threshold"]))
+        outcome = "unknown" if reason else ("condition_met" if matched else "condition_not_met")
         item = {"request_id": record["request_id"], "controller_request_id": record["controller_request_id"],
                       "registration_sha256": record["registration_sha256"], "candidate": copy.deepcopy(record["candidate"]),
                       "condition": copy.deepcopy(record["condition"]), "outcome": outcome, "value": value,
@@ -289,18 +326,31 @@ def feedback_context(project, state):
         items.append(item)
     staged_items = [item["candidate"]["method_id"] == staged.TOOL_ID for item in items]
     require(all(staged_items) or not any(staged_items), "EVIDENCE_CHANGED", "Feedback families cannot be mixed.")
-    value = {"schema_version": "hypothesis-feedback-context-v1", "items": items,
+    version = "hypothesis-feedback-context-v2" if any("all" in item["condition"] for item in items) else "hypothesis-feedback-context-v1"
+    value = {"schema_version": version, "items": items,
              "scientific_validation": False, "test_notice": STAGED_NOTICE if all(staged_items) else TEST_NOTICE}
     return validate_context(value)
+
+
+def _valid_normalized_condition(value):
+    """Require the exact normalized scalar representation, including numeric types."""
+    try:
+        if type(value) is not dict or set(value) != {"split", "measure", "metric", "operator", "threshold"}:
+            return False
+        normalized = _metric_condition({key: value[key] for key in ("metric", "operator", "threshold")})
+        return canonical(value) == canonical(normalized)
+    except (ResearchError, KeyError, TypeError, ValueError, OverflowError):
+        return False
 
 
 def validate_context(value):
     code = "INVALID_SELECTION_CONTEXT"
     require(type(value) is dict and set(value) == {"schema_version", "items", "scientific_validation", "test_notice"}
-            and value["schema_version"] == "hypothesis-feedback-context-v1" and value["scientific_validation"] is False
+            and value["schema_version"] in ("hypothesis-feedback-context-v1", "hypothesis-feedback-context-v2")
+            and value["scientific_validation"] is False
             and value["test_notice"] in (TEST_NOTICE, STAGED_NOTICE) and type(value["items"]) is list and 1 <= len(value["items"]) <= MAX_ITEMS,
             code, "Invalid prediction feedback context.")
-    ids = set()
+    ids, joint_count = set(), 0
     for item in value["items"]:
         fields = {"request_id", "controller_request_id", "registration_sha256", "candidate", "condition", "outcome", "value", "unknown_reason", "action_id", "result_sha256"}
         require(type(item) is dict and fields <= set(item) <= fields | {"branches"}
@@ -311,13 +361,21 @@ def validate_context(value):
                 and all(type(item["candidate"][key]) is str and 0 < len(item["candidate"][key]) <= 160 for key in ("id", "method_id"))
                 and type(item["candidate"]["parameters"]) is dict
                 and type(item["candidate"]["evaluation_ref"]) in (str, dict)
-                and type(item["condition"]) is dict and set(item["condition"]) == {"split", "measure", "metric", "operator", "threshold"}
-                and item["condition"]["split"] == "validation" and item["condition"]["measure"] == "candidate_minus_baseline"
-                and type(item["condition"]["metric"]) is str and item["condition"]["metric"] in reader.METRICS
-                and type(item["condition"]["operator"]) is str and item["condition"]["operator"] in OPS
-                and type(item["condition"]["threshold"]) in (int, float) and -1 <= item["condition"]["threshold"] <= 1
-                and math.isfinite(item["condition"]["threshold"]) and item["outcome"] in ("unknown", "condition_met", "condition_not_met"),
+                and type(item["condition"]) is dict
+                and item["outcome"] in ("unknown", "condition_met", "condition_not_met"),
                 code, "Invalid prediction feedback item.")
+        condition = item["condition"]
+        joint = set(condition) == {"all"}
+        if joint:
+            require(value["schema_version"] == "hypothesis-feedback-context-v2"
+                    and item["candidate"]["method_id"] == staged.TOOL_ID
+                    and type(condition["all"]) is list and len(condition["all"]) == 2
+                    and all(_valid_normalized_condition(part) for part in condition["all"])
+                    and condition["all"][0]["metric"] != condition["all"][1]["metric"],
+                    code, "Invalid two-metric staged prediction condition.")
+            joint_count += 1
+        else:
+            require(_valid_normalized_condition(condition), code, "Invalid scalar prediction condition.")
         if "branches" in item:
             try:
                 _branches(item["branches"], item["candidate"]["method_id"])
@@ -329,13 +387,19 @@ def validate_context(value):
                     and item["action_id"] is None and item["result_sha256"] is None, code, "Unknown must retain its reason without a fabricated result.")
         else:
             n = item["value"]
-            require(type(n) in (int, float) and -1 <= n <= 1 and math.isfinite(n)
+            values = n if joint and type(n) is list and len(n) == 2 else [n] if not joint else []
+            require(len(values) == (2 if joint else 1)
+                    and all(type(v) in (int, float) and -1 <= v <= 1 and math.isfinite(v) for v in values)
                     and item["unknown_reason"] is None and type(item["action_id"]) is str
-                    and type(item["result_sha256"]) is str and re.fullmatch(r"[0-9a-f]{64}", item["result_sha256"]) is not None
-                    and (item["outcome"] == "condition_met") == OPS[item["condition"]["operator"]](n, item["condition"]["threshold"]),
-                    code, "Known feedback must preserve its exact comparison and evidence identity.")
+                    and type(item["result_sha256"]) is str and re.fullmatch(r"[0-9a-f]{64}", item["result_sha256"]) is not None,
+                    code, "Known feedback must preserve its exact values and evidence identity.")
+            matched = (all(OPS[part["operator"]](v, part["threshold"]) for part, v in zip(condition["all"], values))
+                       if joint else OPS[condition["operator"]](n, condition["threshold"]))
+            require((item["outcome"] == "condition_met") == matched, code, "Known feedback must preserve its exact comparison.")
     staged_items = [item["candidate"]["method_id"] == staged.TOOL_ID for item in value["items"]]
     require((all(staged_items) and value["test_notice"] == STAGED_NOTICE)
             or (not any(staged_items) and value["test_notice"] == TEST_NOTICE),
             code, "Prediction notice must match its unmixed retrieval family.")
+    require((value["schema_version"] == "hypothesis-feedback-context-v2") == (joint_count > 0),
+            code, "Context version must match its registered conditions.")
     return value
