@@ -21,9 +21,14 @@ def raw(value):
     return canonical(value).encode()
 
 
-def fixture():
+def fixture(include_source=True):
     data = {'source_head': (ref._COMMIT + '\n').encode()}
     protocol = {'budget': {'synthetic': 3}, 'limitations': ['synthetic only']}
+    if include_source:
+        protocol.update(source_basis={'old_source_project_id': 'fixture-source-project',
+                                     'source_counterevidence': 'fixture opposite single timings',
+                                     'source_informed_rule_choices': 1},
+                        policy={'threshold': 7, 'allowed_arm_ids': ['fixture-threshold7']})
     sources = {name: ('source:' + name).encode() for name in ref._SOURCE_SHAS}
     sources[ref._PROTOCOL] = raw(protocol)
     data.update({'source:' + name: value for name, value in sources.items()})
@@ -104,6 +109,28 @@ class SavedStudyReferenceTests(unittest.TestCase):
         self.assertNotIn('action_id', view)
         self.assertLess(len(raw(view)), 65536)
         self.assertEqual(len(inspect.signature(ref.read_saved_study_reference).parameters), 0)
+        self.assertEqual(view['hypothesis_source']['source_basis'], {'old_source_project_id': 'fixture-source-project',
+                         'source_counterevidence': 'fixture opposite single timings', 'source_informed_rule_choices': 1})
+        self.assertEqual(view['hypothesis_source']['protocol_sha256'], self.sources[ref._PROTOCOL])
+        self.assertEqual(view['hypothesis_source']['policy']['threshold'], 7)
+
+    def test_missing_hypothesis_source_is_preserved_as_unrecorded(self):
+        self.data, self.live, self.expected, self.sources, self.claim_sha = fixture(include_source=False)
+        source = self.validate()['hypothesis_source']
+        self.assertIsNone(source['source_basis'])
+        self.assertIsNone(source['policy'])
+        self.assertEqual(source['protocol_sha256'], self.sources[ref._PROTOCOL])
+
+    def test_final_response_still_enforces_bound_after_source_and_raw_references(self):
+        with tempfile.TemporaryDirectory() as d:
+            with patch.object(ref, '_FILES', {'ledger': Path(d) / 'ledger.sqlite'}), \
+                    patch.object(ref, '_read_regular', return_value=b'fixture'), \
+                    patch.object(ref, 'BoundedStudyLedger'), \
+                    patch.object(ref, '_validate_evidence', return_value={
+                        'status': 'completed', 'hypothesis_source': {'source_basis': 'x' * 65536}}):
+                view = ref.read_saved_study_reference()
+                self.assertEqual(view['status'], 'integrity_error')
+                self.assertNotIn('hypothesis_source', view)
 
     def test_incomplete_failed_and_unknown_are_not_completed(self):
         for key, value, expected in [('unknown', ['pending'], 'unknown'), ('failed', ['failed'], 'failed'), ('halted', {'reason': 'stop'}, 'failed')]:
@@ -181,6 +208,7 @@ class SavedStudyReferenceTests(unittest.TestCase):
                         self.assertEqual(view['status'], status)
                         self.assertNotIn('actual_spent', view)
                         self.assertNotIn('planned_budget', view)
+                        self.assertNotIn('hypothesis_source', view)
 
     def test_sqlite_failures_return_explicit_noncompleted_states(self):
         with tempfile.TemporaryDirectory() as d:
