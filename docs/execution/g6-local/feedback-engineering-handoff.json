@@ -1,0 +1,95 @@
+{
+  "schema_version": "synthetic-feedback-handoff-v1",
+  "source_commit": "c40c6ae7386a68ead08c0424a1f8aed3615efc3e",
+  "archive": {
+    "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/feedback-engineering-c40c6ae.zip",
+    "bytes": 4081007,
+    "sha256": "06b453c3f9f698f38036c66aa4a7d1f5a6b7db9b4dcacdcbb6f9f47d2cb5ec70",
+    "source_files": 993,
+    "demo_files": 24,
+    "members": 1019
+  },
+  "relocation": {
+    "exit_code": 0,
+    "actions_added": 0,
+    "original_id": "project-4e6067ff3371431db68435beeee1550f",
+    "used": 2,
+    "limit": 2,
+    "models": 0,
+    "fits": 0,
+    "original_demo_hashes_unchanged": true,
+    "restored_payload_hashes_unchanged": true
+  },
+  "remote": {
+    "status": "upload_blocked_not_durable_bundle",
+    "draft_metadata_created": true,
+    "assets_uploaded": 0,
+    "http_status": 401,
+    "fresh_cli_upload_retry": "also_401",
+    "api_read_and_git_push": "working_at_last_checks",
+    "cause": "unknown; do not infer all GitHub access expired",
+    "draft_url": "https://github.com/open-agent-power/auto-research-agentarts/releases/tag/untagged-ea19fb1c5bfd662ebe5e",
+    "tag": "engineering-feedback-c40c6ae-20261115",
+    "bundle_available_remotely": false
+  },
+  "scope": "only this session synthetic completed engineering demo; no old research ledger",
+  "environment_included": false,
+  "product_release_or_full_gate_claim": false,
+  "cost": "unknown",
+  "evidence": [
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/feedback-engineering-c40c6ae.zip",
+      "bytes": 4081007,
+      "sha256": "06b453c3f9f698f38036c66aa4a7d1f5a6b7db9b4dcacdcbb6f9f47d2cb5ec70",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/SHA256SUMS",
+      "bytes": 194,
+      "sha256": "c61ff6f5ee9a7ce85e43bee3f5c24995f28ec9c7ba63998610a9dcd4d8bde057",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/relocation-verification.json",
+      "bytes": 3738,
+      "sha256": "9e34251ed519c17ea6badda45a395e0d05a5f766e2368e8c10cdc140202ad222",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/bundle-manifest.json",
+      "bytes": 168880,
+      "sha256": "fea32a06c87de6a41ca75118b6ab2ceb6459e53b6e83e848afc74ef0056aae3e",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/restore.stdout",
+      "bytes": 1869,
+      "sha256": "ab15163d9db2caaa6efa91ee7e955d1ea218a7b040b5666eba855dd1a232547f",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/restore.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/github-create.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/github-create.stderr",
+      "bytes": 191,
+      "sha256": "467045bf27cade2c690bd4d0b13a83a047a4616efb5e0fd48dcd0f7655114336",
+      "availability": "local_only"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/durable-demo-root/github-readback.json",
+      "bytes": 251,
+      "sha256": "6e0359cc5ebe6eae1ba2bf958dad773b0b4bcafb87bc82a2a81025fc1714dc48",
+      "availability": "local_only"
+    }
+  ]
+}

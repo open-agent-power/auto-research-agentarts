@@ -12,6 +12,8 @@
 
 当前原生Linux受控模型transport、未曝光final-test协议、长期自适应与跨任务因果收益仍缺。已有test曝光不称盲测；原G0/隔离等完整Gates不升级。优先继续研究决策和原生执行，减少非阻塞展示包装。
 
+持续[S044](../execution/SPRINT-044.md)已组4.1MB新工程原件包并实际用包内源码移址resume（原ID/已用2/2不变、新增0行动）；GitHub附件两次401，assets仍0，远端原件持久化尚未完成。不能把空草稿或源码推送当作原数据已取回。源码继续以c40c6ae为已验证pin，报告见latest-report。
+
 ## 执行边界与入口
 
 用户要求持续推进、每大轮报告、验证后直接合并/推送 `open-agent-power/auto-research-agentarts` 的 main；仅新的实质决策阻塞再询问。用户已接受缺失 Docker/cgroup Worker，按 [可信本地授权](../execution/local-continuation.json) 继续，无需重复索要相同环境。原 G0 隔离与上游 runtime 未通过，不宣称 sealed、多代 RSI 或完整原 Gate。

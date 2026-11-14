@@ -2,7 +2,7 @@
   "schema_version": "source-pin-demo-verification-v1",
   "verified_at": "2026-11-15T00:18:51.758793+08:00",
   "baseline_commit": "9858adffdcc8b579522832e7855715042524bda3",
-  "implementation_commit": "recorded_in_latest_report_after_commit",
+  "implementation_commit": "c40c6ae7386a68ead08c0424a1f8aed3615efc3e",
   "project_code_identity": "21bc1ce5ba3db815b2a177933e4b0f10465ae54cd8d2e6d474212a1627fe4834",
   "controller_code_identity": "6d07babfc5b3b71c3a4b209ebc37245b7d6984798b29836a1cfd1e85b9479f44",
   "source_sha256": {
@@ -233,5 +233,6 @@
       "bytes": 11747,
       "availability": "local_only_not_committed"
     }
-  ]
+  ],
+  "implementation_source_pin": "/workspace/development-continuation-20261114/source-pins/c40c6ae"
 }
