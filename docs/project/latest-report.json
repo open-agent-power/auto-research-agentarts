@@ -1,150 +1,63 @@
 {
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
-  "trigger": "user_direct_continuation",
-  "start_time": "2026-11-14T23:38:06+08:00",
-  "end_time": "2026-11-15T00:39:17.885876+08:00",
-  "end_time_scope": "completed development and verification; push/release finalization follows and has separate receipts",
-  "status": "two_code_increments_pushed_local_handoff_verified_remote_bundle_upload_blocked",
-  "repository": {
-    "path": "/workspace/development-continuation-20261114/auto-research-agentarts",
-    "origin": "https://github.com/open-agent-power/auto-research-agentarts.git",
-    "historical_disk_available": false,
-    "historical_ledger_rebuilt": false
-  },
-  "commits": {
-    "S042": "9858adffdcc8b579522832e7855715042524bda3",
-    "S043": "c40c6ae7386a68ead08c0424a1f8aed3615efc3e",
-    "both_code_pushes_and_origin_main_readback": "confirmed",
-    "report_commit": "resolve containing Git commit; not fabricated before commit"
-  },
+  "start_time": "2026-11-15T00:42:14+08:00",
+  "last_checkpoint": "2026-11-15T01:31:16.454297+08:00",
+  "end_time": null,
+  "status": "running_S046_driver_reviewed_pending_publication",
+  "confirmed_commit": "42100fa79d6f4a6d96b924ba36fba2f769d2c468",
+  "origin_readback_matches": true,
   "completed": [
-    {
-      "id": "S042",
-      "result": "Preregistered validation predicates, checked saved feedback, frozen audit/wait branches, Workbench delegated v2 import/continuation and readonly future IDs"
-    },
-    {
-      "id": "S043",
-      "result": "Reader dependency hashed; cross-source nonterminal recovery blocked before mutation; standalone three-process engineering demo with original IDs"
-    },
-    {
-      "id": "S044-local",
-      "result": "4081007-byte ZIP, 1019 members, exact source c40; package-source relocation replay adds zero actions and preserves original data/quota",
-      "archive_sha256": "06b453c3f9f698f38036c66aa4a7d1f5a6b7db9b4dcacdcbb6f9f47d2cb5ec70",
-      "remote_asset_uploaded": false
-    }
+    "S045 development-only native retrieval, separate preregistered private final package, validation-frozen fixed method, one original-budget final paired evaluation, same-ID/marker recovery, bounded public context/report",
+    "Related regression91/91, independent41/41 and adverse4/4; source188 unchanged",
+    "Independent SQuAD fixed300/100-100-100 protocol and source/license review; protocol committed before data download",
+    "S046 fixed driver independently reviewed; synthetic derivation2/2 and corrupted-body pre-dispatch0-call probe1/1; driver SHA5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619"
   ],
-  "method": {
-    "workflow": "adaptive-agent-workflow v0.3.0 source 81610ae298ec915eed5b1ff01326c112b0262b28; native installed/read",
-    "cloud_skill_library_copy": "old copy; replacement unsupported by current tools",
-    "dev_system": "archived_disabled",
-    "team_pool_including_root": 6,
-    "preference": "Terra/ultra for implementations/research/review, Luna/max for runtime evidence; reused existing members",
-    "professional_methods": "scoped inspected references; not full-package mounting or auto hypothesis ranking",
-    "upstream_references": "three pinned repos statically reread, no restricted-code copy/runtime claims",
-    "adaptation": "stopped slow repetitive packaging preflight; root built and relocation-verified explicit whitelist bundle"
-  },
-  "verification": {
-    "S042_root": {
-      "passed": 71,
-      "tests": 71
-    },
-    "S042_independent": {
-      "passed": 64,
-      "tests": 64
-    },
-    "S043_root": {
-      "passed": 78,
-      "tests": 78,
-      "source_hashes_unchanged": true
-    },
-    "S043_independent": {
-      "passed": 30,
-      "tests": 30,
-      "source_hashes_unchanged": true
-    },
-    "demo": {
-      "project_id": "project-4e6067ff3371431db68435beeee1550f",
-      "validation_delta": 0.0,
-      "outcome": "condition_not_met",
-      "native_tools_used": 2,
-      "native_tools_limit": 2,
-      "new_product_model_calls": 0,
-      "estimator_fits": 0,
-      "independent_repeat_added_actions": 0,
-      "relocated_repeat_added_actions": 0,
-      "original_files_and_budget_unchanged": true
-    },
-    "old_9858_engineering_fixture": "actual clean source pin + SQLite query_only read; original registration/budget/DB unchanged, no action attempted"
-  },
-  "failures_and_negative_results": [
-    "Old research disk, original data/pins and S041 v2 body unavailable; no history fabricated",
-    "WIP review StopIteration cause unknown; original ephemeral fixture not retained; later passes do not explain it",
-    "Root HTTP tests initially assumed wrong export enum/report key; tests corrected to actual contract",
-    "Reader source dependency/recovery mutation gaps independently reproduced, then fixed and checked",
-    "Synthetic validation delta 0, no new scientific gain",
-    "GitHub draft metadata created, uploads.github.com 401 in initial and fresh-CLI retry; assets=0; archive remote persistence incomplete"
+  "not_completed": [
+    "real SQuAD download/ranking/final study has not begun"
   ],
-  "boundaries": {
-    "historical_research_not_restarted": true,
-    "old_fit_or_model_budgets_not_extended": true,
-    "new_scientific_fits": 0,
-    "product_model_or_paid_api_invocations": 0,
+  "actual_research_results": null,
+  "research_usage": {
+    "real_study_tools": 0,
+    "models": 0,
+    "fits": 0,
+    "old_cases_or_quota_reset": false,
     "development_tokens": "unknown",
-    "development_cost": "unknown",
-    "not_claimed": [
-      "native Linux controlled model transport",
-      "blind final test",
-      "long-term autonomous research benefit",
-      "cross-task causal memory benefit",
-      "OS/sealed isolation or full original Gates"
-    ]
+    "development_cost": "unknown"
   },
-  "activity_at_report_write": {
-    "root": "active only for handoff/commit/push/lease closure",
-    "owner": "root-source-continuation-20261114T1538",
-    "lease": "held at write; release after final push, read receipt below",
-    "subagents": "all completed or stopped; no running child shell session",
-    "original_cloud_executor": "unknown",
-    "release_receipt": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/close/lease-release.json"
+  "activity": {
+    "owner": "root-evaluation-20261115T0042",
+    "root": "active continuing work, lease held",
+    "engineering": "driver finished and frozen",
+    "capability_review": "driver independent review complete",
+    "old_disk_executor": "unknown",
+    "background_model_process_claim": false
   },
-  "blockers": [
-    {
-      "item": "historical disk",
-      "impact": "historical research recovery unavailable; source-only engineering can continue"
-    },
-    {
-      "item": "model runtime and final-test protocol",
-      "impact": "no evidence for general sustained autonomous research or blind efficacy"
-    },
-    {
-      "item": "GitHub release assets 401",
-      "impact": "same already-verified engineering bundle not stored remotely; API read and code push work, cause unknown"
-    }
+  "known_negative_results": [
+    "NFCorpus academic-use scope not confirmed; CQADupStack rights/capacity unresolved, not adopted",
+    "WIP source drift caused engineering CODE_CHANGED; later explicit source freeze used, original ID not replaced",
+    "Existing uploads.github.com 401 remains; no claimed remote raw bundle persistence"
   ],
-  "next_tasks": [
-    "Continue native research decision/execution work: freeze a new validation-only/once-final-test protocol and method comparison without reopening old cases or model quotas",
-    "Retry the exact verified engineering ZIP only when authenticated asset upload works; do not recreate project or rerun research",
-    "Next entry verify current/origin/lease/source pin; preserve original IDs, budgets, failures and raw inputs"
+  "boundaries": [
+    "old research disk unavailable, history not reconstructed",
+    "same-user procedural holdout, not blind or OS-isolated",
+    "no native Linux model transport or real efficacy result yet",
+    "old model/fit budgets not expanded"
   ],
-  "new_user_decision_required": "none for continued source development; asset upload authentication remains an external blocker, no request for broader research/model budget",
+  "next": "Freeze and publish exact driver+protocol+source; then run one fixed new 3-tool/0model/0fit/0-source-action study via original native project, preserve zero/negative outcomes and raw inputs",
+  "user_decision_required": null,
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
-    "prompt_readback": "updated for new source continuation/latest workflow/reusable team, not a stop point",
-    "schedule": "unchanged every 3h",
     "next_planned_trigger": "2026-11-15T01:47:27+08:00",
-    "platform_last_run_completion": "unknown",
+    "role": "alignment/reporting, not stop point",
+    "completion": "unknown",
     "notification_delivery": "unknown"
   },
-  "evidence_indexes": [
-    "docs/execution/g5-local/adaptive-continuation-verification.json",
-    "docs/execution/g5-local/source-pin-demo-verification.json",
-    "docs/execution/g6-local/feedback-engineering-handoff.json"
-  ],
-  "raw_evidence": "ignored runs/source-continuation-20261114 and /workspace/skill-refresh-20261114/review; local-only unless explicitly uploaded",
-  "finalization_receipts": {
-    "push": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/close/push.log",
-    "origin": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/close/origin-main.txt",
-    "release": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/close/lease-release.json"
-  }
+  "evidence": [
+    "docs/execution/SPRINT-045.md",
+    "docs/execution/g5-local/staged-retrieval-verification.json",
+    "docs/execution/g5-local/squad-paragraph-protocol-v1.json",
+    "/workspace/skill-refresh-20261114/review/s046-protocol-review.md",
+    "/workspace/skill-refresh-20261114/review/s046-driver-review.md"
+  ]
 }

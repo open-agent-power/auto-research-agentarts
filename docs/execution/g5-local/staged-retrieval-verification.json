@@ -1,7 +1,7 @@
 {
   "schema_version": "staged-retrieval-verification-v1",
   "baseline_commit": "5be416e0ce931d12ee631d07188c659fd3128337",
-  "source_commit": "resolve_first_S045_implementation_commit",
+  "source_commit": "42100fa79d6f4a6d96b924ba36fba2f769d2c468",
   "core_code_identity": "6a5c9e47a19ceebe883930a51d9524788374245e9fd8d774a4e88af2db20c0ab",
   "controller_code_identity": "ea63841f4fdd82228f464657247c93ea4dd679c8e6dfd368b158fd03b888b5f4",
   "source_sha256": {
