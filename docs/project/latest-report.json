@@ -2,40 +2,62 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T04:48:03+08:00",
-  "last_checkpoint": "2026-11-15T05:51:59.566083+08:00",
+  "last_checkpoint": "2026-11-15T06:30:16.483744+08:00",
   "end_time": null,
-  "status": "S051_S052_published_S053_audit_done_S054_driver_review",
-  "confirmed_commit": "6d536f3ee92a0d422bef8068613a2bb8caabe12b",
+  "status": "S054_real_S055_capture_S056_pushed_continuing_S057_contract",
+  "confirmed_commit": "7c60095450107b99d4755f1df741ba8264d65db5",
   "completed": [
-    "远端AAW已fetch，最新版02e72e3/v0.3.1与本地完整7文件相同",
-    "S051原生staged事前条件/保存反馈/原audit或wait已实现并推main",
-    "root60相关与独审4项通过，191冻结源未变",
-    "三组合成真实HTTP与不同PID原body重放：正2工具、负/零各1，无新增预算或行动",
-    "旧S046保存验证差−.01只读核验；S04636+S05017原件字节/状态/预算不变",
-    "S052显式条件续作实现并推main，原v1保持，wait/unknown不进入final",
-    "独审新增发现并修复已知wait错误primary回执绑定；初版191源/失败/HTTP原件保留",
-    "修复后54相关/9独审与两组实际HTTP/新PID原body重放通过，完整回执及Project状态预算公开文件相同",
-    "S053来源审计完成，拒将Argu新副本重开原研究",
-    "S054官方TRAIN固定源准备与独立重建/容量通过，原30288272B，2200段/100-100-100query；未rank/score"
+    "AAW remote fetched 02e72e3/v0.3.1 all7 installed files match",
+    "S051 saved staged hypothesis feedback and S052 explicit conditional continuation pushed main",
+    "S054 real TRAIN2200/100-100-100: validation .98→.99, final .97→.98; MRR/nDCG losses retained, no overall promotion",
+    "S054 3/3 tools/2index/600rank/600score/0model/fit/evidence; original47 files/summary/budget/IDs identical after new-process original-pin resume; independent original chain/arithmetic/report verified",
+    "S055 native Memory capture632278B, source unchanged, idempotent0new entries",
+    "S056 saved query GET interfaces pushed main after75related/5independent and actualS054 readonlyGET"
   ],
   "not_completed": [
-    "S054 driver恢复前只读校验/截止自洽/完整摘要修复与独审进行中；实际研究未启动",
-    "S050一次新模型仍待真实用户答复，未执行"
+    "Explicit staged materials into Host/plan not yet connected; S057 next bounded slice",
+    "S050 one new model-call question pending genuine user reply; not executed"
   ],
-  "actual_research_results": null,
+  "actual_research_results": {
+    "study_id": "s054-squad-train-conditional-v1",
+    "source_commit": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+    "validation_recall20": {
+      "bm25": 0.98,
+      "tfidf": 0.99,
+      "delta": 0.01
+    },
+    "final_recall20": {
+      "bm25": 0.97,
+      "tfidf": 0.98,
+      "delta": 0.01
+    },
+    "final_mrr_delta": -0.020916666666666667,
+    "final_ndcg_delta": -0.011180093100839419,
+    "conditional_public_train_cohort_only": true,
+    "overall_research_benefit": "unknown",
+    "global_promotion": false
+  },
   "research_usage": {
-    "new_research_actions": 0,
+    "new_research_actions": 3,
     "new_research_model_calls": 0,
     "new_research_fits": 0,
     "development_tokens": "unknown",
     "development_cost": "unknown",
-    "old_cases_reset": false
+    "old_cases_reset": false,
+    "new_research_evidence_actions": 0,
+    "scientific_ranking_calls": 600,
+    "scientific_scoring_calls": 600,
+    "index_builds": 2,
+    "tool_budget_used": 3,
+    "tool_budget_limit": 3,
+    "engineering_dispatch_count": "not separately metered"
   },
   "activity": {
     "owner": "root-g5-continuation-20261115T0448",
-    "root": "active lease held; protocol and integration",
-    "engineering": "S054 host driver/tests single writer, no product writes or actual research",
-    "capability_review": "S054 source verified, driver independent review ongoing",
+    "root": "active lease held; S057 contract next",
+    "engineering": "S056 handed back, reusable",
+    "capability_review": "S054 actual and S056 independent reviews handed back, reusable",
     "old_disk_executor": "unknown"
   },
   "boundaries": [
@@ -43,7 +65,7 @@
     "S050 still pending user decision, no model/API scope expanded",
     "trusted local only, not OS/sealed/scientific benefit claim"
   ],
-  "next": "完成S054 driver定向修复、必要验证/独审，发布clean source pin后prepare与唯一实际run，不新ID重试unknown",
+  "next": "S057 explicit bounded staged materials into existing plan/Host, without models or old budget/source migration",
   "user_decision_required": "existing S0501-call question remains pending; no repeat question, independent S051 continues",
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
@@ -69,7 +91,11 @@
     "docs/execution/SPRINT-053.md",
     "docs/execution/g5-local/squad-train-conditional-protocol-v1.json",
     "runs/s054-review/preprotocol.md",
-    "runs/s054-review/source-assessment.md"
+    "runs/s054-review/source-assessment.md",
+    "docs/execution/g5-local/squad-train-conditional-results.json",
+    "docs/execution/g5-local/train-tradeoff-experience-verification.json",
+    "docs/execution/g5-local/staged-reader-verification.json",
+    "runs/s056-verification/handoff-write-failure.md"
   ],
   "verification": {
     "root_related": 60,
@@ -90,5 +116,11 @@
     "new_research_benefit_proven": false,
     "real_bug_fixed": "Known wait wrong-primary receipt rejected before accept",
     "private_io_scope": "wait private guards; authorized final/report may read original private fixture; private bytes excluded from HTTP inventory"
-  }
+  },
+  "failures_this_round": [
+    "S052 known wait wrong-primary receipt binding fixed before publish; original source/failed probes retained",
+    "S054 pre-release corrupt manager/deadline/summary risks fixed and exercised",
+    "S052 independent probe injection/assertion setup errors and S056 initial relative-path setup failure retained, distinguished from product defects",
+    "Handoff writer wrong manifest key KeyError corrected after7c source/evidence commit; original study files/budget unchanged"
+  ]
 }
