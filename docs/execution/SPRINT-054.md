@@ -17,3 +17,18 @@ S051/S052发布后继续实际研究准备：同一公开SQuAD v1.1、不同官�
 发布clean exact source pin后，仅root运行 `scripts/run_squad_train_conditional_study.py --source-commit <fullSHA> --prepare`，核prepared/原件身份与0项目，再唯一 `--run`。再次只 `--resume` 原pin/claim/body/ID/目录，不因失败换项目或重置预算。driver与完整[协议说明](g5-local/squad-train-conditional-protocol.md)以最终发布字节为准。
 
 本轮root/engineering/capability_review复用AAW v0.3.1显式owner loop和原生评测方法，未加载dev-system/新模型服务。工程token/费用unknown。source/driver审查和命令日志在ignored `runs/s054-review/` 与 `runs/s054-verification/`；真实执行完成/停点将另存原始结果和共享索引，不把触发或prepare当完成。
+
+
+## 后续唯一真实执行结果
+
+发布 `f23de20fb2cfe0cb3ff04117cefc8a8f394186f4` 并核真实远端后，在该clean pin先prepare：17文件、真实packet2,469,901B，prepared SHA b05c2c8a9e2d3ae76af59125e9f82ba618ecab7b58021c11bdf8f986f3e39210，未创建SQLite/Project。然后唯一run return0：原project `project-e5200655762d4ae6abca80cfddcf1e3d` / run `run-7f74b125d1ad443e96bbf0f81f0165d9`，事前validation .98→.99（+0.01）满足条件，系统原policy审计/冻结TF-IDF后完成一次final及报告。3/3工具用满，2次index、600 ranking/600 scoring，0模型/fit/来源行动，费用/token unknown。
+
+| final指标（100 query） | BM25 | 选中TF-IDF | 差值 |
+|---|---:|---:|---:|
+| Recall@20 | .97 | .98 | +.01 |
+| MRR@10 | .889500 | .868583 | −.020917 |
+| nDCG@10 | .904722 | .893542 | −.011180 |
+
+validation Recall5还下降.02、MRR下降.006905；原dev/validation共31个adverse保存。按冻结的Recall20条件选择不等于全面更优，不修改旧协议/阈值来消除亏损，也不自动全局采用。另一个Python进程以原pin/ID/目录`--resume` return0，原47文件字节、完整summary/预算/行动ID完全相同。独立核原登记先于行动、三个parent/child/SQL fingerprint/封套/冻结/报告四payload与manifest及保存算术，通过；没有新增排名/评分。原永久claim保留。
+
+[精确输入、代码、原请求、预算、原件与恢复](g5-local/squad-train-conditional-results.json)；原S046 DEV与其预算仍保持。该结果是公开TRAIN固定群体且final经过validation条件筛选，不宣称统计显著、盲测、跨dataset/长期自主收益。继续S055通过既有Memory捕获这次覆盖改善与排序损失，不追加科研工具。

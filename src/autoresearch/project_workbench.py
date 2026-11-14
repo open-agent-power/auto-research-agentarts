@@ -24,6 +24,7 @@ from .research_plan_proposal import build_context as build_plan_context
 from .research_recipe import parse_json
 from .saved_materials import normalize_requests
 from .saved_retrieval_reader import read_adverse_page, read_adverse_query
+from . import staged_feedback_reader, staged_relevance_adapter
 from .cpu_protocol_reader import MAX_RESPONSE_BYTES as MAX_PROTOCOL_RESPONSE_BYTES, read_fixed_protocol
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
@@ -622,7 +623,11 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                              "STALE_STATE", "The bound reader project changed.")
                     arguments = {key: selectors[key] for key in
                                  (("action_id", "query_id", "split") if detail else ("action_id", "offset", "limit"))}
-                    value = (read_adverse_query if detail else read_adverse_page)(project, before, **arguments)
+                    if before.get("registration", {}).get("method_id") == staged_relevance_adapter.TOOL_ID:
+                        reader = staged_feedback_reader.read_adverse_query if detail else staged_feedback_reader.read_adverse_page
+                    else:
+                        reader = read_adverse_query if detail else read_adverse_page
+                    value = reader(project, before, **arguments)
                     current, current_snapshot, _ = binding()
                     after = _bound_state(current, current_snapshot)
                     _require(before["id"] == after["id"] and before["snapshot_ref"] == after["snapshot_ref"],

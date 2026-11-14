@@ -1,0 +1,90 @@
+{
+  "schema_version": "s056-stage-reader-verification-v1",
+  "implementation": {
+    "staged_feedback_reader_sha256": "dd1ee9cd15d564846df7c0bbc751ac2c2f3b819c75a8d6a5c1c25e94305e095a",
+    "project_workbench_sha256": "39edc218e4b26526b40e00771951dd6cb2b0777b57f7b72db5e8acceb7d50926",
+    "test_sha256": "1edc24c9e6b84dd6a84d96dbee20ef901cf71657455c6f7ca96ef1198766484e",
+    "source_freeze_sha256": "8d4165764c7820e7f6e2fe2896d57f37dbc2d2c1b43609d11997d05151e095b0",
+    "project_core_identity": "2b0b552c54f9a7a2c577b405746d61743396090d8c0e24e0e851882694182fa7"
+  },
+  "verification": {
+    "author_directed": 41,
+    "root_related": 75,
+    "independent": 5,
+    "original_191_sources_unchanged_since_freeze": true,
+    "legacy_reader_source_unchanged": true,
+    "real_S054": {
+      "status": "passed",
+      "source_file_count": 47,
+      "source_hashes_match_s055": true,
+      "source_files_unchanged": true,
+      "project_state_sha256": "b43a3e037d9ac723af03294fb21f4b1ef9a0573116518a001d576dbb75f74b79",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "existing_cash_cap_cny": 5,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "s054-squad-train-conditional-v1",
+        "local_tool_call_limit": 3,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "local_tool_calls_used": 3,
+        "local_tool_calls_reserved": 0,
+        "local_tool_dispatches": 3,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0,
+        "fit_limit": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "preprocessing_fits": 0,
+        "fits_completed": 0,
+        "ridge_fits_completed": 0,
+        "preprocessing_fits_completed": 0
+      },
+      "query_id": "56cfee80234ae51400d9c0ff",
+      "bm25_rank": 1,
+      "tfidf_rank": 2,
+      "source_integrity_limit": "before/after byte hashing reads private bytes outside path guards, without parsing",
+      "capture_scope": "HTTP read guarded against private paths and named execution functions"
+    },
+    "real_response_page_sha256": "23740549690c5a0a7c4a81547e9317052387cea9716a69f6a487b21babf22edc",
+    "real_response_query_sha256": "6edc57d97ad0cbe03e4c1a208662e7442353f25254456d464fb5edaa91d5ba9b"
+  },
+  "independent_scope": {
+    "existing_completed_S051_synthetic_public_source_sqlite_primary_only": true,
+    "new_rank_score": 0,
+    "size_gate_test": "mock MAX_RESPONSE_BYTES=1 to verify refusal path; not an actual >1MiB fixture",
+    "source_state_budget_unchanged": true,
+    "private_host_and_execution_guards": true,
+    "assessment": "runs/s056-review/independent-assessment.md",
+    "log_sha256": "68433e990728f24b209d34103e99f5781f10fcc2b29fd008dba17307419d39af"
+  },
+  "real_query": {
+    "split": "validation",
+    "query_id": "56cfee80234ae51400d9c0ff",
+    "source_positive_rank": {
+      "bm25": 1,
+      "tfidf_cosine": 2
+    },
+    "saved_mrr": {
+      "bm25": 1,
+      "tfidf_cosine": 0.5
+    }
+  },
+  "new_research_actions": 0,
+  "new_research_models": 0,
+  "new_research_fits": 0,
+  "development_tokens": "unknown",
+  "development_cost": "unknown",
+  "limits": [
+    "Only completed staged primary dev/validation; no final/test or action execution.",
+    "Producer core300421 unchanged, source execution/resume only original f23de20 pin.",
+    "Historical read projection allowed without source migration; source47 bytes/state/budget remain unchanged.",
+    "Named GET private/execution guards, integrity hashing outside guard reads private raw bytes without parsing.",
+    "No saved_materials/Host/plan or new frontend integration claim."
+  ]
+}

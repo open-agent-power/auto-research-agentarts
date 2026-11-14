@@ -1,5 +1,7 @@
 # 后端索引
 
+S056 原两条retrieval GET按注册staged源显式分派独立dev/validation DTO，返回原query/正例/两臂保存排名和坐标；source/action/SQL/完整覆盖/前后snapshot强绑定，原producer与reader身份分列，1MiB/25/20及文本上限不扩。旧train/test DTO不变，final/test拒绝；saved_materials/Host/plan尚未接此family。见[reader合同](../../docs/staged-retrieval-reader.md)。
+
 S052 原 `continue_staged` 新增六字段 opt-in registration/v2，原五字段v1保持；原反馈 wait/unknown持久停止且不锁路线，核原policy audit后才freeze/final/report，已知primary错绑定接受前拒绝。见[条件模式](../../docs/staged-evaluation-continuation.md#显式条件模式s052)。
 
 S051 `staged_feedback_reader`把独立 dev/validation primary 接入原事前假设与 `advance_feedback`，源/SQL/grades/坐标/完整覆盖核验，原 audit/wait 与同ID预算保持；不读取 final、不重排评分，旧家族消息保持。S047 固定续作尚不自动遵循 wait。见[合同](../../docs/hypothesis-feedback.md#独立-staged-development-的反馈)与[Sprint](../../docs/execution/SPRINT-051.md)。

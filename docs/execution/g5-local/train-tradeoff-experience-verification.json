@@ -1,0 +1,191 @@
+{
+  "schema_version": "s055-real-case-capture-v1",
+  "status": "completed_existing_memory_integration",
+  "source_study_commit": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+  "source_project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+  "capture_runtime_core": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+  "case_path": "runs/s055-verification/case.json",
+  "case_sha256": "6aa0ca75d05630df69eabec5abaec3ba0530cd488041833b02163cde1b988d45",
+  "case_bytes": 632278,
+  "verification": {
+    "adverse_queries": 31,
+    "capture_git_head": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "capture_implementation_sha256": "4f491520cea01b9280dcc8aa5002bbd58f740c8161e53a8cf9af59677fa3faa5",
+    "capture_runtime_code_identity": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+    "case": {
+      "bytes": 632278,
+      "file": "case.json",
+      "sha256": "6aa0ca75d05630df69eabec5abaec3ba0530cd488041833b02163cde1b988d45"
+    },
+    "final_aggregate": {
+      "baseline_method": "bm25",
+      "comparison_status": "distinct_selected_and_baseline",
+      "limitations": [
+        "Procedural same-user separation only; not OS-isolated or independently blind.",
+        "Final binary relevance metrics do not establish scientific validity."
+      ],
+      "query_count": 100,
+      "selected_method": "tfidf_cosine",
+      "summary": {
+        "baseline": {
+          "mrr@10": 0.8895000000000001,
+          "ndcg@10": 0.9047217813316522,
+          "recall@10": 0.95,
+          "recall@20": 0.97,
+          "recall@5": 0.95
+        },
+        "delta": {
+          "mrr@10": -0.020916666666666667,
+          "ndcg@10": -0.011180093100839419,
+          "recall@10": 0.02,
+          "recall@20": 0.01,
+          "recall@5": 0.0
+        },
+        "selected": {
+          "mrr@10": 0.8685833333333334,
+          "ndcg@10": 0.8935416882308128,
+          "recall@10": 0.97,
+          "recall@20": 0.98,
+          "recall@5": 0.95
+        }
+      },
+      "usage": {
+        "index_builds": 1,
+        "model_calls": 0,
+        "native_fits": 0,
+        "ranking_calls": 200,
+        "scoring_calls": 200
+      },
+      "verification": "source_verified_at_capture; offline_final_binding_unverifiable_without_origin"
+    },
+    "limits": [
+      "Source before/after integrity hashing read private file bytes outside capture guards; no private content was parsed for this check.",
+      "Capture and recall were guarded against private holdout access and against new retrieval, ranking, scoring, project steps and controller advances.",
+      "Final projection contains aggregate metrics only; offline binding to final origin remains unverifiable without source.",
+      "One public train cohort; no independent blinding, automatic adoption or cross-task claim."
+    ],
+    "primary_action_id": "action-deccc0ee9c830ae6a75dfd029494b218",
+    "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+    "project_root": "/workspace/development-continuation-20261114/source-pins/f23de20/runs/s054-squad-train-conditional-v1/manager/projects/ec9f433fc80d7cddede13ea5b1ef01375d5e5f56ef7cc790abfac236e2f4cfbf",
+    "project_status_unchanged": true,
+    "recall": {
+      "bytes": 1256788,
+      "file": "recall.json",
+      "sha256": "83f1206abb01e7842e2dadb4d0e6657d7e5facbc599f39d007dfadd5088b9eb5"
+    },
+    "receipt": {
+      "bytes": 635,
+      "file": "receipt.json",
+      "sha256": "f80a01be4df12af567406c021cc6a94d926b0d42cdb5642e27fb34db0e1d134f"
+    },
+    "scientific_validation": false,
+    "source_commit": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "source_files_count": 47,
+    "source_files_unchanged": true,
+    "status": "captured",
+    "summary": {
+      "bytes": 7885,
+      "file": "case-summary.json",
+      "sha256": "8164df40347de3c0d7c8b56d53013ef8b9844e73ace2d8329190002aa7ee43cc"
+    },
+    "validation_paired_summary": {
+      "arms": {
+        "bm25": {
+          "metrics": {
+            "mrr@10": 0.8505,
+            "ndcg@10": 0.8801266275626269,
+            "recall@10": 0.97,
+            "recall@20": 0.98,
+            "recall@5": 0.96
+          },
+          "queries": 100
+        },
+        "tfidf_cosine": {
+          "metrics": {
+            "mrr@10": 0.8435952380952381,
+            "ndcg@10": 0.8789348012210529,
+            "recall@10": 0.99,
+            "recall@20": 0.99,
+            "recall@5": 0.94
+          },
+          "queries": 100
+        }
+      },
+      "paired_candidate_minus_baseline": {
+        "mrr@10": {
+          "losses": 10,
+          "mean": -0.006904761904761905,
+          "ties": 83,
+          "wins": 7
+        },
+        "ndcg@10": {
+          "losses": 10,
+          "mean": -0.0011918263415741043,
+          "ties": 83,
+          "wins": 7
+        },
+        "recall@10": {
+          "losses": 0,
+          "mean": 0.02,
+          "ties": 98,
+          "wins": 2
+        },
+        "recall@20": {
+          "losses": 0,
+          "mean": 0.01,
+          "ties": 99,
+          "wins": 1
+        },
+        "recall@5": {
+          "losses": 3,
+          "mean": -0.02,
+          "ties": 96,
+          "wins": 1
+        }
+      }
+    }
+  },
+  "idempotent_replay": {
+    "final_artifact_query_hash_count": 100,
+    "final_query_hashes_in_bundle": 0,
+    "guarded_replay": [
+      "private evaluation",
+      "case private",
+      "host-model-selections",
+      "ranking",
+      "scoring",
+      "index",
+      "native execution",
+      "Project step/resume/recovery",
+      "Host request/transport",
+      "Ridge.fit",
+      "StandardScaler.fit"
+    ],
+    "inserted_on_same_memory_replay": 0,
+    "private_source_integrity_hash_limit": "before/after byte hashing outside guards reads private bytes, without parsing",
+    "project_status_unchanged": true,
+    "source_files_unchanged": true,
+    "status": "passed"
+  },
+  "source_47_files_state_and_budget_unchanged": true,
+  "new_research_projects": 0,
+  "new_research_actions": 0,
+  "new_research_models": 0,
+  "new_research_fits": 0,
+  "development_tokens": "unknown",
+  "development_cost": "unknown",
+  "capture_script": {
+    "path": "runs/s055-verification/capture.py",
+    "sha256": "01b4760cf6ed29f2e38b10b47d9d8a683fda73bc4da954d045642a2f27996a03"
+  },
+  "replay_script": {
+    "path": "runs/s055-verification/replay-check.py",
+    "sha256": "f74658b8bb2cd7320614b2a6e1048f0d69785932f1ad2ea0f59d507082ddffee"
+  },
+  "limits": [
+    "Historical analogy only, not current task evidence or authority to adopt.",
+    "Private final absent during capture readers; file-integrity hashing outside guards read private bytes without parsing.",
+    "Initial host directory guard incomplete; supplementary same-Memory replay covered actual host/model/fit/recover hooks with zero new entries.",
+    "Final aggregate binding offline unverifiable without original source; all final per-query ID hashes absent from bundle."
+  ]
+}

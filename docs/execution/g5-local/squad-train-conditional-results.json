@@ -1,0 +1,562 @@
+{
+  "schema_version": "s054-real-results-v1",
+  "status": "completed_native_conditional_study",
+  "source_commit": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+  "workspace": "/workspace/development-continuation-20261114/source-pins/f23de20/runs/s054-squad-train-conditional-v1",
+  "prepared_sha256": "b05c2c8a9e2d3ae76af59125e9f82ba618ecab7b58021c11bdf8f986f3e39210",
+  "summary_sha256": "8a6b1462f59b92709f1697c17c29f58b39c4c752fc9481cb0476fdd202b8c5ae",
+  "protocol_sha256": "eaea343cd2f9b653b546f6fb8b5b4b3b2ed38452ff6959a866feac2342f0d997",
+  "source_snapshot_sha256": "73f2d1a934cef56e096c3ef26770aabe56c2c9aa736616111084854c773697b9",
+  "native_summary": {
+    "actions": [
+      {
+        "command": "research.relevance-validation-pair",
+        "id": "action-deccc0ee9c830ae6a75dfd029494b218",
+        "request_id": "controller-child-9fd00c3deba318621a042869925aaab2",
+        "result_sha256": "1b806e348fedb6f0fafe00a514d8b299e61b2b379b42aea2284722446720a3f4",
+        "status": "completed"
+      },
+      {
+        "command": "research.relevance-validation-saved-audit",
+        "id": "action-3bfae2711ec1b4ea8f5315c9951c9883",
+        "request_id": "controller-child-7cb686c39e5733ac9e6ba9de04d19030",
+        "result_sha256": "1427a0e7688c89a0a283423cd2516341f31d15705c118327b1f83ffaf14642b9",
+        "status": "completed"
+      },
+      {
+        "command": "research.relevance-final-evaluation",
+        "id": "action-f7605bb2b1c8c85ec0239fc1081ae06c",
+        "request_id": "controller-child-402567a05d87983d08b36445e3caaaa1",
+        "result_sha256": "d027e97a8ab247b4eab910d7b9192ad2f4823d3e1d7effba7e80489c689bb77e",
+        "status": "completed"
+      }
+    ],
+    "budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "evidence_reads_reserved": 0,
+      "evidence_reads_used": 0,
+      "existing_cash_cap_cny": 5,
+      "fit_attempts_used": 0,
+      "fit_limit": 0,
+      "fits_completed": 0,
+      "fits_reserved": 0,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s054-squad-train-conditional-v1",
+      "local_tool_call_limit": 3,
+      "local_tool_calls_reserved": 0,
+      "local_tool_calls_used": 3,
+      "local_tool_dispatches": 3,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "preprocessing_fits": 0,
+      "preprocessing_fits_completed": 0,
+      "ridge_fits_completed": 0
+    },
+    "conditional_request_id": "s054-conditional",
+    "continuation_phase": "done",
+    "created_by_owner": "root-g5-continuation-20261115T0448",
+    "driver_sha256": "5b36b28b24d19ebd169d573804d501cf291db3268632ec401f332fc3288b5fe3",
+    "feedback": {
+      "action_id": "action-deccc0ee9c830ae6a75dfd029494b218",
+      "branches": {
+        "condition_met": {
+          "kind": "method",
+          "method_id": "research.relevance-validation-saved-audit"
+        },
+        "condition_not_met": {
+          "kind": "wait"
+        }
+      },
+      "candidate": {
+        "evaluation_ref": "staged-relevance-development-v1",
+        "id": "choice-79ee98dab4be8a237258291a9457d9b8",
+        "method_id": "research.relevance-validation-pair",
+        "parameters": {}
+      },
+      "condition": {
+        "measure": "candidate_minus_baseline",
+        "metric": "recall@20",
+        "operator": "gt",
+        "split": "validation",
+        "threshold": 0
+      },
+      "controller_request_id": "s054-primary",
+      "outcome": "condition_met",
+      "registration_sha256": "a30c9db26fed869d5a3ed3ecca790958712f62f9a1422ec72c18c9ac8d636214",
+      "request_id": "s054-hypothesis",
+      "result_sha256": "1b806e348fedb6f0fafe00a514d8b299e61b2b379b42aea2284722446720a3f4",
+      "unknown_reason": null,
+      "value": 0.01
+    },
+    "final_status": "measured",
+    "final_summary": {
+      "baseline": {
+        "mrr@10": 0.8895000000000001,
+        "ndcg@10": 0.9047217813316522,
+        "recall@10": 0.95,
+        "recall@20": 0.97,
+        "recall@5": 0.95
+      },
+      "delta": {
+        "mrr@10": -0.020916666666666667,
+        "ndcg@10": -0.011180093100839419,
+        "recall@10": 0.02,
+        "recall@20": 0.01,
+        "recall@5": 0.0
+      },
+      "selected": {
+        "mrr@10": 0.8685833333333334,
+        "ndcg@10": 0.8935416882308128,
+        "recall@10": 0.97,
+        "recall@20": 0.98,
+        "recall@5": 0.95
+      }
+    },
+    "limitations": [
+      "Same public dataset, different official split and fixed paragraph cohort; not a new dataset or cross-dataset generalization.",
+      "Selection and download before action registration; no claim of prior non-exposure or blind/sealed evaluation.",
+      "S046 used DEV; visible tracked history has no TRAIN execution. Inaccessible historical ledgers remain unknown.",
+      "One original question-to-paragraph mapping, not exhaustive relevance or answer quality.",
+      "Corpus and query sampling differ from S046; do not compare raw scores as a controlled treatment effect across cohorts.",
+      "Native deterministic conditional gate; no model autonomy, statistical significance, OS/sealed isolation or complete Gates claimed."
+    ],
+    "original_source_sha256": "3527663986b8295af4f7fcdff1ba1ff3f72d07d61a20f487cb238a6ef92fd955",
+    "primary": {
+      "action_id": "action-deccc0ee9c830ae6a75dfd029494b218",
+      "adverse_query_count": 31,
+      "artifact": "artifacts/action-deccc0ee9c830ae6a75dfd029494b218.json",
+      "paired_summary": {
+        "splits": {
+          "dev": {
+            "arms": {
+              "bm25": {
+                "metrics": {
+                  "mrr@10": 0.867,
+                  "ndcg@10": 0.8874619881902611,
+                  "recall@10": 0.95,
+                  "recall@20": 0.98,
+                  "recall@5": 0.93
+                },
+                "queries": 100
+              },
+              "tfidf_cosine": {
+                "metrics": {
+                  "mrr@10": 0.8184285714285714,
+                  "ndcg@10": 0.8567641531385798,
+                  "recall@10": 0.97,
+                  "recall@20": 0.98,
+                  "recall@5": 0.96
+                },
+                "queries": 100
+              }
+            },
+            "paired_candidate_minus_baseline": {
+              "mrr@10": {
+                "losses": 17,
+                "mean": -0.04857142857142857,
+                "ties": 72,
+                "wins": 11
+              },
+              "ndcg@10": {
+                "losses": 17,
+                "mean": -0.030697835051681357,
+                "ties": 72,
+                "wins": 11
+              },
+              "recall@10": {
+                "losses": 0,
+                "mean": 0.02,
+                "ties": 98,
+                "wins": 2
+              },
+              "recall@20": {
+                "losses": 0,
+                "mean": 0.0,
+                "ties": 100,
+                "wins": 0
+              },
+              "recall@5": {
+                "losses": 0,
+                "mean": 0.03,
+                "ties": 97,
+                "wins": 3
+              }
+            }
+          },
+          "validation": {
+            "arms": {
+              "bm25": {
+                "metrics": {
+                  "mrr@10": 0.8505,
+                  "ndcg@10": 0.8801266275626269,
+                  "recall@10": 0.97,
+                  "recall@20": 0.98,
+                  "recall@5": 0.96
+                },
+                "queries": 100
+              },
+              "tfidf_cosine": {
+                "metrics": {
+                  "mrr@10": 0.8435952380952381,
+                  "ndcg@10": 0.8789348012210529,
+                  "recall@10": 0.99,
+                  "recall@20": 0.99,
+                  "recall@5": 0.94
+                },
+                "queries": 100
+              }
+            },
+            "paired_candidate_minus_baseline": {
+              "mrr@10": {
+                "losses": 10,
+                "mean": -0.006904761904761905,
+                "ties": 83,
+                "wins": 7
+              },
+              "ndcg@10": {
+                "losses": 10,
+                "mean": -0.0011918263415741043,
+                "ties": 83,
+                "wins": 7
+              },
+              "recall@10": {
+                "losses": 0,
+                "mean": 0.02,
+                "ties": 98,
+                "wins": 2
+              },
+              "recall@20": {
+                "losses": 0,
+                "mean": 0.01,
+                "ties": 99,
+                "wins": 1
+              },
+              "recall@5": {
+                "losses": 3,
+                "mean": -0.02,
+                "ties": 96,
+                "wins": 1
+              }
+            }
+          }
+        }
+      },
+      "request_id": "controller-child-9fd00c3deba318621a042869925aaab2",
+      "result_sha256": "1b806e348fedb6f0fafe00a514d8b299e61b2b379b42aea2284722446720a3f4"
+    },
+    "project_code_identity": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+    "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+    "project_snapshot_ref": "116bb79c4631cc47df26c3b8f307c1bcce28ee24f7694c135f150614cac4c5b6",
+    "protocol_sha256": "eaea343cd2f9b653b546f6fb8b5b4b3b2ed38452ff6959a866feac2342f0d997",
+    "report_manifest": {
+      "files": {
+        "input.json": {
+          "bytes": 2480595,
+          "sha256": "f9969ff2dd1ef68c271a0ccc18f82ec29ff8f9dc8449a8c1d96c425552a46e5a"
+        },
+        "report.json": {
+          "bytes": 3838370,
+          "sha256": "e87b6a748b6214a198654b7b784c819e391d38c2ef01395c245207da1fb18a8e"
+        },
+        "report.md": {
+          "bytes": 13493,
+          "sha256": "285c4985d3160ded568fe2af0892cb88ad0a3ed08621062ebe43a34c5b6ab857"
+        },
+        "report.pdf": {
+          "bytes": 20778,
+          "sha256": "4b598641325924d18334b2b4cce1cceb915a34f7aabe44e1847b99ad20bf39a6"
+        }
+      },
+      "host_model_snapshot_sha256": "a0a60ee3d576e8450e42246a2f6de28ba01caa4ac77708b1c9423a06525c3916",
+      "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+      "project_snapshot_ref": "116bb79c4631cc47df26c3b8f307c1bcce28ee24f7694c135f150614cac4c5b6",
+      "schema_version": "project-report-export-v1",
+      "scientific_validation": false,
+      "source_manifest": [
+        {
+          "bytes": 2469901,
+          "name": "source.json",
+          "role": "registered_input",
+          "sha256": "bca1a1ecda876ed03b781df8d8f47b4a1be0e3561065c3d4275759bd7ee67ab0",
+          "snapshot_sha256": "73f2d1a934cef56e096c3ef26770aabe56c2c9aa736616111084854c773697b9"
+        },
+        {
+          "bytes": 6820,
+          "name": "embedded:spec.json",
+          "role": "embedded_cpu_spec",
+          "sha256": "dc0b70b972e0ac71436dac81d61dc708d8d0210fa9b2b0e7225f67ccc57c818a"
+        },
+        {
+          "asset_role": "corpus",
+          "attribution": "Stanford SQuAD authors; CC BY-SA 4.0",
+          "bytes": 1805855,
+          "license_note": "SQuAD v1.1 CC BY-SA 4.0",
+          "name": "embedded:corpus.jsonl",
+          "notice": "Development assets only; source and licence declarations are unverified.",
+          "provenance_claim": {
+            "archive_sha256": "726a7411a478dd47bd6efacf1656741caf8cd8ee1bf5706197f6777beec858b5",
+            "qrels_semantics": "positive_relevance_binary_projection",
+            "selection_sha256": "dcfa102719ed3efc8b622c572fdfd5feee07ffd40b04d41b465dc5fc89e0247d",
+            "source_receipt_sha256": "ef2a7bc6f486af114854c20be993b3155e5f1abe3f4f1879058c8b47f33ef142"
+          },
+          "role": "embedded_cpu_original",
+          "sha256": "d31f37c13d76c50044a79a096d7c0156cbb5384c83d78c96c88ac51954c76045",
+          "url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json"
+        },
+        {
+          "asset_role": "queries",
+          "attribution": "Stanford SQuAD authors; CC BY-SA 4.0",
+          "bytes": 23384,
+          "license_note": "SQuAD v1.1 CC BY-SA 4.0; derived paragraph mapping",
+          "name": "embedded:queries.jsonl",
+          "notice": "Development assets only; source and licence declarations are unverified.",
+          "provenance_claim": {
+            "archive_sha256": "726a7411a478dd47bd6efacf1656741caf8cd8ee1bf5706197f6777beec858b5",
+            "qrels_semantics": "positive_relevance_binary_projection",
+            "selection_sha256": "dcfa102719ed3efc8b622c572fdfd5feee07ffd40b04d41b465dc5fc89e0247d",
+            "source_receipt_sha256": "ef2a7bc6f486af114854c20be993b3155e5f1abe3f4f1879058c8b47f33ef142"
+          },
+          "role": "embedded_cpu_original",
+          "sha256": "85d0867d504de0c6415b287d0775aeaca60445091539539edec52ac8f2e86a9b",
+          "url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json"
+        },
+        {
+          "asset_role": "qrels",
+          "attribution": "Stanford SQuAD authors; CC BY-SA 4.0",
+          "bytes": 9503,
+          "license_note": "SQuAD v1.1 CC BY-SA 4.0; derived paragraph mapping",
+          "name": "embedded:qrels.tsv",
+          "notice": "Development assets only; source and licence declarations are unverified.",
+          "provenance_claim": {
+            "archive_sha256": "726a7411a478dd47bd6efacf1656741caf8cd8ee1bf5706197f6777beec858b5",
+            "qrels_semantics": "positive_relevance_binary_projection",
+            "selection_sha256": "dcfa102719ed3efc8b622c572fdfd5feee07ffd40b04d41b465dc5fc89e0247d",
+            "source_receipt_sha256": "ef2a7bc6f486af114854c20be993b3155e5f1abe3f4f1879058c8b47f33ef142"
+          },
+          "role": "embedded_cpu_original",
+          "sha256": "5a9b54bef8982d0e8b0e5c56b9346cb5405bb0635d3666763e90df8af72dcdf3",
+          "url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json"
+        },
+        {
+          "asset_role": "license",
+          "attribution": "Stanford SQuAD authors; CC BY-SA 4.0",
+          "bytes": 350,
+          "license_note": "SQuAD v1.1 CC BY-SA 4.0; derived paragraph mapping",
+          "name": "embedded:license.md",
+          "notice": "Development assets only; source and licence declarations are unverified.",
+          "provenance_claim": {
+            "archive_sha256": "726a7411a478dd47bd6efacf1656741caf8cd8ee1bf5706197f6777beec858b5",
+            "qrels_semantics": "positive_relevance_binary_projection",
+            "selection_sha256": "dcfa102719ed3efc8b622c572fdfd5feee07ffd40b04d41b465dc5fc89e0247d",
+            "source_receipt_sha256": "ef2a7bc6f486af114854c20be993b3155e5f1abe3f4f1879058c8b47f33ef142"
+          },
+          "role": "embedded_cpu_original",
+          "sha256": "2b046384e98349cc0704dfd9b821bc72b91ae3c4626ad2035a3e0f78accb54e9",
+          "url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json"
+        },
+        {
+          "action_id": "action-deccc0ee9c830ae6a75dfd029494b218",
+          "bytes": 486216,
+          "name": "artifacts/action-deccc0ee9c830ae6a75dfd029494b218.json",
+          "result_sha256": "1b806e348fedb6f0fafe00a514d8b299e61b2b379b42aea2284722446720a3f4",
+          "role": "completed_action_artifact",
+          "sha256": "459af1807e59b5cbcd41c70fee52aeeaac44d57575317cb8fa4f2b98a6098ae7"
+        },
+        {
+          "action_id": "action-3bfae2711ec1b4ea8f5315c9951c9883",
+          "bytes": 110493,
+          "name": "artifacts/action-3bfae2711ec1b4ea8f5315c9951c9883.json",
+          "result_sha256": "1427a0e7688c89a0a283423cd2516341f31d15705c118327b1f83ffaf14642b9",
+          "role": "completed_action_artifact",
+          "sha256": "2f11c2c40221635ea14fca889d875a2989588509be7f6e809d07a69c84100ed2"
+        },
+        {
+          "action_id": "action-f7605bb2b1c8c85ec0239fc1081ae06c",
+          "bytes": 38050,
+          "name": "artifacts/action-f7605bb2b1c8c85ec0239fc1081ae06c.json",
+          "result_sha256": "d027e97a8ab247b4eab910d7b9192ad2f4823d3e1d7effba7e80489c689bb77e",
+          "role": "completed_action_artifact",
+          "sha256": "599a71522d0e4e1290756086405dfbc359f2d77c24738310fe9594113b1ace4e"
+        }
+      ]
+    },
+    "run_id": "run-7f74b125d1ad443e96bbf0f81f0165d9",
+    "schema_version": "s054-study-summary-v1",
+    "scientific_validation": false,
+    "selected_method": "tfidf_cosine",
+    "source_commit": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "source_snapshot_sha256": "73f2d1a934cef56e096c3ef26770aabe56c2c9aa736616111084854c773697b9",
+    "study_id": "s054-squad-train-conditional-v1"
+  },
+  "actual_usage": {
+    "research_tool_calls": 3,
+    "tool_limit": 3,
+    "index_builds": 2,
+    "ranking_calls": 600,
+    "scoring_calls": 600,
+    "model_calls": 0,
+    "fits": 0,
+    "evidence_actions": 0,
+    "cash_settlement": "unknown",
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "request_bodies": {
+    "evidence-cap.json": {
+      "bytes": 146,
+      "sha256": "71bea835a797e2f12861a820c9876578e2e1fcfef8e2c490b06ebaf101794e49"
+    },
+    "holdout.json": {
+      "bytes": 24692,
+      "sha256": "c70fae6bd8c915b77eeca9a9b371eddf3d2620f26e580ff7075819e227328707"
+    },
+    "plan.json": {
+      "bytes": 562,
+      "sha256": "2ea4d68a632123375a03c8b9da64c46dfb1fa48bd31803629dc571e0c82f47b6"
+    },
+    "import.json": {
+      "bytes": 177,
+      "sha256": "ec9f433fc80d7cddede13ea5b1ef01375d5e5f56ef7cc790abfac236e2f4cfbf"
+    },
+    "hypothesis.json": {
+      "bytes": 360,
+      "sha256": "2203247de864cd6a65fe8d07bbf58562939eb5db2cbda75130f7cbd767ac99b9"
+    },
+    "select.json": {
+      "bytes": 84,
+      "sha256": "d998c12ad6f8665d6083322b8f1f774e864abbc979e550a5cd74cb8f672b1956"
+    },
+    "primary.json": {
+      "bytes": 490,
+      "sha256": "1d03b46404a6ef02d7c611624ccd2530173e6e8407c9a75cca208ef1e283271c"
+    },
+    "conditional.json": {
+      "bytes": 338,
+      "sha256": "2d1a61e8f44741ad5c2a61975ec865ab35e1911e1dc5813c1487f42b983ae51a"
+    }
+  },
+  "source_claim": {
+    "path": "/workspace/development-continuation-20261114/source-pins/.study-claims/s054-squad-train-conditional-v1.json",
+    "sha256": "6de1aa44545aa8fbbd68cb6bc6118b5eadf69916fec2bd343a39974e97c0f8e8",
+    "status": "permanent_original_claim_retained"
+  },
+  "same_id_recovery": {
+    "same_original_process_source_pin": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "new_process_resume_returncode": 0,
+    "entire_original_workspace_files_unchanged": 47,
+    "summary_exact_equal": true,
+    "budget_exact_equal": true,
+    "action_ids_exact_equal": true,
+    "usages": [
+      {
+        "action_id": "action-deccc0ee9c830ae6a75dfd029494b218",
+        "command": "research.relevance-validation-pair",
+        "usage": {
+          "corpus_records": 2200,
+          "index_builds": 1,
+          "index_seconds": 0.13925349999772152,
+          "model_calls": 0,
+          "native_fits": 0,
+          "query_pairs": 200,
+          "ranking_calls": 400,
+          "scoring_calls": 400
+        },
+        "result_keys": [
+          "adverse_queries",
+          "comparison",
+          "limitations",
+          "paired_summary",
+          "per_query_metrics",
+          "rankings",
+          "rankings_before_scoring_sha256",
+          "scope",
+          "source_snapshot_sha256",
+          "stage",
+          "usage"
+        ]
+      },
+      {
+        "action_id": "action-3bfae2711ec1b4ea8f5315c9951c9883",
+        "command": "research.relevance-validation-saved-audit",
+        "usage": {
+          "index_builds": 0,
+          "model_calls": 0,
+          "native_fits": 0,
+          "query_pairs": 200,
+          "ranking_calls": 0,
+          "scoring_calls": 0
+        },
+        "result_keys": [
+          "adverse_queries",
+          "limitations",
+          "per_query_deltas",
+          "predecessor",
+          "rankings_sha256",
+          "scope",
+          "source_snapshot_sha256",
+          "stage",
+          "summary",
+          "usage"
+        ]
+      },
+      {
+        "action_id": "action-f7605bb2b1c8c85ec0239fc1081ae06c",
+        "command": "research.relevance-final-evaluation",
+        "usage": {
+          "index_builds": 1,
+          "model_calls": 0,
+          "native_fits": 0,
+          "ranking_calls": 200,
+          "scoring_calls": 200
+        },
+        "result_keys": [
+          "baseline_method",
+          "freeze_sha256",
+          "holdout_sha256",
+          "limitations",
+          "per_query",
+          "predecessor",
+          "scope",
+          "selected_method",
+          "source_snapshot_sha256",
+          "summary",
+          "usage"
+        ]
+      }
+    ]
+  },
+  "independent_review": {
+    "input": "runs/s054-review/source-assessment.md",
+    "driver": "runs/s054-review/driver-assessment.md",
+    "actual_results": "runs/s054-review/actual-results-assessment.md",
+    "actual_json": "runs/s054-review/actual-results-assessment.json",
+    "actual_assessment_sha256": "c26b4ba763dec8e07c0ae85b51c0fc8c675fd5660a6db6948d9378a477c311c1",
+    "original_47_files_and_claim_unchanged": true,
+    "saved_arithmetic_verified_no_new_ranking_or_scoring": true,
+    "report_four_payload_files_and_manifest_verified": true
+  },
+  "negative_results": {
+    "primary_adverse_queries": 31,
+    "validation_mrr_delta": -0.006904761904761905,
+    "validation_recall5_delta": -0.02,
+    "final_mrr_delta": -0.020916666666666667,
+    "final_ndcg_delta": -0.011180093100839419,
+    "global_method_promotion": false
+  },
+  "limitations": [
+    "Same public dataset, different official split and fixed paragraph cohort; not a new dataset or cross-dataset generalization.",
+    "Selection and download before action registration; no claim of prior non-exposure or blind/sealed evaluation.",
+    "S046 used DEV; visible tracked history has no TRAIN execution. Inaccessible historical ledgers remain unknown.",
+    "One original question-to-paragraph mapping, not exhaustive relevance or answer quality.",
+    "Corpus and query sampling differ from S046; do not compare raw scores as a controlled treatment effect across cohorts.",
+    "Native deterministic conditional gate; no model autonomy, statistical significance, OS/sealed isolation or complete Gates claimed.",
+    "Source files and journals remain on this cloud disk; aggregate Git metadata is not a complete journal recovery or authority to rerun after loss.",
+    "Private bytes were read by source preparation/final/report and integrity verification; no blind or whole-process zero-private-I/O claim.",
+    "Native deterministic gate, no generative model research or Linux Codex runtime acceptance."
+  ]
+}
