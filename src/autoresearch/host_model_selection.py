@@ -5,12 +5,14 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 
 from . import host_selection_protocol as protocol
 from . import research_plan_proposal as plan_protocol
 from . import recipe_change_proposal as recipe_protocol
 from .claude_selection_transport import run_claude_selection
-from .contracts import ResearchError, canonical, identifier
+from .contracts import ResearchError, canonical, fingerprint, identifier
+from . import project_controller, project_selection, project_selection_view, research_project
 from .project_controller import ProjectController
 from .research_project import ResearchProject, safe_path, write_bytes_once
 from .source_evidence_adapter import _read_file
@@ -18,6 +20,17 @@ from .saved_materials import normalize_requests
 
 PENDING = {"prepared", "sending", "unknown", "received"}
 MAX_STATE_BYTES = 2 * 1024 * 1024
+OBSERVED_RECONCILE = "host-observed-controller-completion-v1"
+
+
+def _reconcile_code_identity():
+    directory = Path(__file__).parent
+    names = ("host_model_selection.py", "host_selection_protocol.py", "project_controller.py",
+             "project_selection.py", "project_selection_view.py", "method_registry.py", "research_recipe.py", "research_project.py")
+    return {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in names}
+
+
+_RECONCILE_BOOT_IDENTITY = _reconcile_code_identity()
 
 
 def _require(condition, code, message):
@@ -93,8 +106,10 @@ class HostModelSelection:
 
     def prepare(self, *, request_id, provider, expected_state_version, decision_limit, cli_budget_usd,
                 reason, executable=None, purpose="selection", current_recipe=None, improvement_goal=None,
-                saved_materials=None):
+                saved_materials=None, reconcile_completed=False):
         identifier(request_id)
+        _require(type(reconcile_completed) is bool and (not reconcile_completed or (provider == "delegated" and purpose == "selection")),
+                 "INVALID_REQUEST", "Observed completion reconciliation is limited to explicitly enabled delegated selections.")
         _require(purpose in ("selection", "plan", "recipe"), "INVALID_REQUEST", "Choose a selection, plan or recipe request purpose.")
         _require(purpose == "recipe" or (current_recipe is None and improvement_goal is None),
                  "INVALID_REQUEST", "Recipe input and improvement goal belong to recipe requests.")
@@ -123,6 +138,10 @@ class HostModelSelection:
             specification.update(current_recipe=copy.deepcopy(current_recipe), improvement_goal=improvement_goal)
         if selectors:
             specification["saved_materials"] = selectors
+        if reconcile_completed:
+            _require(_RECONCILE_BOOT_IDENTITY == _reconcile_code_identity(), "CODE_CHANGED", "Restart with the original Host implementation.")
+            specification["observed_reconciliation"] = {"schema_version": OBSERVED_RECONCILE,
+                                                         "code_identity": copy.deepcopy(_RECONCILE_BOOT_IDENTITY)}
         with self._writer():
             state = self._load()
             old = state["requests"].get(request_id)
@@ -318,6 +337,122 @@ class HostModelSelection:
                 record["outcome"] = outcome
             self._save(state)
             return copy.deepcopy(record)
+
+    def reconcile_outcome(self, *, request_id):
+        """Observe an already-completed original Controller; never resume or dispatch it.
+
+        The Host ledger is updated; project locking may touch its lock file and SQLite
+        may touch sidecars. No project database, action, or budget is written here.
+        """
+        identifier(request_id)
+        _require(self.directory.is_dir() and self.state_file.is_file(), "ARTIFACT_NOT_FOUND", "The original Host ledger must already exist.")
+        with self._writer():
+            state = self._load()
+            record = self._record(state, request_id)
+            specification = record.get("prepare_specification")
+            capability = specification.get("observed_reconciliation") if type(specification) is dict else None
+            _require(type(capability) is dict and capability.get("schema_version") == OBSERVED_RECONCILE,
+                     "HOST_RECONCILE_NOT_ENABLED", "The original request did not enable observed reconciliation.")
+            _require(capability == {"schema_version": OBSERVED_RECONCILE, "code_identity": _RECONCILE_BOOT_IDENTITY}
+                     and _RECONCILE_BOOT_IDENTITY == _reconcile_code_identity(), "CODE_CHANGED",
+                     "Use the original reconciliation implementation; old requests are not upgraded.")
+            _require(record.get("request_id") == record.get("controller_request_id") == request_id
+                     and record.get("provider") == specification.get("provider") == "delegated"
+                     and record.get("purpose", "selection") == "selection"
+                     and specification.get("request_id") == request_id
+                     and set(specification) == {"request_id", "provider", "expected_state_version", "grant", "executable", "observed_reconciliation"}
+                     and specification.get("executable") is None
+                     and specification.get("grant") == state.get("grant") and record.get("status") == "applied",
+                     "EVIDENCE_CHANGED", "The original Host request or grant differs.")
+            outcome = record.get("outcome")
+            _require(type(outcome) is dict, "EVIDENCE_CHANGED", "The original Host outcome is missing.")
+            previous = outcome if outcome.get("status") == "unknown" else record.get("previous_unknown")
+            observation = record.get("outcome_observation")
+            _require(type(previous) is dict and previous.get("status") == "unknown"
+                     and (outcome.get("status") == "unknown" or
+                          (outcome.get("status") == "completed" and type(observation) is dict
+                           and observation.get("schema_version") == OBSERVED_RECONCILE)),
+                     "EVIDENCE_CHANGED", "Only an original unknown outcome can be reconciled.")
+            folder = record.get("directory")
+            _require(type(folder) is str and re.fullmatch(r"requests/[0-9]{4}", folder) is not None
+                     and record.get("response_file") == folder + "/delegated.bin",
+                     "EVIDENCE_CHANGED", "The response must use the original controlled Host folder.")
+            for name, key in (("context.json", "context"), ("prompt.json", "prompt"), ("proposal.json", "proposal")):
+                _require(_read_file(safe_path(self.directory / folder / name), MAX_STATE_BYTES)
+                         == canonical(record.get(key)).encode("utf-8"), "EVIDENCE_CHANGED", "The original Host evidence changed.")
+            raw = _read_file(safe_path(self.directory / record["response_file"]), protocol.MAX_RESPONSE_BYTES)
+            _require(hashlib.sha256(raw).hexdigest() == record.get("response_sha256"), "EVIDENCE_CHANGED", "The original response changed.")
+            context = record["context"]
+            parsed = protocol.parse_host_response(raw, "delegated", context=context)
+            _require(all(record.get(key) == value for key, value in parsed.items())
+                     and specification.get("expected_state_version") == context.get("state_version")
+                     and record["prompt"] == protocol.build_prompt(context)
+                     and record["proposal"] == protocol.build_proposal(context, parsed["arguments"],
+                         "Operator-imported delegated decision; execution/model/usage unverified"),
+                     "EVIDENCE_CHANGED", "Original response, context, prompt or proposal does not match.")
+            with self.project._writer():
+                current = self.project.status()
+                parents = [item for item in current.get("controller_requests", [])
+                           if type(item) is dict and item.get("request_id") == request_id]
+                if len(parents) != 1 or parents[0].get("status") != "completed":
+                    return copy.deepcopy(record)
+                parent = parents[0]
+                request = {"project_id": current["id"], "command": "controller.advance_selection", "need": "next_check",
+                           "expected_state_version": context["state_version"], "proposal": record["proposal"]}
+                _require(parent.get("project_id") == current["id"] == context.get("project_id")
+                         and current["run_id"] == context.get("run_id")
+                         and current["source_snapshot_sha256"] == context.get("source_snapshot_sha256") == parent.get("source_snapshot_sha256")
+                         and parent.get("code_identity") == current["code_identity"] == context.get("project_code_identity") == research_project.code_identity()
+                         and parent.get("controller_code_identity") == context.get("controller_code_identity") == project_controller.code_identity()
+                         and parent.get("request") == request and parent.get("request_sha256") == fingerprint(request)
+                         and parent.get("selection_context") == context
+                         and parent.get("decision_sha256") == fingerprint(parent.get("decision")),
+                         "EVIDENCE_CHANGED", "The original Controller input, identity or decision differs.")
+                child_id = parent.get("child_request_id")
+                children = [item for item in current.get("actions", []) + current.get("evidence_actions", [])
+                            if type(item) is dict and item.get("request_id") == child_id]
+                if type(child_id) is not str or len(children) != 1 or children[0].get("status") != "completed":
+                    return copy.deepcopy(record)
+                child = children[0]
+                project_selection_view._verify(current, parent)
+                with self.project._connect(readonly=True) as con:
+                    row = con.execute("SELECT fingerprint, record FROM actions WHERE request_id=?", (child_id,)).fetchone()
+                _require(row is not None and json.loads(row["record"]) == child
+                         and row["fingerprint"] == child.get("request_sha256"),
+                         "EVIDENCE_CHANGED", "The original child ledger binding differs.")
+                fields = ("id", "request_id", "command", "status", "artifact", "result_sha256", "failure")
+                result = parent.get("result")
+                selection = project_selection.validate_proposal(context, record["proposal"])
+                candidate = selection.get("candidate")
+                frozen = (parent.get("decision") or {}).get("next_action") or {}
+                _require(all(key in child for key in fields) and type(child.get("id")) is str
+                         and child.get("artifact") == "artifacts/" + child["id"] + ".json"
+                         and type(child.get("result_sha256")) is str and re.fullmatch(r"[a-f0-9]{64}", child["result_sha256"]) is not None
+                         and child.get("failure") is None
+                         and child.get("project_id") == current["id"] and child.get("run_id") == current["run_id"]
+                         and type(candidate) is dict and candidate.get("method_id") == frozen.get("method_id")
+                         and candidate.get("parameters") == frozen.get("parameters", {})
+                         and type(parent.get("state_version_after")) is int
+                         and parent["dispatch_state_version"] < parent["state_version_after"] <= current["state_version"]
+                         and type(result) is dict and set(result) == {"child", "recovered", "reused"}
+                         and type(result.get("recovered")) is bool and type(result.get("reused")) is bool
+                         and result.get("child") == {k: child[k] for k in fields if k in child},
+                         "EVIDENCE_CHANGED", "The original Controller child binding differs.")
+                observed = ProjectController._response(parent, replayed=True)
+                stable = lambda value: {k: v for k, v in value.items() if k not in ("status", "result", "replayed")}
+                _require(stable(previous) == stable(observed), "EVIDENCE_CHANGED", "The original unknown receipt identity differs.")
+                proof = {"schema_version": OBSERVED_RECONCILE, "source": "stored_controller_and_child_records",
+                         "controller_request_sha256": parent["request_sha256"], "child_request_id": child_id,
+                         "controller_state_version_after": parent.get("state_version_after"), "artifact_revalidated": False}
+                if outcome.get("status") == "completed":
+                    _require(outcome == observed and record.get("outcome_observation") == proof,
+                             "EVIDENCE_CHANGED", "The saved observation differs from the original completed records.")
+                    return copy.deepcopy(record)
+                _require("previous_unknown" not in record and "outcome_observation" not in record,
+                         "EVIDENCE_CHANGED", "Original unknown history cannot be overwritten.")
+                record.update(previous_unknown=copy.deepcopy(previous), outcome=observed, outcome_observation=proof)
+                self._save(state)
+                return copy.deepcopy(record)
 
     def adopt_plan(self, *, request_id):
         with self._writer():

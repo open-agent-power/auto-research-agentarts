@@ -109,6 +109,7 @@ def main():
         "request": "Dispatch the original CLI request once.",
         "consume": "Consume one saved response as an action or a proposed plan.",
         "reconcile-usage": "Read original CLI receipts to reconcile reported usage without dispatch or consumption.",
+        "reconcile-outcome": "Observe an already completed original Controller for an enabled delegated selection; no model or action dispatch.",
         "adopt-plan": "Explicitly adopt the original plan proposal into a saved research plan revision.",
         "reject-plan": "Preserve the original plan proposal and record why it was rejected.",
     }
@@ -162,6 +163,8 @@ def main():
             result = journal.consume(request_id=args.request_id)
         elif args.command == "reconcile-usage":
             result = journal.reconcile_usage(request_id=args.request_id)
+        elif args.command == "reconcile-outcome":
+            result = journal.reconcile_outcome(request_id=args.request_id)
         elif args.command == "adopt-plan":
             result = journal.adopt_plan(request_id=args.request_id)
         elif args.command == "reject-plan":

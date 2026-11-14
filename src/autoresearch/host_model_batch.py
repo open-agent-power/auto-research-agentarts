@@ -271,7 +271,8 @@ class HostModelBatch:
                     "STALE_STATE", "Undispatched batch step changed; do not replace its frozen context.")
         model = self.journal.prepare(request_id=step["host_request_id"], provider="delegated",
             expected_state_version=step["expected_state_version"], decision_limit=body["decision_limit"],
-            cli_budget_usd=body["cli_budget_usd"], reason=body["reason"], purpose=purpose)
+            cli_budget_usd=body["cli_budget_usd"], reason=body["reason"], purpose=purpose,
+            reconcile_completed=purpose == "selection")
         require(model.get("request_id") == step["host_request_id"]
                 and model.get("controller_request_id") == step["host_request_id"]
                 and model.get("provider") == "delegated" and model.get("purpose", "selection") == purpose,
@@ -286,6 +287,12 @@ class HostModelBatch:
                                 "Inspect the original Host request; no replacement request was prepared.", incomplete=True)
         if model["status"] == "received":
             model = self.journal.consume(request_id=step["host_request_id"])
+        if (purpose == "selection" and model.get("status") == "applied"
+                and type(model.get("outcome")) is dict and model["outcome"].get("status") == "unknown"):
+            try:
+                model = self.journal.reconcile_outcome(request_id=step["host_request_id"])
+            except ResearchError as error:
+                return self._finish(record, "needs_review", error.code, str(error), incomplete=True)
         outcome = model.get("outcome")
         if not isinstance(outcome, dict):
             outcome = {}

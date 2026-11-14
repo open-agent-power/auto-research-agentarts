@@ -56,7 +56,17 @@
 
 计划回复进入`awaiting_adoption`后只保留proposed，须原`adopt-plan`或`reject-plan`明确处理，再恢复同batch记录结果，不自动进行下一实验。独立科学复核仍由调用方在其授权范围安排，本接口不伪造复核通过。
 
-`sending/unknown`与不完整回执保留原身份等待核对，不重派。若Host已经缓存applied但Controller outcome仍unknown，本增量不能自动刷新该缓存，也不声称自动恢复任何unknown；需保留原Controller请求进行受控核对，Host缓存收敛仍是后续能力。终态重复返回的是保存回执，不是对最新runtime/原工件的重新验真。代码身份不符时用原源码pin恢复，不自动升级旧pending。
+`sending/unknown`与不完整回执保留原身份等待核对，不重派。7c1f399版本若Host已缓存applied但Controller outcome仍unknown，批次只停审。后续版本可对事前明确启用的新请求观察已完成原回执，范围见下一节；任意unknown不能自动重派。终态重复返回的是保存回执，不是对最新runtime/原工件的重新验真。代码身份不符时用原源码pin恢复，不自动升级旧pending。
+
+## 已完成回执的观察式收敛
+
+新版本库`HostModelSelection.prepare(..., reconcile_completed=True)`仅在delegated selection的原`prepare_specification`记录`observed_reconciliation`能力及源码身份。新版本delegated批次在创建选择请求时明确启用；旧普通prepare默认保持原协议，旧请求不回填能力，旧7c1批次/pending仍须原源码pin。
+
+当Host仍缓存applied/unknown时，`reconcile-outcome --workspace <original-project> --request-id <original-host-id>`或库`reconcile_outcome`只核已有原回答、context/prompt/proposal、Controller请求/结果和ordinary child绑定；只有原Controller及子行动均已completed，才在原Host记录保留`previous_unknown`并写入已保存完成投影及`outcome_observation`。重复核对同一事实返回原记录。观察本身没有新增模型请求、Host slot或工具执行。新版本批次可随后按原cursor/版本/来源/额度决定后续；同一次resume若准备下一请求，会占用原grant剩余的Host slot，不能把整个resume当作零slot操作。
+
+这项操作会写Host缓存，取项目锁或读取SQLite时可能影响writer.lock/副文件；项目DB、行动和预算保持。它不调用Controller dispatch、action或recover，也不把仍unknown的底层请求首次执行；缺child、非terminal、复用alias或证据/能力/源码不符时不补造完成。真正原ID执行恢复是另一个有副作用的操作，不能混称本观察。
+
+观察证明引用保存的Controller/child记录，`artifact_revalidated=false`；不重新执行工具或核验完整原工件，不建立新的科学真实性或预算安全边界。记录的completed事实也不自动批准新计划或新行动。实际外部模型和费用仍unknown。
 
 ## 根据真实反馈建议研究计划
 
