@@ -2,7 +2,9 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
-最新[Sprint037](SPRINT-037.md)：S036接口新wheel及独立安装物已验；现在按用户新优先级研究新的自主反馈/证伪参考并继续产品循环能力。
+最新[Sprint039](SPRINT-039.md)：产品delegated持久批次与三处同ID恢复已通过冻结验收；原外部模型transport和研究收益仍缺。S038三参考已实读，当前继续S040完成回执观察收敛。
+
+历史[Sprint037](SPRINT-037.md)：S036接口新wheel及独立安装物已验；现在按用户新优先级研究新的自主反馈/证伪参考并继续产品循环能力。
 
 历史[Sprint036](SPRINT-036.md)：补齐计划显式指定保存不利查询材料，原文未供应、旧上下文及预算保持；已验证并冻结b2e05f8，继续S037离线安装交付。
 

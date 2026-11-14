@@ -8,6 +8,14 @@
 
 ## 最新汇报入口
 
+### Sprint039：产品持久delegated批次通过，继续S040同ID完成观察
+
+source `7c1f399a557856d232e523416f6c8b49ebc8d399`／clean pin `/workspace/work/delegated-batch-source-7c1f399`；真实Host/Controller日志配工程fake adapter，三处中断原ID恢复，恰1callback/原Host2slots、计划待显式采用，冻结18检查和CLI/report通过。[S039](../execution/SPRINT-039.md)／[精确范围](../execution/g5-local/delegated-batch-verification.json)。
+
+这是产品库/CLI自动准备下一请求和接续，外部模型仍由调用方提供；没有native Linux transport/工作台v2接线/研究收益证据，既有b2e wheel不含S039。原v1限定AST/776byte证明、失败和bootstrap/物理请求费用unknown保留。
+
+持续S040：在新版本新请求的明确能力标记下，只观察原Controller/ordinary child已completed事实，更新原Host缓存并留previous_unknown；不调Controller dispatch/action/recover、旧7c1 pending保留原pin。实现中，未计作完成；旧pilot3/2耗尽不变。
+
 ### Sprint038：三新参考已固定并源码研究，S039正在实现自主接续
 
 AI-Scientist-v2/AutoSciLab/POPPER三个真实checkout、commit/许可和反馈/证伪/停止机制已核，外部源码未运行/复制。发现GT反馈、损坏恢复空状态、pickle和统计适用性等不能照搬的负例。[S038](../execution/SPRINT-038.md)／[完整固定版本](../execution/g5-local/autonomy-reference-exploration.json)。

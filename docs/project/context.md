@@ -118,3 +118,6 @@ Sprint037完成b2e新wheel707b49e4…1296590B与freshvenv g6-saved-retrieval-pla
 
 
 Sprint038真实新增三个固定源码参考及许可/机制审计完成，manifest见autonomy-reference-exploration.json；未安装运行/复制。用户自主研究优先持久化AUTONOMY/skill。继续S039在旧HostModelBatch新增delegated v2，产品持久awaiting外部原回复/原ID恢复/真实completed-only cursor/可选post-action plan，旧CLI v1保持；仅库/CLI首增量，Linux native模型和长期自主效果仍未证。原3/2pilot耗尽不变；后续反证分支先不算p/e值或宣称统计错误控制。
+
+
+Sprint039源7c1f399a557856d232e523416f6c8b49ebc8d399/pin delegated-batch-source-7c1f399：delegated v2持久请求/awaiting原回答/原ID消费/真实completed才cursor/可选反馈plan显式adopt。冻结18check、3原子中断、真实日志fakeadapter1与Host2slots，CLI/报告通过；另7目标测试、v1四AST及_begin776B，不外推全v1/实并发。原3/2pilot不动，旧wheelb2e不含S039，源码prefix进入。当前S040只观察已completed原parent+ordinarychild补Host缓存，capability仅新请求，前unknown保留，不dispatch/旧pin升级；实现未验，继续待独审。
