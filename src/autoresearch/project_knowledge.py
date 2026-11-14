@@ -56,6 +56,32 @@ def _remaining_question_need(project):
 
 def decision_needs(project):
     method = project.get("registration", {}).get("method_id", "p02.saved-oof-residuals")
+    # These are bounded lexical lookup needs, not scientific conclusions or
+    # permission to execute a study. Only the registered primary is selected.
+    cpu_needs = {
+        "research.retrieval-fixed-pair": {
+            "clarification": "citation retrieval cited document cited_doc_ids qrels annotation semantics",
+            "design": "dev validation test query splits query_splits tfidf cosine baseline tfidf_cosine bm25 candidate top20",
+            "preparation": "corpus queries qrels document identifiers source provenance license",
+            "interpretation": "recall mrr ndcg adverse queries adverse_queries unretrieved citations",
+        },
+        "research.relevance-fixed-pair": {
+            "clarification": "relevance qrels positive grades binary projection qrels_semantics",
+            "design": "dev validation test query splits query_splits bm25 baseline tfidf cosine candidate tfidf_cosine top20",
+            "preparation": "corpus queries qrels grades document_grades identical query document id exclusion ignore_identical_ids",
+            "interpretation": "recall mrr ndcg adverse queries adverse_queries missing positive denominator missing_positive_document_ids",
+        },
+        "research.weighted-interval-fixed-pair": {
+            "clarification": "synthetic weighted interval scheduling jobs objective weight",
+            "design": "quadratic scan dp baseline quadratic_scan_dp binary search dp candidate binary_search_dp fixed cases repetitions",
+            "preparation": "job identifiers jobs_sha256 start end weight compatibility tie rule",
+            "interpretation": "saved schedule feasibility objective timing adverse slower cases adverse_cases",
+        },
+    }
+    if isinstance(method, str) and method in cpu_needs:
+        needs = cpu_needs[method]
+        needs["interpretation"] = _remaining_question_need(project) or needs["interpretation"]
+        return needs
     if method == "data.tabular-quality-audit":
         return {"clarification": "dataset columns target unit", "design": "group key independence duplicates",
                 "preparation": "numeric_columns missing_tokens group_columns",
