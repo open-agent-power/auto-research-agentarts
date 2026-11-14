@@ -12,14 +12,14 @@ import math
 from .contracts import ResearchError, canonical, fingerprint
 
 PRIMARY = {"retrieval": "research.retrieval-fixed-pair", "scheduling": "research.weighted-interval-fixed-pair",
-           "relevance": "research.relevance-fixed-pair"}
+           "relevance": "research.relevance-fixed-pair", "staged_relevance": "research.relevance-validation-pair"}
 AUDITS = {"retrieval": "research.retrieval-saved-error-audit", "scheduling": "research.weighted-interval-saved-audit",
-          "relevance": "research.relevance-saved-error-audit"}
+          "relevance": "research.relevance-saved-error-audit", "staged_relevance": "research.relevance-validation-saved-audit"}
 FILES = {"retrieval": {"corpus":"corpus.jsonl", "queries":"queries.jsonl", "train_qrels":"qrels-train.tsv", "test_qrels":"qrels-test.tsv", "license":"license.md"},
          "relevance": {"corpus":"corpus.jsonl", "queries":"queries.jsonl", "train_qrels":"qrels-train.tsv", "test_qrels":"qrels-test.tsv", "license":"license.md"},
          "scheduling": {"jobs":"jobs.json", "license":"license.md"}}
 TITLES = {"retrieval":"引用文档检索对照与保存错误诊断报告", "scheduling":"合成加权区间调度对照与保存结果审计报告",
-          "relevance":"文档相关性检索对照与保存错误诊断报告"}
+          "relevance":"文档相关性检索对照与保存错误诊断报告", "staged_relevance":"分阶段文档相关性检索报告"}
 
 
 def _require(value, message):
@@ -47,6 +47,23 @@ def source_manifest(packet, kind):
     """Verify embedded byte identities; never attest domain/provenance declarations."""
     from .snapshot_viewer import _json
     try:
+        if kind == "staged_relevance":
+            from . import staged_relevance_adapter as staged
+            staged._checked(packet)
+            spec = packet["spec"]
+            source = packet["spec_source"]
+            rows = [{"name": "embedded:spec.json", "role": "embedded_cpu_spec", "sha256": source["sha256"], "bytes": source["bytes"]}]
+            for role, name in staged.FILES.items():
+                asset = packet["assets"][role]
+                rows.append({"name": "embedded:" + name, "role": "embedded_cpu_original", "asset_role": role,
+                             "sha256": asset["sha256"], "bytes": asset["bytes"], "url": spec["source_url"],
+                             "license_note": spec["license_notes"]["corpus" if role == "corpus" else "queries_and_qrels"],
+                             "attribution": spec["attribution"], "provenance_claim": copy.deepcopy(spec["source_provenance"]),
+                             "notice": "Development assets only; source and licence declarations are unverified."})
+            provenance = {"source_url": spec["source_url"], "attribution": spec["attribution"],
+                          "license_notes": copy.deepcopy(spec["license_notes"]), "source_provenance": copy.deepcopy(spec["source_provenance"]),
+                          "verification": "embedded_bytes_checked_declarations_unverified"}
+            return rows, provenance
         expected=FILES[kind]
         _require(set(packet)=={"schema_version","task_kind","spec_source","assets","spec","scope","snapshot_sha256"}
             and packet["schema_version"]=="cpu-research-source-v1"
@@ -92,8 +109,8 @@ def _primary(kind, entries):
 def summary(kind, state, entries):
     entry=_primary(kind,entries)
     rows=[]
-    if kind in ("retrieval","relevance"):
-        relevance=kind=="relevance"
+    if kind in ("retrieval","relevance","staged_relevance"):
+        relevance=kind in ("relevance", "staged_relevance")
         method="在冻结语料和查询上比较固定TF-IDF余弦与BM25，完整排名先冻结，再按引用文档qrels计算Recall/MRR/nDCG；不生成答案、不拟合、不调用模型。"
         headers=["划分","指标","TF-IDF","BM25","候选−基线","胜/平/负"]
         baseline,candidate="tfidf_cosine","bm25"
@@ -109,6 +126,8 @@ def summary(kind, state, entries):
         notice="qrels表示cited_doc_ids，不是SUPPORT/CONTRADICT或事实核验。原query metadata可能含句级注释，仅原样保留且不参与检索或评分；不是封存盲测。早排指标改善可伴随Recall下降，不自动采用候选。"
         if relevance:
             notice="原始正相关性grade保留，当前指标按grade>0二元投影，不是canonical graded BEIR nDCG。语料中缺失的正例仍计入召回分母，不补造文档或静默丢标签；划分以原spec清单为准，不自动成为官方或封存盲测。固定算法对照本身不能证明记忆的因果收益；保留所有下降与未召回结果，不自动采用候选。"
+        if kind == "staged_relevance":
+            notice="此对照仅包含开发与validation；独立final包另行登记并在策略冻结后评估。该阶段划分依赖提交者声明，不证明过往未曝光或操作系统隔离；正相关性二元投影、缺失正例和不利结果均保留。"
     else:
         method="在显式合成工程任务上比较相同精确动态规划的全扫描与二分前驱查找；保留每次实际时延、完整schedule、目标值和生产核验，不训练模型。"
         headers=["任务/划分","jobs","目标值","扫描 ms","二分 ms","倍率/状态"]
@@ -135,6 +154,25 @@ def sections(report):
             "以下许可/来源为原spec声明；本导出仅核对字节身份，不把声明、检索命中或opaque注释变成已验证事实。",
             "原件/许可/完整spec在input.json.source_packet；source_manifest保留每资产SHA。",
             "来源身份："+canonical(source["source_provenance"])],"headers":["许可对象","原声明"],"rows":license_rows})
+    if kind == "staged_relevance":
+        state = report["project"]
+        private, frozen = state.get("private_evaluation"), state.get("frozen_evaluation_strategy")
+        paragraphs = ["私有留出集仅保存摘要和数量，不包含原始查询、标签或数据包；此为同用户流程分离，不是操作系统隔离或独立盲测。"]
+        if private is not None:
+            paragraphs.append("登记的留出包 SHA-256：" + private["sha256"] + "；查询数：" + str(private["query_count"]) + "。")
+        if frozen is not None:
+            paragraphs.append("固定规则：" + frozen["policy"] + "；validation Recall@20 差值："
+                              + _number(frozen["validation_delta_recall20"]) + "；冻结方法：" + frozen["selected_method"] + "。")
+        result.append({"title": "留出集登记与冻结策略", "paragraphs": paragraphs, "headers": [], "rows": []})
+        for entry in report["action_results"]:
+            if entry["status"] == "completed" and entry["command"] == "research.relevance-final-evaluation" and entry.get("tool_result"):
+                final = entry["tool_result"]["result"]
+                result.append({"title": "冻结策略的最终评价", "paragraphs": ["原final行动：" + entry["action_id"],
+                    "查询数：" + str(final["scope"]["query_count"]) + "；仅发布哈希标识和计算指标，不发布留出原文或标签。",
+                    "同用户流程分离不证明独立盲测或科学有效性；结果不会自动采纳。"],
+                    "headers": ["指标", "BM25基线", "冻结方法", "冻结方法−基线"],
+                    "rows": [[name, _number(value), _number(final["summary"]["selected"][name]), _number(final["summary"]["delta"][name])]
+                             for name, value in final["summary"]["baseline"].items()]})
     for index,entry in enumerate(report["action_results"]):
         if entry["status"]!="completed" or entry.get("tool_result") is None or entry["command"] not in (PRIMARY[kind],AUDITS[kind]):
             continue
@@ -143,7 +181,7 @@ def sections(report):
         if entry["command"]==AUDITS[kind]:
             result.append({"title":"保存结果的后续诊断","paragraphs":["行动："+entry["action_id"],
                 "前序绑定："+canonical(body["predecessor"]),"仅复用保存算术，不重新排名、对gold评分、求解、计时或拟合。完整诊断："+pointer],"headers":[],"rows":[]})
-        elif kind in ("retrieval","relevance"):
+        elif kind in ("retrieval","relevance", "staged_relevance"):
             adverse=body["adverse_queries"]
             shown=adverse[:12]
             result.append({"title":"检索覆盖损失与完整排名","paragraphs":["行动："+entry["action_id"],

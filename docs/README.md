@@ -12,6 +12,7 @@
 | 如何启动与使用 | [产品 README](../README.md)、[本地工作台](local-workbench.md)、[项目使用](project-slice.md) |
 | 研究方法与已有能力 | [研究设计](research-design.md)、[模型请求](host-model-selection.md)、[知识服务](knowledge.md) |
 | 事前预期、结果分支及持久委派 | [预测到下一行动](hypothesis-feedback.md)、[本轮开发组织](project/development-system.md) |
+| 验证后冻结方法、一次最终评价 | [分阶段检索评价](staged-retrieval-evaluation.md) |
 | 固定CPU研究协议与方法经验 | [按需协议摘要](fixed-cpu-protocol.md)、[保存经验](cpu-project-experience.md) |
 | 状态、执行和恢复契约 | [研究契约](architecture/research-contracts.md)、[底层架构](architecture/foundation.md) |
 | 研究配方和持续改进 | [配方接入](recipe-research/integration.md)、[配方与 RSI](recipe-research/rsi-delivery.md) |

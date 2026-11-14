@@ -435,6 +435,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/plan": "save_plan",
                             "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/hypothesis": "register_hypothesis",
+                            "/api/local-workbench/retrieval-holdout": "register_holdout",
+                            "/api/local-workbench/retrieval-freeze": "freeze_retrieval_strategy",
                             "/api/local-workbench/advance-feedback": "advance_feedback",
                             "/api/local-workbench/delegated-response": "delegated_response",
                             "/api/local-workbench/experience-import": "import_experience",

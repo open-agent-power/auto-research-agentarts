@@ -1,5 +1,7 @@
 # 接口索引
 
+分阶段检索新增本机POST `/api/local-workbench/retrieval-holdout` 与 `/api/local-workbench/retrieval-freeze`，分别是有界base64登记和原primary冻结；final继续用原advance候选/预算/ID，见[数据流与字段](../../docs/staged-retrieval-evaluation.md)。
+
 本地操作新增 `/api/local-workbench/hypothesis`、`advance-feedback`、`delegated-response`、`continuation-preview`，沿现有Origin/CSRF/活动项目边界；`continue`明确delegated模式并要求post_action_plan。预览只计算ID，不检查准备状态/未来资格。请求字段和同ID恢复见[预测/持久委派](../../docs/hypothesis-feedback.md)。
 
 新增CPU经验本机CLI与显式双schema分派；原experience-import/status/resume兼CPU原包，旧Ridge validator保持严格。binding_validation区别数值复核、实际原包≤4MiB与同ID资格不变，见[字段与边界](../../docs/cpu-project-experience.md)。

@@ -1,5 +1,11 @@
 # 当前接续
 
+## S045持续执行：分阶段检索已验，继续真实公开数据协议
+
+用户再次明确“报告不应停止”，本轮00:42核5be416e/clean/origin并领取 `root-evaluation-20261115T0042`，实际继续S045。新dev/validation-only适配器、独立private final登记、validation后固定策略冻结、原预算一次final及同ID恢复/报告已实现，相关91/独审41+4probe通过，冻结188源码；见[阶段合同](../staged-retrieval-evaluation.md)和[S045](../execution/SPRINT-045.md)。仍不声称真实科研收益/盲测。
+
+继续S046，先发布[不可调参的SQuAD段落检索协议](../execution/g5-local/squad-paragraph-protocol-v1.json)再下载/执行：固定300个query的100/100/100拆分、共享全段落corpus、BM25与TFIDF、最多3原生CPU工具/0model/0fit。旧cases不重开。NFCorpus/CQADupStack的许可/容量未充分确认，负结论保留，不强行使用。源版本/实际进度以本轮后续提交和原始账本为准，不把协议发布当运行完成。
+
 ## 2026-11-15持续开发：源码续作，S042已推送，S043接续
 
 用户重新授权后使用Adaptive Agent Workflow v0.3.0，dev-system停用。三小时是对齐/汇报，不是停工点；下文21:32换对话的收尾是历史状态。实际6人复用池和能力装配见[开发体系](development-system.md)。

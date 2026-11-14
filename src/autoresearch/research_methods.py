@@ -215,7 +215,12 @@ def _domain_methods(project, need):
                       if predecessor else {})
         reason = "Inspect zero/missing/invalid concentration only after saved quality feedback and declared group fields; keep all original values and unresolved source needs."
         missing = ["completed quality feedback with zero/missing/invalid values and declared group columns"]
-        if method_id in registry.SAVED_PAIR_AUDITS:
+        if method_id in registry.STAGED_FINALS:
+            from .retrieval_holdout import eligible_metadata
+            eligible = bool(predecessor and eligible_metadata(project, parameters))
+            reason = "Evaluate the preregistered final package only after freezing the validation-selected strategy; preserve the original one-action quota."
+            missing = ["registered private final package and an exact frozen completed validation strategy"]
+        elif method_id in registry.SAVED_PAIR_AUDITS:
             eligible = bool(predecessor
                 and predecessor.get("project_id") == project.get("id")
                 and registry.SAVED_PAIR_PARENTS[method_id] == primary
@@ -302,6 +307,8 @@ def _domain_choice(project, options, knowledge):
                                if method_id == registry.NUMERIC else
                                "The completed fixed pair qualifies its saved-only adverse-result audit; no reranking, re-solving or additional fit is proposed."
                                if method_id in registry.SAVED_PAIR_AUDITS else
+                               "The validation-selected strategy is frozen; evaluate its preregistered final package once through the original budget."
+                               if method_id in registry.STAGED_FINALS else
                                "Saved quality feedback qualifies a grouped zero/missing inspection; prior source and scientific questions remain unresolved.")}
     saved = copy.deepcopy((project.get("next_decision") or {}).get("next_action", {}))
     if saved.get("method_id") != registry.SOURCE or saved.get("kind") != "evidence_task":

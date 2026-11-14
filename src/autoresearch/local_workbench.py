@@ -234,7 +234,7 @@ class LocalWorkbench:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]
             active = self._active(con)
             pending = []
-            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy') ORDER BY rowid DESC"):
                 record = tabular._parse(row["record"].encode("utf-8"))
                 if record["status"] not in ("completed", "rejected"):
                     pending.append({"request_id": row["id"], "command": row["command"], "status": record["status"],
@@ -535,6 +535,51 @@ class LocalWorkbench:
                                                     "intent": {"project_id": body["project_id"]}})
             return response
 
+    def register_holdout(self, body):
+        from .retrieval_holdout import MAX_HOLDOUT_BYTES
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "holdout_base64"))
+        holdout = _decode(body["holdout_base64"], MAX_HOLDOUT_BYTES)
+        return self._retrieval_evaluation_command(body, digest, "register_holdout", holdout=holdout)
+
+    def freeze_retrieval_strategy(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "primary_action_id"))
+        identifier(body["primary_action_id"], "primary_action_id")
+        return self._retrieval_evaluation_command(body, digest, "freeze_retrieval_strategy")
+
+    def _retrieval_evaluation_command(self, body, digest, command, *, holdout=None):
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "An exact saved state version is required.")
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
+                old = self._old(con, body, digest)
+                if old is None:
+                    self._accept(con, body, digest, command, {"project_id": body["project_id"], "request_sha256": digest})
+                else:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == command and old.get("status") in {"preparing", "completed"}
+                             and old.get("intent") == {"project_id": body["project_id"], "request_sha256": digest},
+                             "EVIDENCE_CHANGED", "The original manager request binding changed.")
+            if command == "register_holdout":
+                value = project.register_holdout(request_id=body["request_id"], expected_state_version=body["expected_state_version"], holdout=holdout)
+                result_key = "private_evaluation"
+            else:
+                value = project.freeze_retrieval_strategy(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                                                          primary_action_id=body["primary_action_id"])
+                result_key = "frozen_evaluation_strategy"
+            _require(type(value) is dict and value.get("request_id") == body["request_id"],
+                     "EVIDENCE_CHANGED", "The original evaluation registration differs from this request.")
+            response = self._response(command, body["request_id"], body["project_id"], status="completed",
+                                      **{result_key: value})
+            if old is not None and old["status"] == "completed":
+                _require(old.get("result") == response, "EVIDENCE_CHANGED", "The manager receipt differs from the original registration.")
+                return dict(response, replayed=True)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status": "completed", "result": response,
+                           "intent": {"project_id": body["project_id"], "request_sha256": digest}})
+            return dict(response, replayed=old is not None)
+
     def record_feedback(self, body):
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "author", "comment", "next_step", "action_id"))
         with self._writer():
@@ -832,8 +877,8 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        commands = ("batch", "evidence", "continue") if evidence else ("batch", "continue")
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue')"))
+        commands = ("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy")
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":

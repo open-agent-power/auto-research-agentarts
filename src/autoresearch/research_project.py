@@ -255,6 +255,13 @@ class ResearchProject:
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
+        for collection in ("private_evaluation", "frozen_evaluation_strategy"):
+            if collection != except_collection:
+                record = project.get(collection)
+                require(record is None or type(record) is dict,
+                        "EVIDENCE_CHANGED", "Evaluation command metadata is malformed.")
+                require(record is None or record.get("request_id") != request_id,
+                        "IDEMPOTENCY_CONFLICT", "Request ID belongs to an evaluation registration or freeze.")
 
     @staticmethod
     def _require_fresh(project, current, expected_state_version):
@@ -332,6 +339,16 @@ class ResearchProject:
         from .hypothesis_feedback import register
         return register(self, request_id=request_id, expected_state_version=expected_state_version,
                         hypothesis=hypothesis)
+
+    def register_holdout(self, *, request_id, expected_state_version, holdout):
+        from .retrieval_holdout import register_holdout
+        return register_holdout(self, request_id=request_id, expected_state_version=expected_state_version,
+                                holdout=holdout)
+
+    def freeze_retrieval_strategy(self, *, request_id, expected_state_version, primary_action_id):
+        from .retrieval_holdout import freeze_strategy
+        return freeze_strategy(self, request_id=request_id, expected_state_version=expected_state_version,
+                               primary_action_id=primary_action_id)
 
     def record_feedback(self, *, request_id, expected_state_version, author, comment, next_step, action_id):
         """Append an unverified researcher statement without creating a tool observation."""
@@ -616,6 +633,10 @@ class ResearchProject:
                             and binding["source_snapshot_sha256"] == project["source_snapshot_sha256"]
                             and project_design.check_eligible(current, registry.DESIGN_METHODS[method_id].check),
                             "CONDITION_NOT_SATISFIED", "The original input and current design do not qualify this prediction check.")
+                elif method_id in registry.STAGED_FINALS:
+                    from .retrieval_holdout import eligible_project
+                    require(eligible_project(self, current, original, parameters),
+                            "CONDITION_NOT_SATISFIED", "Freeze the original validation strategy before final evaluation.")
                 elif method_id in registry.SAVED_PAIR_AUDITS:
                     require(original.get("tool_id") == predecessor_method
                             and original.get("status") == "completed"
@@ -669,7 +690,9 @@ class ResearchProject:
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
             try:
-                if method_id in registry.SAVED_PAIR_AUDITS:
+                if method_id in registry.STAGED_FINALS:
+                    result = primary.execute_project(self.root, original, parameters)
+                elif method_id in registry.SAVED_PAIR_AUDITS:
                     result = primary.execute_saved(original, parameters)
                 elif method_id in registry.DIAGNOSTICS:
                     result = primary.execute(self.root, parameters)

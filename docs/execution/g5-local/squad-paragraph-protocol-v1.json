@@ -1,0 +1,68 @@
+{
+  "schema_version": "squad-paragraph-retrieval-protocol-v1",
+  "study_id": "s046-squad-paragraph-retrieval-v1",
+  "status": "preregistered_before_data_download_and_scoring",
+  "question": "Does the fixed validation-selected lexical method improve final query-level paragraph retrieval over fixed BM25 on this declared SQuAD-derived task?",
+  "source": {
+    "url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json",
+    "version": "1.1",
+    "expected_bytes_from_official_HEAD": 4854279,
+    "maximum_download_bytes": 8388608,
+    "license": "CC BY-SA 4.0 as declared by official dataset site; attribution and original downloaded bytes retained",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "official_site": "https://rajpurkar.github.io/SQuAD-explorer/",
+    "sha256": "capture_exact_download_before_native_execution; never invent",
+    "no_data_body_opened_at_protocol_creation": true
+  },
+  "derivation": {
+    "corpus": "All paragraphs, in original article/paragraph order; doc ID squad11-<article_index>-<paragraph_index>, title from original article, context as text, metadata empty. Abort if source limits fail; do not retune or silently truncate.",
+    "queries": "Original question text and ID; reject duplicate IDs. Do not inspect answer spans/content for ranking, sampling or strategy choice.",
+    "duplicate_query_text": "Group by question.strip().casefold(); keep lexicographically smallest original qid, before splitting and without using scores or labels.",
+    "selection": "Sort unique questions by (SHA256(UTF8('s045-squad-paragraph-v1:' + qid)), qid); take first 300; abort if fewer than 300.",
+    "splits": {"dev": "first100", "validation": "next100", "final": "next100"},
+    "qrels": "One positive grade1 for the question's original paragraph ID. This is a derived paragraph-mapping task, not exhaustive relevance judgments or answer generation.",
+    "missing_positive_policy": "retain_in_denominator",
+    "unit": "query; shared corpus can contain the same paragraph across splits, no unseen-document claim",
+    "private_final": "Final queries/qrels registered separately before any primary or controller request; never in development packet/context/prompt/report input. Raw source/derivation retained privately for provenance."
+  },
+  "methods": {
+    "baseline": "bm25",
+    "candidate": "tfidf_cosine",
+    "protocol": "existing staged_relevance_adapter fixed COMPARISON, no parameter search",
+    "selection_rule": "validation Recall@20 candidate-minus-baseline > 0 chooses TFIDF; zero or negative chooses BM25; unknown/corruption stops",
+    "final": "Once after freeze, compare selected method and same fixed BM25 on all 100 final queries; if selected BM25 share actual ranking/scoring, report delta0 without pretending a second method ran."
+  },
+  "evaluation": {
+    "primary_endpoint": "macro final Recall@20 selected-minus-BM25",
+    "secondary_descriptive": ["recall@5", "recall@10", "mrr@10", "binary ndcg@10"],
+    "keep_all_failures": true,
+    "keep_zero_and_negative_results": true,
+    "no_post_result_tuning_or_reselection": true,
+    "no_significance_or_general_research_benefit_claim_from_single_subset": true
+  },
+  "budget": {
+    "research_concurrency": 1,
+    "native_tool_calls": 3,
+    "ordered_actions": ["development_pair", "saved_validation_audit", "frozen_final_pair"],
+    "source_read_actions": 0,
+    "estimator_fits": 0,
+    "product_model_calls": 0,
+    "paid_model_or_API": 0,
+    "development_tokens_and_cost": "unknown",
+    "old_case_budgets_not_extended": true
+  },
+  "recovery": {
+    "single_workspace": "runs/s046-squad-paragraph-retrieval-v1",
+    "request_ids": ["s046-plan", "s046-evidence-cap", "s046-holdout", "s046-primary", "s046-audit", "s046-freeze", "s046-final"],
+    "persist_exact_bodies_before_dispatch": true,
+    "same_original_project_ids_and_budget_on_resume": true,
+    "unknown_only_original_request_recovery_no_new_dispatch": true,
+    "source_pin": "verified_S045_implementation_commit_and_recorded_core_identity_before_create",
+    "do_not_delete_failures_or_recreate_project": true
+  },
+  "limits": [
+    "Public SQuAD development data can be known; this is procedural split separation, not blinded or OS-isolated science.",
+    "Questions and answer-bearing paragraph mapping are derived from QA annotation; other relevant paragraphs may be operationally unjudged.",
+    "Results describe this fixed sampled retrieval task, not QA answer quality, sealed RSI, causal memory benefit or full original Gates."
+  ]
+}

@@ -215,6 +215,9 @@ class ProjectController:
             context["research_plan"] = copy.deepcopy(project["plan_revisions"][-1])
         if project.get("researcher_feedback"):
             context["researcher_feedback"] = copy.deepcopy(project["researcher_feedback"])
+        if project.get("private_evaluation"):
+            from .retrieval_holdout import public_evaluation_context
+            context["staged_evaluation"] = public_evaluation_context(project)
         if project.get("hypothesis_registrations"):
             from .hypothesis_feedback import feedback_context
             context["hypothesis_feedback"] = feedback_context(self.project, project)
@@ -480,6 +483,7 @@ class ProjectController:
                         _check_recipe_decision(old["selection_context"], old["request"]["proposal"], old["request"]["recipe_decision"])
                     parent, replayed = copy.deepcopy(old), True
                 else:
+                    self.project._require_unclaimed(project, request_id)
                     if effective_revision is not None:
                         revisions = project.get("recipe_revisions", [])
                         require(bool(revisions) and revisions[-1]["revision"] == effective_revision,
@@ -501,6 +505,7 @@ class ProjectController:
                             "version": recipe_decision["recipe_version"], "kind": "deterministic_recipe"}
                         plan["decision"]["selection_ref"]["external_usage"] = "no_model_invocation_by_recipe_compiler"
                     child_id = "controller-child-" + fingerprint({"project_id": project["id"], "request_id": request_id})[:32]
+                    self.project._require_unclaimed(project, child_id)
                     require(self.project._action(con, child_id) is None
                             and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions", "hypothesis_registrations")
                                         for item in project.get(key, [])),

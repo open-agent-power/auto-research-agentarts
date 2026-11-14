@@ -19,7 +19,7 @@ from . import cpu_report_sections
 KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel",
          "software.source-integrity-check": "software", "data.tabular-quality-audit": "tabular",
          "research.retrieval-fixed-pair": "retrieval", "research.weighted-interval-fixed-pair": "scheduling",
-         "research.relevance-fixed-pair": "relevance"}
+         "research.relevance-fixed-pair": "relevance", "research.relevance-validation-pair": "staged_relevance"}
 TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存模型与评价复核报告",
           "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告", **cpu_report_sections.TITLES}
 
@@ -233,6 +233,32 @@ def collect_report(workspace) -> dict:
     elif KINDS[method_id] in cpu_report_sections.PRIMARY:
         cpu_assets, cpu_provenance = cpu_report_sections.source_manifest(source_packet, KINDS[method_id])
         source_manifest.extend(cpu_assets)
+    if KINDS[method_id] == "staged_relevance":
+        from . import retrieval_holdout
+        retrieval_holdout.validate_metadata(before)
+        private = before.get("private_evaluation")
+        frozen = before.get("frozen_evaluation_strategy")
+        if private is not None:
+            _require(set(private) == {"schema_version", "request_id", "request_sha256", "request", "project_id", "run_id",
+                "state_version_before", "sha256", "bytes", "query_count", "corpus_sha256", "source_sha256",
+                "source_snapshot_sha256", "plan_sha256", "plan_version", "project_code_identity", "policy",
+                "scientific_validation", "record_sha256"}, "EVIDENCE_CHANGED", "Private evaluation metadata fields changed.")
+            _require(set(private["request"]) == {"request_id", "expected_state_version", "holdout_sha256", "holdout_bytes"},
+                     "EVIDENCE_CHANGED", "Private registration request fields changed.")
+            _require(private["record_sha256"] == fingerprint({k: v for k, v in private.items() if k != "record_sha256"})
+                     and private["project_id"] == before["id"] and private["run_id"] == before["run_id"]
+                     and private["source_snapshot_sha256"] == before["source_snapshot_sha256"],
+                     "EVIDENCE_CHANGED", "Private evaluation metadata binding changed.")
+            if any(action["command"] == retrieval_holdout.FINAL_TOOL_ID and action["status"] == "completed" for action in before["actions"]):
+                retrieval_holdout.verify_holdout(project, before)
+        if frozen is not None:
+            _require(set(frozen) == {"schema_version", "request_id", "request", "request_sha256", "project_id", "run_id",
+                "holdout_record_sha256", "source_snapshot_sha256", "plan_sha256", "project_code_identity",
+                "primary_action_id", "primary_result_sha256", "validation_delta_recall20", "policy", "selected_method",
+                "scientific_validation", "record_sha256"}
+                and set(frozen["request"]) == {"request_id", "expected_state_version", "primary_action_id"},
+                "EVIDENCE_CHANGED", "Frozen evaluation metadata fields changed.")
+            retrieval_holdout._check_frozen(project, before, frozen)
     results, receipts, assets, source_selections = [], [], {}, []
     registered = {item["receipt_snapshot_sha256"]: dict(item) for item in before.get("evidence_sources", [])}
     for action in before["actions"] + before["evidence_actions"]:
@@ -241,6 +267,20 @@ def collect_report(workspace) -> dict:
         if action["status"] == "completed":
             raw = project_workbench._artifact(project, before, action["id"])
             envelope = snapshot_viewer._json(raw)
+            if KINDS[method_id] == "staged_relevance" and action["command"] == retrieval_holdout.FINAL_TOOL_ID:
+                _require(set(envelope) == {"action_id", "request_sha256", "code_identity", "source_snapshot_sha256", "tool_result", "sha256"},
+                         "EVIDENCE_CHANGED", "Final artifact envelope fields changed.")
+                final = retrieval_holdout.validate_final_result(envelope["tool_result"])
+                _require(private is not None and frozen is not None
+                         and final["source_snapshot_sha256"] == before["source_snapshot_sha256"]
+                         and final["holdout_sha256"] == private["sha256"]
+                         and final["scope"]["corpus_sha256"] == private["corpus_sha256"]
+                         and final["scope"]["query_count"] == private["query_count"]
+                         and final["freeze_sha256"] == frozen["record_sha256"]
+                         and final["selected_method"] == frozen["selected_method"]
+                         and final["predecessor"] == {"based_on_action_id": frozen["primary_action_id"],
+                                                       "based_on_result_sha256": frozen["primary_result_sha256"]},
+                         "EVIDENCE_CHANGED", "Final result differs from its registered holdout or frozen strategy.")
             entry.update(envelope=envelope, tool_result=envelope["tool_result"])
             source_manifest.append({"name": action["artifact"], "role": "completed_action_artifact", **_digest(raw),
                                     "action_id": action["id"], "result_sha256": action["result_sha256"]})

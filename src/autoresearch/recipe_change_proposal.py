@@ -8,7 +8,7 @@ from . import research_recipe
 from .saved_materials import normalize_requests, require_complete_size
 from .contracts import ResearchError, canonical
 from .plan_feedback import projection_notice
-from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice, hypothesis_notice
+from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice, hypothesis_notice, evaluation_stage_notice
 
 
 MAX_CONTEXT_BYTES = host_protocol.MAX_CONTEXT_BYTES
@@ -103,6 +103,7 @@ def build_prompt(context):
     prompt["system"] += plan_protocol.prediction_range_notice(context["research_context"])
     prompt["system"] += budget_cost_notice(context["research_context"]["selection_context"])
     prompt["system"] += hypothesis_notice(context["research_context"]["selection_context"])
+    prompt["system"] += evaluation_stage_notice(context["research_context"]["selection_context"])
     prompt["system"] += condition_reference_notice(context["research_context"]["selection_context"])
     return prompt
 

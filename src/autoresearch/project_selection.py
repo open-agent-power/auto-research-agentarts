@@ -15,7 +15,7 @@ CONTEXT_FIELDS = {
     "project_code_identity", "controller_code_identity", "need", "goal", "domain_scope", "budget",
     "conditions", "candidates", "blockers", "baseline_decision", "evidence", "scientific_validation",
 }
-OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience", "selection_capabilities", "hypothesis_feedback"}
+OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience", "selection_capabilities", "hypothesis_feedback", "staged_evaluation"}
 EXPERIENCE_CASE_CAPABILITY = {"experience_case_refs": "v1"}
 CONDITION_PROJECTION_FIELDS = ("method_id", "condition", "outcome", "completed", "missing_information")
 PROPOSAL_FIELDS = {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
@@ -134,6 +134,15 @@ def hypothesis_notice(selection):
             "computed test metrics, so this is not blind testing.")
 
 
+def evaluation_stage_notice(selection):
+    if "staged_evaluation" not in selection:
+        return ""
+    return (" Staged evaluation metadata describes a development-only retrieval source and a separate host final package. "
+            "The fixed validation rule freezes a method before final evaluation. A final candidate is still subject to "
+            "the original budget and execution gates. Private queries and labels are not supplied in this context; "
+            "same-user procedural separation does not prove blinded research or scientific benefit.")
+
+
 def budget_cost_notice(selection):
     if not any("budget_cost" in condition for condition in selection.get("conditions", [])):
         return ""
@@ -192,6 +201,9 @@ def _context(payload):
     if "hypothesis_feedback" in payload:
         from .hypothesis_feedback import validate_context
         validate_context(payload["hypothesis_feedback"])
+    if "staged_evaluation" in payload:
+        from .retrieval_holdout import validate_public_evaluation_context
+        validate_public_evaluation_context(payload["staged_evaluation"])
     if "selection_capabilities" in payload:
         _require(payload["selection_capabilities"] == EXPERIENCE_CASE_CAPABILITY
                  and bool(active_experience_case_refs(payload)), code,

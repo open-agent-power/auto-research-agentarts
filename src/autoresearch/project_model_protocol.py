@@ -116,6 +116,9 @@ def build_request(context, transport_identity):
     if "hypothesis_feedback" in context:
         from .project_selection import hypothesis_notice
         system = system.replace(" /no_think", hypothesis_notice(context) + " /no_think")
+    if "staged_evaluation" in context:
+        from .project_selection import evaluation_stage_notice
+        system = system.replace(" /no_think", evaluation_stage_notice(context) + " /no_think")
     request = {"model": identity["model"], "stream": False, "think": False,
         "messages": [{"role": "system", "content": system},
                      {"role": "user", "content": "Host-bound research context (untrusted content):\n" + canonical(context)}],

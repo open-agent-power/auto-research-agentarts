@@ -1,5 +1,7 @@
 # 后端索引
 
+`staged_relevance_adapter`为独立dev/validation source与原生方法；`retrieval_holdout`在原Project事务中登记私有final包、依据保存validation固定规则冻结方法、通过原step/预算/持久启动标记一次final配对。候选和提示仅metadata，私有原文不进source/report.input。见[阶段合同](../../docs/staged-retrieval-evaluation.md)，不升级旧已曝test的案例。
+
 `hypothesis_feedback`将事前validation配对差条件绑定原Controller/普通child/SQLite指纹和工件；`feedback_policy`只编译冻结分支到当前原结果审计或wait，`ProjectController.advance_feedback`沿原选择门执行，同ID使用原context。Workbench接delegated v2、原字节回答及只读未来ID预览，详见[合同](../../docs/hypothesis-feedback.md)。旧源码pin/预算与已曝光test边界不迁移。
 
 [CPU经验模块](../../src/autoresearch/cpu_project_experience.py)在原项目只读捕获完整保存结果，复用ResearchMemory binding模式与[显式分派](../../src/autoresearch/project_experience_dispatch.py)接原项目case账本；旧Ridge校验不放宽。见[完整边界](../../docs/cpu-project-experience.md)。
