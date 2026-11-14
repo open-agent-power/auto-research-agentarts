@@ -1,0 +1,87 @@
+{
+  "schema_version": "autonomy-reference-exploration-manifest-v1",
+  "at_asia_shanghai": "2026-11-14T20:51:34.636507+08:00",
+  "authorization": "User requested prioritizing autonomous research and explicitly allowed finding/pulling reference repositories or direct exploration. No new paid model/API or old budget expansion.",
+  "references": [
+    {
+      "name": "AI-Scientist-v2",
+      "path": "/workspace/references/exploration/20261114/AI-Scientist-v2",
+      "origin": "https://github.com/SakanaAI/AI-Scientist-v2.git",
+      "head": "96bd51617cfdbb494a9fc283af00fe090edfae48",
+      "clean": true,
+      "license_scope": "AI Scientist Source Code License v1.0; restricted, inspiration only, no code copying",
+      "runtime": "not installed or executed",
+      "code_copied_to_product": false
+    },
+    {
+      "name": "LLM-AutoSciLab",
+      "path": "/workspace/references/exploration/20261114/LLM-AutoSciLab",
+      "origin": "https://github.com/scientific-discovery/LLM-AutoSciLab.git",
+      "head": "467fa184ba537d26b2228ee3f3a8c052d9bfca58",
+      "clean": true,
+      "license_scope": "MIT root; third-party assets separately licensed",
+      "runtime": "not installed or executed",
+      "code_copied_to_product": false
+    },
+    {
+      "name": "POPPER",
+      "path": "/workspace/references/exploration/20261114/POPPER",
+      "origin": "https://github.com/snap-stanford/POPPER.git",
+      "head": "59611864e09dd15d7528e240ad87c7ddbb4a701c",
+      "clean": true,
+      "license_scope": "No standalone LICENSE; setup.py MIT declaration and version.py NiLearn-based simplified BSD note do not establish complete copying permission",
+      "runtime": "not installed or executed",
+      "code_copied_to_product": false
+    }
+  ],
+  "prior_upstream_manifest": {
+    "path": "/workspace/references/manifest.json",
+    "bytes": 12520,
+    "sha256": "5805bfcd2ad550a59994f295ec3596a15a7e5c5a4c554d39b4a8e27749fc7e72"
+  },
+  "prior_upstream_checkouts": "Eight original pinned checkouts unchanged; additional clones only in exploration/20261114.",
+  "raw_evidence": [
+    {
+      "path": "runs/sprint-038-autonomy-reference-20261114/implementation/reference-audit.json",
+      "bytes": 3325,
+      "sha256": "8520245d3b654ce85741045d2687fdac5a6a56602999557ea47538c7854d72cd"
+    },
+    {
+      "path": "runs/sprint-038-autonomy-reference-20261114/implementation/reference-audit.md",
+      "bytes": 7395,
+      "sha256": "c30646848489e4ccf12a9e5f9ae52904e16e1fc064749a55f34d01124d04a12d"
+    },
+    {
+      "path": "runs/sprint-038-autonomy-reference-20261114/validation/source-evidence.json",
+      "bytes": 6634,
+      "sha256": "796a19e76db8b352733da939fdd29d5d89f385b45e401ef67036722f97679eb1"
+    },
+    {
+      "path": "runs/sprint-038-autonomy-reference-20261114/validation/FINDINGS.md",
+      "bytes": 5201,
+      "sha256": "c69d4f4e89c91a17823c5b1eeea92941cb35ad9c20a71de2a71fb27f5460062a"
+    },
+    {
+      "path": "runs/sprint-038-autonomy-reference-20261114/review/diagnosis.md",
+      "bytes": 8265,
+      "sha256": "17a267a62c52e5122c45d59ead8d314889f143fc35cd4dabe39374c8cbe752ba"
+    }
+  ],
+  "mechanisms": [
+    "Parent-linked experiment/hypothesis outcomes with retained failures, not only latest best result.",
+    "Disagreement/disconfirmation guiding next useful check, without claiming aggregate statistical error control.",
+    "Bounded phase transitions and persisted same-request continuation; existing product journals remain authoritative."
+  ],
+  "negative_findings": [
+    "AI-Scientist-v2 uses pickle checkpoint; a substage limit is positioned after return in inspected code, not a proven runtime cap.",
+    "AutoSciLab default loop can feed ground-truth evaluation into subsequent prompts; some sweep checkpoint errors fall back to empty state and zero error accounting. Do not copy these semantics.",
+    "POPPER combination routines require statistical assumptions not established by source inspection; no p/e-value validity claim for arbitrary adaptive correlated results."
+  ],
+  "native_adaptation_selected": "S039 extend existing HostModelBatch with delegated awaiting/import/resume/completed-only cursor and optional feedback plan; no upstream code copied or new transport. Existing LocalWorkbench delegated plan-first already exists and is not reinvented.",
+  "status": "Three real pinned clones and code/license inspection completed; S039 product implementation in progress, not claimed integrated or scientifically effective.",
+  "local_manifest": {
+    "path": "/workspace/references/exploration/20261114/manifest.json",
+    "bytes": 4481,
+    "sha256": "3adf6801f24313b4f39a19c5f3738e2674820077d91556286755798f60d2bfe0"
+  }
+}

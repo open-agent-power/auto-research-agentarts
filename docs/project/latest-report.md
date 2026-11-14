@@ -9,3 +9,5 @@ root与3名既有成员继续S036纯工程：让新计划上下文可明确选�
 S036已通过独立验收，代码提交b2e05f80a76780834077a52fde58d20db4f5a27c：后续计划可明确附指定已保存失败查询的正例、两排名与指标；原文未供应，原试跑未重新调用/升级/采纳。原41文件及ArguAna保存树保持，source门禁正确保留。继续S037新wheel/独立安装，此刻尚未完成安装验收。
 
 S037新wheel与独立安装验收完成，详见[交付](../execution/SPRINT-037.md)。按用户最新要求，提高自主研究优先；已实际拉取AI-Scientist-v2、LLM-AutoSciLab到新参考目录，继续读反馈决策核心及产品delegated循环缺口，不重开原pilot研究额度。
+
+S038已真实新增并读3个固定参考（AI-Scientist-v2、LLM-AutoSciLab、POPPER），许可和不能照搬的负例保存。当前S039开始产品持久delegated循环实现，复用4人团队；原pilot3/2不扩额，不把新clone当集成完成。

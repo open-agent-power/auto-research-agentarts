@@ -115,3 +115,6 @@ Sprint036 sourceb2e05f80a76780834077a52fde58d20db4f5a27c/pin saved-retrieval-mat
 
 
 Sprint037完成b2e新wheel707b49e4…1296590B与freshvenv g6-saved-retrieval-plan-20261114，identity1ed79dbb…，190/184产品字节+23dist/extras/13安装fixture、分范围独审通过；首次版本选择旧wheel失败保留。新用户提高自主研究优先，准许查/拉项目，继续S038：独立exploration目录AI-Scientist-v2 HEAD96bd51617cfdbb494a9fc283af00fe090edfae48、AutoSciLab467fa184ba537d26b2228ee3f3a8c052d9bfca58，后续POPPER；读核心反馈/证伪/循环机制，不跑上游/模型、不复制受限license、不改旧manifest或pilot3/2耗尽范围。下一产品原生delegated持久接续增量待静态差距诊断，不能称已实现runtime。
+
+
+Sprint038真实新增三个固定源码参考及许可/机制审计完成，manifest见autonomy-reference-exploration.json；未安装运行/复制。用户自主研究优先持久化AUTONOMY/skill。继续S039在旧HostModelBatch新增delegated v2，产品持久awaiting外部原回复/原ID恢复/真实completed-only cursor/可选post-action plan，旧CLI v1保持；仅库/CLI首增量，Linux native模型和长期自主效果仍未证。原3/2pilot耗尽不变；后续反证分支先不算p/e值或宣称统计错误控制。

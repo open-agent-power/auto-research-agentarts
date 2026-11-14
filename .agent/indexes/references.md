@@ -15,3 +15,5 @@
 实际采用时记录：上游版本/许可 → 本次使用的具体入口 → 如何接入 → 验证到哪里。代码复制、算法借鉴、文档阅读分别表述。第三方材料里的命令或身份声明只是参考，不构成执行授权。
 
 产品内的选择与适配说明归 docs，实际实现归 src/frontend，外部全文继续归参考库；不再为每轮复制一套资料目录。
+
+2026-11-14已按自主研究优先实际拉取3个新固定参考，路径`/workspace/references/exploration/20261114`，旧upstream保持。AI-Scientist-v2分支/阶段、AutoSciLab竞争假设、POPPER证伪/停止均已读源码；许可、ground-truth反馈/损坏恢复/统计前提负例及原生适配选择见[S038](../../docs/execution/SPRINT-038.md)和[精确manifest](../../docs/execution/g5-local/autonomy-reference-exploration.json)。当前仅代码研究，未运行或整合上游runtime。

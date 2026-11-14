@@ -8,6 +8,12 @@
 
 ## 最新汇报入口
 
+### Sprint038：三新参考已固定并源码研究，S039正在实现自主接续
+
+AI-Scientist-v2/AutoSciLab/POPPER三个真实checkout、commit/许可和反馈/证伪/停止机制已核，外部源码未运行/复制。发现GT反馈、损坏恢复空状态、pickle和统计适用性等不能照搬的负例。[S038](../execution/SPRINT-038.md)／[完整固定版本](../execution/g5-local/autonomy-reference-exploration.json)。
+
+用户自主研究优先已写AUTONOMY/项目skill。正在S039扩原HostModelBatch的delegated持久循环：产品生成下一请求/原回答导入/同ID接续/完成才推进/原global额度/可选反馈计划待采纳；旧LocalWorkbench已有plan-first不重复造。尚未实现验收，不宣称模型runtime、科研或因果记忆收益。
+
 ### Sprint037交付完成；用户提高自主研究优先级，进入S038
 
 新b2e源wheel1296590B/SHA707b49e4…在独立venv真实安装，190产品/184Py逐byte及13安装fixture验收、限范围独审通过；首次误选旧同版本wheel依赖失败保留。[S037](../execution/SPRINT-037.md)／[精确成品](../execution/g6-local/saved-retrieval-plan-release.json)。
