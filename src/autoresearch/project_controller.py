@@ -339,6 +339,11 @@ class ProjectController:
                     return self._response(parent, True)
                 require(parent["decision_sha256"] == fingerprint(parent["decision"]),
                         "EVIDENCE_CHANGED", "Frozen controller decision identity changed.")
+                # Block before touching either an accepted child or a parent-only
+                # intent. Do not turn a source mismatch into a permanent rejection.
+                require(current["code_identity"] == parent["code_identity"] == project_code_identity()
+                        and parent["controller_code_identity"] == code_identity(),
+                        "CODE_CHANGED", "Resume the original nonterminal request with its source pin.")
                 child = self.project._action(con, parent["child_request_id"])
             failure = None
             if child is None:
@@ -352,8 +357,6 @@ class ProjectController:
                             "EVIDENCE_CHANGED", "Frozen selection context and dispatched action differ.")
                 if current["state_version"] != parent["dispatch_state_version"]:
                     failure = {"code": "STALE_STATE", "message": "Frozen controller choice is stale; it will not be replaced with another action."}
-                elif current["code_identity"] != parent["code_identity"] or current["code_identity"] != project_code_identity() or parent["controller_code_identity"] != code_identity():
-                    failure = {"code": "CODE_CHANGED", "message": "The frozen controller choice requires its registered implementation."}
                 elif current["source_snapshot_sha256"] != parent["source_snapshot_sha256"]:
                     failure = {"code": "EVIDENCE_CHANGED", "message": "The frozen controller input identity changed."}
         if failure is not None:

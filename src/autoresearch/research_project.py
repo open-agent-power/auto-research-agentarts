@@ -27,7 +27,7 @@ def code_identity():
     from . import project_recipe, recipe_improvement
     from . import project_model_protocol
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
-    from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy
+    from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy, saved_retrieval_reader
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
@@ -41,6 +41,7 @@ def code_identity():
                         "project_experience_dispatch": hashlib.sha256(Path(project_experience_dispatch.__file__).read_bytes()).hexdigest(),
                         "hypothesis_feedback": hashlib.sha256(Path(hypothesis_feedback.__file__).read_bytes()).hexdigest(),
                         "feedback_policy": hashlib.sha256(Path(feedback_policy.__file__).read_bytes()).hexdigest(),
+                        "saved_retrieval_reader": hashlib.sha256(Path(saved_retrieval_reader.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})
@@ -453,6 +454,12 @@ class ResearchProject:
                         envelope["sha256"] == fingerprint({k: v for k, v in envelope.items() if k != "sha256"}),
                         "EVIDENCE_CHANGED", "Completed result artifact changed.")
             return dict(action, replayed=True)
+        # Same-ID step/evidence entry points reach here before their new-request
+        # gates. A changed source must not even finalize or mark old work unknown.
+        with self._connect(readonly=True) as con:
+            project = self._project(con)
+        require(action["code_identity"] == project["code_identity"] == code_identity(),
+                "CODE_CHANGED", "Recover the nonterminal original action using its registered source pin.")
         path = self._artifact(action)
         if path.is_file():
             return dict(self._commit_result(action, json.loads(path.read_bytes())), recovered=True)

@@ -2,7 +2,7 @@
   "schema_version": "adaptive-continuation-engineering-verification-v1",
   "verified_at": "2026-11-15T00:02:08.440146+08:00",
   "baseline_commit": "ea3d92e9ebb194262170a4cc56bb0cb838a97b04",
-  "implementation_commit": "recorded_in_docs/project/latest-report.json_after_commit",
+  "implementation_commit": "9858adffdcc8b579522832e7855715042524bda3",
   "checkout": "/workspace/development-continuation-20261114/auto-research-agentarts",
   "scope": "new_source_only_continuation_not_historical_recovery",
   "project_code_identity": "39b46e98fba242cb2a05d7cbc3f4355fa598a528a3debbc3d3ac6fb53fb72c35",
@@ -326,5 +326,6 @@
       "sha256": "7affb899d9c08102db48e0168cb9070fe34e5aff43923d307cebbacf38b1af3d",
       "availability": "local_only_not_committed"
     }
-  ]
+  ],
+  "subsequent_issue": "See source-pin-demo-verification.json: later reader dependency and nonterminal recovery fixes do not rewrite this original verification scope."
 }

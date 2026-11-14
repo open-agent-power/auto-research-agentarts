@@ -1,5 +1,9 @@
 # 新对话接续
 
+**最新覆盖说明（2026-11-15）：用户已重新授权持续开发，下文21:32停止新增任务仅是历史收尾。** 先读current/latest-report/development-system和AUTONOMY，使用新版Adaptive Agent Workflow与router，不加载归档dev-system。
+
+目前原盘不可见，新源码目录为 `/workspace/development-continuation-20261114/auto-research-agentarts`；S042 `9858adffdcc8b579522832e7855715042524bda3`已推main，S043继续修非终态跨pin无写阻断并交付可运行演示。新树先核origin/HEAD/未提交状态/独有lease；具体最终提交和源身份以latest-report为准。旧工程fixture有真实9858 cleanpin，新演示另有源/输入/预算；两者均不是历史研究恢复。若云盘再次缺失，如实报告，允许在明确新源码目录继续不依赖旧账本的工程；不得重建旧研究/预算/pending/unknown。
+
 用户在北京时间2026-11-14 21:32要求快速收尾并换新对话；本次不再启动新任务。请以文件、Git对象和原始收据重新核对，不仅依赖聊天总结。
 
 仓库 `/workspace/auto-research-agentarts`，origin应为 `https://github.com/open-agent-power/auto-research-agentarts.git`。先读AGENTS.md、current.md、execution/README.md、AUTONOMY.md及research-dev-router。先查guard status；有活跃owner只读。新执行用独有owner领取lease，写入/执行/提交前heartbeat，结束release；保护未提交工作，禁止reset/clean。收尾实际push/release回执在 `runs/session-close-20261114-2132/`，检查它与guard当前状态。

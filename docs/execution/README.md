@@ -2,6 +2,8 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
+最新源码续作：[S042](SPRINT-042.md)已交付事前预测、三态反馈、有限下一决定与工作台持久delegated链路；继续[S043](SPRINT-043.md)补源码pin恢复门禁和可运行演示。旧盘缺失、旧S041原合同未恢复；以current/latest-report记录的真实提交及证据为准，不重建旧研究账本。工作流已换Adaptive Agent Workflow，旧dev-system引用保留历史范围。
+
 最新[Sprint040](SPRINT-040.md)完成原ID已完成回执观察收敛；[Sprint041](SPRINT-041.md)仅设计已审。用户要求换新对话，见[接续文件](../project/next-chat.md)。
 
 历史[Sprint039](SPRINT-039.md)：产品delegated持久批次与三处同ID恢复已通过冻结验收；原外部模型transport和研究收益仍缺。S038三参考已实读，当前继续S040完成回执观察收敛。

@@ -1,5 +1,17 @@
 # 当前接续
 
+## 2026-11-15持续开发：源码续作，S042已推送，S043接续
+
+用户重新授权后使用Adaptive Agent Workflow v0.3.0，dev-system停用。三小时是对齐/汇报，不是停工点；下文21:32换对话的收尾是历史状态。实际6人复用池和能力装配见[开发体系](development-system.md)。
+
+旧 `/workspace/auto-research-agentarts`、原研究runs/参考盘和S041 v2原文不可见，不能重建历史账本。用户批准源码续作，新目录 `/workspace/development-continuation-20261114/auto-research-agentarts`，origin仍为open-agent-power/auto-research-agentarts；仅该树独有lease，原全局executor状态unknown。读取本段、AUTONOMY、最新报告再工作，不凭环境ID断言旧盘恢复。
+
+[S042](../execution/SPRINT-042.md)代码 `9858adffdcc8b579522832e7855715042524bda3` 已普通推送并回读main：事前预测/三态反馈、冻结分支到原审计或wait、Workbench delegated v2与原字节导入、未来ID预览。真实构造数据/HTTP/SQLite和独审通过；没有新增科研或真实模型推理。S041原v2未恢复，本实现是新规格。
+
+随后继续[S043](../execution/SPRINT-043.md)：补reader源身份、非终态跨pin恢复无写阻断，并交付[可运行演示](../../examples/hypothesis-feedback/README.md)。精确最终提交、验证、原件和接续以[latest-report](latest-report.json)为准。原9858 cleanpin和原工程fixture保持；旧研究50fit、pilot3/2及全部原预算不重开。
+
+当前原生Linux受控模型transport、未曝光final-test协议、长期自适应与跨任务因果收益仍缺。已有test曝光不称盲测；原G0/隔离等完整Gates不升级。优先继续研究决策和原生执行，减少非阻塞展示包装。
+
 ## 执行边界与入口
 
 用户要求持续推进、每大轮报告、验证后直接合并/推送 `open-agent-power/auto-research-agentarts` 的 main；仅新的实质决策阻塞再询问。用户已接受缺失 Docker/cgroup Worker，按 [可信本地授权](../execution/local-continuation.json) 继续，无需重复索要相同环境。原 G0 隔离与上游 runtime 未通过，不宣称 sealed、多代 RSI 或完整原 Gate。

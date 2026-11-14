@@ -56,3 +56,5 @@ Workbench 的活动项目 GET 和报告 JSON 保存反馈；报告输入同时�
 工程验收使用新合成输入、真实本地适配器/SQLite/文件/HTTP 和构造的 delegated 回复；它们不替代旧研究，不是实际模型推理或科研收益。已完成的旧 Concrete、原 pilot、调度阈值实验及其预算不恢复、不重置。
 
 既有检索适配器会计算并保存 dev/validation/test，本投影仅取 validation，**整条旧流程不具备盲测保证**。新独立 final test、长期自适应收益、跨课题因果收益和受控 Linux 模型运行时仍待验证。改变源码会改变 core/Controller/批次身份，旧 pending/unknown 仍需原 source pin；没有跨版本自动迁移。
+
+[S043](execution/SPRINT-043.md)补齐reader源身份与非终态恢复无写门禁；源码不符不会将原未完成parent永久拒绝或把child改成unknown，回到原pin仍可核对/恢复。可运行的[独立演示](../examples/hypothesis-feedback/README.md)展示登记、分进程执行和终态重放，使用独立工程输入和预算。

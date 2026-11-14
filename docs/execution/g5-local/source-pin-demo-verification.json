@@ -1,0 +1,237 @@
+{
+  "schema_version": "source-pin-demo-verification-v1",
+  "verified_at": "2026-11-15T00:18:51.758793+08:00",
+  "baseline_commit": "9858adffdcc8b579522832e7855715042524bda3",
+  "implementation_commit": "recorded_in_latest_report_after_commit",
+  "project_code_identity": "21bc1ce5ba3db815b2a177933e4b0f10465ae54cd8d2e6d474212a1627fe4834",
+  "controller_code_identity": "6d07babfc5b3b71c3a4b209ebc37245b7d6984798b29836a1cfd1e85b9479f44",
+  "source_sha256": {
+    "src/autoresearch/research_project.py": "3312849d9494c57870d4ed176d3d74e31442aa6ab4e5cd50803c1b530af9367e",
+    "src/autoresearch/project_controller.py": "9863e8addabdf3fe28cf885515d241c22fe03d8e783542a2bd9cfbb29f220454",
+    "src/autoresearch/saved_retrieval_reader.py": "0516c7661937dcd1d162c00cb699b9e153332abe22737cc068c6e8f3d8f5d806",
+    "tests/test_feedback_source_pin.py": "0081cb09ffabe7b0203a503625a7d9bdecaad1b58da474db982e66b5c12e7ac9",
+    "tests/test_pending_source_pin.py": "11e14a5368da00f9bfb940e0559870d53773933ad35511ed6f7a4369a12a7d05",
+    "examples/hypothesis-feedback/demo.py": "b36de1c818212a1357571df4bec02b89247810aacc3d6048d45ac2920f39f81c",
+    "examples/hypothesis-feedback/README.md": "df7ba199ebc61ab7a395f7c101e3cfb22b807297a7e2a90fd3d7316a20ec9793"
+  },
+  "source_pin_fix": {
+    "reader_hashed": true,
+    "nonterminal_cross_pin_block_before_write": true,
+    "parent_only_not_permanently_rejected": true,
+    "terminal_replay_retained": true,
+    "original_pin_recovery_probes": "synthetic in-memory reader-only source drift; not an old historical research replay",
+    "new_interpreter_reader_copy_gate": true
+  },
+  "validation": {
+    "root_related_regression": {
+      "tests": 78,
+      "passed": 78,
+      "source_before_after_identical": true
+    },
+    "independent_source_pin_regression": {
+      "tests": 30,
+      "passed": 30,
+      "source_before_after_identical": true
+    },
+    "demo_author_three_separate_processes": "initial register-stop / resume-to-completion / terminal-replay; initial outputs in author tool transcript, no retrofabricated raw log",
+    "independent_existing_demo_replay": {
+      "project_id": "project-4e6067ff3371431db68435beeee1550f",
+      "run_id": "run-5fc7fa951f204b768ec24ab64893d3b9",
+      "checks": {
+        "actions_added_zero": true,
+        "budget_zero_fit_and_model": true,
+        "condition_not_met_with_zero_validation_delta": true,
+        "controller_code_identity_matches": true,
+        "demo_sha_matches_identity": true,
+        "project_code_identity_matches": true,
+        "resume_exit_zero": true,
+        "target_file_hashes_unchanged": true
+      },
+      "changed_files": {},
+      "actions_added": 0,
+      "actions": [
+        {
+          "command": "research.relevance-fixed-pair",
+          "id": "action-25639cdc89d3655df67ff3ac61230062",
+          "request_id": "controller-child-1d2912c951d8c697ef50271a9119d689",
+          "result_sha256": "a1170da28e0711c19fafa61e84361cf4643d81cdef5c92ee8e57c5d8407dd221",
+          "status": "completed"
+        },
+        {
+          "command": "research.relevance-saved-error-audit",
+          "id": "action-8b978c3e37d746d0e5ce8370f49d194f",
+          "request_id": "controller-child-303665e3ff30c6567e9974b97cea1f8c",
+          "result_sha256": "ef3dd61129e94fded0bc4020b366c8bd9241a58c23b34e8e2298b563e4eed233",
+          "status": "completed"
+        }
+      ],
+      "validation_candidate_minus_baseline": 0.0,
+      "outcome": "condition_not_met",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 8,
+        "evidence_reads_reserved": 0,
+        "evidence_reads_used": 0,
+        "existing_cash_cap_cny": 5,
+        "fit_attempts_used": 0,
+        "fit_limit": 0,
+        "fits_completed": 0,
+        "fits_reserved": 0,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "independent-synthetic-demo",
+        "local_tool_call_limit": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_dispatches": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "preprocessing_fits": 0,
+        "preprocessing_fits_completed": 0,
+        "ridge_fits_completed": 0
+      },
+      "report_snapshot_ref": "acddaacc069c749a62b8cc1db555fb4f4de7e34a1f48af967bd4b19f51cf0deb",
+      "target_sha256": {
+        "driver-frozen.py": "b36de1c818212a1357571df4bec02b89247810aacc3d6048d45ac2920f39f81c",
+        "identity.json": "6da16298e3bb7bf9191df778c2e3aff80e66c3529db4db9feba37f6d37e79c36",
+        "inputs/corpus.jsonl": "625d919521bd888a04bd93f242c1c8025dc9cf485e4f8a29cecc84c420723aee",
+        "inputs/license.md": "b49a7d73492a4ab3a81248ac26b3859e44b9e6b38f8b106e4a058058736d8a94",
+        "inputs/packet.json": "f296d31058cb0b78ffa9ec6db01e62109ae74569589452ef2e01b1a52d011cb5",
+        "inputs/qrels-test.tsv": "234629cd3d6392492352dfbc3a41c52f3d15e120fa8aa09ac55aa36215ce5e55",
+        "inputs/qrels-train.tsv": "4987f672a2fa044d60cb2e559b0132335b120c5bac5350c3ab3ee490fd5d557a",
+        "inputs/queries.jsonl": "c89fe73ce2fb9f024e9baaaadb152215f5e8d73ba5f4f87e213a00f6736be421",
+        "inputs/selection.json": "d00f190e1efac10b033e626cef0133111ac7557d22f66af44ad4eca4441a7559",
+        "inputs/source-receipt.json": "426aea32bab222dd2f0777c2e27c1973b05392795f877fecb4572ed977ac8d85",
+        "inputs/spec.json": "f029515af60a0d30e1794155c2699a0f27b21082ae46ad5503446f6ff598d7e8",
+        "inputs/synthetic-source.zip": "6efc38c78dcef3b1f6946daf02389caab31329735b17a08966e85b28f643f600",
+        "project/artifacts/action-25639cdc89d3655df67ff3ac61230062.json": "d3af4a5da2d25021ee64ca786fbf0421f31c05fd92aab95c49bb83ca17295863",
+        "project/artifacts/action-8b978c3e37d746d0e5ce8370f49d194f.json": "cef0d92dc5a0f28a0cbb84d2340a2a540075f7e7021e582b5349d2b6f637451a",
+        "project/project.sqlite": "fa5267ac6a5dfc243349c7a862729a96d30fa2b17bf2f4c8d0f55a93cf0b5d3f",
+        "project/source.json": "f296d31058cb0b78ffa9ec6db01e62109ae74569589452ef2e01b1a52d011cb5",
+        "project/writer.lock": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+        "report/input.json": "a0d3bec85fa8a6288b3161aadfdbf1bbabebc3c43019350aceebc46deb7ed461",
+        "report/manifest.json": "92e4012f5f18e5d04c03911ff9b6bbf98173fe095fbc8d8873604b6ac1c74462",
+        "report/report.json": "36faa14315fc16788a1bf70eb15a99709883e5df2e350acae270ca3ad0ac6d10",
+        "report/report.md": "3a8575596b0362630361a2b921cf39663826b1e59d586be3645510f97caab192",
+        "report/report.pdf": "943c3008c546b1274e79eb32e104c9be59bf818434d10d122476aaf51cff029a",
+        "requests/branch.json": "a62ec1edcedcefc4ebd298f67b83a608cd6beaa1a524eead4797f380e28e9e98",
+        "requests/primary.json": "2242b81582dd6ac28edb013f0609530b86eb0ae2fffaca79224d59d1e3215d09",
+        "requests/registration.json": "c393f425969b1a04fa441f8e33dae5f41b6f48a1a5c33b2a5912e35cfaf62ec0"
+      }
+    }
+  },
+  "original_9858_engineering_fixture": {
+    "pin": "/workspace/development-continuation-20261114/source-pins/9858adf",
+    "head": "9858adffdcc8b579522832e7855715042524bda3",
+    "checks": {
+      "budget_unspent": true,
+      "controller_identity_matches_saved": true,
+      "legacy_tree_unchanged": true,
+      "original_hypothesis_registration_valid": true,
+      "pin_head_stable": true,
+      "pin_worktree_clean_after": true,
+      "pin_worktree_clean_before": true,
+      "project_core_matches_expected": true,
+      "project_sqlite_unchanged": true,
+      "read_only_sqlite": true
+    },
+    "project_id": "project-52ac457af420494f9d01e13735304195",
+    "registration_request_id": "persistent-demo-hypothesis-v1",
+    "registration_sha256": "af862d84b9a939328b793d06c0e88a41d041cf9b550adc2388896e5b3bea5cc5",
+    "project_sqlite_sha256": "0c71e3cd7f40bef9817ed16c0ad82919544dc10b2124649acf4ba6d4fa48d453",
+    "feedback": "unknown/controller_not_started",
+    "execution_attempted": false,
+    "read_only_sqlite": true,
+    "note": "This is this session engineering fixture, not the missing historical research disk."
+  },
+  "negative_results": [
+    "9858 reader-only byte drift not included in core hash; independently proven before fix",
+    "9858 same-ID pending step could mutate running to unknown across source drift; independently reproduced, fixed probes now CODE_CHANGED with ledger unchanged",
+    "9858 parent-only mismatch could permanently reject an original intent; fixed to non-mutating gate",
+    "synthetic demo validation delta=0; not positive research evidence",
+    "old-code resume and nonempty demo target rejected; no replacement project",
+    "earlier unknown-output formatting edit was withdrawn byte-exact before independent replay; no new fixture or claimed result"
+  ],
+  "budget_scope": {
+    "new_scientific_fits": 0,
+    "product_model_or_paid_api_calls": 0,
+    "old_ledger_restored": false,
+    "old_model_or_fit_budget_extended": false,
+    "development_tokens": "unknown",
+    "development_cost": "unknown",
+    "synthetic_demo_tool_calls": 2,
+    "synthetic_demo_tool_limit": 2
+  },
+  "limitations": [
+    "real local engineering data/actions; not scientific gains or actual model reasoning",
+    "test already computed by current adapter; not blind",
+    "no native Linux controlled model transport",
+    "no full Gates/isolation claims",
+    "raw data/logs retained locally; Git commits contain source/tests/metadata only"
+  ],
+  "evidence": [
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/pin-regression/unittest.log",
+      "sha256": "b15d41236e097e32cfed862804c3db426d92f325d04f9e34a4ed86e749d2f4fb",
+      "bytes": 14092,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/pin-regression/result.json",
+      "sha256": "31abac5c75a2547bab17816be44ed2397006d69b7ae8ddfa344476e8fb2707f0",
+      "bytes": 43522,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/skill-refresh-20261114/review/pin-dependency-review.md",
+      "sha256": "e1e35dc9403d1a15b2195bd100d1cc4c28207353927d7fab69ac8b5d21f490db",
+      "bytes": 4082,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/skill-refresh-20261114/review/pin-review-tests.log",
+      "sha256": "3e202b7a69d73e6174a20e30b1d5163653053b6dda3e2d3b2cd4cbb9ccaf2a9b",
+      "bytes": 5241,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/skill-refresh-20261114/review/pin-review-pre.sha256",
+      "sha256": "7bd62d4273e7d099b19d139930531c5e32fcf55e4924be6748b76546dca952bc",
+      "bytes": 516,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/skill-refresh-20261114/review/pin-review-post.sha256",
+      "sha256": "7bd62d4273e7d099b19d139930531c5e32fcf55e4924be6748b76546dca952bc",
+      "bytes": 516,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/second-increment-20261114T1613Z/demo-resume-summary.json",
+      "sha256": "abf822e42b04fd48e5d7bee5d13d86900e856defd2164568b5532de4e6156f19",
+      "bytes": 9791,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/second-increment-20261114T1613Z/demo-resume.log",
+      "sha256": "ff72052edb6713c19f0ee2c0a2f25e11a1bbb4bfe97ee592b936a8ae2c7a758a",
+      "bytes": 7389,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/second-increment-20261114T1613Z/legacy-fixture-readonly-summary.json",
+      "sha256": "6beaee3187679501d7a873efa0a466f2b7ae33f2468f854747035dbeca9a8103",
+      "bytes": 15754,
+      "availability": "local_only_not_committed"
+    },
+    {
+      "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/second-increment-20261114T1613Z/legacy-fixture-readonly.log",
+      "sha256": "c015cc86180e3bdf2a2fa71d282427cee2d6608386ef74ae9416907b4fcbb668",
+      "bytes": 11747,
+      "availability": "local_only_not_committed"
+    }
+  ]
+}

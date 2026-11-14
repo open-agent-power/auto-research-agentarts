@@ -1,5 +1,11 @@
 # 云端开发上下文
 
+## 最新授权与实际环境（2026-11-15）
+
+用户已重新授权持续推进，采用最新版Adaptive Agent Workflow，原dev-system归档停用；三小时任务仅对齐汇报。当前以[current](current.md)、[开发体系](development-system.md)、[latest-report](latest-report.json)为入口，后文旧收尾/旧环境叙述保留历史范围。
+
+原研究盘不可见；用户批准新源码续作 `/workspace/development-continuation-20261114/auto-research-agentarts`，已核origin及新树独有lease。S042代码9858adf已推main，继续S043源pin恢复门禁和独立可运行演示。原研究/额度/失败不重建，新工程fixture不能替代历史证据。旧全局lease及executor状态unknown，不把本地新lease当原租约恢复。
+
 ## 目标及授权
 
 用户要求解压执行包，使用 dev-system 严格按计划持续推进；随后明确授权使用 GitHub CLI，并向 `open-agent-power/auto-research-agentarts` 推送。独立分支开发，不强推或覆盖原分支。
