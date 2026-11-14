@@ -106,6 +106,7 @@ def _import_snapshot(project, platform_run):
 
 class LocalWorkbench:
     def __init__(self, root):
+        self.read_only = False
         self.root = safe_path(Path(root).absolute())
         _require(not (self.root / "project.sqlite").exists(), "WORKBENCH_OVERLAP", "Use a separate local workbench root.")
         self.root.mkdir(parents=True, exist_ok=True)
@@ -118,20 +119,64 @@ class LocalWorkbench:
             _require(con.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()[0] == "local-research-workbench-v1",
                      "WORKBENCH_CHANGED", "Unsupported local workbench schema.")
 
+    @classmethod
+    def open_readonly(cls, root):
+        """Open an existing manager without creating its directory, database or lock."""
+        instance = cls.__new__(cls)
+        instance.read_only = True
+        instance.root = safe_path(Path(root).absolute())
+        _require(instance.root.is_dir() and not (instance.root / "project.sqlite").exists(),
+                 "WORKBENCH_NOT_FOUND", "An existing separate workbench is required.")
+        instance.db = safe_path(instance.root / "workbench.sqlite")
+        _require(instance.db.is_file(), "WORKBENCH_NOT_FOUND", "The existing workbench database is required.")
+        # SQLite can create or update sidecars even on a read-only connection.
+        _require(not any(Path(str(instance.db) + suffix).exists() for suffix in ("-wal", "-shm", "-journal")),
+                 "WORKBENCH_CHANGED", "A workbench database sidecar requires inspection before read-only opening.")
+        with instance._connect(readonly=True) as con:
+            row = con.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
+            _require(row is not None and row[0] == "local-research-workbench-v1",
+                     "WORKBENCH_CHANGED", "Unsupported local workbench schema.")
+        return instance
+
+    def __getattribute__(self, name):
+        # No command is exposed by a read-only manager, even when invoked directly.
+        readers = {"describe", "saved_study_reference"}
+        if not name.startswith("_") and name not in readers and name not in {"root", "db", "read_only", "open_readonly"}:
+            if object.__getattribute__(self, "__dict__").get("read_only", False):
+                raise ResearchError("READ_ONLY", "This workbench was opened read-only.")
+        return object.__getattribute__(self, name)
+
     def _writer(self):
         # A separate manager-root OS lock; each child still acquires its core lock.
+        _require(not self.read_only, "READ_ONLY", "This workbench was opened read-only.")
         return ResearchProject(self.root)._writer()
 
     @contextmanager
     def _connect(self, readonly=False):
+        _require(not self.read_only or readonly, "READ_ONLY", "This workbench was opened read-only.")
         safe_path(self.db)
-        con = sqlite3.connect(self.db.as_uri() + ("?mode=ro" if readonly else "?mode=rwc"), uri=True, timeout=5)
+        before = None
+        if self.read_only:
+            _require(not any(Path(str(self.db) + suffix).exists() for suffix in ("-wal", "-shm", "-journal")),
+                     "WORKBENCH_CHANGED", "A workbench database sidecar requires inspection before reading.")
+            before = self.db.stat()
+        # immutable prevents SQLite from creating WAL shared-memory files. The
+        # sidecar check above prevents silently ignoring an existing journal.
+        mode = "?mode=ro&immutable=1" if self.read_only else "?mode=ro" if readonly else "?mode=rwc"
+        con = sqlite3.connect(self.db.as_uri() + mode, uri=True, timeout=5)
         con.row_factory = sqlite3.Row
         try:
             with con:
                 if readonly:
                     con.execute("BEGIN")
                 yield con
+                if self.read_only:
+                    safe_path(self.db)
+                    after = self.db.stat()
+                    _require(not any(Path(str(self.db) + suffix).exists() for suffix in ("-wal", "-shm", "-journal"))
+                             and (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns)
+                             == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns),
+                             "WORKBENCH_CHANGED", "The workbench changed during the read; retry only when no writer is active.")
         finally:
             con.close()
 

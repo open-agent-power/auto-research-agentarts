@@ -343,6 +343,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
     _require(type(port) is int and 0 <= port <= 65535, "INVALID_PORT", "Use a local port from 0 to 65535.")
     _require(type(allow_local_actions) is bool and (not allow_local_actions or local_workspace is not None),
              "INVALID_REQUEST", "Local actions require an explicit local workspace.")
+    _require(not (allow_local_actions and getattr(local_workspace, "read_only", False)),
+             "READ_ONLY", "A read-only workbench cannot enable local actions.")
     _require(claude_executable is None or (allow_local_actions and local_workspace is not None
              and isinstance(claude_executable, (str, Path)) and Path(claude_executable).is_file()),
              "INVALID_REQUEST", "A host-selected existing Claude executable requires enabled local actions.")
@@ -509,7 +511,10 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     return self.send_data(200, raw, mime)
                 if parsed.path == "/api/local-workbench" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Workspace metadata does not accept a query.")
-                    return self.send_json(200, {**local_workspace.describe(), "enabled": allow_local_actions, "csrf_token": csrf_token})
+                    return self.send_json(200, {**local_workspace.describe(), "enabled": allow_local_actions, "csrf_token": csrf_token,
+                                                "read_only": getattr(local_workspace, "read_only", False)})
+                if getattr(local_workspace, "read_only", False) and parsed.path != "/api/local-workbench/saved-study-reference":
+                    return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and the saved study are available in this read-only host mode.")
                 if parsed.path == "/api/local-workbench/model" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Model journal does not accept a query.")
                     return self.send_json(200, local_workspace.model_view(enabled=claude_executable is not None))

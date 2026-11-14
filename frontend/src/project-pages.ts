@@ -2,6 +2,7 @@
 import { $, el } from "./dom";
 import { renderProjectPage, type ActiveProjectPage } from "./project-view";
 import { createProjectFlow } from "./project-flow";
+import { createSavedStudy } from "./saved-study";
 
 type Obj = Record<string, unknown>;
 const labels: Record<ActiveProjectPage, string> = { overview: "项目总览", research: "研究推进", experiments: "实验中心", knowledge: "知识空间", outputs: "成果与复现" };
@@ -15,7 +16,7 @@ export function createProjectPages(host: HTMLElement, options: {
   shared: HTMLElement[]; management: HTMLElement[]; operations: Record<ProjectOperation, HTMLElement>; planning: HTMLElement[];
   feedback: HTMLElement; design: HTMLElement; designLibrary: HTMLElement; experience: HTMLElement; reportButton: HTMLButtonElement;
   announce(message: string, error?: boolean): void;
-}): { update(project: Obj, context: Obj | null): Promise<void>; revealOperation(name: ProjectOperation, recoveryKey: string): void } {
+}): { update(project: Obj, context: Obj | null, readOnly?: boolean): Promise<void>; revealOperation(name: ProjectOperation, recoveryKey: string): void } {
   const common = el("div", "project-workspace-common"); common.append(...options.shared);
   const panes = new Map<ActiveProjectPage, HTMLElement>(), content = new Map<ActiveProjectPage, HTMLElement>();
   for (const page of Object.keys(labels) as ActiveProjectPage[]) {
@@ -50,30 +51,36 @@ export function createProjectPages(host: HTMLElement, options: {
   panes.get("knowledge")!.querySelector(".page-heading > div")!.append(caseLink);
   const focusTargets = { operations: operation, plan: options.planning[0], feedback: options.feedback, design: options.design, experience: options.experience };
   for (const target of Object.values(focusTargets)) { target.classList.add("project-route-target"); target.tabIndex = -1; }
-  host.replaceChildren(common, ...panes.values());
+  const savedStudy = createSavedStudy();
+  host.replaceChildren(common, ...panes.values(), savedStudy.element);
   const nav = $("sections"); nav.replaceChildren();
   const icons = { overview: "◈", research: "⌁", experiments: "⚗", knowledge: "▤", outputs: "▧" };
   for (const page of Object.keys(labels) as ActiveProjectPage[]) {
     const link = el("a", "nav-item"); link.href = "#/" + page; link.dataset.page = page;
     link.append(el("span", "nav-icon", icons[page]), el("span", "", labels[page])); nav.append(link);
   }
+  const savedLink = el("a", "nav-item"); savedLink.href = "#/saved-study"; savedLink.dataset.page = "saved-study";
+  savedLink.append(el("span", "nav-icon", "▥"), el("span", "", "保存研究")); nav.append(savedLink);
   const brand = document.querySelector<HTMLAnchorElement>(".brand"); if (brand) brand.href = "#/overview";
-  let current: Obj = {}, activePage: ActiveProjectPage | null = null, focusPending = true;
+  let current: Obj = {}, activePage: ActiveProjectPage | "saved-study" | null = null, focusPending = true;
   const bookmarks = new Map<ActiveProjectPage, number>();
   function route(): void {
     focusPending = true;
-    const key = location.hash.split("?")[0].slice(2), page: ActiveProjectPage = Object.hasOwn(labels, key) ? key as ActiveProjectPage : "overview";
+    const key = location.hash.split("?")[0].slice(2), page: ActiveProjectPage | "saved-study" = key === "saved-study" ? key : Object.hasOwn(labels, key) ? key as ActiveProjectPage : "overview";
     if (location.hash.split("?")[0] !== "#/" + page) history.replaceState(null, "", "#/" + page);
-    if (activePage) bookmarks.set(activePage, scrollY);
+    if (activePage && activePage !== "saved-study") bookmarks.set(activePage, scrollY);
+    if (activePage === "saved-study") savedStudy.deactivate();
     for (const [name, pane] of panes) pane.hidden = name !== page;
+    savedStudy.element.hidden = page !== "saved-study";
     for (const link of nav.querySelectorAll<HTMLAnchorElement>("[data-page]")) {
       const selected = link.dataset.page === page; link.classList.toggle("active", selected);
       if (selected) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current");
     }
-    activePage = page; document.title = labels[page] + " · 空间研究";
+    activePage = page; document.title = (page === "saved-study" ? "保存研究" : labels[page]) + " · 空间研究";
+    if (page === "saved-study") savedStudy.activate();
     if (page === "research") flow.activate();
     requestAnimationFrame(() => {
-      if (!focusRoute()) window.scrollTo({ top: bookmarks.get(page) ?? 0, behavior: "instant" });
+      if (!focusRoute()) window.scrollTo({ top: page === "saved-study" ? 0 : bookmarks.get(page) ?? 0, behavior: "instant" });
     });
   }
   function focusRoute(): boolean {
@@ -93,11 +100,11 @@ export function createProjectPages(host: HTMLElement, options: {
     if (location.hash === caseLink.hash) { event.preventDefault(); focusPending = true; focusRoute(); }
   });
   window.addEventListener("hashchange", route); route();
-  async function update(project: Obj, context: Obj | null): Promise<void> {
+  async function update(project: Obj, context: Obj | null, readOnly = false): Promise<void> {
     current = project;
     for (const [page, target] of content) {
       if (project.id) renderProjectPage(target, project, page, context);
-      else target.replaceChildren(el("p", "empty-state", page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
+      else target.replaceChildren(el("p", "empty-state", readOnly ? "只读宿主未加载当前项目内容；可在保存研究中阅读独立研究。" : page === "overview" ? "尚无活动课题。展开下方入口创建或选择已有项目。" : "先在项目总览创建或选择课题；此页不会填入其他课题的示例结果。"));
       if (page === "outputs" && project.id) target.querySelector(".project-report-actions")!.prepend(options.reportButton);
     }
     manage.open = !project.id;
