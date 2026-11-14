@@ -8,6 +8,10 @@
 
 ## 最新汇报入口
 
+### 用户要求快速收尾，交接新对话
+
+S040已验证source26ad453：新请求只观察已completed的原Controller/child，补Host缓存且保留unknown，未重派；独验13项与真实alias/预算/文件验证、独审过。[S040](../execution/SPRINT-040.md)。S041下一自主决策能力仅设计v2已审，尚未实现。[新对话入口](next-chat.md)列精确sourcepins、预算、未完成项和收尾回执。用户于21:32要求停止新增任务并换对话，按要求收尾；后续先核lease/未提交状态再继续。
+
 ### Sprint039：产品持久delegated批次通过，继续S040同ID完成观察
 
 source `7c1f399a557856d232e523416f6c8b49ebc8d399`／clean pin `/workspace/work/delegated-batch-source-7c1f399`；真实Host/Controller日志配工程fake adapter，三处中断原ID恢复，恰1callback/原Host2slots、计划待显式采用，冻结18检查和CLI/report通过。[S039](../execution/SPRINT-039.md)／[精确范围](../execution/g5-local/delegated-batch-verification.json)。

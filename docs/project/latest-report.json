@@ -1,66 +1,64 @@
 {
-  "schema_version": "approved-model-feedback-pilot-progress-v1",
+  "schema_version": "autonomy-session-handoff-v1",
   "timezone": "Asia/Shanghai",
-  "started_at": "2026-11-14T19:58:38+08:00",
-  "updated_at": "2026-11-14T21:11:46.425366+08:00",
-  "owner": "root-model-feedback-20261114T1959",
-  "status": "s039_verified_s040_completed_result_observation_implementation_active",
-  "project_id": "project-943409c583e54a5d88d414bddb997669",
-  "run_id": "run-78ce0add28fa454bb0ad72dd9b979bd1",
-  "workspace": "/workspace/work/model-feedback-pilot-20261114-v1",
-  "product_source": "78acfbe09c7d689b94e4787e83a32b3e7be9dd9c",
-  "guard_source": "1d19f06f16e69b20afe5667aa0bd0d500e8272ef",
-  "logical_model_delegations_requested": 3,
-  "logical_model_outputs_received": 3,
-  "host_slots": {
-    "selection": "applied",
-    "plan": "proposed_not_adopted"
-  },
-  "outer_review": "needs_revision_leave_proposed",
-  "research_tools_used": 2,
-  "research_tools_limit": 2,
-  "native_model_allowance": 0,
-  "native_model_requests": 0,
-  "new_fits_solver_extraction": 0,
-  "provider_requests_tokens_cost": "unknown",
-  "primary_action": "action-bb04f909576f683e651f6156c5d6e968",
-  "primary_result_sha256": "a2fd1b7c9fbf7c7d81287ce27b66c2d66d7b666d57c76978c4ceb0a3c99123ce",
-  "audit_action": "action-c6b08db83a7d97920f25d6892251030b",
-  "audit_result_sha256": "8179e5b3e7bdd8405d2102c7be1462427c335ee3269fd89314d993aa38f3e7db",
-  "actual_primary_compute": {
-    "index_builds": 1,
-    "rankings": 6,
-    "metric_scores": 6
-  },
-  "saved_audit_new_rankings_scores": 0,
-  "current_results": "botharms validation metrics0; dev/test tie1; adversequery1; no scientific/causal memory gain claim",
-  "saved_plan_revisions": 1,
-  "next": "S040新请求capability观察已completed原Controller/child并补Host缓存，不dispatch/新slot/升级旧pin。",
-  "failures": [
-    "initialize metadata key error after original state persisted; readonly same-ID recovery, no reinit",
-    "report collected with object instead of workspace after proposed saved; readonly report recovery, no repeat model/tool"
+  "continuous_work_started_at": "2026-11-14T16:44:56+08:00",
+  "approved_pilot_started_at": "2026-11-14T19:58:38+08:00",
+  "work_stopped_by_user_at": "2026-11-14T21:32:00+08:00",
+  "report_prepared_at": "2026-11-14T21:34:24.841568+08:00",
+  "status": "user_requested_new_conversation_closing",
+  "code_commits": [
+    "b2e05f80a76780834077a52fde58d20db4f5a27c",
+    "7c1f399a557856d232e523416f6c8b49ebc8d399",
+    "26ad4531cd2a94fdf2e24854de79a659b47a46a2"
   ],
-  "old_cases_budgets_pins": "preserved per per-operation byte snapshots and named protected write guard",
+  "completed": [
+    "S035 approved actual3logical-delegation/2-tool workflow, review needs_revision and plan not adopted",
+    "S036 exact opt-in saved adverse-query feedback; S037 installed b2e release verified",
+    "S038 three real pinned source references and license/negative audit, autonomy priority persisted",
+    "S039 delegated persisted batch/3interruption recovery; S040 already-completed observation cache convergence verified"
+  ],
+  "not_implemented": [
+    "S041 preregistered prediction feedback policy",
+    "Workbench delegated-batch integration",
+    "native Linux controlled model transport and sustained autonomous research efficacy"
+  ],
+  "research_scope": {
+    "logical_research_delegations": 3,
+    "limit": 3,
+    "specified_tools": 2,
+    "tool_limit": 2,
+    "new_fits_native_model_requests": 0,
+    "platform_physical_requests_tokens_cost": "unknown",
+    "review": "needs_revision_leave_proposed"
+  },
+  "verification": {
+    "S039_frozen_checks": 18,
+    "S040_frozen_checks": 13,
+    "scientific_or_causal_memory_gain_proven": false,
+    "negative_results": "Three-document arms tie, validation0; original scheduling negative and all old adverse results retained",
+    "known_limits": "No multiprocess acceptance, artifact revalidation or OS seal; preguard bootstrap not measured"
+  },
+  "preservation": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-20261114/root-preservation-final.json",
+    "bytes": 6925,
+    "sha256": "1a4c9c47e7dd122ef63c4d452aae1fe3b360e4718c64bc4c822f6fabc4b59bb1"
+  },
+  "pilot_paths": {
+    "path": "/workspace/auto-research-agentarts/runs/session-close-20261114-2132/pilot-path-check.json",
+    "bytes": 99,
+    "sha256": "0240a303d9125d3e8b03aa56db6c0f249487d10444e40734e974c1a03b23efa5"
+  },
+  "active_executor_at_report": {
+    "owner": "root-model-feedback-20261114T1959",
+    "phase": "handoff_only",
+    "subagents": "all completed",
+    "release_status": "pending_at_report_write",
+    "release_receipt": "runs/session-close-20261114-2132/release.json",
+    "current_status_authority": "project_autonomy_guard.py status and release receipt"
+  },
+  "next_task": "Read next-chat.md, verify lease/origin/status, implement S041v2 prediction/feedback decision capability without resetting old budgets.",
   "next_planned_trigger_time": "2026-11-14T22:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
-  "pilot_checkpoint": {
-    "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/final-checkpoint.json",
-    "bytes": 1674,
-    "sha256": "3134f02b3e51b5fa259ceaaabb3a0a915c9daaa5756a10aa12c8c4a296230719"
-  },
-  "pilot_results": "docs/execution/g5-local/model-feedback-pilot-results.json",
-  "active_executor": {
-    "owner": "root-model-feedback-20261114T1959",
-    "lease": "held",
-    "team_members_including_root": 4,
-    "mode": "product_engineering_after_research_budget_exhausted"
-  },
-  "completed_code_commit": "b2e05f80a76780834077a52fde58d20db4f5a27c",
-  "completed_pilot_report_commit": "58e89681c1644e5c596bc507083520ac90a51c49",
-  "engineering_results": "docs/execution/g5-local/saved-retrieval-plan-materials-verification.json",
-  "release_results": "docs/execution/g6-local/saved-retrieval-plan-release.json",
-  "autonomy_references": "docs/execution/g5-local/autonomy-reference-exploration.json",
-  "autonomy_code_commit": "7c1f399a557856d232e523416f6c8b49ebc8d399",
-  "autonomy_results": "docs/execution/g5-local/delegated-batch-verification.json"
+  "decisions_needed_now": null
 }

@@ -1,0 +1,102 @@
+{
+  "schema_version": "host-completed-observation-verification-v1",
+  "status": "verified_scoped_engineering",
+  "source_commit": "26ad4531cd2a94fdf2e24854de79a659b47a46a2",
+  "pin": "/workspace/work/host-completion-observer-source-26ad453",
+  "implementation": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-design-20261114/implementation-tests/handoff.json",
+    "bytes": 4297,
+    "sha256": "40c4a112a49f2228f033ace34f56d57419d49c7e67fbb4e487648ee9886251ba"
+  },
+  "design": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-design-20261114/implementation.md",
+    "bytes": 10622,
+    "sha256": "9ec3c3694c812c758b6d7f5e2daa32789336f135b8ffcffbd5abf4471e5c8b9b"
+  },
+  "design_review": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-design-20261114/review/assessment.md",
+    "bytes": 4793,
+    "sha256": "4dbc18b56ba4a177a173547786ed2ce23a6d0ad3884aa81096acee28d8fec73e"
+  },
+  "precommit": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-design-20261114/review/precommit.json",
+    "bytes": 3032,
+    "sha256": "928743a8df0679939fffa0c49f24420d0bdec7f51dfe76fda25f4480a6e32781"
+  },
+  "independent_validation": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-20261114/validation/index.json",
+    "bytes": 5917,
+    "sha256": "a4cabaf143a52126e14d83f5d69bf7d3f10864440c7e7ce977051c49362a0df9"
+  },
+  "findings": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-20261114/validation/FINDINGS.md",
+    "bytes": 2312,
+    "sha256": "05f5f727a337c0d1efaf02ef4c99f0cb47df87e749e50cf5c1ca46a996428962"
+  },
+  "postfreeze_review": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-design-20261114/review/final.json",
+    "bytes": 2238,
+    "sha256": "71d897b64d3e368c484ccf6a04ad5f826fa8575826977d1a44367612fc1817f7"
+  },
+  "main_checks": 13,
+  "additional_authored_fixture_tests_independently_run": 13,
+  "implementation_tests": 34,
+  "counts_overlap_not_unique_total": true,
+  "main_fixture_counts": {
+    "fixture_adapter": 2,
+    "interruption_before_save": 1,
+    "seed_completed": 1,
+    "real_step_reused": 1
+  },
+  "actual_observer_file_delta": {
+    "host-model-selections/state.json": {
+      "before": {
+        "sha": "422d5e7e035d6c7069f19a4987810be1833eb3b663e5ac1fb657627aedf7dc8f",
+        "size": 27388,
+        "mtime_ns": 1794662583509308523
+      },
+      "after": {
+        "sha": "b5b23e81f4391e6f2fecffafd8536fbb505bbea9a9c7f23f53c3bc82b0afcfbe",
+        "size": 32471,
+        "mtime_ns": 1794662583559318416
+      }
+    }
+  },
+  "real_alias": {
+    "parent_child_id": "controller-child-3fe62161f370e04de7801691ccba9a6a",
+    "underlying_action_id": "synthetic-prior",
+    "actions_row_for_alias": 0,
+    "result": "unknown unchanged"
+  },
+  "old_pending_gate": {
+    "stage": "new",
+    "source": "/workspace/work/host-completion-observer-source-26ad453",
+    "error": null,
+    "code": "CODE_CHANGED",
+    "project_tree_content_unchanged": true,
+    "passed": true,
+    "counts": {}
+  },
+  "limits": [
+    "Original pilot/manager not read; original protection is root independent scope.",
+    "Synthetic setup uses exactly one hand-authored callback per ordinary and real alias fixture; observer phase guards zero.",
+    "No full multiprocess concurrency tested; lock-busy same-process fixture only.",
+    "Host state is intentionally written; no claim of filesystem-wide read-only or crash-proof atomic transaction.",
+    "Artifact bytes not revalidated by observer; report capture preserves fields but does not independently validate proof relationship.",
+    "Inputs/metadata bootstrap before guards not counted; external delegated inference/cost/token remain unknown.",
+    "Old pending gate covers one 7c synthetic batch; no general legacy migration claim."
+  ],
+  "capability": "New explicitly marked delegated selections only; original completed Controller/ordinary child read and bound, original Host cache updated with previous_unknown/proof. No Controller dispatch/step/recovery or new model/tool/slot by observation itself. Subsequent batch continuation still uses original grant.",
+  "artifact_revalidated": false,
+  "original_research_preservation": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-040-host-recovery-20261114/root-preservation-final.json",
+    "bytes": 6925,
+    "sha256": "1a4c9c47e7dd122ef63c4d452aae1fe3b360e4718c64bc4c822f6fabc4b59bb1"
+  },
+  "original_pilot_paths": {
+    "path": "/workspace/auto-research-agentarts/runs/session-close-20261114-2132/pilot-path-check.json",
+    "bytes": 99,
+    "sha256": "0240a303d9125d3e8b03aa56db6c0f249487d10444e40734e974c1a03b23efa5"
+  },
+  "next": "S041 pre-registered prediction/feedback branch design; no implementation or scientific benefit accepted yet."
+}

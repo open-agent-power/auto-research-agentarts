@@ -1,0 +1,30 @@
+{
+  "status": "design_reviewed_not_implemented",
+  "design_v1": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-041-hypothesis-feedback-design-20261114/implementation.md",
+    "bytes": 3827,
+    "sha256": "447df62bf2cd81900b942eada75035165423688f2dc835632d3223bacfacb1a4"
+  },
+  "contract_v1": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-041-hypothesis-feedback-design-20261114/implementation.json",
+    "bytes": 9229,
+    "sha256": "dc3a59b957171dc6caf38db705488b95cc9ad2e36fa07103d3acc10ec3eb357e"
+  },
+  "design_v2": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-041-hypothesis-feedback-design-20261114/implementation-v2.md",
+    "bytes": 3798,
+    "sha256": "5653f9039a44a444edb50c24b3b21488693a74f3b42c147940c25d35d6a2bef9"
+  },
+  "contract_v2": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-041-hypothesis-feedback-design-20261114/implementation-v2.json",
+    "bytes": 11745,
+    "sha256": "4db85e156a23400ea41e92549e28e0508e62f1f1251c4fb0c49e44dfbd55a1f2"
+  },
+  "independent_review": {
+    "path": "/workspace/auto-research-agentarts/runs/sprint-041-hypothesis-feedback-design-20261114/review/assessment.md",
+    "bytes": 3113,
+    "sha256": "1deedb49f3993930e22db89d7ee365cf78f6702e6c68c995c941e03c2b951b02"
+  },
+  "next": "事前登记validation固定预测条件，读取后来真实原行动，condition_met/not_met/unknown进入下一选择；合法0按预定比较符，原因未知另列。当前test已计算/可能曝光，不称盲测；新finaltest协议须独立冻结。",
+  "no_new_research_or_product_implementation": true
+}
