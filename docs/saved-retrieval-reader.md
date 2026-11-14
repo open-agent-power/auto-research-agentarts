@@ -47,3 +47,12 @@ ArguAna原186条混合集合中，63条有指标下降，42条无指标下降但
 后端为`src/autoresearch/saved_retrieval_reader.py`，路由在`project_workbench.py`；前端为`frontend/src/retrieval-reader.ts`，从原`cpu-results.ts`／`project-view.ts`复用。源码固定提交 `0acb05e253f543ea2483e383c7e2358c81c422bd`，旧科研codeidentity仍为 `3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e`，不升级旧producer。
 
 针对性测试17项、原HTTP门禁5项、前端format/lint/typecheck/build通过。真实原项目HTTP59次GET检查覆盖12页、两行动共6次查询详情及26次错误返回；两个已有项目的桌面/手机五页与按需阅读在实际浏览器验收。完整证据和限定审查见[Sprint009](execution/SPRINT-009.md)。这是保存结果阅读增量，不是新增科研收益、隐藏评价、完整隔离或多代RSI。
+
+
+## Sprint011：相关性真实阅读与安装
+
+实现源码 `140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c`、clean pin `/workspace/work/relevance-reader-source-140d6ec`，只读18842为原ArguAna、18843为原SciFact；动作/模型关闭。13新后端检查、旧17回归、最终源的旧16真实响应精确保持、24受控客户端case和14+10组独立投影/最终审查通过，工程grade2/长query与真实原grade1分开。
+
+独立HTTP共52验证GET+2startup，含两新行动各8页186原序、12个详情、旧4payload及18个错误返回。另真实两案例/双尺寸五页及按需交互237browserGET（117reader）+20独立API GET，43真实截图含保留定位弱帧、另2工程截图，均已team看图；最终缺例/截断提示和手机Recall20末列有特定补证。无POST、无自动reader请求；初检查器错误格式断言和capture弱帧保留，未重跑研究。
+
+572保护文件、421旧路径及新案/输入完整路径、全部原预算保持；只读验证不是新指标计算或新研究收益。随后继续完成180文件新wheel/标准venv，并以 `2de2b854bf90404ce6288f8d3fed93e16ccf8581` 窄修reports依赖声明，另一新成品明确[reports,sources]离线解析/安装通过；产品字节同140，不重复认领HTTP/浏览器。详见[精确机器索引](execution/g5-local/saved-relevance-reader-verification.json)、[Sprint011](execution/SPRINT-011.md)及[安装范围](execution/g6-local/relevance-reader-release.md)。

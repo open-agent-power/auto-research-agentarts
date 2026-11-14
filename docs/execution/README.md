@@ -2,6 +2,8 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
+最新[Sprint011](SPRINT-011.md)：新relevance保存查询阅读/旧citation兼容、实际HTTP/双尺寸界面及当前wheel离线安装已验证；另修reports声明并在新成品明确解析[reports,sources]。不新增研究/拟合/模型或扩大Gate；见[读取证据](g5-local/saved-relevance-reader-verification.json)及[安装交接](g6-local/relevance-reader-release.md)。
+
 最新[Sprint010](SPRINT-010.md)：独立ArguAna官方许可/全量原件审计、新relevance原生合同及一次冻结对照已运行。test Recall20 +0.15，保留186混合坏例；固定TF-IDF等臂对照使记忆增量为0，无完整Gate声明。见[真实结果](g5-local/retrieval-transfer-results.md)。
 
 本次研发以 `5d497c8ae22100953f66c3c5b54746ca87e09f01` 为代码基线。约15天是规划窗口，不是已完成时间或自动跳过 Gate 的依据。

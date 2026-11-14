@@ -1,112 +1,158 @@
 {
   "active_executors_at_capture": {
-    "collaboration_tasks_running": 0,
     "development_finalizer": "root holding lease to save/commit/push this report",
-    "lease_owner": "root-sprint010-20261114T0446",
-    "note": "Final response reports actual release observation; do not infer future ownership from this historical capture.",
-    "release_after_delivery": true,
-    "release_receipt": "runs/sprint-010-start-20261114/lease-release.json",
-    "research_worker": false
+    "lease_owner": "root-sprint011-20261114T0752",
+    "lease_release_follows_delivery": true,
+    "note": "Final reply reports actual release; historical capture does not assert future ownership or round-between model execution.",
+    "readonly_preview_ports": [
+      18842,
+      18843
+    ],
+    "release_receipt": "runs/sprint-011-start-20261114/lease-release.json",
+    "research_workers": 0,
+    "running_collaboration_tasks": 0
   },
-  "automation_evidence": {
-    "bytes": 435,
-    "path": "runs/sprint-010-start-20261114/automation-observation-final.json",
-    "sha256": "618bff5582997f65ca8af1340d402a50ba28979ff746592b3f8aa9593d59d1da"
+  "automation_observation": {
+    "bytes": 318,
+    "path": "runs/sprint-011-start-20261114/automation-observation.json",
+    "sha256": "2f02241104cd722a5077f02658367e4245e564837842abfb1744aaf75c907cd0"
   },
-  "automation_run_result": "unknown",
   "blockers": [],
   "budget": {
-    "development_tokens_money": "unknown",
+    "development_token_currency_costs": "unknown",
     "historical_research_estimator_attempts_unchanged": 50,
-    "local_tools_reserved": 0,
-    "local_tools_used": 2,
-    "network_scope": "Public source acquisition and loopback verification occurred; not a whole-session zero-network claim.",
     "new_engineering_estimator_fits": 0,
+    "new_gold_scoring": 0,
     "new_product_model_api_calls": 0,
-    "new_research_fits": 0,
-    "new_source_extractions": 0
+    "new_projects": 0,
+    "new_rankings": 0,
+    "new_research_actions": 0,
+    "new_research_estimator_fits": 0,
+    "new_source_extractions": 0,
+    "original_relevance_state_version": 13,
+    "original_tools_reserved": 0,
+    "original_tools_used": 2
   },
   "completed": [
-    "Independent official ArguAna CC-BY4 source/license/full-text/1401-present-pair audit; NFCorpus academic-only not adopted.",
-    "Native relevance adapter/registry/project-controller-workbench/report/summary; original citation/lexical unchanged.",
-    "One independently approved frozen460-query fixed-pair study,920rankings/920metrics,3plans/2tools/waiting/native4reports.",
-    "7 original-ID guarded replays and7GET verify4reports+2actions with exact bytes;572scientificfiles unchanged.",
-    "Real desktop/mobile five-page16screenshots, then2methodname mapping fix+four affected-page screenshots with independent review."
+    "Native relevance saved-query reader with explicit family/schema/roles, original grades/null/missing-positive preservation and legacy citation payload compatibility.",
+    "Actual saved-case HTTP and desktop/mobile Workbench verification with no new research dispatch.",
+    "Fresh current-product offline wheel/standardvenv verification, preserved initial failures and honest RECORD/module-origin boundaries.",
+    "Corrected reports metadata in separate commit, preserved original artifact and actual controlled-resolution failure, built a second fresh artifact and explicitly resolved reports,sources."
   ],
-  "end_time": "2026-11-14T05:30:58.893485+08:00",
+  "end_time": "2026-11-14T08:32:26.247854+08:00",
   "evidence_index": {
-    "bytes": 24248,
-    "path": "docs/execution/g5-local/retrieval-transfer-results.json",
-    "sha256": "379f48e6e6958857448ce490bc7844d4c6b6203f795f1dae09d21e732bd9fc8a"
+    "bytes": 15182,
+    "path": "docs/execution/g5-local/saved-relevance-reader-verification.json",
+    "sha256": "1f95b3e8f16e9ddce0ad8725950186283d0d30bfd345c7a8837b7bd38934a122"
   },
   "failures_retained": [
-    "NFCorpus academic-only licence not adopted; official source HTTP403 and first bounded archive/member/decode/mapping audit failures retained.",
-    "Missing pytest initial command failed; existing unittest used without installing packages.",
-    "First freeze preparation rejected a hand-entered wrong full commit before project/output creation; same output prepared using actual Git HEAD.",
-    "Browser01 strict selector matched two details summaries; harness corrected with original failure kept.",
-    "Independent post-run reviewer was found interrupted and resumed on the same original evidence; research attempt completed and was never rerun.",
-    "UI build node_modules symlink omitted dependency notices; local copied dependencies rebuilt correctly before commit, without installing/downloading.",
-    "UI browser01 harness assumed a public code_identity field and stopped after one GET; corrected external source check in02."
+    "All research outcomes are the original saved case, not new scoring or scientific gain; fixedTFIDF control has no identified memory causal benefit.",
+    "HTTP check01 expected nested errors but existing API is flat; 35 raw responses reused before 17 new requests, no successful request reissued.",
+    "Two initial screenshot frames had inadequate scroll positioning; retained, then targeted final captures verified notices/missing/last metric.",
+    "The first frontend evidence-index join assumed a child field name; fixed from raw schema without browser or research replay.",
+    "First installation verifier rejected standard411unhashedpipcache; preserved and verified as observedSHAonly, not deleted or relabeled declared hashes.",
+    "140module origins mislabeled total999 as thirdparty; clarified raw paths to99product+900nonproduct.",
+    "140reports extra mismatch actually fails under the controlled22constraints; 2de metadata repair passes in another fresh install without replacing old artifacts.",
+    "Guard0counts apply after explicit bootstrap/import phases, not all lifetime processes/network.",
+    "OptionalSDK/cloud runtime, sealed evaluation, OS isolation, multi-generation RSI and full Gates are not accepted by these results."
   ],
-  "independent_review": {
-    "bytes": 9920,
-    "path": "runs/sprint-010-independent-20261114/post-run-review.json",
-    "sha256": "513598cce2945fd897d3ae27e43ffdfb5ea8afb1ee18726c8d46ce2a7acb02d1"
+  "install_independent_review": {
+    "bytes": 6546,
+    "path": "runs/sprint-011-install-independent-20261114/extras-fixed-review.json",
+    "sha256": "1925e7ef7e03aa766f2a195945ac3555b6deac35bd43ef5aac33dd46b1bfb147"
   },
-  "next_planned_trigger_time": "2026-11-14T07:47:27+08:00",
-  "next_task": "Extend saved adverse-query reader to the distinct relevance contract with original source/action SHA and same-ID safeguards; no rerank/rescore/new project or budget reset.",
+  "next_planned_trigger_time": "2026-11-14T10:47:27+08:00",
+  "next_task": "Make fixed CPU research pages show the applicable frozen protocol instead of irrelevant CSV/Ridge binding prompts; preserve tabular task flows, original ledgers and all budgets.",
   "notification_delivery": "unknown",
-  "project_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+  "platform_run_result": "unknown",
+  "preservation": {
+    "historical_research_estimator_attempts": 50,
+    "input_paths": 10,
+    "new_case_paths": 68,
+    "old_case_file_paths": 421,
+    "scientific_files": 572,
+    "source_pins_clean": 9
+  },
+  "reader_commit": "140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c",
+  "reader_independent_review": {
+    "bytes": 10459,
+    "path": "runs/sprint-011-independent-20261114/final-reader-review.json",
+    "sha256": "1ad25a433af9b54690af7465297e9a6ac13247cfa49de4d02b22dfad79bce0c2"
+  },
+  "reader_source_pin": "/workspace/work/relevance-reader-source-140d6ec",
+  "reading_results": {
+    "adverse_rows": 186,
+    "baseline_only_incomplete_no_loss": 81,
+    "both_incomplete_no_loss": 42,
+    "legacy_citation_adverse_rows": 133,
+    "metric_loss": 63,
+    "missing_positive_queries_preserved": 2,
+    "new_relevance_queries_longest_chars": 3519,
+    "query_grade2_or_over4096_real_data": false,
+    "real_long_document_display_chars": 4096,
+    "real_long_document_original_chars": 4671
+  },
+  "release": {
+    "declared_hash_size_verified": 6711,
+    "distributions": 23,
+    "initial140_artifact_preserved": true,
+    "installed_saved_details": 4,
+    "installed_saved_pages": 4,
+    "loaded_site_module_entries": 999,
+    "product_entries": 99,
+    "product_files": 180,
+    "record_rows": 7145,
+    "resolved_extras": [
+      "reports",
+      "sources"
+    ],
+    "runtime_missing_sdk_exit": 2,
+    "runtime_sdk_installed": false,
+    "self_record_unhashed": 23,
+    "standard_pip_cache_unhashed_observed_sha_only": 411,
+    "thirdparty_entries": 900,
+    "wheel": {
+      "bytes": 1237371,
+      "path": "/workspace/work/g6-relevance-extras-fixed-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+      "sha256": "f36cdf8f41ebe2d3f188e3573d9060ecb79aba47821179b3f12b8a867ced3d58"
+    }
+  },
+  "release_config_commit": "2de2b854bf90404ce6288f8d3fed93e16ccf8581",
+  "release_source_pin": "/workspace/work/relevance-reader-release-source-2de2b85",
   "remaining_limits": [
-    "Public procedural subset, not official BEIR full benchmark/hidden/sealed evaluation.",
-    "Equal-arm fixed TF-IDF control does not identify memory causal gain; source-only rule is host-frozen, no automatic learned policy/runtime integration.",
-    "Saved arithmetic review did not rerank or rescore raw gold.",
-    "Existing generic CSV/Ridge design hints and citation-only query reader remain product boundaries.",
-    "No new-code full wheel/clean-install/full Gate/OS/multigeneration RSI claim."
+    "Existing saved outcomes only; no new scientific gain, hidden/sealed evaluation, OS isolation, multi-generation RSI or complete Gates.",
+    "Original TF-IDF candidate/control equality does not identify memory causal benefit.",
+    "No SDK/cloud runtime integration or generic method-experience automatic selection completion.",
+    "RECORD caches retain observedSHA-only boundaries and bootstrap process counts remain unknown."
   ],
   "schema_version": "project-trigger-report-v2",
-  "source_commit": "250954e98024844e102352aac8666859e4f761be",
-  "source_pin": "/workspace/work/arguana-transfer-source-250954e",
-  "sprint": "010",
-  "start_time": "2026-11-14T04:45:53+08:00",
-  "status": "implementation_research_ui_validation_and_independent_review_completed; delivery_finalization",
-  "study": {
-    "all_adverse_mixed": 186,
-    "all_any_metric_loss": 63,
-    "all_no_metric_loss_but_incomplete": 123,
-    "candidate_equals_fixed_tfidf_control": true,
-    "causal_memory_benefit": "not_identifiable",
-    "id": "g5-arguana-source-arm-transfer-v1",
-    "memory_incremental_difference_by_construction": 0.0,
-    "output": "runs/g5-retrieval-transfer-20261114-01",
-    "primary_recall20_baseline": 0.7466666666666667,
-    "primary_recall20_candidate": 0.8966666666666666,
-    "primary_recall20_delta": 0.15,
-    "project_id": "project-0940a2e0cbd841e58677d2ecd99a33e2",
-    "selected_missing_positives_retained_zero": 2,
-    "state_version": 13,
-    "status": "waiting",
-    "test_ndcg_baseline": 0.3961916838309697,
-    "test_ndcg_candidate": 0.5033793456959811,
-    "test_ndcg_loss_queries": 43,
-    "test_recall20_loss_queries": 2
-  },
-  "time_scope": "Work/evidence and report capture; following git delivery and lease release receipts are saved separately.",
+  "sprint": "011",
+  "start_time": "2026-11-14T07:51:48+08:00",
+  "status": "reader_and_corrected_extras_install_verified; finalizing_delivery",
+  "time_scope": "Development/verification and report capture; subsequent git delivery and lease release observations are saved separately.",
   "timezone": "Asia/Shanghai",
-  "ui_commit": "944b5aef970765f7993bbff758b5dc70728ac50f",
-  "ui_pin": "/workspace/work/arguana-ui-labels-20261114",
   "verification": {
-    "label_fix_affected_screenshots": 4,
-    "new_adapter_tests": 9,
-    "new_native_project_tests": 2,
-    "new_report_tests": 6,
-    "old_complete_case_file_paths": 421,
-    "old_protected_files": 494,
-    "post_run_saved_review_groups": 18,
-    "pre_run_admission_checks": 703,
-    "real_five_page_screenshots": 16,
-    "recovery_http_gets": 7,
-    "same_id_replays": 7,
-    "source_pins_clean": 7
+    "all_screenshots_viewed_by_team": true,
+    "browser_extra_api_gets": 20,
+    "browser_gets": 237,
+    "controlled_browser_fixture_cases": 24,
+    "engineering_screenshots": 2,
+    "final_reader_review_groups": 10,
+    "http_posts": 0,
+    "http_startup_gets": 2,
+    "http_statuses": {
+      "200": 34,
+      "400": 9,
+      "404": 3,
+      "409": 6
+    },
+    "http_verifier_gets": 52,
+    "independent_reviewer_real_screenshots_viewed": 8,
+    "legacy_backend_previous_revision_tests": 17,
+    "legacy_real_exact_payloads": 16,
+    "new_backend_tests": 13,
+    "precommit_real_projection_groups": 14,
+    "reader_gets_subset": 117,
+    "real_screenshots_including_capture_weak_frames": 43
   }
 }

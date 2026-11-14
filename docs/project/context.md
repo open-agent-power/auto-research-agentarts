@@ -50,3 +50,8 @@ Sprint010实际一次研究已完成：source250954e/core867075eb…，unique g5
 
 
 同轮继续修复实际UI fallback：仅2个methodName映射/bundle，commit944b5aef970765f7993bbff758b5dc70728ac50f已ff合main；clean工作树/workspace/work/arguana-ui-labels-20261114及只读18841指同manager，4受影响页实测/限定独审通过，174Py/core8670/13manager文件保持。旧250科研pin与18840不动，不能把UI后置提交冒作原研究源码。
+
+
+Sprint011：2026-11-14 07:51:48实际继承，base11e71a2 clean/lease独有。140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c完成新relevance保存queryreader及legacy保持，572files/421旧paths+newcase/input、九sourcepins保持；科学8670/旧3945不升级，0新fit/model/rank/goldscore/action/project。52HTTP验证+2startup、237browserGET+20API、43real/2fixture图及限定独审通过，错误/弱帧/补证分开。
+
+同轮继续新wheel标准安装，初140base成品与失配保留；2de2b854bf90404ce6288f8d3fed93e16ccf8581只修reports两声明到已验证22closure，新wheel1237371B/f36cdf8f41ebe2d3f188e3573d9060ecb79aba47821179b3f12b8a867ced3d58及另一fresh标准venv明确[reports,sources]解析/4page4detail保存读取/独审通过。产品180字节同140，23dists/7145RECORD=6711declared+23self+411pipcache实际SHAonly；999moduleentries=99product+900nonproduct，初标签错误保留澄清；bootstrap未知不填0。SDK不装、0付费模型/API、不扩大Gate。下一项按方法收敛固定CPU课题的CSV/Ridge无关绑定提示，原ledger/budget/sourcepin保持；详见current/latest-report及saved-relevance-reader-verification。

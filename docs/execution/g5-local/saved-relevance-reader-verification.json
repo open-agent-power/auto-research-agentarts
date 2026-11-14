@@ -1,0 +1,354 @@
+{
+  "adverse_counts": {
+    "metric_loss": 63,
+    "no_loss_baseline_only_incomplete": 81,
+    "no_loss_both_incomplete": 42,
+    "no_loss_other": 0,
+    "total": 186
+  },
+  "api_paths_unchanged": [
+    "/api/project/retrieval-adverse.json",
+    "/api/project/retrieval-query.json"
+  ],
+  "baseline_commit": "11e71a258dcdb84e8b6d2784f57299a15b6ef252",
+  "browser": {
+    "all_pngs_viewed_by_team": true,
+    "automatic_reader_gets": 0,
+    "browser_gets": 237,
+    "contexts": 4,
+    "engineering_pngs": 2,
+    "final_missing_and_truncation_and_mobile_last_metric_visible": true,
+    "independent_reviewer_real_pngs_viewed": 8,
+    "posts": 0,
+    "reader_gets_subset": 117,
+    "real_pngs_including_preserved_capture_weak_frames": 43,
+    "separate_api_gets": 20,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        390,
+        844
+      ]
+    ]
+  },
+  "contract": {
+    "baseline": "bm25",
+    "candidate": "tfidf_cosine",
+    "id": "relevance-retrieval-fixed-pair-v1",
+    "ignore_identical_ids": true,
+    "missing_document_policy": "retain_in_denominator",
+    "qrels_semantics": "positive_relevance_binary_projection"
+  },
+  "http": {
+    "current_server_total_gets_after_all_checks": 311,
+    "current_server_total_scope": "Includes independently counted browser and API requests; never described as 52 verifier requests.",
+    "guard_attempts": 0,
+    "later_requests_only": 17,
+    "maximum_response_bytes": 80442,
+    "original_failure_preserved": true,
+    "positive_legacy_payloads": 4,
+    "positive_new_details": 12,
+    "positive_new_pages": 16,
+    "positive_project_reads": 2,
+    "posts": 0,
+    "previous_saved_responses_reused_before_continuation": 35,
+    "reader_compute_guard_function_count": 68,
+    "startup_gets": 2,
+    "statuses": {
+      "200": 34,
+      "400": 9,
+      "404": 3,
+      "409": 6
+    },
+    "total_for_http_validator": 54,
+    "validation_unique_gets": 52
+  },
+  "installation": {
+    "bootstrap_process_calls": "unknown",
+    "declared_hash_size_rows_verified": 6711,
+    "existing_nonproduct_pins": 22,
+    "explicit_extras_resolved": [
+      "reports",
+      "sources"
+    ],
+    "fixed2de_wheel": {
+      "bytes": 1237371,
+      "path": "/workspace/work/g6-relevance-extras-fixed-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+      "sha256": "f36cdf8f41ebe2d3f188e3573d9060ecb79aba47821179b3f12b8a867ced3d58"
+    },
+    "loaded_site_module_entries": 999,
+    "new2de_extras_install_exit": 0,
+    "new_venv_details": 4,
+    "new_venv_manager_files_unchanged": 26,
+    "new_venv_pages": 4,
+    "nonproduct_module_entries": 900,
+    "old140_extras_dryrun_exit": 1,
+    "old140_venv_files_unchanged": 7153,
+    "optional_sdk_installed": false,
+    "original140_wheel": {
+      "bytes": 1237373,
+      "path": "/workspace/work/g6-relevance-reader-release-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+      "sha256": "0a41bc29762ed3a7a93ec337532d2a5bc6f856746efb170e57ae9f9a0ae4a371"
+    },
+    "post_bootstrap_forbidden_attempts": 0,
+    "product_files": 180,
+    "product_module_entries": 99,
+    "record_rows": 7145,
+    "total_distributions": 23,
+    "unhashed_self_records": 23,
+    "unhashed_standard_pip_cache_pyc_with_observed_sha_only": 411,
+    "unique_physical_origins": 992
+  },
+  "limits": {
+    "artifact_bytes": 5242880,
+    "display_text_characters": 4096,
+    "display_title_characters": 512,
+    "page_size": 25,
+    "response_bytes": 1048576,
+    "source_bytes": 16000000
+  },
+  "limits_and_failures": [
+    "All research outcomes are the original saved case, not new scoring or scientific gain; fixedTFIDF control has no identified memory causal benefit.",
+    "HTTP check01 expected nested errors but existing API is flat; 35 raw responses reused before 17 new requests, no successful request reissued.",
+    "Two initial screenshot frames had inadequate scroll positioning; retained, then targeted final captures verified notices/missing/last metric.",
+    "The first frontend evidence-index join assumed a child field name; fixed from raw schema without browser or research replay.",
+    "First installation verifier rejected standard411unhashedpipcache; preserved and verified as observedSHAonly, not deleted or relabeled declared hashes.",
+    "140module origins mislabeled total999 as thirdparty; clarified raw paths to99product+900nonproduct.",
+    "140reports extra mismatch actually fails under the controlled22constraints; 2de metadata repair passes in another fresh install without replacing old artifacts.",
+    "Guard0counts apply after explicit bootstrap/import phases, not all lifetime processes/network.",
+    "OptionalSDK/cloud runtime, sealed evaluation, OS isolation, multi-generation RSI and full Gates are not accepted by these results."
+  ],
+  "new_schemas": [
+    "saved-relevance-adverse-page-v1",
+    "saved-relevance-query-v1"
+  ],
+  "new_usage": {
+    "development_token_currency_costs": null,
+    "engineering_estimator_fits": 0,
+    "gold_scoring": 0,
+    "product_model_api_calls": 0,
+    "rankings": 0,
+    "research_actions": 0,
+    "research_estimator_fits": 0,
+    "research_projects": 0,
+    "source_extractions": 0
+  },
+  "preservation": {
+    "historical_research_estimator_attempts": 50,
+    "input_paths": 10,
+    "new_case_paths": 68,
+    "old_case_file_paths": 421,
+    "scientific_files": 572,
+    "source_pins_clean": 9
+  },
+  "preserved_cases": {
+    "citation": {
+      "actions": [
+        {
+          "artifact": {
+            "bytes": 800067,
+            "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-f2291951a00d194f4069b2b40a9c8a00.json",
+            "sha256": "51a423bd1ddb0f203d04fb98c28a903b51156c7d088a4c2cd2e8b58f4ba69c5e"
+          },
+          "command": "research.retrieval-fixed-pair",
+          "id": "action-f2291951a00d194f4069b2b40a9c8a00",
+          "result_sha256": "dd1780f4b0c6b8e642255c75fa64109dcb08e49d8280d2d39e6f501fbb104b91"
+        },
+        {
+          "artifact": {
+            "bytes": 260108,
+            "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/artifacts/action-6f6cf23eaa4fb3922931cae1d95ef14f.json",
+            "sha256": "9f136cfea13efcf5056cec72a3ce4715dc54b12e0c4e4b7c42151039d1c0aece"
+          },
+          "command": "research.retrieval-saved-error-audit",
+          "id": "action-6f6cf23eaa4fb3922931cae1d95ef14f",
+          "result_sha256": "ebf8457118a3c031802582065bbcf1526b576b1808799ea835b3094488f199e8"
+        }
+      ],
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "evidence_reads_reserved": 0,
+        "evidence_reads_used": 0,
+        "existing_cash_cap_cny": 5,
+        "fit_attempts_used": 0,
+        "fit_limit": 0,
+        "fits_completed": 0,
+        "fits_reserved": 0,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "g5-native-retrieval:retrieval",
+        "local_tool_call_limit": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_dispatches": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "preprocessing_fits": 0,
+        "preprocessing_fits_completed": 0,
+        "ridge_fits_completed": 0
+      },
+      "manager_root": "runs/g5-native-cases-20261113-01/retrieval/manager",
+      "producer_code_identity": "3945ed0f5ec85b0ce42af0bb9ac0d0c27034bf932dac27fee9f7008ec2d3707e",
+      "project_id": "project-b0ad79226f0a454b99b604e373e39bbb",
+      "project_root": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba",
+      "research_status": "waiting",
+      "source_packet": {
+        "bytes": 11128187,
+        "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/retrieval/manager/projects/fb6348ef78c44cf217c9b3c8eff89cf96b7cab9d1e1cb9162143be4838a2d0ba/source.json",
+        "sha256": "546a09773bc8e77aa7f034ca58753394f6a75c3ecf610e3c66c3f24eea2ab51b"
+      },
+      "source_snapshot_sha256": "2ff1e33fc9b780037338f9916b9430bd6502029058ccd5386334af1e2b430895",
+      "state_version": 13
+    },
+    "relevance": {
+      "actions": [
+        {
+          "artifact": {
+            "bytes": 1462975,
+            "path": "/workspace/auto-research-agentarts/runs/g5-retrieval-transfer-20261114-01/manager/projects/8ac431dceaa72d506249738877b0331e8725bf79719bcf879cb52fd7f69dd658/artifacts/action-10c22434d83192e0ede775220b0382cb.json",
+            "sha256": "db2c2ce5b31276ae81f200780b546a0ee8ebaf99afbb30f062b741677b8c8b1d"
+          },
+          "command": "research.relevance-fixed-pair",
+          "id": "action-10c22434d83192e0ede775220b0382cb",
+          "result_sha256": "6746152230d985c163c97622c601e2319f45f24d7388f3769e66ebea20b3bab7"
+        },
+        {
+          "artifact": {
+            "bytes": 308262,
+            "path": "/workspace/auto-research-agentarts/runs/g5-retrieval-transfer-20261114-01/manager/projects/8ac431dceaa72d506249738877b0331e8725bf79719bcf879cb52fd7f69dd658/artifacts/action-0bcdb1cb6a5e9df5dff9d18765b99c41.json",
+            "sha256": "857b821102c87032df90a299ba4bf8f7e63e48ecf1302677094d85e5cbcd650e"
+          },
+          "command": "research.relevance-saved-error-audit",
+          "id": "action-0bcdb1cb6a5e9df5dff9d18765b99c41",
+          "result_sha256": "223aabb5c9022c9767564a10c51696f4eb8a4cf2b614342d22608c9319f28b2e"
+        }
+      ],
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "evidence_reads_reserved": 0,
+        "evidence_reads_used": 0,
+        "existing_cash_cap_cny": 5,
+        "fit_attempts_used": 0,
+        "fit_limit": 0,
+        "fits_completed": 0,
+        "fits_reserved": 0,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "g5-arguana-source-arm-transfer-v1",
+        "local_tool_call_limit": 2,
+        "local_tool_calls_reserved": 0,
+        "local_tool_calls_used": 2,
+        "local_tool_dispatches": 2,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "preprocessing_fits": 0,
+        "preprocessing_fits_completed": 0,
+        "ridge_fits_completed": 0
+      },
+      "manager_root": "runs/g5-retrieval-transfer-20261114-01/manager",
+      "producer_code_identity": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+      "project_id": "project-0940a2e0cbd841e58677d2ecd99a33e2",
+      "project_root": "/workspace/auto-research-agentarts/runs/g5-retrieval-transfer-20261114-01/manager/projects/8ac431dceaa72d506249738877b0331e8725bf79719bcf879cb52fd7f69dd658",
+      "research_status": "waiting",
+      "source_packet": {
+        "bytes": 15686699,
+        "path": "/workspace/auto-research-agentarts/runs/g5-retrieval-transfer-20261114-01/manager/projects/8ac431dceaa72d506249738877b0331e8725bf79719bcf879cb52fd7f69dd658/source.json",
+        "sha256": "d20458472f460eec731e15c292b5b1229e3c30f35896e9e1ef1cac8d722f634c"
+      },
+      "source_snapshot_sha256": "2009bdb93024f7f2928876f0f26260f71df7f0164c6187691a0a1fae12b57a9e",
+      "state_version": 13
+    }
+  },
+  "reader_commit": "140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c",
+  "reader_source_pin": "/workspace/work/relevance-reader-source-140d6ec",
+  "receipts": {
+    "backend": {
+      "bytes": 2255,
+      "path": "runs/sprint-011-backend-20261114/implementation-validation-v2.json",
+      "sha256": "d406feaed0a7764789fc151db034ec041d838b05e70d26b4249f997500797253"
+    },
+    "extras2de": {
+      "bytes": 10288,
+      "path": "runs/sprint-011-extras-install-20261114/receipt.json",
+      "sha256": "c1a9497947c72e522ae696dac9b1346a27adacd5a13f4dfea2150e4f2ac9e5b1"
+    },
+    "extras2de_review": {
+      "bytes": 6546,
+      "path": "runs/sprint-011-install-independent-20261114/extras-fixed-review.json",
+      "sha256": "1925e7ef7e03aa766f2a195945ac3555b6deac35bd43ef5aac33dd46b1bfb147"
+    },
+    "final_reader_review": {
+      "bytes": 10459,
+      "path": "runs/sprint-011-independent-20261114/final-reader-review.json",
+      "sha256": "1ad25a433af9b54690af7465297e9a6ac13247cfa49de4d02b22dfad79bce0c2"
+    },
+    "frontend": {
+      "bytes": 20967,
+      "path": "runs/sprint-011-frontend-20261114/final-index.json",
+      "sha256": "546d77b6885adf57f98db2a2d3aad0b72ee6f7a9de95d92650f697ef7b1255ae"
+    },
+    "http": {
+      "bytes": 2902,
+      "path": "runs/sprint-011-http-20261114/summary.json",
+      "sha256": "175b0e51ed997da4d2537fa6ca1108f175074ae3bae6d02660b60daf0a0e018f"
+    },
+    "install140": {
+      "bytes": 7953,
+      "path": "runs/sprint-011-install-20261114/receipt.json",
+      "sha256": "896271d204bb0e7071b9714716a1723c6351ff59135b72f3a160ef6b6a9ba462"
+    },
+    "install140_review": {
+      "bytes": 5222,
+      "path": "runs/sprint-011-install-independent-20261114/review.json",
+      "sha256": "e3271a4fe7f609b678f5305f11d342fb1ae8dc637305d2d7c4913b5161aaf328"
+    },
+    "module_count_clarification": {
+      "bytes": 144376,
+      "path": "runs/sprint-011-install-20261114/origin-count-clarification.json",
+      "sha256": "085f6fada9f170947d6941bcc5199f70095e18953a6afffff15ad060cad0276f"
+    },
+    "precommit_reader_review": {
+      "bytes": 4205,
+      "path": "runs/sprint-011-independent-20261114/precommit-reader-review.json",
+      "sha256": "cde0d14565251baef95b21c0ab9e6178591098b16d5973f60886fdabb9e081fe"
+    },
+    "preserved_source_pins": {
+      "bytes": 1317,
+      "path": "runs/sprint-011-start-20261114/source-pins-final.json",
+      "sha256": "9a998310b32144adca7fad7154e087e9ed88b317872f51f6f88969673b9a4e81"
+    },
+    "visual_supplement": {
+      "bytes": 1948,
+      "path": "runs/sprint-011-independent-20261114/final-visual-supplement.json",
+      "sha256": "916143d2d3f076c27ca76602a491ab6ff6fafed2595f30f16355578f50d92f08"
+    }
+  },
+  "recorded_at_utc": "2026-11-14T00:28:21.227944+00:00",
+  "release_config_commit": "2de2b854bf90404ce6288f8d3fed93e16ccf8581",
+  "release_source_pin": "/workspace/work/relevance-reader-release-source-2de2b85",
+  "schema_version": "saved-relevance-reader-verification-v1",
+  "scientific_code_identity_unchanged": "867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30",
+  "test_scope": {
+    "client_fixture_cases": 24,
+    "engineering_estimator_fits": 0,
+    "final_independent_reader_review_groups": 10,
+    "fixture_intercepted_gets": 36,
+    "fixture_rankings_or_gold_scoring": 0,
+    "grade2_and_query_over4096_are_fixture_only": true,
+    "legacy_real_exact_payloads_final_source": 16,
+    "new_backend_tests_final": 13,
+    "old_backend_tests_previous_revision": 17,
+    "precommit_real_projection_groups": 14
+  }
+}

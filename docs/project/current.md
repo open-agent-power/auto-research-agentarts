@@ -8,6 +8,16 @@
 
 ## 最新汇报入口
 
+最新[Sprint011](../execution/SPRINT-011.md)于北京时间2026-11-14 07:51:48实际接续，完成原生relevance保存查询阅读、真实HTTP/UI与当前安装物验证。阅读器源码 `140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c`、clean pin `/workspace/work/relevance-reader-source-140d6ec`；新6字段contract/原grade/未标注null/缺失正例与BM25→TF-IDF角色明确，旧citation响应保持。原科学codeidentity8670、旧3945和所有源pin不升级；只是读取原case，工具仍2/预留0，历史50estimator不变。
+
+52验证GET+2startup、237browserGET+20独立API、43真实截图/2工程截图、两层独审通过；572保护文件/421旧路径及新case路径/预算保持。只读18842新/18843旧仍从140pin指原manager，无动作/模型权限。完整[阅读器证据](../execution/g5-local/saved-relevance-reader-verification.json)明确真实/fixture/错误/补图与无新科研计算边界。
+
+随后继续新wheel/标准venv与reports声明修复 `2de2b854bf90404ce6288f8d3fed93e16ccf8581`（clean release pin `/workspace/work/relevance-reader-release-source-2de2b85`），原140成品/解析冲突保留；新wheel1237371B/SHA `f36cdf8f41ebe2d3f188e3573d9060ecb79aba47821179b3f12b8a867ced3d58`，180产品文件同140，另一fresh新安装明确[reports,sources]离线解析/保存阅读通过。23closure/7145RECORD/411pip缓存无声明hash边界/模块误名纠正/两层独审详见[安装交接](../execution/g6-local/relevance-reader-release.md)及[22约束](../execution/g6-local/relevance-reader-exact22.lock)。SDK/runtime、完整Gate/OS/sealed/多代RSI未通过。
+
+下一可做增量：固定CPU课题的研究页仍出现通用CSV/Ridge未绑定提示，按已登记方法收敛为适用的冻结协议阅读，保持真实表格课题的原绑定/操作行为；先验证具体用户路径，不派发任何新研究或重开额度。检索方法经验自动资格/自动选臂与生成式RAG仍未完成，不把固定TF-IDF同臂对照写成记忆收益。每次触发报告见[最新报告](latest-report.md)／[机器报告](latest-report.json)；本轮触发标记07:51:39，下次计划10:47:27北京时间，平台完成/通知投递仍unknown。
+
+以下Sprint010及更早段落为原始结果与恢复入口，不因本轮reader/安装变更重跑或换producer。
+
 Sprint010 已于北京时间2026-11-14 04:45:53实际接续并完成独立ArguAna真实对照。实现/研究源码 `250954e98024844e102352aac8666859e4f761be`，producer `867075eb62d29a71bb71e99175c063c10fd3f9c8c9427ab8b4679a44b4969e30`，clean pin `/workspace/work/arguana-transfer-source-250954e`。已有获审的一次attempt完成，唯一study `g5-arguana-source-arm-transfer-v1`，output `runs/g5-retrieval-transfer-20261114-01`；共享claim保留，禁止重跑driver/新ID/目录重开额度。实际项目 `project-0940a2e0cbd841e58677d2ecd99a33e2` 已在原manager，state13/waiting、3plans、2tools/reserved0、0fit/model/source。精确原ID恢复body、路径与预算在steps/relocation，旧case/source pins/50estimator不改。
 
 完整8,674doc/1,406query/1,406qrels保留；SHA程序分区80/80/300，946原query不评价。test Recall20 BM250.746667→TF-IDF0.896667、nDCG0.396192→0.503379，但仍43test nDCGloss/2Recall20loss，全部460的186混合坏例保留；2条缺正例test均0。候选与fixedTFIDF对照同臂，记忆增量按构造0，无因果收益/显著性/通用性/自动采用。原始许可/映射及负证据见[来源审计](../execution/g5-local/retrieval-transfer-source-audit.json)，新对照[结果](../execution/g5-local/retrieval-transfer-results.md)／[精确机器索引](../execution/g5-local/retrieval-transfer-results.json)，本轮[Sprint010](../execution/SPRINT-010.md)。
@@ -51,7 +61,7 @@ G6新增量已完成：[当前产品干净安装](../execution/g6-local/native-r
 
 随后继续验证新wheel与标准venv；保留pip target两脚本RECORD路径不自洽、0ac可选runtime帮助缺SDK退出1的负结果。完整23分发项独立安装原生读取通过；CLI帮助窄修`8a394e3`延迟导入SDK，原adapter字节不变，8项针对性测试通过；[安装物与准确阶段范围](../execution/g6-local/reader-release.md)记录最终wheel/安装结果。帮助可用不等于SDK/cloud runtime集成通过，原完整Gate保持。
 
-原独立检索预注册与一次真实对照已由Sprint010推进，状态以上述最新入口为准。下一可做增量：为新relevance合同原186坏例接入按需逐query阅读与正确语义；先核保存工件/source SHA、预算和同ID恢复，不重新排名/评分或重开研究项目。旧citation专用阅读器尚未支持该新合同，不能把旧验收算作本案阅读通过。后续方法经验自动资格/选臂与生成式RAG仍未完成；不要将固定TFIDF选择结果标为记忆能力提升。
+Sprint010的186坏例阅读缺口已由Sprint011完成；以最上方最新入口为准。原科学case及其保存结果不重跑，后续方法经验自动资格/选臂与生成式RAG仍未完成。
 
 ## 最新交付与凭据恢复
 

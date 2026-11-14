@@ -1,15 +1,16 @@
 # 最新进展报告
 
-Sprint010，北京时间2026-11-14 **04:45:53开始，05:30:58完成本报告所列开发/研究/验收**。以下为报告捕获时事实；随后Git推送、lease释放回执保存于`runs/sprint-010-start-20261114`，final回复另报实际完成状态。
+Sprint011，北京时间2026-11-14 **07:51:48开始，08:32:26完成本报告列出的实现/验收**。以下为报告捕获时事实；Git推送和lease释放随后另存回执并在final报告实际状态。
 
-- **代码**：`250954e98024844e102352aac8666859e4f761be` 新增独立相关性原生接头、来源准备、冻结执行与报告；`944b5aef970765f7993bbff758b5dc70728ac50f` 修复实际工作台两方法名并已ff合main。科研源码pin250与UIpin944独立保留。
-- **真实对照**：完整8674doc/1406query/1406标注，固定SHA程序划分评价460query；一次获审attempt完成920排名/920指标、3计划/2工具/4原生报告，state13等待。test300的Recall20 **0.746667→0.896667**，nDCG **0.396192→0.503379**。仍有43个test nDCG下降、2个Recall20下降，全部186混合坏例与两条缺正例全0保留。
-- **收益边界**：固定TF-IDF无来源对照与候选同值，记忆增量按构造为0，不能证明记忆因果收益。只支持该公开程序子集局部coverage表现，无显著/通用/自动采用结论。
-- **验证**：17个新工程测试、703事前准入核查、18组事后保存证据独审通过；后者不重新排名或raw gold评分。7原ID重放、7GET/4报告2行动SHA、572科研文件保持；五页双尺寸16截图及后置四受影响页截图均实际检查，方法名窄修另获独审。
-- **保护与失败**：494旧原件、421完整旧路径、7源码pin和历史50研究estimator保持；本轮研究/工程fit与产品模型/API/source extraction均0，工具2/预留0，开发成本unknown。NFCorpus学术限定未采用；来源403/映射初版、缺pytest、SHA录入拒绝、浏览器/构建脚本失败、协作审查interrupted恢复均保留，没有研究批重试。
+- **实现**：`140d6ec44e293cb6e3c92f3be9f3c3bee4dccf0c`接通relevance保存查询阅读，BM25基线→TF-IDF候选、原grade/未标注null/缺失正例分母清楚，旧citation响应保持。原186条可按需分页/原文阅读，不重新研究。
+- **实际验证**：13新后端检查、旧17回归及最终源16真实旧响应逐字段一致；24受控客户端case、14组投影与10组最终独审通过。HTTP52验证GET+2startup；浏览器237GET（117reader）+20独立API；43真实截图（含保留capture弱帧）+2工程图均team看图，缺例/截断/手机末列最终补证通过。
+- **继续安装并修复真实声明缺口**：先保留140基础安装成品，再以`2de2b854bf90404ce6288f8d3fed93e16ccf8581`只修reports两依赖版本；另一新venv明确[reports,sources]离线解析/安装及原case4page+4detail读取通过，两成品独审。新wheel **1,237,371B**，SHA `f36cdf8f41ebe2d3f188e3573d9060ecb79aba47821179b3f12b8a867ced3d58`；180产品文件同140、23分发项。SDK未装，runtime实际启动友好exit2，不能据help称runtime集成。
+- **边界与负结果**：7145RECORD分别核6711声明hash、23self与411pip缓存actualSHAonly；初检查/模块误名/HTTP错误形状假设/capture弱帧及旧extra受控解析冲突均保留。999已加载site模块=99产品+900非产品；bootstrap进程次数unknown，不倒填全程0。原43test nDCG亏损/2Recall20亏损和186混合集合保持，固定TF-IDF等臂对照仍未证明记忆收益。
 
-捕获时科研子进程与协作任务均已结束，root仅持lease保存/交付报告；交付后按规程release，以持久guard与final实际回执判断，不声称轮间有常驻模型。现无新增用户决策阻塞。原OS/sealed/多代RSI/完整Gate不扩大，通用方法经验自动选臂与新合同逐query阅读尚未完成。
+572科研文件、421旧路径及新case/输入路径、9源码pin、原case state13/工具2/预留0和历史50estimator保持。本轮新研究/工程fit、排名、gold评分、模型/API发送、source extraction、新课题/科研行动均0；确有loopback/构建安装进程，开发token/金额unknown。原OS/sealed/多代RSI/完整Gate不扩大。
 
-下一项：新relevance保存坏例按需阅读，沿原项目/输入/行动SHA和预算，不重新排名、评分、建项目或换目录重置额度。下次计划触发 **今天07:47:27，北京时间**；平台只返回enabled/触发标记，没有run/result或通知投递回执，均为**unknown**。本报告在本会话final回传，不向外发邮件/Slack。
+捕获时所有协作/科研子任务已结束，root仅持lease保存交付；两个只读预览18842/18843保留，动作/模型关闭。交付后release，以原guard和final实际回执判断，不声称轮间有常驻模型。无新增用户决策阻塞。
 
-[完整Sprint](../execution/SPRINT-010.md) · [结果与边界](../execution/g5-local/retrieval-transfer-results.md) · [精确commit/输入/预算/恢复/审查索引](../execution/g5-local/retrieval-transfer-results.json) · [机器报告](latest-report.json)
+下一项：按已登记方法收敛固定CPU课题不适用CSV/Ridge提示，保持表格任务路径、原ledger/sourcepin和全部预算。下次计划 **今天10:47:27，北京时间**。平台只有enabled/触发标记，没有完成或通知投递回执，仍为**unknown**；本轮报告仅在本会话final回传。
+
+[完整Sprint](../execution/SPRINT-011.md) · [读取/输入/预算/恢复/审查索引](../execution/g5-local/saved-relevance-reader-verification.json) · [安装交接](../execution/g6-local/relevance-reader-release.md) · [机器报告](latest-report.json)
