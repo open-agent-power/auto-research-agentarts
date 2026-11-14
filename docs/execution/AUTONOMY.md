@@ -5,7 +5,7 @@
 ## 每轮入口
 
 1. 检查继承云电脑是否可用、仓库是否为`/workspace/auto-research-agentarts`，origin应为`open-agent-power/auto-research-agentarts`。缺少旧云盘时不重建历史账本、不宣称旧证据已恢复。
-2. 使用dev-system与项目AGENTS导航，读取`docs/project/current.md`、`docs/execution/README.md`及本文件，按需查看pack-v2原始阶段要求、最新Sprint和审查。
+2. 使用全局adaptive-agent-workflow与项目AGENTS/research-dev-router导航，读取`docs/project/current.md`、`docs/execution/README.md`及本文件，按需查看pack-v2原始阶段要求、最新Sprint和审查。用户已将dev-system归档停用，不因旧文档引用恢复它；遵循当前授权的准备/执行阶段。
 3. 使用`scripts/project_autonomy_guard.py`的status/claim/heartbeat/release协调本地开发。每轮使用独有owner，默认1200秒lease。已有未过期owner时只读检查并报告，不能在同工作树并发写。编辑、执行、提交前heartbeat确认仍持有lease；长步骤前续租，结束后release。该lease只协调配合它的执行者，不是权限或研究预算安全边界。
 4. 先检查git状态和已记录活动；保护已有未提交改动，禁止reset/clean或覆盖另一执行者。按原请求ID恢复pending/unknown；不得新ID、复制目录或新项目重置旧研究额度。不得改冻结评价器/协议/原件来迎合分数。
 5. 对照原要求与真实证据，明确已实现、已验证、原Gate缺口和下一小步。选一个具体可验收增量完成代码/真实验证/必要独审，不能只输出下一步计划。已有用户授权允许验证后直接合入并推送main，无需草稿PR或例行确认。

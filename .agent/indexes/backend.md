@@ -1,5 +1,7 @@
 # 后端索引
 
+`hypothesis_feedback`将事前validation配对差条件绑定原Controller/普通child/SQLite指纹和工件；`feedback_policy`只编译冻结分支到当前原结果审计或wait，`ProjectController.advance_feedback`沿原选择门执行，同ID使用原context。Workbench接delegated v2、原字节回答及只读未来ID预览，详见[合同](../../docs/hypothesis-feedback.md)。旧源码pin/预算与已曝光test边界不迁移。
+
 [CPU经验模块](../../src/autoresearch/cpu_project_experience.py)在原项目只读捕获完整保存结果，复用ResearchMemory binding模式与[显式分派](../../src/autoresearch/project_experience_dispatch.py)接原项目case账本；旧Ridge校验不放宽。见[完整边界](../../docs/cpu-project-experience.md)。
 
 [cpu_protocol_reader](../../src/autoresearch/cpu_protocol_reader.py)直接核验原项目source与注册身份，调用原生parse/checked一次后投影三类固定CPU协议；不依赖报告、行动或执行权限。沿用project_workbench宿主绑定及前后快照门禁，见[接口](../../docs/fixed-cpu-protocol.md)。

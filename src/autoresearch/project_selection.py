@@ -15,7 +15,7 @@ CONTEXT_FIELDS = {
     "project_code_identity", "controller_code_identity", "need", "goal", "domain_scope", "budget",
     "conditions", "candidates", "blockers", "baseline_decision", "evidence", "scientific_validation",
 }
-OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience", "selection_capabilities"}
+OPTIONAL_CONTEXT_FIELDS = {"research_plan", "researcher_feedback", "experience", "selection_capabilities", "hypothesis_feedback"}
 EXPERIENCE_CASE_CAPABILITY = {"experience_case_refs": "v1"}
 CONDITION_PROJECTION_FIELDS = ("method_id", "condition", "outcome", "completed", "missing_information")
 PROPOSAL_FIELDS = {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
@@ -124,6 +124,16 @@ def condition_reference_notice(selection):
             "selection context; it is not unread artifact content.")
 
 
+def hypothesis_notice(selection):
+    if "hypothesis_feedback" not in selection:
+        return ""
+    return (" Hypothesis feedback compares a preregistered validation condition with the original saved action. "
+            "condition_met and condition_not_met are numeric predicate outcomes, not scientific approval or "
+            "hypothesis rankings. Preserve unknown and its reason; zero is a known value. Choose only current "
+            "eligible candidates or wait, without new permissions or budget. Existing retrieval adapters already "
+            "computed test metrics, so this is not blind testing.")
+
+
 def budget_cost_notice(selection):
     if not any("budget_cost" in condition for condition in selection.get("conditions", [])):
         return ""
@@ -179,6 +189,9 @@ def _context(payload):
         citations.add(item["citation_id"])
     if "experience" in payload:
         _experience(payload["experience"], candidates)
+    if "hypothesis_feedback" in payload:
+        from .hypothesis_feedback import validate_context
+        validate_context(payload["hypothesis_feedback"])
     if "selection_capabilities" in payload:
         _require(payload["selection_capabilities"] == EXPERIENCE_CASE_CAPABILITY
                  and bool(active_experience_case_refs(payload)), code,

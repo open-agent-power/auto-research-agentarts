@@ -200,6 +200,9 @@ def _projection(project, state, report=None):
     view["recipe_revisions"] = copy.deepcopy(state.get("recipe_revisions", []))
     public_view = _public(view, project)
     public_view["researcher_feedback"] = copy.deepcopy(state.get("researcher_feedback", []))
+    if state.get("hypothesis_registrations"):
+        from .hypothesis_feedback import feedback_context
+        public_view["hypothesis_feedback"] = feedback_context(project, state)
     return public_view
 
 
@@ -431,6 +434,9 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/design-import": "import_design",
                             "/api/local-workbench/plan": "save_plan",
                             "/api/local-workbench/feedback": "record_feedback",
+                            "/api/local-workbench/hypothesis": "register_hypothesis",
+                            "/api/local-workbench/advance-feedback": "advance_feedback",
+                            "/api/local-workbench/delegated-response": "delegated_response",
                             "/api/local-workbench/experience-import": "import_experience",
                             "/api/local-workbench/experience-status": "set_experience_status",
                             "/api/local-workbench/experience-resume": "resume_experience",
@@ -441,6 +447,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/recipe-adopt": "adopt_recipe_round",
                             "/api/local-workbench/evidence": "register_evidence", "/api/local-workbench/batch": "batch",
                             "/api/local-workbench/continue": "continue_research",
+                            "/api/local-workbench/continuation-preview": "preview_continuation",
                             "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume",
                             "/api/local-workbench/model-plan-advance": "model_plan_advance",
                             "/api/local-workbench/model-plan-adopt": "model_plan_adopt",

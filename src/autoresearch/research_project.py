@@ -27,7 +27,7 @@ def code_identity():
     from . import project_recipe, recipe_improvement
     from . import project_model_protocol
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
-    from . import cpu_project_experience, project_experience_dispatch
+    from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
@@ -39,6 +39,8 @@ def code_identity():
                         "project_experience_binding": hashlib.sha256(Path(project_experience_binding.__file__).read_bytes()).hexdigest(),
                         "cpu_project_experience": hashlib.sha256(Path(cpu_project_experience.__file__).read_bytes()).hexdigest(),
                         "project_experience_dispatch": hashlib.sha256(Path(project_experience_dispatch.__file__).read_bytes()).hexdigest(),
+                        "hypothesis_feedback": hashlib.sha256(Path(hypothesis_feedback.__file__).read_bytes()).hexdigest(),
+                        "feedback_policy": hashlib.sha256(Path(feedback_policy.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})
@@ -248,7 +250,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions", "experience_revisions"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions", "experience_revisions", "hypothesis_registrations"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")
@@ -323,6 +325,12 @@ class ResearchProject:
                 project["state_version"] += 1
                 self._save(con, project)
                 return revision
+
+    def register_hypothesis(self, *, request_id, expected_state_version, hypothesis):
+        """Preregister a bounded validation condition before its original action."""
+        from .hypothesis_feedback import register
+        return register(self, request_id=request_id, expected_state_version=expected_state_version,
+                        hypothesis=hypothesis)
 
     def record_feedback(self, *, request_id, expected_state_version, author, comment, next_step, action_id):
         """Append an unverified researcher statement without creating a tool observation."""

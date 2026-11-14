@@ -1,5 +1,7 @@
 # 接口索引
 
+本地操作新增 `/api/local-workbench/hypothesis`、`advance-feedback`、`delegated-response`、`continuation-preview`，沿现有Origin/CSRF/活动项目边界；`continue`明确delegated模式并要求post_action_plan。预览只计算ID，不检查准备状态/未来资格。请求字段和同ID恢复见[预测/持久委派](../../docs/hypothesis-feedback.md)。
+
 新增CPU经验本机CLI与显式双schema分派；原experience-import/status/resume兼CPU原包，旧Ridge validator保持严格。binding_validation区别数值复核、实际原包≤4MiB与同ID资格不变，见[字段与边界](../../docs/cpu-project-experience.md)。
 
 新增只读 `GET /api/project/fixed-protocol.json`，绑定原project/snapshot，直接核验三类固定CPU原source并返回≤128KiB摘要，不依赖报告或行动、不执行研究。字段、省略内容与错误见[固定协议接口](../../docs/fixed-cpu-protocol.md)。

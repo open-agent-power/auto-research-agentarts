@@ -9,6 +9,7 @@ import hashlib
 from pathlib import Path
 import re
 import sqlite3
+import tempfile
 
 from . import source_evidence_adapter as reader, tabular_quality_adapter as tabular, method_registry as registry, project_controller, research_design
 from .contracts import ResearchError, canonical, fingerprint, identifier
@@ -140,7 +141,7 @@ class LocalWorkbench:
 
     def __getattribute__(self, name):
         # No command is exposed by a read-only manager, even when invoked directly.
-        readers = {"describe", "saved_study_reference", "project_summary"}
+        readers = {"describe", "saved_study_reference", "project_summary", "preview_continuation"}
         if not name.startswith("_") and name not in readers and name not in {"root", "db", "read_only", "open_readonly"}:
             if object.__getattribute__(self, "__dict__").get("read_only", False):
                 raise ResearchError("READ_ONLY", "This workbench was opened read-only.")
@@ -426,6 +427,13 @@ class LocalWorkbench:
                  "INVALID_REQUEST", "An exact saved state version is required.")
         return self._advance_receipt(body, digest, "advance", evidence=False)
 
+    def advance_feedback(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "registration_request_id"))
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "An exact saved state version is required.")
+        identifier(body["registration_request_id"], "registration_request_id")
+        return self._advance_receipt(body, digest, "advance_feedback", evidence=True)
+
     def _advance_receipt(self, body, digest, command, *, evidence):
         terminal = {"completed", "failed", "waiting", "needs_review"}
         with self._writer():
@@ -456,6 +464,9 @@ class LocalWorkbench:
             if command == "advance":
                 response = controller.advance_selection(request_id=body["request_id"], proposal=body["proposal"],
                                                         expected_state_version=body["expected_state_version"])
+            elif command == "advance_feedback":
+                response = controller.advance_feedback(request_id=body["request_id"], registration_request_id=body["registration_request_id"],
+                                                       expected_state_version=body["expected_state_version"])
             else:
                 response = controller.advance_recipe(request_id=body["request_id"], recipe=body["recipe"],
                                                      expected_state_version=body["expected_state_version"])
@@ -499,6 +510,26 @@ class LocalWorkbench:
                                          plan=body["plan"], reason=body["reason"])
             response = self._response("save_plan", body["request_id"], body["project_id"], status="completed",
                                       research_plan=revision)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status": "completed", "result": response,
+                                                    "intent": {"project_id": body["project_id"]}})
+            return response
+
+    def register_hypothesis(self, body):
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "hypothesis"))
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                old = self._old(con, body, digest)
+                if old is not None and old["status"] == "completed":
+                    return self._completed(old)
+                if old is None:
+                    self._accept(con, body, digest, "register_hypothesis", {"project_id": body["project_id"]})
+            registration = project.register_hypothesis(request_id=body["request_id"],
+                expected_state_version=body["expected_state_version"], hypothesis=body["hypothesis"])
+            response = self._response("register_hypothesis", body["request_id"], body["project_id"],
+                                      status="completed", hypothesis=registration, replayed=old is not None)
             with self._connect() as con:
                 self._save(con, body["request_id"], {"status": "completed", "result": response,
                                                     "intent": {"project_id": body["project_id"]}})
@@ -818,6 +849,10 @@ class LocalWorkbench:
                     and (view.get("plan_ref") or {}).get("kind") == "host_plan"
                     and view["plan_ref"]["request_id"] == plan_request_id):
                 owned.add(row["id"])
+            if (plan_request_id and view.get("phase") == "actions"
+                    and (view.get("batch_ref") or {}).get("kind") == "delegated"
+                    and view["batch_ref"].get("plan_request_id") == plan_request_id):
+                owned.add(row["id"])
         for row in rows:
             if row["id"] == except_id or row["id"] in owned or row["command"] not in commands:
                 continue
@@ -1057,6 +1092,69 @@ class LocalWorkbench:
             self._project(con, record["intent"]["project_id"])
         return copy.deepcopy(record["result"])
 
+    def delegated_response(self, body):
+        """Import only the original bytes for a Host request owned by this continuation."""
+        from .host_selection_protocol import MAX_RESPONSE_BYTES
+        _body(body, ("request_id", "project_id", "host_request_id", "response_base64"))
+        identifier(body["host_request_id"], "host_request_id")
+        raw = _decode(body["response_base64"], MAX_RESPONSE_BYTES)
+        with self._writer():
+            with self._connect(readonly=True) as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                row = con.execute("SELECT digest,record FROM requests WHERE id=? AND command='continue'", (body["request_id"],)).fetchone()
+                _require(row is not None, "ARTIFACT_NOT_FOUND", "No original continuation matches this ID.")
+                record = tabular._parse(row["record"].encode("utf-8"))
+                self._check_continuation(record, row["digest"])
+                intent, view = record["intent"], record["result"]
+                _require(intent["project_id"] == body["project_id"] and view["body"]["execution_mode"] == "delegated",
+                         "INVALID_REQUEST", "The original continuation must own this delegated request.")
+                self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
+            state = project.status()
+            _require(state["run_id"] == intent["run_id"] and state["source_snapshot_sha256"] == intent["source_snapshot_sha256"]
+                     and state["code_identity"] == intent["project_code_identity"]
+                     and batch_code_identity() == intent["batch_code_identity"]
+                     and project_controller.code_identity() == intent["controller_code_identity"],
+                     "EVIDENCE_CHANGED", "The original project or continuation implementation changed.")
+            journal = HostModelSelection(project.root)
+            host_id = body["host_request_id"]
+            spec = intent.get("plan_specification")
+            if spec is not None and spec["request_id"] == host_id:
+                _require(spec["provider"] == "delegated", "EVIDENCE_CHANGED", "The original plan used a different provider.")
+                step = None
+            else:
+                batch_body = intent.get("batch_body")
+                _require(batch_body is not None, "ARTIFACT_NOT_FOUND", "No original delegated batch is prepared.")
+                saved = HostModelBatch(project.root).status(request_id=batch_body["request_id"])
+                _require(saved["schema_version"] == "host-model-batch-v2"
+                         and saved["body"] == {**batch_body, "provider": "delegated"}
+                         and saved["run_id"] == intent["run_id"] and saved["source_snapshot_sha256"] == intent["source_snapshot_sha256"],
+                         "EVIDENCE_CHANGED", "The saved batch differs from its original continuation.")
+                matches = [item for item in [*saved["steps"], saved.get("plan_step")] if item and item["host_request_id"] == host_id]
+                _require(len(matches) == 1, "ARTIFACT_NOT_FOUND", "This Host request is not an original batch step.")
+                step = matches[0]
+            host = journal.status(request_id=host_id)
+            grant = journal.status()["grant"]
+            original = spec if step is None else batch_body
+            _require(grant is not None and all(grant.get(key) == original[key] for key in ("decision_limit", "cli_budget_usd", "reason"))
+                     and host.get("prepare_specification", {}).get("grant") == grant,
+                     "EVIDENCE_CHANGED", "The original Host grant changed.")
+            _require(host.get("provider") == "delegated" and host.get("controller_request_id") == host_id,
+                     "EVIDENCE_CHANGED", "The original Host identity changed.")
+            if step is not None:
+                _require(host.get("purpose", "selection") == step["purpose"]
+                         and fingerprint(host.get("context")) == step["context_sha256"]
+                         and fingerprint(host.get("prompt")) == step["prompt_sha256"],
+                         "EVIDENCE_CHANGED", "The original Host context or prompt changed.")
+            else:
+                _require(host.get("purpose") == "plan" and host.get("prepare_specification", {}).get("expected_state_version") == spec["expected_state_version"],
+                         "EVIDENCE_CHANGED", "The original Host plan identity changed.")
+            with tempfile.TemporaryDirectory(dir=self.root, prefix="delegated-response-") as directory:
+                path = Path(directory) / "response.bin"
+                write_bytes_once(path, raw)
+                saved_host = journal.import_response(request_id=host_id, response_file=path)
+            return self._response("delegated-response", body["request_id"], body["project_id"],
+                                  host_request_id=host_id, status=saved_host["status"], model_record=saved_host)
+
     def _save_continuation(self, record):
         _require(len(canonical(record).encode("utf-8")) <= 2 * 1024 * 1024,
                  "WORKBENCH_TOO_LARGE", "Continuation metadata exceeds its bounded download size.")
@@ -1176,6 +1274,17 @@ class LocalWorkbench:
         self._save_continuation(record)
         return True
 
+    @staticmethod
+    def _check_delegated_continuation(record, project):
+        intent, state = record["intent"], project.status()
+        _require(state["id"] == intent["project_id"] and state["run_id"] == intent["run_id"]
+                 and state["source_snapshot_sha256"] == intent["source_snapshot_sha256"]
+                 and state["code_identity"] == intent["project_code_identity"],
+                 "EVIDENCE_CHANGED", "The original project identity changed.")
+        _require(batch_code_identity() == intent["batch_code_identity"]
+                 and project_controller.code_identity() == intent["controller_code_identity"],
+                 "CODE_CHANGED", "Resume using the original continuation implementation.")
+
     def _prepare_continuation_actions(self, record, project, executable):
         view, intent = record["result"], record["intent"]
         if "batch_body" in intent:
@@ -1191,7 +1300,7 @@ class LocalWorkbench:
                  "CODE_CHANGED", "Unfinished continuation requires its original implementation.")
         project._require_fresh(state, state, view["cursor_state_version"])
         host = self._continuation_host_gate(HostModelSelection(project.root), state)
-        request_id = "continue-" + intent["request_sha256"][:32] + "-actions"
+        request_id = self._continuation_batch_id(intent["request_sha256"])
         if body["execution_mode"] == "rules":
             batch_body = {key: copy.deepcopy(body[key]) for key in ("project_id", "max_actions", "allowed_methods", "source_receipt_sha256s", "reason")}
             batch_body.update(request_id=request_id, expected_state_version=view["cursor_state_version"])
@@ -1205,16 +1314,20 @@ class LocalWorkbench:
                               or item["parameters"]["receipt_snapshot_sha256"] in body["source_receipt_sha256s"])
                          for item in context["candidates"]),
                      "NOT_AUTHORIZED", "Current model candidates exceed the explicit method or exact receipt scope.")
-            if body["max_actions"] > 1:
+            if body["max_actions"] > 1 or body["execution_mode"] == "delegated":
                 _require({item["method_id"] for item in context["conditions"]} <= set(body["allowed_methods"])
                          and {item["receipt_snapshot_sha256"] for item in state.get("evidence_sources", [])} <= set(body["source_receipt_sha256s"]),
                          "NOT_AUTHORIZED", "Two model decisions require the native batch's entire frozen method and receipt scope.")
             grant = self._continuation_grant(host)
-            _require(executable is not None and Path(executable).is_file(), "MODEL_DISABLED", "Model actions require a service-selected native CLI.")
             batch_body = {"request_id": request_id, "expected_state_version": view["cursor_state_version"], "max_decisions": body["max_actions"],
-                          **{key: grant[key] for key in ("decision_limit", "cli_budget_usd", "reason")}, "executable": str(Path(executable).absolute())}
+                          **{key: grant[key] for key in ("decision_limit", "cli_budget_usd", "reason")}}
+            if body["execution_mode"] == "delegated":
+                batch_body["post_action_plan"] = body["post_action_plan"]
+            else:
+                _require(executable is not None and Path(executable).is_file(), "MODEL_DISABLED", "Model actions require a service-selected native CLI.")
+                batch_body["executable"] = str(Path(executable).absolute())
         intent["batch_body"] = batch_body
-        view["batch_ref"] = {"kind": "local" if body["execution_mode"] == "rules" else "host",
+        view["batch_ref"] = {"kind": "local" if body["execution_mode"] == "rules" else "delegated" if body["execution_mode"] == "delegated" else "host",
                              "request_id": request_id, "status": "prepared", "record_status": "incomplete"}
         self._save_continuation(record)
 
@@ -1228,7 +1341,7 @@ class LocalWorkbench:
         for index, step in enumerate(steps):
             request_id = step["request_id"] if is_local else step["host_request_id"]
             parent_id = request_id if is_local else step.get("controller_request_id")
-            parent = (step.get("parent") if is_local else None) or next((item for item in state["controller_requests"] if item["request_id"] == parent_id), None)
+            parent = (step.get("parent") if is_local else None) or next((item for item in state.get("controller_requests", []) if item["request_id"] == parent_id), None)
             after = (steps[index + 1]["snapshot_ref_before"] if index + 1 < len(steps) else saved.get("cursor_snapshot_ref")) if is_local and step["status"] == "completed" else step.get("snapshot_ref_after")
             view["steps"].append({"ordinal": len(view["steps"]) + 1, "phase": "actions", "request_id": request_id,
                 "status": parent["status"] if is_local and parent else step["status"] if is_local else step["host_status"],
@@ -1240,15 +1353,32 @@ class LocalWorkbench:
         status = native["status"]
         record_status = saved["status"] if is_local else saved["record_status"]
         view["batch_ref"].update(status=status, record_status=record_status)
+        if view["batch_ref"]["kind"] == "delegated" and saved.get("plan_step") is not None:
+            plan = saved["plan_step"]
+            view["batch_ref"]["plan_request_id"] = plan["host_request_id"]
+            view["steps"].append({"ordinal": len(view["steps"]) + 1, "phase": "post_action_plan",
+                "request_id": plan["host_request_id"], "status": plan["host_status"],
+                "controller_request_id": plan.get("controller_request_id"), "child_request_id": None,
+                "snapshot_ref_before": plan["snapshot_ref_before"], "snapshot_ref_after": plan.get("snapshot_ref_after")})
+            if status == "plan_adopted" and plan.get("snapshot_ref_after") == state["snapshot_ref"]:
+                view["cursor_state_version"] = state["state_version"]
         stop = native["batch"]["stop"] if is_local else native["stop"]
         return self._stop_continuation(record, "needs_review" if status == "unknown" else status, stop["code"], stop["reason"],
                                        incomplete=record_status != "completed", phase="actions" if record_status != "completed" else "stopped")
 
-    def continue_research(self, body, *, executable=None):
-        digest = _body(body, ("request_id", "project_id", "expected_state_version", "plan_mode", "execution_mode", "max_actions",
-                              "allowed_methods", "source_receipt_sha256s", "reason"))
+    @staticmethod
+    def _continuation_batch_id(digest):
+        return "continue-" + digest[:32] + "-actions"
+
+    @staticmethod
+    def _continuation_body(body):
+        fields = ("request_id", "project_id", "expected_state_version", "plan_mode", "execution_mode", "max_actions",
+                  "allowed_methods", "source_receipt_sha256s", "reason")
+        delegated = type(body) is dict and body.get("execution_mode") == "delegated"
+        digest = _body(body, (*fields, "post_action_plan") if delegated else fields)
         _require(type(body["plan_mode"]) is str and body["plan_mode"] in {"reuse", "suggest"}
-                 and type(body["execution_mode"]) is str and body["execution_mode"] in {"rules", "model"}
+                 and type(body["execution_mode"]) is str and body["execution_mode"] in {"rules", "model", "delegated"}
+                 and (not delegated or type(body["post_action_plan"]) is bool)
                  and type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
                  and type(body["max_actions"]) is int and 1 <= body["max_actions"] <= (8 if body["execution_mode"] == "rules" else 2)
                  and _text(body["reason"], 4000) and type(body["allowed_methods"]) is list and bool(body["allowed_methods"])
@@ -1257,6 +1387,30 @@ class LocalWorkbench:
                  and all(type(item) is str and re.fullmatch(r"[a-f0-9]{64}", item) for item in body["source_receipt_sha256s"])
                  and len(set(body["source_receipt_sha256s"])) == len(body["source_receipt_sha256s"]),
                  "INVALID_REQUEST", "Use a bounded plan and action continuation with exact existing method and receipt scope.")
+        return digest, delegated
+
+    def preview_continuation(self, body):
+        """Read-only identifiers for an unprepared future request, never execution eligibility."""
+        digest, delegated = self._continuation_body(body)
+        with self._connect(readonly=True) as con:
+            self._project(con, body["project_id"], active=True)
+        predictable = delegated and body["plan_mode"] == "reuse"
+        batch_id = self._continuation_batch_id(digest) if predictable else None
+        steps = []
+        if predictable:
+            for ordinal in range(1, body["max_actions"] + 1):
+                host_id = HostModelBatch.delegated_step_id(batch_id, "selection", ordinal)
+                steps.append({"ordinal": ordinal, "host_request_id": host_id, "controller_request_id": host_id})
+        plan_id = (HostModelBatch.delegated_step_id(batch_id, "plan", 0)
+                   if predictable and body["post_action_plan"] else None)
+        return {"schema_version": "local-research-continuation-preview-v1", "project_id": body["project_id"],
+                "request_id": body["request_id"], "body_sha256": digest, "batch_request_id": batch_id,
+                "steps": steps, "post_action_plan_host_request_id": plan_id,
+                "status": "identifiers_computed" if predictable else "stage_unknown", "authorization": "not_authorized",
+                "preparation_state": "unknown_not_checked", "execution_eligibility": "not_checked"}
+
+    def continue_research(self, body, *, executable=None):
+        digest, delegated = self._continuation_body(body)
         with self._writer():
             with self._connect() as con:
                 old = self._old(con, body, digest)
@@ -1289,13 +1443,15 @@ class LocalWorkbench:
                 else:
                     record = old
             try:
-                if record["result"]["phase"] in {"plan", "awaiting_adoption"} and not self._continue_plan(record, project, executable):
+                if delegated:
+                    self._check_delegated_continuation(record, project)
+                if record["result"]["phase"] in {"plan", "awaiting_adoption"} and not self._continue_plan(record, project, None if delegated else executable):
                     return copy.deepcopy(record["result"])
                 self._prepare_continuation_actions(record, project, executable)
             except ResearchError as error:
                 pending_batch = "batch_body" in record["intent"]
-                pending_plan = (record["result"]["phase"] == "plan" and record["intent"].get("plan_specification", {}).get("provider") == "claude_cli"
-                                and error.code in {"MODEL_DISABLED", "CONFIG_CHANGED"})
+                pending_plan = (record["result"]["phase"] in {"plan", "awaiting_adoption"}
+                                and bool(record["intent"].get("plan_specification")))
                 status = "needs_review" if pending_batch or pending_plan or error.code in {"EXECUTION_UNKNOWN", "PROJECT_BUSY"} else "waiting" if error.code == "NO_HOST_CANDIDATES" else "blocked"
                 return self._stop_continuation(record, status,
                     error.code, str(error), incomplete=pending_batch or pending_plan,
@@ -1303,7 +1459,13 @@ class LocalWorkbench:
             batch_body = copy.deepcopy(record["intent"]["batch_body"])
         # Existing batches acquire their own manager/Host locks and preserve original IDs.
         try:
-            native = self.batch(batch_body) if body["execution_mode"] == "rules" else HostModelBatch(project.root).advance(**batch_body)
+            if delegated:
+                with self._writer():
+                    with self._connect(readonly=True) as con:
+                        self._project(con, body["project_id"], active=True)
+                    native = HostModelBatch(project.root).advance_delegated(**batch_body)
+            else:
+                native = self.batch(batch_body) if body["execution_mode"] == "rules" else HostModelBatch(project.root).advance(**batch_body)
         except Exception as error:
             with self._writer():
                 with self._connect(readonly=True) as con:

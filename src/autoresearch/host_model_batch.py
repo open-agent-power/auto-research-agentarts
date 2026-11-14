@@ -33,6 +33,10 @@ def _sources(project):
 
 
 class HostModelBatch:
+    @staticmethod
+    def delegated_step_id(batch_request_id, purpose, ordinal):
+        return "hostbatch-" + batch_request_id + ("-s" + str(ordinal) if purpose == "selection" else "-plan")
+
     def __init__(self, workspace):
         self.journal = HostModelSelection(workspace)
         self.project = self.journal.project
@@ -251,7 +255,7 @@ class HostModelBatch:
         prompt = (host_selection_protocol.build_prompt(context) if purpose == "selection"
                   else research_plan_proposal.build_prompt(context))
         ordinal = len(record["steps"]) + 1
-        request_id = "hostbatch-" + body["request_id"] + ("-s" + str(ordinal) if purpose == "selection" else "-plan")
+        request_id = self.delegated_step_id(body["request_id"], purpose, ordinal)
         step = {"purpose": purpose, "host_request_id": request_id, "expected_state_version": state["state_version"],
                 "context_sha256": fingerprint(context), "prompt_sha256": fingerprint(prompt),
                 "snapshot_ref_before": state["snapshot_ref"], "host_status": "preparing", "outcome_status": None}

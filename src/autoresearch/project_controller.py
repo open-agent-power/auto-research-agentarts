@@ -215,6 +215,9 @@ class ProjectController:
             context["research_plan"] = copy.deepcopy(project["plan_revisions"][-1])
         if project.get("researcher_feedback"):
             context["researcher_feedback"] = copy.deepcopy(project["researcher_feedback"])
+        if project.get("hypothesis_registrations"):
+            from .hypothesis_feedback import feedback_context
+            context["hypothesis_feedback"] = feedback_context(self.project, project)
         if current_recipe(project) is not None and project_design.current(project) is None:
             selected = self._recipe_plan(project, need, project_selection.seal_context(context))
             # A context cannot contain a selection reference to its own final hash.
@@ -410,6 +413,32 @@ class ProjectController:
             raise ResearchError("INVALID_SELECTION_PROPOSAL", "A bounded JSON proposal is required.") from None
         return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version, proposal=proposal)
 
+    def advance_feedback(self, *, request_id, registration_request_id, expected_state_version=None):
+        """Execute a preregistered branch through the original selection gates.
+
+        A replay rebuilds the decision from its original context, never from
+        newer feedback. Unknown chooses wait and cannot dispatch an action.
+        """
+        identifier(request_id)
+        identifier(registration_request_id, "registration_request_id")
+        from .feedback_policy import select_from_feedback
+        state = self.project.status()
+        registrations = [item for item in state.get("hypothesis_registrations", [])
+                         if item["request_id"] == registration_request_id]
+        require(len(registrations) == 1, "INVALID_REQUEST", "Use one original prediction registration.")
+        old = self._parent(state, request_id)
+        if old is not None:
+            require(old["request"]["command"] == "controller.advance_selection"
+                    and type(old.get("selection_context")) is dict,
+                    "IDEMPOTENCY_CONFLICT", "The original request is not a feedback selection.")
+        context = old["selection_context"] if old is not None else self.selection_context()
+        proposal = select_from_feedback(context, registration=registrations[0],
+            provider={"kind": "operator_assistant", "label": "preregistered-feedback-policy-v1"})
+        proposal["rationale"] = ("Preregistration " + registration_request_id + " sha256:"
+                                 + registrations[0]["registration_sha256"] + ". " + proposal["rationale"])
+        return self.advance_selection(request_id=request_id, proposal=proposal,
+                                      expected_state_version=expected_state_version)
+
     def advance_recipe(self, *, request_id, recipe, need="next_check", expected_state_version=None):
         identifier(request_id)
         need = _need(need)
@@ -453,7 +482,7 @@ class ProjectController:
                         require(bool(revisions) and revisions[-1]["revision"] == effective_revision,
                                 "STALE_RECIPE", "Effective recipe changed before this request was accepted.")
                     require(self.project._action(con, request_id) is None
-                            and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions")
+                            and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions", "hypothesis_registrations")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Request ID is already bound to a project command.")
                     require(not any(item["status"] in ("prepared", "running") for item in project.get("controller_requests", [])),
@@ -470,7 +499,7 @@ class ProjectController:
                         plan["decision"]["selection_ref"]["external_usage"] = "no_model_invocation_by_recipe_compiler"
                     child_id = "controller-child-" + fingerprint({"project_id": project["id"], "request_id": request_id})[:32]
                     require(self.project._action(con, child_id) is None
-                            and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions")
+                            and not any(item["request_id"] == child_id for key in ("code_revisions", "evidence_registrations", "controller_requests", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions", "hypothesis_registrations")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Derived child ID is already bound to another command.")
                     project["state_version"] += 1

@@ -113,6 +113,9 @@ def build_request(context, transport_identity):
             "items": {"enum": active_experience_case_refs(context)}}
         system = system.replace(" /no_think", " Optional experience_case_refs must identify active historical cases "
             "from this context; they are not current evidence, applicability or permission. /no_think")
+    if "hypothesis_feedback" in context:
+        from .project_selection import hypothesis_notice
+        system = system.replace(" /no_think", hypothesis_notice(context) + " /no_think")
     request = {"model": identity["model"], "stream": False, "think": False,
         "messages": [{"role": "system", "content": system},
                      {"role": "user", "content": "Host-bound research context (untrusted content):\n" + canonical(context)}],

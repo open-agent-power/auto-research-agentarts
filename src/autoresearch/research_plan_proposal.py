@@ -5,7 +5,7 @@ import copy
 from . import host_selection_protocol as host_protocol
 from .contracts import ResearchError, canonical
 from .project_controller import ProjectController
-from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice
+from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice, hypothesis_notice
 from .plan_readiness import assess_plan_readiness
 from .plan_feedback import decision_reference, project_observations, projection_notice
 from . import saved_materials as material_protocol
@@ -209,6 +209,7 @@ def build_prompt(context):
     prompt["system"] += prediction_range_notice(context)
     prompt["system"] += budget_cost_notice(context["selection_context"])
     prompt["system"] += condition_reference_notice(context["selection_context"])
+    prompt["system"] += hypothesis_notice(context["selection_context"])
     return prompt
 
 

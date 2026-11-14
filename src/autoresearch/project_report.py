@@ -322,6 +322,7 @@ def collect_report(workspace) -> dict:
                         "source_file_identity": _digest(source_raw), "receipts": receipts,
                         "receipt_states": receipt_states, "assets": list(assets.values()),
                         "researcher_feedback": before.get("researcher_feedback", []),
+                        "hypothesis_registrations": before.get("hypothesis_registrations", []),
                         "design_revisions": before.get("design_revisions", []),
                         "recipe_selections": recipe_selections,
                         "host_models": {"snapshot_sha256": host_models["snapshot_sha256"], "status": host_models["status"],
