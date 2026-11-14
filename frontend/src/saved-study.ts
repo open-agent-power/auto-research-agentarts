@@ -55,7 +55,7 @@ function draw(host: HTMLElement, data: Obj, project: Obj): void {
   const tbody = el("tbody"); for (const item of cases) {
     const tr = el("tr");
     for (const value of [text(item.case_id), text(item.n), text(item.seed), text(item.policy_over_binary), item.outcome === "slower" ? "较慢" : item.outcome === "faster" ? "较快" : text(item.outcome)]) tr.append(el("td", "", value));
-    const cell = el("td"), detail = el("details"), medians = obj(item.median_ns), fields = el("dl", "saved-study-pairs");
+    const cell = el("td"), detail = el("details"), medians = obj(item.median_ns), fields = el("dl", "saved-study-pairs saved-study-case-detail");
     for (const [label, value] of [["固定二分中位数（ns）", medians.fixed_binary], ["固定扫描中位数（ns）", medians.fixed_scan], ["阈值策略中位数（ns）", medians.threshold32]] as const) {
       const row = el("div"); row.append(el("dt", "", label), el("dd", "", text(value, "未记录"))); fields.append(row);
     }
