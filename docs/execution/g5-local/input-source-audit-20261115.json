@@ -1,0 +1,50 @@
+{
+  "schema_version": "s053-input-audit-v1",
+  "status": "completed_no_research_executed",
+  "new_independent_reference_root": "/workspace/reference-exploration-20261115",
+  "old_reference_library_restored": false,
+  "outcomes": {
+    "nfcorpus": "not_admitted; original author academic-use restriction applicability not established, mirror generic card does not override; no data body downloaded",
+    "arguana": "public author CC BY4.0, independent source copy downloaded and read-only native schema parsed, no rank/score. Same exact ZIP as completed S010; no new holdout or budget reopened.",
+    "cqadupstack": "not admitted; prior actual audit reused, full ZIP 5343728040 bytes, per-post attribution/license and qrel rights/current bounded subset bytes remain unresolved; no data body downloaded"
+  },
+  "arguana_prior_source": "docs/execution/SPRINT-010.md",
+  "evidence": {
+    "nfcorpus/fixed-input-manifest.json": {
+      "path": "/workspace/reference-exploration-20261115/nfcorpus/fixed-input-manifest.json",
+      "sha256": "0def230e9115a84203d5085c2793dae433ed16eeb41b1ce52f3c6776676f60c3",
+      "bytes": 2660
+    },
+    "nfcorpus/assessment.md": {
+      "path": "/workspace/reference-exploration-20261115/nfcorpus/assessment.md",
+      "sha256": "f9957e88b52dcfbfb438fcc42cce0c876a1fe266fcfb6b0ab3a6eda0c9e6ff40",
+      "bytes": 2048
+    },
+    "arguana/fixed-input-manifest.json": {
+      "path": "/workspace/reference-exploration-20261115/arguana/fixed-input-manifest.json",
+      "sha256": "da6f83ffe8aac82b5ff8133bbc347ec6db225b4c5901fb0cbbe446dfa363bbe1",
+      "bytes": 4342
+    },
+    "arguana/assessment.md": {
+      "path": "/workspace/reference-exploration-20261115/arguana/assessment.md",
+      "sha256": "e181ecaea62549aa4d8e7fefd29f80137a41c6e09760f9be87bb319994dac8b7",
+      "bytes": 3338
+    },
+    "cqadupstack/assessment.md": {
+      "path": "/workspace/reference-exploration-20261115/cqadupstack/assessment.md",
+      "sha256": "7441a294945547ccea25a72a4d9fc76211a104484ccf8e9f0b7efde93ab2fa03",
+      "bytes": 4304
+    }
+  },
+  "usage": {
+    "new_research_projects": 0,
+    "rankings": 0,
+    "scoring": 0,
+    "model_calls": 0,
+    "fits": 0,
+    "metadata_download_requests": "not separately metered",
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "next": "S054 controlled different official SQuAD TRAIN split; frozen scope before ranking, no cross-dataset/blind/general benefit claim"
+}
