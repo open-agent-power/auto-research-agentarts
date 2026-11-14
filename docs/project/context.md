@@ -106,3 +106,6 @@ Sprint033 source78acf，project身份0574266b/controller5c5c86ef/nativejournal60
 
 
 Sprint034：旧AA guard96checks证prefix回滚可重预留；1d19f06独立witness修复单日志回退，54定点/3fork通过，仍非OS/hardcost/实际dispatch证明。用户已在本会话明确批准一次固定3逻辑研究委派/2工具的工程反馈试跑，原0预算不重开；当前未create/auth/claim/execute。产品源78acf/core057，guard1d19，新轮领取新owner后按固定claim/输入/ID推进。19:49新timer只读见旧owner仍活跃，无并发executor；下一计划22:47:27，平台run/result/notification unknown。
+
+
+Sprint035：用户批准的固定pilot已实际3逻辑委派/2工具；原project943409c583e54a5d88d414bddb997669/run78ce0add28fa454bb0ad72dd9b979bd1，workspace/work/model-feedback-pilot-20261114-v1，产品78acf/guard1d19。primary实际1index/6rank/6metrics，saved audit0新rank/score；两臂3query打平、validation0、qv正例b两空排名。review needs_revision/leave_proposed，原提案不改/不采纳/state11/baseline v1，3/2额度均尽，guard5响应完成仅留存含义。两个root编排故障均同ID只读恢复；最终2终态重放/15项目文件相同。完整精确ID/SHA/费用unknown见S035/results。继续S036产品保存材料显式检索adverse-query投影，不再派研究模型/工具；实现/工程验证/代码独审复用原3成员，开发和研究调用分开。

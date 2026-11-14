@@ -1,0 +1,327 @@
+{
+  "schema_version": "approved-model-feedback-pilot-results-v1",
+  "timezone": "Asia/Shanghai",
+  "pilot_started_at": "2026-11-14T19:58:38+08:00",
+  "pilot_checkpoint_at": "2026-11-14T20:26:59.068744+08:00",
+  "indexed_at": "2026-11-14T20:29:46.863737+08:00",
+  "status": "completed_bounded_workflow_review_needs_revision_plan_not_adopted",
+  "study": "model-feedback-pilot-20261114-v1",
+  "owner": "root-model-feedback-20261114T1959",
+  "product_commit": "78acfbe09c7d689b94e4787e83a32b3e7be9dd9c",
+  "product_pin": "/workspace/work/model-experience-protocol-source-78acfbe",
+  "guard_commit": "1d19f06f16e69b20afe5667aa0bd0d500e8272ef",
+  "guard_pin": "/workspace/work/model-feedback-guard-source-1d19f06",
+  "project_id": "project-943409c583e54a5d88d414bddb997669",
+  "run_id": "run-78ce0add28fa454bb0ad72dd9b979bd1",
+  "workspace": "/workspace/work/model-feedback-pilot-20261114-v1",
+  "checkpoint": {
+    "decision": "leave_proposed_no_adoption_no_fourth_research_delegation",
+    "host_plan_status": "proposed",
+    "host_selection_status": "applied",
+    "logical_research_delegations_received": 3,
+    "native_budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 8,
+      "evidence_reads_reserved": 0,
+      "evidence_reads_used": 0,
+      "existing_cash_cap_cny": 5,
+      "fit_attempts_used": 0,
+      "fit_limit": 0,
+      "fits_completed": 0,
+      "fits_reserved": 0,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "model-feedback-pilot-20261114-v1",
+      "local_tool_call_limit": 2,
+      "local_tool_calls_reserved": 0,
+      "local_tool_calls_used": 2,
+      "local_tool_dispatches": 2,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "preprocessing_fits": 0,
+      "preprocessing_fits_completed": 0,
+      "ridge_fits_completed": 0
+    },
+    "next": "Improve explicit saved-query feedback in new product code only; preserve this original response/context/plan and exhausted claim.",
+    "plan_versions": 1,
+    "platform_inferences_tokens_cost": "unknown",
+    "project_id": "project-943409c583e54a5d88d414bddb997669",
+    "project_tree_files_checked": 15,
+    "project_tree_unchanged": true,
+    "recommendation": "leave_proposed",
+    "replay_does_not_prove_fresh_runtime_or_artifact_validation": true,
+    "report_final_sha256": "bdf6face1e82a17b35f770db1e2b8637b5dc8d1403788c765a96c819b64dbbf3",
+    "review_sha256": "74db7d299de7f25828d9bacc0740a5787b029d731bbbc8228b333fa02fb4d886",
+    "review_verdict": "needs_revision",
+    "run_id": "run-78ce0add28fa454bb0ad72dd9b979bd1",
+    "same_id_terminal_replays": 2,
+    "schema_version": "approved-model-feedback-pilot-checkpoint-v1",
+    "scientific_validation": false,
+    "state_version": 11,
+    "tool_calls_used": 2,
+    "tool_limit": 2
+  },
+  "authorization": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/user-approval.json",
+    "bytes": 694,
+    "sha256": "ab0d6c1c60dfe77876a17fc88804156f9ce261c0c3caf639cded8fbfa90be588"
+  },
+  "actual_authorization": {
+    "path": "/workspace/work/model-feedback-pilot-20261114-v1.authorization.json",
+    "bytes": 547,
+    "sha256": "6ff0037d5ac9b9a269ca2f5602d6657b71a007efecd060385c13d36864980548"
+  },
+  "claim": {
+    "path": "/workspace/work/model-feedback-pilot-20261114-v1.claim.json",
+    "bytes": 1035,
+    "sha256": "0bc22bf2b7747c8b5f585da2d3e9364de4358e4549daea2a0113c7f961893700"
+  },
+  "guard_status": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/execution/guard-final-status.json",
+    "bytes": 1271,
+    "sha256": "ddfd9310d89005ba94373502bd44837589eec3f3d22fc05eb8cd69a246502ad4"
+  },
+  "fixed_inputs": [
+    {
+      "path": "runs/sprint-013-validation-20261114/engineering-source/packet.json",
+      "bytes": 5661,
+      "sha256": "171ab3a47506656e17d0265dacf50c4b7e43c258ac420f6bc9ef061c1befb1d4"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/citation-bundle.json",
+      "bytes": 829864,
+      "sha256": "81b4b7b06256bc85f44eac67831fdd7bef2164eb92daabf0529c0afe6bd26ea4"
+    },
+    {
+      "path": "runs/sprint-013-validation-20261114/relevance-bundle.json",
+      "bytes": 1524204,
+      "sha256": "0de61af557efc56c048692a8e4903cb961d9edd5a11ea9af8805d6d7869c4e66"
+    }
+  ],
+  "artifacts": {
+    "selection.request.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/selection.request.json",
+      "bytes": 26932,
+      "sha256": "c9abb7d7291b9423a4f09de27b8c7f4f0aa8d19849e68bee77357a77d7a8a9c1"
+    },
+    "selection.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/selection.json",
+      "bytes": 1036,
+      "sha256": "dd0e983cb687c608193ec2b30741be0158192a52927942f9b74d47570bcbd74f"
+    },
+    "fixed-pair.request.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/fixed-pair.request.json",
+      "bytes": 683,
+      "sha256": "11efa263d85e9b0a68a44cef5c28f6ea38741fe2024163218235dda4d197dac0"
+    },
+    "fixed-pair.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/fixed-pair.json",
+      "bytes": 100883,
+      "sha256": "3387ffaf993ff446e1ec90656721c2e16917c350a179036074803922bcc49ce5"
+    },
+    "saved-audit.request.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/saved-audit.request.json",
+      "bytes": 1160,
+      "sha256": "8b3b353d062c67254f7370a69e0e316b8b73af20fa21acfd20427af71d78dd4d"
+    },
+    "saved-audit.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/saved-audit.json",
+      "bytes": 83499,
+      "sha256": "f9d365afe68fcbc2bc5063b434d785922cce6d5ab30187bff9c3c302c64a5b0f"
+    },
+    "plan-revision.request.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/plan-revision.request.json",
+      "bytes": 41528,
+      "sha256": "5296b80d893c9b278b809c849c517052868e839c709284fe4172781c1275df2c"
+    },
+    "plan-revision.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/plan-revision.json",
+      "bytes": 2811,
+      "sha256": "bc3ef3d053efdfd3c6b9251b4d92e451f486b7450610ddfe23084b9572590856"
+    },
+    "plan-proposed.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/plan-proposed.json",
+      "bytes": 158377,
+      "sha256": "a502f33f521449fe261f00f323ed4a7380b1fa5722d0ed8d6c06756f68611fbe"
+    },
+    "report-before-review.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/report-before-review.json",
+      "bytes": 3823030,
+      "sha256": "bdf6face1e82a17b35f770db1e2b8637b5dc8d1403788c765a96c819b64dbbf3"
+    },
+    "independent-review.request.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/independent-review.request.json",
+      "bytes": 20375,
+      "sha256": "d09c07b429efe3f4e9ed25ba5d872a323cfcfaa40b34d3d7358fbb9473a2562c"
+    },
+    "independent-review.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/independent-review.json",
+      "bytes": 5434,
+      "sha256": "74db7d299de7f25828d9bacc0740a5787b029d731bbbc8228b333fa02fb4d886"
+    },
+    "report-final.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/report-final.json",
+      "bytes": 3823030,
+      "sha256": "bdf6face1e82a17b35f770db1e2b8637b5dc8d1403788c765a96c819b64dbbf3"
+    },
+    "final-checkpoint.json": {
+      "path": "/workspace/work/model-feedback-pilot-20261114-v1/artifacts/final-checkpoint.json",
+      "bytes": 1674,
+      "sha256": "3134f02b3e51b5fa259ceaaabb3a0a915c9daaa5756a10aa12c8c4a296230719"
+    }
+  },
+  "operation_receipts": {
+    "apply-plan.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/apply-plan.json",
+      "bytes": 257447,
+      "sha256": "74ca5196bb2daf83f02df6b5f6cf846250a661babe92c0d81ae75089d188d135"
+    },
+    "apply-selection.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/apply-selection.json",
+      "bytes": 265628,
+      "sha256": "5100f3459e620edc3757ee79a84fc5bbea36149bacbda5fb41f9a99ac3811bb5"
+    },
+    "audit.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/audit.json",
+      "bytes": 257067,
+      "sha256": "55b52de331b59b6b6ae5066c04196ec210652404cc77a25d044e1242d002f40a"
+    },
+    "final-review-checkpoint.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/final-review-checkpoint.json",
+      "bytes": 257797,
+      "sha256": "f7941ba51c3710284ae70af8e4409dc7be96c5cdfa7800b4c2d27555f01f77e6"
+    },
+    "guard-final-status.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/guard-final-status.json",
+      "bytes": 1271,
+      "sha256": "ddfd9310d89005ba94373502bd44837589eec3f3d22fc05eb8cd69a246502ad4"
+    },
+    "initialize.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/initialize.json",
+      "bytes": 257103,
+      "sha256": "d8fa5e7b108f27564825633166f0242983db537fb0fd779d6c7a9c38db467618"
+    },
+    "inspect-selection.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/inspect-selection.json",
+      "bytes": 257527,
+      "sha256": "a4059e020f433b245c2e798064edfda997199241f2b6f32b169a3c775f112d6b"
+    },
+    "pilot-preservation.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/pilot-preservation.json",
+      "bytes": 7614,
+      "sha256": "28129250984b1b7dea732be92b09fe6d767a2b4c8bec862448f7ed14e5607791"
+    },
+    "prepare-audit.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/prepare-audit.json",
+      "bytes": 256650,
+      "sha256": "235c655cdfd68497b524f141c326b416ca5d8df45083d60640dba36a2cc31160"
+    },
+    "prepare-plan.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/prepare-plan.json",
+      "bytes": 257067,
+      "sha256": "2307d2805e736fe7a336dc050880b3187d1348ad312e1d858f285f694daa8f15"
+    },
+    "prepare-review.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/prepare-review.json",
+      "bytes": 256328,
+      "sha256": "8c31e4bf0c2a2faa8e386e18b1e9a320dfe07a9a82b289bce346052e97f405ad"
+    },
+    "recover-plan-report.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/recover-plan-report.json",
+      "bytes": 256442,
+      "sha256": "b57e88bb3254b8a420a66f1121da43d1fe8cb08812e5932e31d8391f791d6803"
+    },
+    "resume-prepared-selection.json": {
+      "path": "runs/model-feedback-pilot-proposal-20261114/execution/resume-prepared-selection.json",
+      "bytes": 257180,
+      "sha256": "0c0859a8478907363893a0ace4af9d3ee6f0b3ad86dfb651e162e3809f9b7862"
+    }
+  },
+  "actual_primary_compute": {
+    "index_builds": 1,
+    "rankings": 6,
+    "metric_scores": 6
+  },
+  "saved_audit": {
+    "execute_saved": 1,
+    "fresh_rankings": 0,
+    "fresh_metric_scores": 0,
+    "not_original_standalone_formal_audit": true
+  },
+  "research_and_engineering_fits": 0,
+  "solver_and_source_extraction": 0,
+  "native_product_model_requests": 0,
+  "external_logical_research_delegations": 3,
+  "underlying_provider_requests_tokens_cost": "unknown",
+  "current_observations": {
+    "corpus_documents": 3,
+    "queries": 3,
+    "queries_per_split": 1,
+    "both_arms_dev_and_test_metrics": 1,
+    "both_arms_validation_metrics": 0,
+    "all_paired_deltas": 0,
+    "adverse_query_count": 1,
+    "adverse_query_id": "qv",
+    "positive_document_ids": [
+      "b"
+    ],
+    "both_rankings": [],
+    "positive_missing_from_rankings_does_not_mean_missing_from_corpus": true
+  },
+  "review": {
+    "verdict": "needs_revision",
+    "recommendation": "leave_proposed",
+    "raw_sha256": "74db7d299de7f25828d9bacc0740a5787b029d731bbbc8228b333fa02fb4d886",
+    "reason": "Plan accurately reported aggregate failures but lacked qv positive b and two empty rankings. Planner received summaries, not those raw saved fields; no claim it read unsupplied data.",
+    "correct_supported_change": "From conditional execution to summarize completed feedback and wait; not just paraphrase.",
+    "decision": "Original model response/context preserved, baseline only, no adoption, no fourth research delegation."
+  },
+  "recoveries": [
+    {
+      "failed_receipt": {
+        "path": "runs/model-feedback-pilot-proposal-20261114/execution/initialize.json",
+        "bytes": 257103,
+        "sha256": "d8fa5e7b108f27564825633166f0242983db537fb0fd779d6c7a9c38db467618"
+      },
+      "recovery_receipt": {
+        "path": "runs/model-feedback-pilot-proposal-20261114/execution/resume-prepared-selection.json",
+        "bytes": 257180,
+        "sha256": "0c0859a8478907363893a0ace4af9d3ee6f0b3ad86dfb651e162e3809f9b7862"
+      },
+      "scope": "After persistence metadata KeyError; read original project/run/prepared Host/request only. No reinitialize."
+    },
+    {
+      "failed_receipt": {
+        "path": "runs/model-feedback-pilot-proposal-20261114/execution/apply-plan.json",
+        "bytes": 257447,
+        "sha256": "74ca5196bb2daf83f02df6b5f6cf846250a661babe92c0d81ae75089d188d135"
+      },
+      "recovery_receipt": {
+        "path": "runs/model-feedback-pilot-proposal-20261114/execution/recover-plan-report.json",
+        "bytes": 256442,
+        "sha256": "b57e88bb3254b8a420a66f1121da43d1fe8cb08812e5932e31d8391f791d6803"
+      },
+      "scope": "After proposed plan persisted, report API given object instead of workspace; read original proposed state and collect report with correct path. No model/tool replay."
+    }
+  ],
+  "preservation": {
+    "path": "runs/model-feedback-pilot-proposal-20261114/execution/pilot-preservation.json",
+    "bytes": 7614,
+    "sha256": "28129250984b1b7dea732be92b09fe6d767a2b4c8bec862448f7ed14e5607791"
+  },
+  "limits": [
+    "Three-document engineering workflow only; no scientific validity/method superiority or causal memory benefit.",
+    "Host delegated records do not authenticate model identity, underlying inference count, tokens or fees.",
+    "Cooperative guard is not OS seal, financial hard cap or independent proof of transport.",
+    "Terminal same-ID receipts are saved-record recovery, not fresh source/runtime/artifact validation.",
+    "Product still lacks verified native Linux controlled model runtime and sustained autonomous research."
+  ],
+  "recovery": "Only original workspace/claim/request IDs. Completed guard phases cannot dispatch again. Host selection applied, feedback plan proposed; old baseline v1/state11 retained. Read checkpoint; no new project, copied directory, request ID or budget reset.",
+  "next": "Pure product engineering: opt-in exact saved adverse-query material in new plan contexts, with bounded bytes/provenance and old context compatibility. No new research model/tool dispatch.",
+  "next_planned_trigger_time": "2026-11-14T22:47:27+08:00",
+  "platform_run_result": "unknown",
+  "notification_delivery": "unknown"
+}

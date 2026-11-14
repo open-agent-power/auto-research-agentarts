@@ -2,13 +2,15 @@
 
 [原始计划](pack-v2/README.md) · [来源身份](pack-provenance.json) · [接续入口](../project/current.md)
 
-最新[Sprint013](SPRINT-013.md)：完成CPU保存经验原生闭环、概览文案及CPU领域知识需求；三真实原包往返、工程target API/报告/双尺寸与当前wheel有限安装已验。保留实际失败/未知请求计数/原负例和预算，无新研究收益；见[验证](g5-local/cpu-experience-verification.json)、[安装](g6-local/cpu-experience-release.md)。持续进入下一研究预协议，未执行未冻结研究。
+最新[Sprint035](SPRINT-035.md)：已获批的一次模型选择/反馈计划/独审真实试跑完成，3逻辑委派/2指定工具用完；独审needs_revision，计划保留proposed。当前继续纯工程补齐明确选入的保存检索反馈，不追加研究调用；[精确证据](g5-local/model-feedback-pilot-results.json)。
+
+历史[Sprint013](SPRINT-013.md)：完成CPU保存经验原生闭环、概览文案及CPU领域知识需求；三真实原包往返、工程target API/报告/双尺寸与当前wheel有限安装已验。保留实际失败/未知请求计数/原负例和预算，无新研究收益；见[验证](g5-local/cpu-experience-verification.json)、[安装](g6-local/cpu-experience-release.md)。持续进入下一研究预协议，未执行未冻结研究。
 
 Sprint012历史[Sprint012](SPRINT-012.md)：固定CPU研究页与独立于报告的紧凑协议GET已实现，214真实GET/0POST、四case五页双尺寸和当前新wheel离线安装通过；52截图/原弱帧与既有overview措辞边界保留。0新研究/fit/model，原预算与负例保持。见[验证](g5-local/fixed-cpu-protocol-verification.json)、[安装](g6-local/fixed-cpu-protocol-release.md)。
 
 Sprint011历史[Sprint011](SPRINT-011.md)：新relevance保存查询阅读/旧citation兼容、实际HTTP/双尺寸界面及当前wheel离线安装已验证；另修reports声明并在新成品明确解析[reports,sources]。不新增研究/拟合/模型或扩大Gate；见[读取证据](g5-local/saved-relevance-reader-verification.json)及[安装交接](g6-local/relevance-reader-release.md)。
 
-最新[Sprint010](SPRINT-010.md)：独立ArguAna官方许可/全量原件审计、新relevance原生合同及一次冻结对照已运行。test Recall20 +0.15，保留186混合坏例；固定TF-IDF等臂对照使记忆增量为0，无完整Gate声明。见[真实结果](g5-local/retrieval-transfer-results.md)。
+历史[Sprint010](SPRINT-010.md)：独立ArguAna官方许可/全量原件审计、新relevance原生合同及一次冻结对照已运行。test Recall20 +0.15，保留186混合坏例；固定TF-IDF等臂对照使记忆增量为0，无完整Gate声明。见[真实结果](g5-local/retrieval-transfer-results.md)。
 
 本次研发以 `5d497c8ae22100953f66c3c5b54746ca87e09f01` 为代码基线。约15天是规划窗口，不是已完成时间或自动跳过 Gate 的依据。
 
@@ -157,3 +159,7 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint034：固定试跑保护与新增受限授权
 
 [S034](SPRINT-034.md)保留AA合法前缀回退负例，1d19独立凭据修复单日志回退并过54检查/独审；它只是外层合作式票据。用户已明确批准[一次3逻辑委派/2工具工程试跑](g5-local/model-feedback-pilot-proposal.md)，尚未实际执行，原研究预算和sourcepins不改。继续领取新owner/唯一claim后按上限推进。
+
+## Sprint035：实际模型反馈与未通过复核
+
+[S035](SPRINT-035.md)保留3委派/2工具原件、三文档零验证/打平、needs_revision及同ID恢复。计划未采纳，原预算保持；继续纯产品材料供应修复，不宣称科研或长期自主收益。

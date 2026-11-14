@@ -8,6 +8,12 @@
 
 ## 最新汇报入口
 
+### Sprint035：实际模型试跑完成，独审要求修订，未采纳
+
+已用完用户批准的3次逻辑研究委派/2指定工具；固定检索、反馈计划和独审均有原回复/真实保存结果。三文档三查询两臂打平，validation均0；独审发现计划漏写qv正例b及两空排名，返回needs_revision/leave_proposed。原project943409…/run78ce0…/state11仅baseline v1，修订保留proposed，不替模型改答或追加第4调用。[S035](../execution/SPRINT-035.md)／[精确身份、预算、失败与恢复](../execution/g5-local/model-feedback-pilot-results.json)。
+
+旧研究、预算与pin保持；2次编排失败同ID读取恢复，工具2/2/reserved0/fit0，native模型0、实际宿主研究委派3、底层请求/token/费用unknown。继续S036纯产品工程：明确选入指定保存不利查询材料，补计划反馈信息；不是重跑本试验或新研究模型授权。当前仍缺原生Linux受控模型runtime、经验因果收益与长期自主闭环。
+
 ### Sprint034：试跑前保护已验证，受限范围已获批准
 
 guard source `1d19f06f16e69b20afe5667aa0bd0d500e8272ef`／pin `/workspace/work/model-feedback-guard-source-1d19f06`，产品仍锁78acf/core057。旧AA版96工程检查保留单日志合法前缀回退可重预留的负例；新独立逐阶段凭据先持久再记日志，定点54checks/3fork通过，单日志回退、缺错孤儿和写故障停止。协同删全部证据/整盘回滚仍不防，且不证明实际发送或替代Host预算/选择门禁。[S034](../execution/SPRINT-034.md)／[完整准备与负结果](../execution/g5-local/model-feedback-pilot-preparation.json)。
