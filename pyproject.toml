@@ -12,7 +12,7 @@ dependencies = ["numpy>=1.26,<3", "scikit-learn>=1.5,<2"]
 [project.optional-dependencies]
 runtime = ["agentarts-sdk==0.1.8"]
 sources = ["h5py==3.16.0"]
-reports = ["reportlab==4.4.9", "matplotlib==3.11.2", "pypdf==6.10.0"]
+reports = ["reportlab==4.4.9", "matplotlib==3.10.8", "pypdf==6.21.4"]
 
 [project.scripts]
 autoresearch = "autoresearch.cli:main"
