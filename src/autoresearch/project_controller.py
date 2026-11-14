@@ -4,7 +4,7 @@ import hashlib
 from pathlib import Path
 
 from . import method_registry as registry, project_knowledge, research_methods, project_selection, research_recipe
-from . import project_design
+from . import project_design, saved_study_reference
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .project_recipe import current_recipe
 from .research_project import ResearchProject, code_identity as project_code_identity, require
@@ -50,6 +50,12 @@ def _check_recipe_decision(context, proposal, decision):
 class ProjectController:
     def __init__(self, workspace):
         self.project = ResearchProject(workspace)
+
+    @staticmethod
+    def saved_study_reference():
+        """Expose the fixed external study without loading or binding a project."""
+        return {**saved_study_reference.read_saved_study_reference(),
+                "scope": "saved_external_reference_not_current_project_result"}
 
     def _base_plan(self, project, need, *, include_knowledge=False):
         options = research_methods.match_methods(project, need)

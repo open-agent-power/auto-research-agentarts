@@ -430,6 +430,11 @@ class LocalWorkbench:
                                                     "intent": {"project_id": body["project_id"]}})
             return response
 
+    @staticmethod
+    def saved_study_reference():
+        """Read the fixed standalone reference without selecting a project."""
+        return ProjectController.saved_study_reference()
+
     def experiences(self):
         from .project_experience_binding import view_cases
         view = {"schema_version": "project-experience-view-v1", "project_id": None,

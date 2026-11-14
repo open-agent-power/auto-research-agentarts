@@ -494,7 +494,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
-                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/project/knowledge"}:
+                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/local-workbench/saved-study-reference", "/api/project/knowledge"}:
                     _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
@@ -522,6 +522,13 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 if parsed.path == "/api/local-workbench/experiences" and local_workspace is not None:
                     _require(not parsed.query, "INVALID_QUERY", "Historical method cases do not accept a query.")
                     return self.send_json(200, local_workspace.experiences())
+                if parsed.path == "/api/local-workbench/saved-study-reference":
+                    _require("?" not in self.path, "INVALID_QUERY", "The fixed saved study does not accept a query.")
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    return self.send_json(200, local_workspace.saved_study_reference())
+                if parsed.path.startswith("/api/local-workbench/saved-study-reference"):
+                    return self.project_error(404, "LOCAL_WORKBENCH_ROUTE_NOT_FOUND", "Unknown local workbench route.")
                 if parsed.path.startswith("/api/local-workbench/batch/") and local_workspace is not None:
                     _require(not parsed.query and parsed.path.endswith(".json"), "INVALID_QUERY", "Use one saved batch JSON identifier.")
                     encoded = parsed.path.removeprefix("/api/local-workbench/batch/")[:-5]
