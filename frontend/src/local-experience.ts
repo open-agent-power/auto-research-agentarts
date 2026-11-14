@@ -1,5 +1,6 @@
 /** Explicit project-local snapshots of historical method cases. */
 import { el } from "./dom";
+import { cpuResultSummary } from "./cpu-results";
 
 type Obj = Record<string, unknown>;
 type Host = {
@@ -52,6 +53,37 @@ function parentComparison(article: HTMLElement, comparison: Obj): void {
   article.append(el("p", "detail-note", "以上只描述原项目的保存对照；误差降低不表示本项目收益或科学确认，声明组也不自动成为独立样本。"));
 }
 
+function cpuTable(caption: string, headings: string[], values: string[][]): HTMLElement {
+  const wrap = el("div", "project-comparison table-scroll"), table = el("table", "data-table");
+  table.append(el("caption", "", caption));
+  const head = el("thead"), header = el("tr");
+  for (const title of headings) { const cell = el("th", "", title); cell.scope = "col"; header.append(cell); }
+  head.append(header); table.append(head);
+  const body = el("tbody");
+  for (const cells of values) {
+    const row = el("tr");
+    cells.forEach((value, index) => { const cell = index === 0 ? el("th", "", value) : el("td", "", value);
+      if (cell instanceof HTMLTableCellElement && index === 0) cell.scope = "row"; row.append(cell); });
+    body.append(row);
+  }
+  table.append(body); wrap.append(table); return wrap;
+}
+
+function cpuObservation(article: HTMLElement, observation: Obj, scope: Obj): void {
+  const method = text(observation.method_id, ""), counts = object(observation.saved_counts);
+  const kinds: Record<string, string> = { "research.retrieval-fixed-pair": "citation_retrieval_pair",
+    "research.relevance-fixed-pair": "relevance_retrieval_pair",
+    "research.weighted-interval-fixed-pair": "weighted_interval_fixed_pair" };
+  const paired = object(observation.paired_summary);
+  const summary = method === "research.weighted-interval-fixed-pair" ? paired : {
+    paired_summary: paired, query_pairs: typeof counts.metric_rows === "number" ? counts.metric_rows / 2 : undefined,
+    adverse_queries: counts.adverse_queries };
+  const view = cpuResultSummary([{ kind: kinds[method], scope, summary }], cpuTable);
+  if (view) article.append(view);
+  else article.append(el("p", "detail-note", "此CPU方法没有可展示的保存汇总，请查看原案例记录。"));
+  article.append(el("p", "detail-note", "以上是原项目保存的结果与仅限保存值的核对，不是当前项目的新观察或科学评审。完整结果与原协议保留在案例快照中。"));
+}
+
 export function createLocalExperiencePanel(host: Host): {
   element: HTMLElement; setLocked(value: boolean): void; refresh(projectId: string, project: Obj, pendingRequests?: Obj[]): Promise<void>;
   resolved(command: string, requestId: string): boolean;
@@ -88,7 +120,8 @@ export function createLocalExperiencePanel(host: Host): {
   function draftText(): void {
     const draft = active ? draftFor(active) : null;
     reason.value = draft?.reason ?? "";
-    fileStatus.textContent = draft?.name ? draft.name + " · 案例 " + text(draft.preview.id) + " · v" + numeric(draft.preview.version)
+    fileStatus.textContent = draft?.name ? draft.name + " · " + (draft.preview.schema_version === "cpu-project-experience-bundle-v1" ? "CPU保存结果" : "Ridge保存结果")
+      + " · 案例 " + text(draft.preview.id) + " · v" + numeric(draft.preview.version)
       + (draft.submitted ? " · 已从保存记录确认导入。" : " · 草稿已准备，尚未提交。") : "选择不超过4MiB的案例JSON；选择文件只准备草稿。";
   }
   function resolved(command: string, requestId: string): boolean {
@@ -118,16 +151,24 @@ export function createLocalExperiencePanel(host: Host): {
     const article = el("article", "evidence-card local-experience-case"), card = object(record.method_card), origin = object(record.origin_evidence);
     const observation = object(record.observation), scope = object(record.source_scope), id = text(record.case_id, ""), sourceProject = active;
     const retired = record.inclusion_status === "retired", draft = draftFor(sourceProject);
+    const cpu = observation.kind === "saved_cpu_fixed_pair";
     article.append(el("h3", "", text(card.question, id)), el("p", "detail-note", id + " · v" + numeric(record.case_version)
       + " · " + (retired ? "已从后续建议撤回" : "当前用于参考")), el("p", "", text(card.rationale)),
-      el("p", "detail-note", "源项目 · " + text(origin.project_id)),
-      el("p", "detail-note", "原方法 · " + objects(card.method_refs).map(item => host.methodTitle(text(item.method_id))).join("、")
+      el("p", "detail-note", "源项目 · " + text(origin.project_id)));
+    if (cpu) {
+      const comparison = object(observation.comparison);
+      article.append(el("p", "detail-note", "原方法 · " + host.methodTitle(text(observation.method_id)) + "；原协议 · " + text(observation.evaluation_ref)),
+        el("p", "detail-note", "基线 · " + text(comparison.baseline) + "；候选 · " + text(comparison.candidate)));
+      cpuObservation(article, observation, scope);
+    } else {
+      article.append(el("p", "detail-note", "原方法 · " + objects(card.method_refs).map(item => host.methodTitle(text(item.method_id))).join("、")
         + "；原检查 · " + text(observation.check)), el("p", "detail-note", "原目标 · " + text(scope.target_column) + "；原单位 · " + text(scope.target_unit)));
-    const numbers = summaryText(object(observation.numerical_summary)); if (numbers) article.append(el("p", "", "来源观察 · " + numbers));
-    const summary = object(observation.numerical_summary);
-    if ([summary.observed_min, summary.observed_max, summary.predicted_min, summary.predicted_max].every(value => typeof value === "number" && Number.isFinite(value)))
-      article.append(el("p", "detail-note", `原观察范围 ${numeric(summary.observed_min)}至${numeric(summary.observed_max)}；保存预测范围 ${numeric(summary.predicted_min)}至${numeric(summary.predicted_max)}。`));
-    parentComparison(article, object(observation.saved_parent_comparison));
+      const numbers = summaryText(object(observation.numerical_summary)); if (numbers) article.append(el("p", "", "来源观察 · " + numbers));
+      const summary = object(observation.numerical_summary);
+      if ([summary.observed_min, summary.observed_max, summary.predicted_min, summary.predicted_max].every(value => typeof value === "number" && Number.isFinite(value)))
+        article.append(el("p", "detail-note", `原观察范围 ${numeric(summary.observed_min)}至${numeric(summary.observed_max)}；保存预测范围 ${numeric(summary.predicted_min)}至${numeric(summary.predicted_max)}。`));
+      parentComparison(article, object(observation.saved_parent_comparison));
+    }
     const limits = strings(record.limitations);
     if (limits.length) { const ul = el("ul"); for (const limit of limits) ul.append(el("li", "", limit)); article.append(el("h4", "", "适用边界与反例"), ul); }
     const original = el("details", "local-advanced"); original.append(el("summary", "", "查看方法卡、原协议与出处"));
@@ -136,6 +177,15 @@ export function createLocalExperiencePanel(host: Host): {
       const values = strings(applicability[key]), ul = el("ul"); for (const value of values) ul.append(el("li", "", value));
       if (values.length) original.append(el("h4", "", label), ul);
     }
+    if (cpu) {
+      original.append(el("h4", "", "原固定协议与来源身份"),
+        el("p", "", "评价协议：" + text(observation.evaluation_ref) + "；来源范围：" + text(scope.dataset_label)),
+        el("p", "detail-note", "原行动：" + text(origin.action_id) + "；原项目版本 " + numeric(origin.state_version)),
+        el("p", "detail-note", "原结果生产代码：" + text(origin.producer_code_identity)),
+        el("p", "detail-note", "来源快照 SHA-256：" + text(origin.source_snapshot_sha256)),
+        el("p", "detail-note", "原结果 SHA-256：" + text(origin.result_sha256)),
+        el("p", "detail-note", "原来源文件按 SHA-256 引用；原文未随案例快照附带。已保存值按绑定与算术核对，未重算检索得分或求解。"));
+    } else {
     const protocol = object(observation.protocol);
     original.append(el("h4", "", "原计算协议"), el("p", "", text(protocol.splitter) + " · " + numeric(protocol.n_splits) + " 折；Ridge alpha " + numeric(protocol.ridge_alpha)),
       el("p", "", "原输入列：" + strings(protocol.feature_columns).join("、") + "；分组列：" + strings(protocol.split_group_columns).join("、")),
@@ -151,10 +201,11 @@ export function createLocalExperiencePanel(host: Host): {
       original.append(el("p", "detail-note", "父版生产代码：" + text(origin.parent_producer_code_identity)),
         el("p", "detail-note", "候选生产代码：" + text(origin.producer_code_identity)));
     }
-    const raw = el("details", "local-advanced"); raw.append(el("summary", "", "完整案例记录 JSON"), el("pre", "project-source-text", JSON.stringify(record, null, 2)));
+    }
+    const raw = el("details", "local-advanced"); raw.append(el("summary", "", cpu ? "案例摘要 JSON（完整结果在原导入包）" : "完整案例记录 JSON"), el("pre", "project-source-text", JSON.stringify(record, null, 2)));
     original.append(raw); article.append(original);
-    const actions = el("div", "local-actions"), recordDownload = el("button", "quiet-button", "下载这条案例记录 JSON"); recordDownload.type = "button";
-    recordDownload.addEventListener("click", () => download(record, id + "-v" + numeric(record.case_version))); actions.append(recordDownload);
+    const actions = el("div", "local-actions"), recordDownload = el("button", "quiet-button", cpu ? "下载案例摘要 JSON" : "下载这条案例记录 JSON"); recordDownload.type = "button";
+    recordDownload.addEventListener("click", () => download(record, id + "-v" + numeric(record.case_version) + (cpu ? "-summary" : ""))); actions.append(recordDownload);
     const statusForm = el("form", "local-experience-status"), statusReason = el("textarea"), button = el("button", "action-button");
     statusReason.rows = 2; statusReason.maxLength = 2000; statusReason.required = true; statusReason.value = draft.statusReasons.get(id) ?? "";
     button.type = "submit"; button.textContent = retired ? "恢复参考" : "从后续建议撤回";
@@ -192,7 +243,8 @@ export function createLocalExperiencePanel(host: Host): {
     try {
       if (!file.size || file.size > 4 * 1024 * 1024) throw Error("案例JSON须非空且不超过4MiB，原草稿保留。");
       const bytes = new Uint8Array(await file.arrayBuffer()), preview = object(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)));
-      if (preview.schema_version !== "project-experience-bundle-v1" || typeof preview.id !== "string" || typeof preview.version !== "number")
+      if (!["project-experience-bundle-v1", "cpu-project-experience-bundle-v1"].includes(text(preview.schema_version, ""))
+          || typeof preview.id !== "string" || typeof preview.version !== "number")
         throw Error("请选择导出的项目案例快照，原草稿保留。");
       draft.name = file.name; draft.encoded = encoded(bytes); draft.preview = preview; draft.submitted = false;
       if (active === sourceProject) draftText();

@@ -39,7 +39,7 @@ def _latest(state):
 
 
 def _load(root, revision):
-    from .project_experience import parse_bundle, MAX_BUNDLE_BYTES
+    from .project_experience_dispatch import parse_bundle, MAX_BUNDLE_BYTES
     from .research_project import require, safe_path
     from .source_evidence_adapter import _read_file
     digest = revision["bundle_sha256"]
@@ -57,7 +57,7 @@ def _load(root, revision):
 
 def import_case(project, *, request_id, expected_state_version, bundle, reason, _validate_only=False):
     """Save one exact active-at-export case; import never restores an old binding."""
-    from .project_experience import parse_bundle
+    from .project_experience_dispatch import parse_bundle
     from .research_project import require, safe_path, write_bytes_once
     _request(request_id, expected_state_version, reason)
     require(type(bundle) is bytes, "INVALID_REQUEST", "Provide original case bundle bytes.")
@@ -142,7 +142,7 @@ def set_status(project, *, request_id, expected_state_version, case_id, status, 
 
 def view_cases(root, project_state):
     """Read each latest local case including retired cases, without changing status."""
-    from .project_experience import summary
+    from .project_experience_dispatch import summary
     cases = []
     for revision in _latest(project_state).values():
         bundle, _ = _load(root, revision)

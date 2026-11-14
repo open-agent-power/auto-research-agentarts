@@ -177,8 +177,14 @@ class ResearchMemory:
         derived = derive_entries(research, reproduction)
         return self._import_derived(derived)
 
-    def _import_derived(self, derived):
-        """Storage only. A domain-specific trusted validator owns derivation."""
+    def _import_derived(self, derived, *, verification="numerical"):
+        """Storage only. A trusted validator owns numerical or byte-binding derivation."""
+        if verification not in ("numerical", "binding"):
+            raise ResearchError('INVALID_REQUEST', 'select numerical or binding verification')
+        if verification == "binding" and any(
+                entry.get('kind') != 'diagnostic_observation'
+                or entry.get('numerical_recomputation') is not False for entry in derived['entries']):
+            raise ResearchError('INVALID_REQUEST', 'binding-only evidence must be non-numerical diagnostics')
         validate_scope(derived['scope'])
         for entry in derived['entries']:
             if (entry['scope'] != derived['scope'] or entry['kind'] not in KINDS
@@ -186,6 +192,8 @@ class ResearchMemory:
                 raise ResearchError('INVALID_SCOPE', 'derived observations must share their exact validated scope')
         if not derived['entries']:
             raise ResearchError('NO_EVIDENCE', 'no executed observation or control decision to remember')
+        import_reason = ('Imported byte-bound saved evidence; numerical correctness and scientific validity unreviewed.'
+                         if verification == 'binding' else 'Imported numerically checked evidence; scientific validity unreviewed.')
         inserted = 0
         with self._connect(True) as con:
             total = con.execute('SELECT count(*) FROM entries').fetchone()[0]
@@ -193,21 +201,25 @@ class ResearchMemory:
                 old = con.execute('SELECT * FROM entries WHERE id=?', (entry['id'],)).fetchone()
                 if old:
                     original = self._verify(con, old)
-                    if original['payload'] != entry['payload']:
-                        raise ResearchError('EVIDENCE_CONFLICT', 'same scoped action has changed content; preserve original and review the source')
+                    immutable = lambda value: {key: item for key, item in value.items() if key != 'provenance'}
+                    first_event = json.loads(con.execute(
+                        'SELECT record FROM events WHERE entry_id=? ORDER BY ordinal LIMIT 1', (entry['id'],)).fetchone()[0])
+                    if immutable(original) != immutable(entry) or first_event.get('reason') != import_reason:
+                        raise ResearchError('EVIDENCE_CONFLICT', 'same scoped action has changed evidence or verification mode; preserve the original')
                     self._source(con, entry)
                     continue  # Import never reactivates a retired record.
                 if total >= MAX_ENTRIES:
                     raise ResearchError('MEMORY_LIMIT', f'memory store bounded to {MAX_ENTRIES} entries')
                 con.execute('INSERT INTO entries VALUES(?,?,?,?,?,?)',
                             (entry['id'], fingerprint(entry['scope']), entry['kind'], canonical(entry), fingerprint(entry), 'active'))
-                self._event(con, entry['id'], 'active', 'Imported numerically checked evidence; scientific validity unreviewed.',
+                self._event(con, entry['id'], 'active', import_reason,
                             'import-'+entry['id'], fingerprint({'entry': entry['id'], 'operation': 'import'}))
                 self._source(con, entry)
                 inserted += 1
                 total += 1
         return {'scope': derived['scope'], 'inserted': inserted, 'entries_total_in_import': len(derived['entries']),
-                'numerical_validation': derived['validation'], 'scientific_validation': False}
+                ('binding_validation' if verification == 'binding' else 'numerical_validation'): derived['validation'],
+                'scientific_validation': False}
 
     def recall(self, scope, *, kinds=None, limit=8, include_retired=False):
         validate_scope(scope)

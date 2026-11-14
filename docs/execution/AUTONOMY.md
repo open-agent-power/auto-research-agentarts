@@ -15,6 +15,12 @@
 
 凭据恢复实测：上轮GH_TOKEN曾失效，此次继承环境恢复后的新CLI会话已普通推送成功。先用新进程实际验证登录，不把过往401当永久无权限；无需重复索要既有开发/推送授权。保留失败记录和所有原Git提交SHA，禁止因远端落后reset本地或用新的commit元数据冒充冻结源。
 
+## 持续推进与可复用团队
+
+定时任务是周期检查、对齐和汇报，不是每完成一个增量就结束的指令。已有持续开发授权时，增量验证和必要独审通过后保存里程碑、短报结果并继续下一可做任务；不等待下一定时触发再开始。仅在实际执行窗口结束、环境不可用或确需用户选择的新阻塞时保存接续，不能以后台进程或enabled配置代替真实模型持续执行。
+
+由主代理维护同一团队池，先复用仍可调用的成员、按任务赋角色，可兼任相关实现/验证/打包，不按小目标拆新人。默认团队池包含主代理和各级子代理不超过10人，同时遵守宿主更低的总量与并发限额。新建子代理优先gpt-6.1-terra/ultra，按宿主约束使用fork_turns=none并给必要上下文；不能原位换模型的已有成员继续优先复用。独审由未参与该实现的其他成员承担，不因改角色名自审。成员和角色不扩大产品模型/API、研究额度或文件写入权限；同工作树lease与一文件一writer继续有效。
+
 ## 参考项目的真实状态
 
 云端参考目录`/workspace/references/upstream/`及`/workspace/references/manifest.json`已存在。2026-11-13再次核对8仓库均为真实Git checkout、HEAD与固定清单一致、工作树clean：autoresearch、AI-Scientist、AgentLaboratory、prime、OpenHands、software-agent-sdk、beir、ragas。核验原件`runs/autonomy-setup-20261113/reference-check.json`。

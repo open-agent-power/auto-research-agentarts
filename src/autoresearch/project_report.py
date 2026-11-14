@@ -33,6 +33,23 @@ def _experience_rows(report):
     for case in report.get("experience_cases", []):
         origin = case["origin_evidence"]
         scope = case["source_scope"]
+        saved = case["observation"]
+        if saved.get("kind") == "saved_cpu_fixed_pair":
+            comparison, counts = saved["comparison"], saved["saved_counts"]
+            source = (str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id", "未提供"))
+                      + "；原合同 " + str(scope.get("contract", "未提供")))
+            observation = ("保存基线 " + str(comparison["baseline"]) + " → 候选 " + str(comparison["candidate"]))
+            if "queries_by_split" in counts:
+                observation += ("；原查询分区 " + json.dumps(counts["queries_by_split"], ensure_ascii=False, sort_keys=True)
+                                + "；不利查询 " + _number(counts["adverse_queries"]))
+            else:
+                observation += ("；保存任务 " + _number(counts["cases"]) + " / 作业 " + _number(counts["jobs"])
+                                + " / 运行 " + _number(counts["runs"]) + "；不利任务 " + _number(counts["adverse_cases"]))
+            observation += "；仅核对已保存值与绑定，非本项目结果，未重新排名、计分或求解。"
+            rows.append([case["case_id"] + " v" + str(case["case_version"]),
+                         "用于后续参考" if case["inclusion_status"] == "active" else "已从后续参考撤回",
+                         source, observation])
+            continue
         source = (str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id", "未提供"))
                   + "；原目标 " + str(scope.get("target_column")) + "，单位 " + str(scope.get("target_unit")))
         numbers = case["observation"]["numerical_summary"]
@@ -268,7 +285,7 @@ def collect_report(workspace) -> dict:
         assets[asset["name"]] = {key: value for key, value in asset.items() if key != "role"}
         source_manifest.append({key: value for key, value in asset.items() if key != "bytes_base64"})
     from .project_experience_binding import case_assets, view_cases
-    from . import project_experience_binding, project_experience
+    from . import project_experience_binding, project_experience, cpu_project_experience, project_experience_dispatch
     experience_cases = view_cases(project.root, before)
     for asset in case_assets(project.root, before):
         raw, name = asset["data"], asset["name"]
@@ -321,6 +338,8 @@ def collect_report(workspace) -> dict:
                                                        + Path(input_basis.__file__).read_bytes()
                                                        + Path(project_experience_binding.__file__).read_bytes()
                                                        + Path(project_experience.__file__).read_bytes()
+                                                       + Path(cpu_project_experience.__file__).read_bytes()
+                                                       + Path(project_experience_dispatch.__file__).read_bytes()
                                                        + Path(research_design.__file__).read_bytes()
                                                        + (Path(cpu_report_sections.__file__).read_bytes() if kind in cpu_report_sections.PRIMARY else b"")).hexdigest(),
               "scientific_validation": False,

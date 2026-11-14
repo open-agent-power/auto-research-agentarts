@@ -1,5 +1,7 @@
 # 后端索引
 
+[CPU经验模块](../../src/autoresearch/cpu_project_experience.py)在原项目只读捕获完整保存结果，复用ResearchMemory binding模式与[显式分派](../../src/autoresearch/project_experience_dispatch.py)接原项目case账本；旧Ridge校验不放宽。见[完整边界](../../docs/cpu-project-experience.md)。
+
 [cpu_protocol_reader](../../src/autoresearch/cpu_protocol_reader.py)直接核验原项目source与注册身份，调用原生parse/checked一次后投影三类固定CPU协议；不依赖报告、行动或执行权限。沿用project_workbench宿主绑定及前后快照门禁，见[接口](../../docs/fixed-cpu-protocol.md)。
 
 保存查询阅读器按已登记citation/relevance家族选择固定validator和算法角色，relevance保留原grade/缺正例、核完整保存算术；旧citation响应保持。见[读取合同](../../docs/saved-retrieval-reader.md)。
