@@ -1,0 +1,166 @@
+{
+  "schema_version": "s054-study-protocol-v1",
+  "study_id": "s054-squad-train-conditional-v1",
+  "status": "frozen_before_research_actions_requires_clean_published_driver_and_independent_review",
+  "authorization_ref": "docs/execution/local-continuation.json: g5 fixed pure-CPU new bounded retrieval, product_model_sends=0",
+  "input": {
+    "directory": "/workspace/reference-exploration-20261115/squad-train",
+    "manifest_sha256": "77f50e312c9d64910a9fb37108d49d82bf434647285c4b269f92d365f9b774a1",
+    "source_url": "https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json",
+    "source_sha256": "3527663986b8295af4f7fcdff1ba1ff3f72d07d61a20f487cb238a6ef92fd955",
+    "source_bytes": 30288272,
+    "corpus_selection_sha256": "71fef426e362f4f38a6e72c5f327d9dd72aabd247bf1501f1cf09e603d44c803",
+    "question_selection_sha256": "dcfa102719ed3efc8b622c572fdfd5feee07ffd40b04d41b465dc5fc89e0247d",
+    "development_assets": [
+      {
+        "bytes": 1805855,
+        "path": "development/corpus.jsonl",
+        "sha256": "d31f37c13d76c50044a79a096d7c0156cbb5384c83d78c96c88ac51954c76045"
+      },
+      {
+        "bytes": 23384,
+        "path": "development/queries.jsonl",
+        "sha256": "85d0867d504de0c6415b287d0775aeaca60445091539539edec52ac8f2e86a9b"
+      },
+      {
+        "bytes": 9503,
+        "path": "development/qrels.tsv",
+        "sha256": "5a9b54bef8982d0e8b0e5c56b9346cb5405bb0635d3666763e90df8af72dcdf3"
+      },
+      {
+        "bytes": 350,
+        "path": "development/license.md",
+        "sha256": "2b046384e98349cc0704dfd9b821bc72b91ae3c4626ad2035a3e0f78accb54e9"
+      }
+    ],
+    "holdout": {
+      "bytes": 18418,
+      "path": "private/holdout.json",
+      "sha256": "29b221fa60aab4a1d021d23cf9b0a725dd3745d7f12cfda23f043232405cc7de"
+    },
+    "license": "CC BY-SA 4.0",
+    "official_license_statement": "Download a copy of the dataset (distributed under the CC BY-SA 4.0 license)",
+    "source_data_helper_sha256": "5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619"
+  },
+  "source_requirement": {
+    "project_core_identity": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+    "published_clean_exact_commit_required": true,
+    "canonical_source_pin": "/workspace/development-continuation-20261114/source-pins/<source_commit_first_7>",
+    "driver_git_blob_matches": true,
+    "no_existing_project_source_upgrade": true
+  },
+  "selection": {
+    "official_split": "train",
+    "train_doc_id": "squad11-train-<zero-based article index>-<zero-based paragraph index>, decimal ASCII",
+    "corpus_sort": [
+      "sha256(utf8(s054-corpus-v1:<train_doc_id>))",
+      "train_doc_id"
+    ],
+    "corpus_count": 2200,
+    "eligible_questions": "only qas originally belonging to the fixed selected corpus paragraphs; read id/question, ignore answers",
+    "deduplication": "strip().casefold(); smallest qid retained",
+    "query_sort": [
+      "sha256(utf8(s045-squad-paragraph-v1:<qid>))",
+      "qid"
+    ],
+    "query_count": 300,
+    "splits": {
+      "dev": 100,
+      "validation": 100,
+      "final": 100
+    },
+    "insufficient_or_oversize": "stop; do not change seed/count/replace queries or documents",
+    "preparation_observation": "No ranking, scoring, model or fit; input/source selection already prepared before this action protocol."
+  },
+  "hypothesis": {
+    "metric": "recall@20",
+    "operator": "gt",
+    "threshold": 0,
+    "meaning": "saved validation paired candidate TF-IDF cosine minus baseline BM25 mean",
+    "branches": {
+      "condition_met": {
+        "kind": "method",
+        "method_id": "research.relevance-validation-saved-audit"
+      },
+      "condition_not_met": {
+        "kind": "wait"
+      }
+    },
+    "unknown": "wait; retain None/reason; never substitute 0"
+  },
+  "budget": {
+    "max_tool_calls": 3,
+    "max_evidence_reads": 0,
+    "max_model_calls": 0,
+    "max_fits": 0,
+    "max_research_concurrency": 1,
+    "max_wall_seconds": 1800,
+    "tools": "one primary pair; only if original condition met one saved audit and one final",
+    "development_tokens": "unknown",
+    "development_cost": "unknown",
+    "no_paid_provisioning_or_model_API": true
+  },
+  "fixed_ids": {
+    "plan": "s054-plan",
+    "evidence_cap": "s054-zero-evidence",
+    "holdout": "s054-holdout",
+    "hypothesis": "s054-hypothesis",
+    "primary": "s054-primary",
+    "conditional": "s054-conditional",
+    "import": "s054-import",
+    "select": "s054-select"
+  },
+  "comparison": {
+    "baseline": "bm25",
+    "candidate": "tfidf_cosine",
+    "top_k": 20,
+    "k1": 1.2,
+    "b": 0.75,
+    "tokenizer": "ascii_alnum_lower_v1",
+    "tie_break": "doc_id_ascending",
+    "ignore_identical_ids": true,
+    "missing_document_policy": "retain_in_denominator",
+    "metrics": [
+      "recall@5",
+      "recall@10",
+      "recall@20",
+      "mrr@10",
+      "ndcg@10"
+    ]
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "unicode": "15.0.0",
+    "trusted_local": true,
+    "thread_limit": 1,
+    "private_fresh_pycache_namespace_required": true
+  },
+  "evaluation": {
+    "primary": "report saved dev/validation metrics and predicate outcome, including all adverse/zero/negative results",
+    "final": "only condition_met original policy audit verified => fixed strategy freeze => at most once original final => original report",
+    "wait_or_unknown_final": "unmeasured / None; no final ranking/scoring and no automatic staged report",
+    "final_selection_bias": "final is conditional on validation success; not an unbiased independent replication or cross-task benefit proof",
+    "no_parameter_or_seed_retuning": true,
+    "no_model_judge": true,
+    "no_general_research_efficacy_claim": true
+  },
+  "recovery": {
+    "single_cooperating_study_claim": true,
+    "claim_precedes_project_execution": true,
+    "exact_original_workspace_ids_and_bodies": true,
+    "body_saved_before_each_dispatch": true,
+    "no_new_context_reselection_on_replay": true,
+    "resume_missing_database": "stop; never recreate",
+    "unknown_action": "stop under original request; never retry another project or directory",
+    "terminal_replay": "no new actions or budgets; preserve bytes and state",
+    "original_S046_ArguAna_S050_untouched": true
+  },
+  "limitations": [
+    "Same public dataset, different official split and fixed paragraph cohort; not a new dataset or cross-dataset generalization.",
+    "Selection and download before action registration; no claim of prior non-exposure or blind/sealed evaluation.",
+    "S046 used DEV; visible tracked history has no TRAIN execution. Inaccessible historical ledgers remain unknown.",
+    "One original question-to-paragraph mapping, not exhaustive relevance or answer quality.",
+    "Corpus and query sampling differ from S046; do not compare raw scores as a controlled treatment effect across cohorts.",
+    "Native deterministic conditional gate; no model autonomy, statistical significance, OS/sealed isolation or complete Gates claimed."
+  ]
+}
