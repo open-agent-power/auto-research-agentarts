@@ -21,7 +21,7 @@
 
 ## Skill与方法的真实状态
 
-- `adaptive-agent-workflow` v0.3.0，固定上游 `81610ae298ec915eed5b1ff01326c112b0262b28`；六文件已替换到本机用户Skill目录并逐字节核验，native discovery有效。root及负责人显式读取；未开启自动hook。云端Skill Library旧副本仍未通过当前工具替换，不冒称同步成功。
+- `adaptive-agent-workflow` v0.3.1，固定上游 `02e72e3e411bec53db2288651df01afb27d8904d`；完整七文件（含checkpoint脚本）已替换到本机用户Skill目录并逐字节核验，native discovery有效。root及实际执行/独审负责人显式读取新版SKILL/runtime-playbook；当前宿主按上游fallback显式执行owner loop，未声称live hooks有效。旧native包已归档，current缩短并保留历史原文。云端Skill Library旧副本仍未通过当前工具替换，不冒称同步成功。
 - 项目 `research-dev-router` 通过 `.agent/skills/` 显式读取，不假定宿主扫描。`dev-system` 已归档停用；旧文档提及它不重新授权加载。
 - superpowers与K-Dense专业方法已固定版本、静态评估，按需作有限参考；未整体安装或挂载给子代理。`hypothesis-generation`不适合作为自动假设评分/选择引擎；绘图/API、任意表达式执行和全库启动hook未启用。
 - 子代理接口没有按人注入Skill或单独限制工具的参数；采用显式读取和任务/文件范围，不能声称原生挂载或权限隔离。

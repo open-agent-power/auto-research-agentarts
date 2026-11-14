@@ -2,10 +2,10 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T00:42:14+08:00",
-  "last_checkpoint": "2026-11-15T02:09:08.456825+08:00",
+  "last_checkpoint": "2026-11-15T02:23:49.205989+08:00",
   "end_time": null,
-  "status": "running_S049_preparation_after_S048_verified",
-  "confirmed_commit": "304c25a9989a8aa0c395500a5fb3834a771c0b7a",
+  "status": "running_after_S049_verified_workflow_updated",
+  "confirmed_commit": "6cc5dd90ae1ce777324ccae328c7158025dd3480",
   "origin_readback_matches": true,
   "completed": [
     "S045 development-only native retrieval, separate preregistered private final package, validation-frozen fixed method, one original-budget final paired evaluation, same-ID/marker recovery, bounded public context/report",
@@ -16,12 +16,13 @@
     "S046 independent saved-value arithmetic and binary evidence audit passed;36 replay files and11 prepared files independently rehashed",
     "S047 native Workbench audit/freeze/final/report continuation;101 related and19 independent tests; real loopback+new process same-ID no changed DB/actions/budget/report/source",
     "S048 native adapter/dispatch/report integration99/99; independent staging12/integration7; actual S046 read-only capture574775B with36 original files/budget unchanged and no research action",
-    "S048 actual historical-case HTTP import/reference/report/replay/retire verified; target actions0, budget/candidates/evidence unchanged"
+    "S048 actual historical-case HTTP import/reference/report/replay/retire verified; target actions0, budget/candidates/evidence unchanged",
+    "S049 versioned original-manifest receipt adoption51 related/6 independent; real HTTP disconnect at serverexit86 then new process original-ID recovery with rerender disabled and all files/project/budget unchanged",
+    "Updated full global AAWv0.3.1 package7files; original package and long current note preserved; upstream11 local tests passed; actual owners read updated Skill"
   ],
   "not_completed": [
-    "S048 code publication in progress",
-    "S049 report receipt recovery patch preparing, source not yet changed",
-    "native Linux model transport not implemented or tested with real model"
+    "S049 source publication in progress",
+    "native Linux model transport real product integration/model run not completed"
   ],
   "actual_research_results": {
     "validation_delta_recall20": -0.01,
@@ -40,14 +41,14 @@
   },
   "activity": {
     "owner": "root-evaluation-20261115T0042",
-    "root": "integration/push, continuing existing lease",
-    "engineering": "native transport feasibility metadata complete; reusable",
-    "capability_review": "S048 actual capture/source independent review passed",
+    "root": "source publication, existing lease still held, next useful slice selection",
+    "engineering": "S049 true process fault probe completed; reusable",
+    "capability_review": "S049 independent review completed; reusable",
     "old_disk_executor": "unknown",
     "background_model_process_claim": false,
-    "workbench_continuation": "S049 report recovery patch in staging only",
+    "workbench_continuation": "S049 implementation handed back; reusable",
     "research_mechanisms": "S048 implementation frozen, reusable",
-    "runtime_evidence": "S048 overbroad draft interrupted before execution; root minimal real HTTP completed"
+    "runtime_evidence": "interrupted, reusable; no S048 draft executed"
   },
   "known_negative_results": [
     "NFCorpus academic-use scope not confirmed; CQADupStack rights/capacity unresolved, not adopted",
@@ -60,7 +61,7 @@
     "no native Linux model transport or real efficacy result yet",
     "old model/fit budgets not expanded"
   ],
-  "next": "Publish S048 code and preserve pin; implement versioned original-manifest receipt recovery, independent validation; no extra model/API calls",
+  "next": "Finish S049 versioned pre-publication manifest binding and adopt same original report on recovery; no rerender or new output slot",
   "user_decision_required": null,
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
@@ -86,7 +87,15 @@
     "docs/execution/g5-local/staged-continuation-verification.json",
     "docs/execution/SPRINT-048.md",
     "docs/staged-project-experience.md",
-    "docs/execution/g5-local/staged-experience-verification.json"
+    "docs/execution/g5-local/staged-experience-verification.json",
+    "docs/execution/SPRINT-049.md",
+    "docs/execution/g5-local/report-recovery-verification.json"
   ],
-  "research_workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1"
+  "research_workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1",
+  "workflow": {
+    "version": "0.3.1",
+    "source_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
+    "global_native_files_verified": 7,
+    "live_hooks": "not activated; explicit owner loop"
+  }
 }

@@ -1,8 +1,8 @@
 {
   "schema_version": "s048-staged-experience-verification-v1",
-  "status": "verified_pending_commit",
+  "status": "verified_and_pushed",
   "checkpoint": "2026-11-15T02:09:08.456825+08:00",
-  "source_commit": "resolve Git commit containing exact frozen files; not assigned before commit",
+  "source_commit": "6cc5dd90ae1ce777324ccae328c7158025dd3480",
   "capture_core": "2672508d1205341d2294a202ac72bdf9cfbd29cdc70b1c8730c5ab37b943eb8b",
   "source_files": 190,
   "source_freeze_sha256": "87c6eeb997d6d31a1431b07b87f316fc87d1bf126957b3487057a34de908db18",
@@ -209,5 +209,6 @@
   "retained_failures": [
     "Initial staging missed actions.fingerprint column and parent context correspondence; both independently reproduced and fixed.",
     "Initial S048 HTTP harness preparation grew beyond needed scope; agent interrupted before execution, draft retained as unexecuted; minimal existing-helper HTTP run completed in2.29s."
-  ]
+  ],
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/6cc5dd9"
 }

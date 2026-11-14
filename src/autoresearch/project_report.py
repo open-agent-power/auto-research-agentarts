@@ -23,6 +23,29 @@ KINDS = {"p02.saved-oof-residuals": "p02", "materials.saved-steel-audit": "steel
 TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存模型与评价复核报告",
           "software": "软件原件捕获一致性报告", "tabular": "表格质量与分组核对报告", **cpu_report_sections.TITLES}
 
+
+def exporter_code_identity(kind):
+    """The same source identity displayed by a generated report."""
+    from . import project_experience_binding, project_experience, cpu_project_experience, project_experience_dispatch
+    return hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
+                          + Path(project_selection_view.__file__).read_bytes() + Path(host_model_report.__file__).read_bytes()
+                          + Path(plan_readiness.__file__).read_bytes() + Path(project_controller.__file__).read_bytes()
+                          + Path(project_selection.__file__).read_bytes() + Path(prediction_summary.__file__).read_bytes()
+                          + Path(feature_comparison.__file__).read_bytes() + Path(project_design.__file__).read_bytes()
+                          + Path(input_basis.__file__).read_bytes() + Path(project_experience_binding.__file__).read_bytes()
+                          + Path(project_experience.__file__).read_bytes() + Path(cpu_project_experience.__file__).read_bytes()
+                          + Path(project_experience_dispatch.__file__).read_bytes() + Path(research_design.__file__).read_bytes()
+                          + (Path(cpu_report_sections.__file__).read_bytes() if kind in cpu_report_sections.PRIMARY else b"")).hexdigest()
+
+
+def recovery_source_identity(kind):
+    """Bounded report producer source closure, separate from project runtime identity."""
+    from . import staged_project_experience
+    return fingerprint({"schema_version": "report-recovery-source-v1", "exporter": exporter_code_identity(kind),
+                        "artifact_reader": hashlib.sha256(Path(project_workbench.__file__).read_bytes()).hexdigest(),
+                        "snapshot_reader": hashlib.sha256(Path(snapshot_viewer.__file__).read_bytes()).hexdigest(),
+                        "staged_experience": hashlib.sha256(Path(staged_project_experience.__file__).read_bytes()).hexdigest()})
+
 EXPERIENCE_NOTE = ("以下为显式导入的历史方法案例，数值属于原项目、目标与协议，不是本项目的结果。"
                    "方法卡条件仍需核对，案例不创建候选或增加执行额度。源记忆撤回限制后续导出；"
                    "已导入快照须在本项目明确撤回。可导出的来源记录及资格历史保留在JSON和输入包，原件提供范围以案例限制为准。")
@@ -384,22 +407,7 @@ def collect_report(workspace) -> dict:
                         "recipe_selections": recipe_selections,
                         "host_models": {"snapshot_sha256": host_models["snapshot_sha256"], "status": host_models["status"],
                                         "asset_names": [asset["name"] for asset in host_models["assets"]]}},
-              "exporter_code_identity": hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
-                                                       + Path(project_selection_view.__file__).read_bytes()
-                                                       + Path(host_model_report.__file__).read_bytes()
-                                                       + Path(plan_readiness.__file__).read_bytes()
-                                                       + Path(project_controller.__file__).read_bytes()
-                                                       + Path(project_selection.__file__).read_bytes()
-                                                       + Path(prediction_summary.__file__).read_bytes()
-                                                       + Path(feature_comparison.__file__).read_bytes()
-                                                       + Path(project_design.__file__).read_bytes()
-                                                       + Path(input_basis.__file__).read_bytes()
-                                                       + Path(project_experience_binding.__file__).read_bytes()
-                                                       + Path(project_experience.__file__).read_bytes()
-                                                       + Path(cpu_project_experience.__file__).read_bytes()
-                                                       + Path(project_experience_dispatch.__file__).read_bytes()
-                                                       + Path(research_design.__file__).read_bytes()
-                                                       + (Path(cpu_report_sections.__file__).read_bytes() if kind in cpu_report_sections.PRIMARY else b"")).hexdigest(),
+              "exporter_code_identity": exporter_code_identity(kind),
               "scientific_validation": False,
               "notice": "A read-only export of saved results. No research execution, fit, model request or recovery is performed."}
     if before.get("experience_revisions"):
@@ -1480,7 +1488,7 @@ def _pdf(report):
     return buffer.getvalue()
 
 
-def export_report(*, workspace, output) -> dict:
+def export_report(*, workspace, output, before_publish=None) -> dict:
     project_root = safe_path(Path(workspace).absolute()).resolve()
     target = safe_path(Path(output).absolute())
     resolved = target.resolve()
@@ -1496,8 +1504,16 @@ def export_report(*, workspace, output) -> dict:
                 "host_model_snapshot_sha256": report["host_models"]["snapshot_sha256"],
                 "project_snapshot_ref": report["project_snapshot_ref"], "files": {name: _digest(raw) for name, raw in payloads.items()},
                 "source_manifest": report["source_manifest"], "scientific_validation": False}
+    manifest_bytes = canonical(manifest).encode("utf-8")
+    if before_publish is not None:
+        before_publish(copy.deepcopy(manifest), copy.deepcopy(report))
+    _require(canonical(manifest).encode("utf-8") == manifest_bytes, "EVIDENCE_CHANGED", "Prepared report manifest changed.")
     target.mkdir(parents=True, exist_ok=False)
-    for name, raw in {**payloads, "manifest.json": canonical(manifest).encode("utf-8")}.items():
+    for name, raw in {**payloads, "manifest.json": manifest_bytes}.items():
         with (target / name).open("xb") as stream:
             stream.write(raw)
     return manifest
+
+
+# Bind the actually loaded producer; a changed on-disk dependency requires restart.
+_RECOVERY_BOOT_IDENTITIES = {kind: recovery_source_identity(kind) for kind in set(KINDS.values())}

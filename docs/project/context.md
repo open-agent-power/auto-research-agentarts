@@ -2,13 +2,13 @@
 
 ## 最新授权与实际环境（2026-11-15持续执行）
 
-用户要求持续实际开发，三小时仅对齐汇报，不是收尾指令。采用本地Adaptive Agent Workflow v0.3.0（81610ae298ec915eed5b1ff01326c112b0262b28），旧dev-system停用。复用root/engineering/workbench_continuation/capability_review/research_mechanisms/runtime_evidence六人池，按产出调整分工；显式加载本地技能/项目router，没有安装自动hooks或每子代理工具隔离。
+用户要求持续实际开发，三小时仅对齐汇报，不是收尾指令。采用本地Adaptive Agent Workflow v0.3.1（02e72e3e411bec53db2288651df01afb27d8904d），旧dev-system停用。复用root/engineering/workbench_continuation/capability_review/research_mechanisms/runtime_evidence六人池，按产出调整分工；显式加载本地技能/项目router，没有安装自动hooks或每子代理工具隔离。
 
 原盘/原研究账本不可见，不重建历史；源码续作位于`/workspace/development-continuation-20261114/auto-research-agentarts`，origin已核。root当前lease=`root-evaluation-20261115T0042`，开始北京时间00:42:14，仍执行中；原全局executor unknown。
 
 S045 42100fa79d6f4a6d96b924ba36fba2f769d2c468完成原生分阶段检索。S046 4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0发布后真实SQuAD检索，固定2067doc/100-100-100query；验证TFIDF比BM25 Recall20低.01，规则保留BM25，final .97、delta0。3/3工具耗尽、0model/fit/来源行动。精确唯一pin/workspace/请求/输入/恢复见[s046原件索引](../execution/g5-local/squad-paragraph-results.json)；同IDresume全部36文件不变，不能用main的新代码升级原项目或另建study。
 
-S047原Workbench显式固定阶段接续已验（101相关/19独审/真实HTTP跨进程同ID），S048历史案例已从真实S046只读捕获并完成HTTP目标导入/报告/重放/撤回，原36files不变，target研究行动0。继续S049原报告收据恢复。engineering单写staged_continuation helper/tests；workbench_continuation单写LocalWorkbench/HTTP/tests；root集成/持久文档；capability_review独审。S046固定源不受后续主树开发影响。用户不需例行再确认；原模型/API/采购额度不增加，开发token/金额unknown。附件上传401及原件仅本云盘的持久性缺口保留。
+S047原Workbench显式固定阶段接续已验（101相关/19独审/真实HTTP跨进程同ID），S048历史案例已从真实S046只读捕获并完成HTTP目标导入/报告/重放/撤回，原36files不变，target研究行动0。S049原报告收据恢复已通过51相关/6独审及真实进程exit86原ID恢复，继续发布和下一可做增量。engineering单写staged_continuation helper/tests；workbench_continuation单写LocalWorkbench/HTTP/tests；root集成/持久文档；capability_review独审。S046固定源不受后续主树开发影响。用户不需例行再确认；原模型/API/采购额度不增加，开发token/金额unknown。附件上传401及原件仅本云盘的持久性缺口保留。
 
 ## 目标及授权
 

@@ -119,8 +119,8 @@ class HostModelReportHTTPTests(unittest.TestCase):
             self.assertFalse(projection["report"]["available"])
             self.assertEqual(projection["report"]["error"], "REPORT_UNAVAILABLE")
 
-            def mutate_host_after_export(*, workspace, output):
-                manifest = export_report(workspace=workspace, output=output)
+            def mutate_host_after_export(*, workspace, output, before_publish=None):
+                manifest = export_report(workspace=workspace, output=output, before_publish=before_publish)
                 self.prepare(self.project, "prepared-during-publication")
                 return manifest
 

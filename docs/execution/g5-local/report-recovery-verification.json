@@ -1,0 +1,99 @@
+{
+  "schema_version": "s049-report-recovery-verification-v1",
+  "status": "verified_pending_commit",
+  "checkpoint": "2026-11-15T02:23:49.205989+08:00",
+  "source_commit": "resolve Git commit containing exact frozen source; not assigned before commit",
+  "source_files": 190,
+  "source_freeze_sha256": "d82ae240ff7887c6ea8cc00cbec41a6353d1d11d352ebdcd8e5e35f7721d28e1",
+  "critical_files": {
+    "src/autoresearch/local_workbench.py": "bad80b5592c5de67bad78a960db417e826a5f2c6a3bba7d2ff4836ba39922611",
+    "src/autoresearch/project_report.py": "618c9825006f07134deed67094a2ec9d96bfc0dc206d122cca6fb06277e328be"
+  },
+  "related_regression": {
+    "command": [
+      "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "test_report_recovery",
+      "test_local_workbench",
+      "test_host_model_report_http",
+      "test_local_staged_continuation",
+      "test_local_workbench_continuation",
+      "test_project_report_current_sources",
+      "test_project_pdf_selection",
+      "test_relevance_report_sections",
+      "test_staged_experience_binding",
+      "test_parent_experience_report"
+    ],
+    "started_at": "2026-11-15T02:20:05.372173+08:00",
+    "ended_at": "2026-11-15T02:20:34.392890+08:00",
+    "seconds": 29.02072349700029,
+    "exit_code": 0,
+    "source_unchanged": true,
+    "log_sha256": "03074aa740f79116d4ff6cab62ad39bc3e1be054adbaa044fa0760f44bbff2dd",
+    "scope": "isolated engineering fixtures, not real research gains",
+    "passed_tests": 51
+  },
+  "independent_review": {
+    "path": "/workspace/skill-refresh-20261114/review/s049-report-recovery-review.md",
+    "sha256": "b92cc75656851ecd422612d57f96de36e5cdd06b6145861154939d4c9c83ee10",
+    "passed_synthetic_probes": 6
+  },
+  "actual_cross_process_failure": {
+    "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/s049-verification/report-crash-fixture",
+    "command": "PYTHONPATH=/workspace/development-continuation-20261114/auto-research-agentarts/src:/workspace/development-continuation-20261114/auto-research-agentarts/tests /workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python /workspace/development-continuation-20261114/auto-research-agentarts/runs/s049-verification/report_crash_probe.py\n",
+    "harness_sha256": "a9adb08bb8af697c40f9c0a797d9fcc5697aabcd07302b4898ccb72734204e5a",
+    "crash_receipt_sha256": "f2de6ca5089f76f5bb77b86e515719531e5e98359e970cfd10b22526add66678",
+    "recovered_receipt_sha256": "35e4d261df9f53ecb97749f9c5c5ae3e1015a19d799c27ef1cafd016636035d8",
+    "client_disconnect": {
+      "message": "Remote end closed connection without response",
+      "type": "RemoteDisconnected"
+    },
+    "http_recovered_status": 200,
+    "report_files_identical": true,
+    "full_project_state_and_budget_identical": true,
+    "report_files": {
+      "input.json": {
+        "bytes": 12376,
+        "sha256": "a3b3fd5a9b78545749f2d101580aaa0836817fca00533e334b057a8f7ac542e2"
+      },
+      "manifest.json": {
+        "bytes": 1703,
+        "sha256": "48412b8b4b42d9273cd71d7a8fc06750aed2e33cd72c92252143b8304850ad5c"
+      },
+      "report.json": {
+        "bytes": 30318,
+        "sha256": "ed9ebf35ca67809801d38003ecd168ec08191ceca2bbb71ec14376df52e0215a"
+      },
+      "report.md": {
+        "bytes": 5837,
+        "sha256": "c1e58120e25e9f39acb4d72768481fe4773730eb38bd8e9b682d317f98839513"
+      },
+      "report.pdf": {
+        "bytes": 12525,
+        "sha256": "5b786d9a1b9254a7b08bbdfc78f4a0856e2d2c686c80bd041e4dce39dcbc5bad"
+      }
+    },
+    "new_research_actions": 0,
+    "model_calls": 0,
+    "fits": 0
+  },
+  "limits": [
+    "New versioned prepublication intent required; legacy or missing preseal data cannot be automatically adopted.",
+    "Partial/tampered/extra/symlink files, Host/project/source drift retain original request without regeneration.",
+    "Trusted local process exit test; not a power-loss/filesystem-durability or OS-isolation claim."
+  ],
+  "retained_failure": "Three initial old-test mock signatures rejected before_publish before original test logic; minimal real-export forwarding fixes preserve prior semantics.",
+  "workflow_refresh": {
+    "version": "0.3.1",
+    "upstream_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
+    "installed": "/home/agent/.agents/skills/adaptive-agent-workflow",
+    "verified_files": 7,
+    "upstream_local_tests_passed": 11,
+    "live_hooks": "not activated; explicit owner loop per host fallback",
+    "current_note": "docs/project/current.md",
+    "previous_current_bytes_archive": "docs/project/current-history-through-S048-20261115.md"
+  }
+}

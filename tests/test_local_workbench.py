@@ -1,8 +1,7 @@
-"""Four local-manager checks; tiny core fixtures, mocked report generation, no network."""
+"""Local-manager checks with tiny core fixtures and no network."""
 
 import base64
 import copy
-import hashlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -132,22 +131,12 @@ class LocalWorkbenchTests(unittest.TestCase):
         self.assert_code("STALE_STATE", self.manager.record_feedback, body)
         self.assertEqual(project.status(), committed)
 
-    def mock_export(self, *, workspace, output):
-        project, _ = self.manager.binding()
-        state = project.status(); output = Path(output); output.mkdir()
-        payloads = {"report.json": b'{"fixture":true}', "report.md": b"fixture", "report.pdf": b"PDF MOCK BYTES", "input.json": b"{}"}
-        manifest = {"schema_version": "project-report-export-v1", "project_id": state["id"], "project_snapshot_ref": state["snapshot_ref"],
-                    "files": {name: {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()} for name, raw in payloads.items()},
-                    "source_manifest": [], "scientific_validation": False}
-        for name, raw in {**payloads, "manifest.json": canonical(manifest).encode("utf-8")}.items():
-            (output / name).write_bytes(raw)
-        return manifest
-
-    def test_mock_export_replay_hash_verification_and_reload_binding(self):
+    def test_export_replay_hash_verification_and_reload_binding(self):
+        from autoresearch.project_report import export_report
         created = self.manager.create(self.create_body()); project, _ = self.manager.binding()
         body = {"request_id": "export-1", "project_id": created["project_id"], "expected_state_version": project.status()["state_version"]}
         db_before = project.db.read_bytes()
-        with patch("autoresearch.project_report.export_report", side_effect=self.mock_export) as exporter:
+        with patch("autoresearch.project_report.export_report", wraps=export_report) as exporter:
             result = self.manager.export(body)
             self.assertEqual(result["status"], "exported")
             self.assertTrue(self.manager.export(body)["replayed"])
@@ -162,7 +151,7 @@ class LocalWorkbenchTests(unittest.TestCase):
     def test_interrupted_create_and_export_remain_pending_without_automatic_retry(self):
         created = self.manager.create(self.create_body()); project, _ = self.manager.binding()
         body = {"request_id": "export-partial", "project_id": created["project_id"], "expected_state_version": project.status()["state_version"]}
-        def partial(*, workspace, output):
+        def partial(*, workspace, output, before_publish=None):
             Path(output).mkdir(); (Path(output) / "report.json").write_bytes(b"partial")
             raise OSError("Controlled fixture interruption")
         with patch("autoresearch.project_report.export_report", side_effect=partial) as exporter:

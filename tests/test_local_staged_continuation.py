@@ -197,7 +197,7 @@ class StagedContinuationTests(unittest.TestCase):
         self.assertEqual(completed['steps']['freeze']['reference']['request_id'], 'existing-freeze')
         self.assertEqual(self.project.status()['budget']['local_tool_calls_used'], 3)
 
-    def test_completed_report_without_manager_receipt_never_reexports(self):
+    def test_completed_report_without_manager_receipt_recovers_same_id_without_reexport(self):
         from autoresearch import project_report
         original = project_report.export_report
         def interrupted(**kwargs):
@@ -210,12 +210,12 @@ class StagedContinuationTests(unittest.TestCase):
         self.assertEqual(saved['phase'], 'report')
         report_id = saved['steps']['report']['body']['request_id']
         self.assertEqual(len(list((self.manager.root / 'reports').iterdir())), 1)
+        before = self.project.status()
         with patch.object(project_report, 'export_report', side_effect=AssertionError('No re-export')):
-            stopped = LocalWorkbench(self.manager.root).continue_staged(self.body)
-        self.assertEqual((stopped['status'], stopped['phase'], stopped['stop']['code']),
-                         ('incomplete', 'report', 'OPERATION_INCOMPLETE'))
-        self.assertEqual(stopped['steps']['report']['body']['request_id'], report_id)
-        self.assert_code('OPERATION_INCOMPLETE', self.manager.continue_staged, {**self.body, 'request_id': 'replacement'})
+            recovered = LocalWorkbench(self.manager.root).continue_staged(self.body)
+        self.assertEqual((recovered['status'], recovered['phase']), ('completed', 'done'))
+        self.assertEqual(recovered['steps']['report']['body']['request_id'], report_id)
+        self.assertEqual(self.project.status(), before)
         self.assertEqual(len(list((self.manager.root / 'reports').iterdir())), 1)
 
 

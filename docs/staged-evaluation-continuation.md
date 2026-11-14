@@ -24,7 +24,7 @@ S047已实现并经合成原生HTTP/跨进程恢复及独审；精确源码身�
 
 ## 原ID接续与读取
 
-`GET /api/local-workbench/staged-continue/<原request_id>.json`读取保存阶段记录；read-only服务只开放读取，不执行续作。再次提交必须使用原exact body，不能用最新版本号替换原expected_state_version。已完成原Controller child或freeze可观察后补外层进度；未知行动保留原请求，不能凭外层重试再次排名。部分报告目录保留，不覆盖或换目录掩盖失败。
+`GET /api/local-workbench/staged-continue/<原request_id>.json`读取保存阶段记录；read-only服务只开放读取，不执行续作。再次提交必须使用原exact body，不能用最新版本号替换原expected_state_version。已完成原Controller child或freeze可观察后补外层进度；未知行动保留原请求，不能凭外层重试再次排名。部分报告目录保留，不覆盖或换目录掩盖失败。S049新版本意图若在发布前已预封manifest SHA且五文件完整，可由原report请求只读核验后补回执；旧无版本/预封或不完整报告仍原ID停。
 
 manager现有busy门覆盖本命令；报告阶段可用固定原子报告请求接续，其他命令不能趁锁释放插入。源码/helper/manager/Controller身份改变时，未完成意图要求原source pin。终态重放只读核原报告，不能自动迁移历史项目。
 

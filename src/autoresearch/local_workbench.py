@@ -17,9 +17,9 @@ from .project_controller import ProjectController
 from .host_model_selection import HostModelSelection, PENDING
 from .host_model_batch import HostModelBatch
 from .recipe_improvement_adapter import read_recipe_validation
-from .host_model_report import host_model_report_current
+from .host_model_report import host_model_report_current, host_model_snapshot_sha256
 from .plan_readiness import review_plan_requests
-from .research_project import ResearchProject, safe_path, write_bytes_once
+from .research_project import ResearchProject, safe_path, write_bytes_once, code_identity as project_code_identity
 from .research_recipe import MAX_RECIPE_BYTES, compile_recipe, parse_json
 
 MAX_PROJECTS = 32
@@ -28,6 +28,9 @@ MAX_PROJECTS = 32
 def batch_code_identity():
     """Bind unfinished grants to the local orchestration implementation too."""
     return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+
+
+_EXPORT_BOOT_IDENTITY = batch_code_identity()
 
 
 def _require(condition, code, message):
@@ -1954,6 +1957,100 @@ class LocalWorkbench:
     def export(self, body):
         return self._export(body)
 
+    @staticmethod
+    def _export_source_identity(state):
+        from . import project_report
+        method = state["registration"].get("method_id", "p02.saved-oof-residuals")
+        _require(method in project_report.KINDS, "UNSUPPORTED_REPORT", "The original project method has no report exporter.")
+        kind = project_report.KINDS[method]
+        source = project_report.recovery_source_identity(kind)
+        _require(source == project_report._RECOVERY_BOOT_IDENTITIES[kind] and batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                 and state["code_identity"] == project_code_identity(),
+                 "CODE_CHANGED", "Restart using the original report and project source identities.")
+        return {"generator_source_identity": source, "exporter_code_identity": project_report.exporter_code_identity(kind),
+                "manager_source_identity": _EXPORT_BOOT_IDENTITY}
+
+    @staticmethod
+    def _pending_export(con, project_id, own_id):
+        for row in con.execute("SELECT id,record FROM requests WHERE command='export'"):
+            previous = tabular._parse(row["record"].encode("utf-8"))
+            _require(row["id"] == own_id or previous.get("status") == "completed"
+                     or previous.get("intent", {}).get("project_id") != project_id,
+                     "OPERATION_INCOMPLETE", "Reconcile the original report request before submitting another export.")
+
+    def _recover_export(self, con, body, digest, record, project, staged_parent):
+        intent = record.get("intent") or {}
+        _require(record.get("status") in {"preparing", "incomplete"}
+                 and type(intent) is dict and set(intent) == {"project_id", "snapshot_ref", "state_version", "report_slot", "request_sha256",
+                     "recovery_version", "run_id", "project_code_identity", "source_sha256", "source_snapshot_sha256", "host_model_snapshot_sha256",
+                     "staged_parent", "generator_source_identity", "exporter_code_identity", "manager_source_identity", "prepared_manifest_sha256"}
+                 and intent.get("recovery_version") == "local-export-recovery-v1"
+                 and intent.get("request_sha256") == digest and intent.get("report_slot") == digest
+                 and intent.get("project_id") == body["project_id"] and intent.get("state_version") == body["expected_state_version"]
+                 and intent.get("staged_parent") == staged_parent and type(intent.get("prepared_manifest_sha256")) is str
+                 and re.fullmatch(r"[a-f0-9]{64}", intent["prepared_manifest_sha256"]) is not None,
+                 "OPERATION_INCOMPLETE", "The original report has no recoverable prepublication identity.")
+        state = project.status()
+        source_identity = self._export_source_identity(state)
+        _require(all(intent.get(key) == value for key, value in source_identity.items())
+                 and state["id"] == intent["project_id"] and state["run_id"] == intent["run_id"]
+                 and state["state_version"] == intent["state_version"] and state["snapshot_ref"] == intent["snapshot_ref"]
+                 and state["source_snapshot_sha256"] == intent["source_snapshot_sha256"]
+                 and state["registration"]["source_sha256"] == intent["source_sha256"]
+                 and state["code_identity"] == intent["project_code_identity"]
+                 and host_model_snapshot_sha256(project.root) == intent["host_model_snapshot_sha256"],
+                 "EVIDENCE_CHANGED", "The original report source, project or Host snapshot changed.")
+        root = safe_path(self.root / "reports" / digest)
+        try:
+            _require(root.is_dir() and {path.name for path in root.iterdir()} == {"manifest.json", "report.json", "report.md", "report.pdf", "input.json"},
+                     "EVIDENCE_CHANGED", "The original report directory is incomplete or contains extra entries.")
+            raw_manifest = reader._read_file(safe_path(root / "manifest.json"), 1_000_000)
+            manifest = tabular._parse(raw_manifest)
+            _require(canonical(manifest).encode("utf-8") == raw_manifest
+                     and hashlib.sha256(raw_manifest).hexdigest() == intent["prepared_manifest_sha256"]
+                     and type(manifest) is dict and set(manifest) == {"schema_version", "project_id", "project_snapshot_ref", "host_model_snapshot_sha256", "files", "source_manifest", "scientific_validation"}
+                     and manifest.get("project_id") == body["project_id"] and manifest.get("project_snapshot_ref") == state["snapshot_ref"]
+                     and manifest.get("host_model_snapshot_sha256") == intent["host_model_snapshot_sha256"]
+                     and type(manifest.get("files")) is dict
+                     and all(type(identity) is dict and set(identity) == {"sha256", "bytes"}
+                             and type(identity["sha256"]) is str and re.fullmatch(r"[a-f0-9]{64}", identity["sha256"]) is not None
+                             for identity in manifest["files"].values()),
+                     "EVIDENCE_CHANGED", "The original prepared report manifest differs.")
+            self._verify_report(digest, manifest)
+            report = tabular._parse(reader._read_file(safe_path(root / "report.json"), 64 * 1024 * 1024))
+            report_input = tabular._parse(reader._read_file(safe_path(root / "input.json"), 64 * 1024 * 1024))
+            raw_source = reader._read_file(safe_path(project.root / "source.json"), 30_000_000)
+            source = tabular._parse(raw_source)
+            _require(type(report) is dict and type(report_input) is dict and type(source) is dict
+                     and report.get("snapshot_sha256") == fingerprint({k: v for k, v in report.items() if k != "snapshot_sha256"})
+                     and report.get("project_id") == state["id"] and report.get("project_snapshot_ref") == state["snapshot_ref"]
+                     and report.get("project") == state and report.get("exporter_code_identity") == intent["exporter_code_identity"]
+                     and report.get("source_manifest") == manifest["source_manifest"] and report.get("input") == report_input
+                     and report_input.get("source_packet") == source and source.get("snapshot_sha256") == state["source_snapshot_sha256"]
+                     and report_input.get("source_file_identity") == {"sha256": hashlib.sha256(raw_source).hexdigest(), "bytes": len(raw_source)}
+                     and hashlib.sha256(raw_source).hexdigest() == intent["source_sha256"]
+                     and report.get("host_models", {}).get("snapshot_sha256") == intent["host_model_snapshot_sha256"]
+                     and report_input.get("host_models", {}).get("snapshot_sha256") == intent["host_model_snapshot_sha256"],
+                     "EVIDENCE_CHANGED", "The original report, input or source binding changed.")
+            self._verify_report(digest, manifest)
+            _require(project.status()["snapshot_ref"] == state["snapshot_ref"] and host_model_report_current(project.root, manifest)
+                     and self._export_source_identity(project.status()) == source_identity,
+                     "EVIDENCE_CHANGED", "The original project, report or Host changed during recovery.")
+        except ResearchError:
+            raise
+        except (OSError, KeyError, TypeError, ValueError, RecursionError):
+            raise ResearchError("EVIDENCE_CHANGED", "The original report cannot be verified without regeneration.") from None
+        response = self._response("export", body["request_id"], body["project_id"], status="exported", manifest=manifest)
+        recovered = copy.deepcopy(record)
+        recovered.update(status="completed", result=response, recovery_receipt={"schema_version": "local-export-recovered-v1",
+                         "prepared_manifest_sha256": intent["prepared_manifest_sha256"]})
+        recovered.pop("failure", None)
+        updated = con.execute("UPDATE requests SET record=? WHERE id=? AND digest=? AND record=?",
+                              (canonical(recovered), body["request_id"], digest, canonical(record)))
+        _require(updated.rowcount == 1, "EVIDENCE_CHANGED", "The original manager intent changed during recovery.")
+        con.execute("UPDATE projects SET report=? WHERE id=?", (digest, body["project_id"]))
+        return dict(response, replayed=True)
+
     def _export(self, body, *, staged_parent=None):
         digest = _body(body, ("request_id", "project_id", "expected_state_version"))
         _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
@@ -1977,25 +2074,63 @@ class LocalWorkbench:
                              "EVIDENCE_CHANGED", "Report request differs from the frozen staged authorization.")
                 self._no_pending_batch(con, body["project_id"], staged_parent, evidence=True)
                 old = self._old(con, body, digest)
-                if old is not None:
+                if old is not None and old["status"] == "completed":
                     response = self._completed(old)
                     self._verify_report(digest, response["manifest"])
                     return response
+                self._pending_export(con, body["project_id"], body["request_id"])
+                if old is not None:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "export", "EVIDENCE_CHANGED", "The original manager command changed.")
+                    return self._recover_export(con, body, digest, old, project, staged_parent)
                 state = project.status()
                 _require(state["state_version"] == body["expected_state_version"], "STALE_STATE", "Reload the current project before exporting.")
+                identity = self._export_source_identity(state)
+                host_identity = host_model_snapshot_sha256(project.root)
+                _require(project.status()["snapshot_ref"] == state["snapshot_ref"], "STALE_STATE", "Project changed before report intent was accepted.")
                 record = self._accept(con, body, digest, "export", {"project_id": state["id"], "snapshot_ref": state["snapshot_ref"],
-                                                                  "state_version": state["state_version"], "report_slot": digest})
+                    "state_version": state["state_version"], "report_slot": digest, "request_sha256": digest,
+                    "recovery_version": "local-export-recovery-v1", "run_id": state["run_id"],
+                    "project_code_identity": state["code_identity"], "source_sha256": state["registration"]["source_sha256"],
+                    "source_snapshot_sha256": state["source_snapshot_sha256"], "host_model_snapshot_sha256": host_identity,
+                    "staged_parent": staged_parent, **identity})
             try:
                 # Lazy import avoids the read-only report/workbench module dependency cycle.
                 from .project_report import export_report
                 output = safe_path(self.root / "reports" / digest)
                 safe_path(self.root / "reports").mkdir(exist_ok=True)
-                manifest = export_report(workspace=project.root, output=output)
+                def before_publish(manifest, report):
+                    _require(self._export_source_identity(project.status()) == identity
+                             and project.status()["snapshot_ref"] == state["snapshot_ref"]
+                             and host_model_snapshot_sha256(project.root) == host_identity
+                             and manifest.get("project_id") == state["id"] and manifest.get("project_snapshot_ref") == state["snapshot_ref"]
+                             and manifest.get("host_model_snapshot_sha256") == host_identity
+                             and report.get("project") == state and report.get("exporter_code_identity") == identity["exporter_code_identity"],
+                             "EVIDENCE_CHANGED", "The prepared report differs from its original source or project.")
+                    if staged_parent is not None:
+                        with self._connect(readonly=True) as staged_con:
+                            row = staged_con.execute("SELECT digest,record FROM requests WHERE id=? AND command='continue_staged'", (staged_parent,)).fetchone()
+                        _require(row is not None, "EVIDENCE_CHANGED", "The original staged parent disappeared.")
+                        original = tabular._parse(row["record"].encode("utf-8"))
+                        self._check_staged_continuation(original, row["digest"])
+                        self._verify_staged_report_ready(original, project)
+                        _require(original["phase"] == "report" and original["steps"]["report"]["body"] == body,
+                                 "EVIDENCE_CHANGED", "The original staged report authorization changed.")
+                    original_record = copy.deepcopy(record)
+                    record["intent"]["prepared_manifest_sha256"] = hashlib.sha256(canonical(manifest).encode("utf-8")).hexdigest()
+                    with self._connect() as publish_con:
+                        updated = publish_con.execute("UPDATE requests SET record=? WHERE id=? AND digest=? AND record=?",
+                            (canonical(record), body["request_id"], digest, canonical(original_record)))
+                        _require(updated.rowcount == 1, "EVIDENCE_CHANGED", "The original report intent changed before publication.")
+                manifest = export_report(workspace=project.root, output=output, before_publish=before_publish)
                 _require(manifest["project_id"] == state["id"] and manifest["project_snapshot_ref"] == state["snapshot_ref"],
                          "STALE_STATE", "Project changed while exporting; the output was retained.")
+                _require(hashlib.sha256(canonical(manifest).encode("utf-8")).hexdigest() == record["intent"].get("prepared_manifest_sha256"),
+                         "EVIDENCE_CHANGED", "The published manifest differs from its original prepared identity.")
                 self._verify_report(digest, manifest)
                 _require(project.status()["snapshot_ref"] == state["snapshot_ref"]
-                         and host_model_report_current(project.root, manifest),
+                         and host_model_report_current(project.root, manifest)
+                         and self._export_source_identity(project.status()) == identity,
                          "STALE_STATE", "Project or host-model requests changed before report publication; output was retained.")
                 response = self._response("export", body["request_id"], state["id"], status="exported", manifest=manifest)
                 record.update(status="completed", result=response)
@@ -2004,7 +2139,11 @@ class LocalWorkbench:
                     self._save(con, body["request_id"], record)
                 return response
             except Exception as error:
-                self._incomplete(body["request_id"], record, error)
+                failed = copy.deepcopy(record)
+                failed.update(status="incomplete", failure={"code": getattr(error, "code", "WORKBENCH_OPERATION_FAILED"), "automatic_retry": False})
+                with self._connect() as failed_con:
+                    failed_con.execute("UPDATE requests SET record=? WHERE id=? AND digest=? AND record=?",
+                                       (canonical(failed), body["request_id"], digest, canonical(record)))
                 if isinstance(error, ResearchError):
                     raise
                 raise ResearchError("WORKBENCH_OPERATION_FAILED", "Report export stopped; its intent and partial output were retained.") from None
