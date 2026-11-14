@@ -1,0 +1,84 @@
+{
+  "schema_version": "s058-continuation-handoff-v1",
+  "scope": "Only currently available independent continuation cases and S055 memory, not original lost cloud history or runnable environment",
+  "status": "local_archive_verified_remote_upload_failed",
+  "archive": {
+    "path": "runs/s058-handoff/s058-continuation-evidence-v2.zip",
+    "bytes": 27816933,
+    "sha256": "1c1df555a0a6e3f96b0a73a9d2f8bd22efffe83b0b81b83479bea84412cfedd6",
+    "manifest_path": "runs/s058-handoff/manifest-v2.json",
+    "manifest_sha256": "561d5be901c9768996d12c5b5be89792ec4919222198328ac54cc70372f03e1b",
+    "members": 123,
+    "payload_members": 122,
+    "source_cases": {
+      "S046": 36,
+      "S050": 17,
+      "S054": 47
+    },
+    "permanent_claim": 1,
+    "S055_memory_files": 18,
+    "readme_license_verifier": 3,
+    "source_case_auxiliary_scripts_included": true,
+    "product_checkout_or_venv_credentials_lease_not_included": true
+  },
+  "local_verification": {
+    "all_crc_bytes_sha_paths_types_modes": true,
+    "extract_to_new_directory_only": true,
+    "original100_case_files_claim_memory18_unchanged": true,
+    "S046_S054_original_3_of_3_completed": true,
+    "S050_no_approval_launch_Host_model": true,
+    "no_native_canonical_restore_or_research_execution": true,
+    "security_engineering_probes": 5,
+    "independent_full_members": 123,
+    "limited_credential_pattern_scan_no_hits": true,
+    "original_data_public_SQuAD_CC_BY_SA4_and_synthetic_attribution_included": true,
+    "read_private_marked_public_derived_final_bytes": true
+  },
+  "independent_assessment": {
+    "path": "runs/s058-review/archive-independent-assessment.md",
+    "sha256": "0497574dbf05193d4ab05f1217ac39a18fcb31a06bc02f536a5fc18a116a123f",
+    "inspect_json_sha256": "c0ba01febe2f89dc29f449555937dc66e6d71c574283e8efe6efb177804c229a"
+  },
+  "remote": {
+    "repo": "open-agent-power/auto-research-agentarts",
+    "release_id": 445432218,
+    "tag": "engineering-feedback-c40c6ae-20261115",
+    "draft": true,
+    "one_official_attempt": {
+      "ended_at": "2026-11-15T07:11:56.265313+08:00",
+      "duration_seconds": 1.5689754486083984,
+      "returncode": 1,
+      "timed_out": false,
+      "upload_status": "failed_no_matching_asset_in_readback",
+      "download_roundtrip": "not_attempted",
+      "release_published": false,
+      "matching_asset_count": 0
+    },
+    "error": "HTTP401 Bad credentials at uploads.github.com; current repo API and Git push work; root cause unknown",
+    "release_assets_after": 0,
+    "archive_uploaded": false,
+    "download_roundtrip_verified": false,
+    "release_published": false,
+    "new_credentials_or_permission_bypass": false,
+    "no_further_retry_without_new_evidence": true
+  },
+  "receipt_sha256": {
+    "upload_attempt": "e3526aada9e1a2cef8c74394cd8885e69d1c8d434768cc82d573fed40ebbc78c",
+    "upload_result": "6b18c61f34e384a75ba5dab9b2a750f7d4b7b916efb3720f5a85bed3a3078d9e",
+    "upload_stderr": "b03da4a230599df6271cfe96dc80caa5c00a36e47cb0f4db0077940cb0f5587d",
+    "after": "87f3e13f92de01b33ecd6abf3113f7f5c8e095fc75767252c49e0c9efbbfcf1b"
+  },
+  "preserved_failures": [
+    "initial v1 README overstated source-code exclusion; v1 and manifest retained as superseded",
+    "initial archive fixture path setup failed and receipt wording corrected; raw originals retained",
+    "one current official upload401 failed, readbackassets0; no blind retry or alternate Gitblob storage"
+  ],
+  "usage": {
+    "new_research_projects": 0,
+    "new_research_actions": 0,
+    "new_research_models": 0,
+    "new_research_fits": 0,
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  }
+}

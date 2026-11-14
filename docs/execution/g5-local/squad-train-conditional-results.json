@@ -558,5 +558,15 @@
     "Source files and journals remain on this cloud disk; aggregate Git metadata is not a complete journal recovery or authority to rerun after loss.",
     "Private bytes were read by source preparation/final/report and integrity verification; no blind or whole-process zero-private-I/O claim.",
     "Native deterministic gate, no generative model research or Linux Codex runtime acceptance."
-  ]
+  ],
+  "completed_after_deadline_readonly_recovery": {
+    "checked_at": "2026-11-15T07:17:47.472665+08:00",
+    "real_completed_original_resume_after_1800_second_deadline": true,
+    "returncode": 0,
+    "original47_files_byte_exact": true,
+    "summary_and_budget_action_ids_exact": true,
+    "no_new_execution_or_deadline_reset": true,
+    "source_pin": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "source_deadline_unix": 1794695339.6677406
+  }
 }

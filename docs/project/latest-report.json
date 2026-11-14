@@ -2,10 +2,10 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T04:48:03+08:00",
-  "last_checkpoint": "2026-11-15T07:10:01.467849+08:00",
-  "end_time": null,
-  "status": "S057_verified_publishing_S058_archive_verified_upload_pending",
-  "confirmed_commit": "7c60095450107b99d4755f1df741ba8264d65db5",
+  "last_checkpoint": "2026-11-15T07:31:53.472374+08:00",
+  "end_time": "2026-11-15T07:31:53.472374+08:00",
+  "status": "S051_S058_completed_source_pushed_local_archive_verified_remote_upload_failed",
+  "confirmed_commit": "72b6eac8c217740ce648ea46256bf979e2e60c88",
   "completed": [
     "AAW remote fetched 02e72e3/v0.3.1 all7 installed files match",
     "S051 saved staged hypothesis feedback and S052 explicit conditional continuation pushed main",
@@ -13,13 +13,15 @@
     "S054 3/3 tools/2index/600rank/600score/0model/fit/evidence; original47 files/summary/budget/IDs identical after new-process original-pin resume; independent original chain/arithmetic/report verified",
     "S055 native Memory capture632278B, source unchanged, idempotent0new entries",
     "S056 saved query GET interfaces pushed main after75related/5independent and actualS054 readonlyGET",
-    "S057 bounded v3 staged plan materials59related/5new independent fixed pass; actual readonlyS05428513bytes/reader1/top3+3; original47/state/budget unchanged and CODE_CHANGED retained",
-    "S058 v2 archive27816933B SHA1c1df555... independently verified123members; original100+claim+Memory18 unchanged; limited credential scan no hit"
+    "S057 bounded v3 staged plan materials published main72b6eac8c217740ce648ea46256bf979e2e60c88:59 related/5 new independent; actual original S054 readonly context28513 bytes;47files/state/budget unchanged and CODE_CHANGED execution block preserved",
+    "S058 v2 archive27816933B SHA1c1df555... independently verified123members; original100+claim+Memory18 unchanged; limited credential scan no hit",
+    "S054 completed original-pin readonly resume after original1800-second deadline returned0,47files/summary/budget/IDs identical; no deadline reset or research execution",
+    "S058 one fresh official upload failed HTTP401; release445432218 readback draft=true/assets0, failure retained; no remote delivery or download roundtrip"
   ],
   "not_completed": [
-    "S057 code ordinary publication pending root command",
-    "S058 remote asset upload/download not verified; old401 root cause unknown",
-    "S050 one new model-call question pending genuine user reply, no execution"
+    "S058 remote archive delivery failed HTTP401, root cause unknown despite normal repository API/Git push; no blind retry",
+    "S050 one new model-call question remains pending genuine user reply, no approval/launch/Host model executed",
+    "Full autonomous model-driven research, original lost history and full Gate acceptance not established"
   ],
   "actual_research_results": {
     "study_id": "s054-squad-train-conditional-v1",
@@ -58,18 +60,19 @@
   },
   "activity": {
     "owner": "root-g5-continuation-20261115T0448",
-    "root": "active lease held; S057 publication and S058 one official upload attempt",
-    "engineering": "archive and S057 handed back, idle",
-    "capability_review": "S057 fixed and archive independent assessments handed back, idle",
-    "old_disk_executor": "unknown"
+    "root": "final handoff while lease held; release on exit, actual receipt runs/s058-closing/lease-release.json",
+    "engineering": "completed, no assigned active work",
+    "capability_review": "completed, no assigned active work",
+    "old_disk_executor": "unknown",
+    "active_assigned_subagents": 0
   },
   "boundaries": [
     "old research disk/reference checkout not available; history not reconstructed",
     "S050 still pending user decision, no model/API scope expanded",
     "trusted local only, not OS/sealed/scientific benefit claim"
   ],
-  "next": "publish fixed S057; one scoped official upload of reviewedv2 to existingdraft then confirm asset/download SHA, preserve failures/no blind retries",
-  "user_decision_required": "existing S0501-call question remains pending; no repeat question, independent S051 continues",
+  "next": "Next trigger checks actual lease and source identity; resume only original completed study at f23 pin for readonly access. Prioritize model feedback loop only if the existing S050 one-call request receives explicit approval; pursue independent zero-model development without reopening exhausted cases. For archive delivery require new credential evidence before another official upload; local verify-only ZIP available.",
+  "user_decision_required": "Existing S050 one-call request still pending; earlier S035 three-call approval does not apply. No repeat routine approval or Worker request.",
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
     "last_run_marker": "2026-11-14T20:47:50.809459+00:00",
@@ -98,7 +101,11 @@
     "docs/execution/g5-local/squad-train-conditional-results.json",
     "docs/execution/g5-local/train-tradeoff-experience-verification.json",
     "docs/execution/g5-local/staged-reader-verification.json",
-    "runs/s056-verification/handoff-write-failure.md"
+    "runs/s056-verification/handoff-write-failure.md",
+    "docs/execution/g5-local/staged-plan-material-verification.json",
+    "runs/s054-verification/real-expired-resume-verification.json",
+    "docs/execution/g6-local/continuation-case-handoff.json",
+    "runs/s058-upload/result.json"
   ],
   "verification": {
     "root_related": 60,
@@ -124,6 +131,119 @@
     "S052 known wait wrong-primary receipt binding fixed before publish; original source/failed probes retained",
     "S054 pre-release corrupt manager/deadline/summary risks fixed and exercised",
     "S052 independent probe injection/assertion setup errors and S056 initial relative-path setup failure retained, distinguished from product defects",
-    "Handoff writer wrong manifest key KeyError corrected after7c source/evidence commit; original study files/budget unchanged"
-  ]
+    "Handoff writer wrong manifest key KeyError corrected after7c source/evidence commit; original study files/budget unchanged",
+    "S057 initial canonical contract bool true accepted numeric1; independently reproduced then canonical type check fixed; initial source/probe preserved",
+    "S058 superseded v1 README source scope corrected in v2; initial probe/setup failures retained",
+    "S058 fresh official gh release upload returned HTTP401; readback assets0; remote not delivered"
+  ],
+  "verified_commits": {
+    "S051": "c32dc77bb06c1b18cec081edd77c26c2d20c49a9",
+    "S052": "6d536f3ee92a0d422bef8068613a2bb8caabe12b",
+    "S053": "c15e52ff98d1f861af50506e03151193307ae9c6",
+    "S054_driver_protocol": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
+    "S054_results_S055_S056": "7c60095450107b99d4755f1df741ba8264d65db5",
+    "S057": "72b6eac8c217740ce648ea46256bf979e2e60c88"
+  },
+  "workflow": {
+    "version": "0.3.1",
+    "remote_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
+    "installed_files_verified": 7,
+    "dev_system": "archived_disabled",
+    "team": "root plus reused engineering and capability_review; no new agents; implementation and independent review separated"
+  },
+  "verification_S057": {
+    "root_related_final": 59,
+    "independent_new_final": 5,
+    "source_freeze_sha256": "c8aad6c4e1b017db881a70f7f530c26735146cd1d1437e25a7f5fb2e371747f5",
+    "core_identity": "e05a7272f675625c6972e71ab3d2702f3c7adfc34cdd5cd3450d3b96bd64e7d5",
+    "real_saved_context_bytes": 28513,
+    "max_context_bytes": 65536,
+    "original_47_files_unchanged": true,
+    "model_called": false,
+    "old_execution_CODE_CHANGED_preserved": true
+  },
+  "archive": {
+    "schema_version": "s058-continuation-handoff-v1",
+    "scope": "Only currently available independent continuation cases and S055 memory, not original lost cloud history or runnable environment",
+    "status": "local_archive_verified_remote_upload_failed",
+    "archive": {
+      "path": "runs/s058-handoff/s058-continuation-evidence-v2.zip",
+      "bytes": 27816933,
+      "sha256": "1c1df555a0a6e3f96b0a73a9d2f8bd22efffe83b0b81b83479bea84412cfedd6",
+      "manifest_path": "runs/s058-handoff/manifest-v2.json",
+      "manifest_sha256": "561d5be901c9768996d12c5b5be89792ec4919222198328ac54cc70372f03e1b",
+      "members": 123,
+      "payload_members": 122,
+      "source_cases": {
+        "S046": 36,
+        "S050": 17,
+        "S054": 47
+      },
+      "permanent_claim": 1,
+      "S055_memory_files": 18,
+      "readme_license_verifier": 3,
+      "source_case_auxiliary_scripts_included": true,
+      "product_checkout_or_venv_credentials_lease_not_included": true
+    },
+    "local_verification": {
+      "all_crc_bytes_sha_paths_types_modes": true,
+      "extract_to_new_directory_only": true,
+      "original100_case_files_claim_memory18_unchanged": true,
+      "S046_S054_original_3_of_3_completed": true,
+      "S050_no_approval_launch_Host_model": true,
+      "no_native_canonical_restore_or_research_execution": true,
+      "security_engineering_probes": 5,
+      "independent_full_members": 123,
+      "limited_credential_pattern_scan_no_hits": true,
+      "original_data_public_SQuAD_CC_BY_SA4_and_synthetic_attribution_included": true,
+      "read_private_marked_public_derived_final_bytes": true
+    },
+    "independent_assessment": {
+      "path": "runs/s058-review/archive-independent-assessment.md",
+      "sha256": "0497574dbf05193d4ab05f1217ac39a18fcb31a06bc02f536a5fc18a116a123f",
+      "inspect_json_sha256": "c0ba01febe2f89dc29f449555937dc66e6d71c574283e8efe6efb177804c229a"
+    },
+    "remote": {
+      "repo": "open-agent-power/auto-research-agentarts",
+      "release_id": 445432218,
+      "tag": "engineering-feedback-c40c6ae-20261115",
+      "draft": true,
+      "one_official_attempt": {
+        "ended_at": "2026-11-15T07:11:56.265313+08:00",
+        "duration_seconds": 1.5689754486083984,
+        "returncode": 1,
+        "timed_out": false,
+        "upload_status": "failed_no_matching_asset_in_readback",
+        "download_roundtrip": "not_attempted",
+        "release_published": false,
+        "matching_asset_count": 0
+      },
+      "error": "HTTP401 Bad credentials at uploads.github.com; current repo API and Git push work; root cause unknown",
+      "release_assets_after": 0,
+      "archive_uploaded": false,
+      "download_roundtrip_verified": false,
+      "release_published": false,
+      "new_credentials_or_permission_bypass": false,
+      "no_further_retry_without_new_evidence": true
+    },
+    "receipt_sha256": {
+      "upload_attempt": "e3526aada9e1a2cef8c74394cd8885e69d1c8d434768cc82d573fed40ebbc78c",
+      "upload_result": "6b18c61f34e384a75ba5dab9b2a750f7d4b7b916efb3720f5a85bed3a3078d9e",
+      "upload_stderr": "b03da4a230599df6271cfe96dc80caa5c00a36e47cb0f4db0077940cb0f5587d",
+      "after": "87f3e13f92de01b33ecd6abf3113f7f5c8e095fc75767252c49e0c9efbbfcf1b"
+    },
+    "preserved_failures": [
+      "initial v1 README overstated source-code exclusion; v1 and manifest retained as superseded",
+      "initial archive fixture path setup failed and receipt wording corrected; raw originals retained",
+      "one current official upload401 failed, readbackassets0; no blind retry or alternate Gitblob storage"
+    ],
+    "usage": {
+      "new_research_projects": 0,
+      "new_research_actions": 0,
+      "new_research_models": 0,
+      "new_research_fits": 0,
+      "development_tokens": "unknown",
+      "development_cost": "unknown"
+    }
+  }
 }
