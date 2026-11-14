@@ -110,7 +110,10 @@ def _batch_originals(journal, project_id, files, roles, inventory):
             continue
         raw = _read(safe_path(path))
         batch = _json(raw)
-        _require(type(batch) is dict and batch.get("schema_version") == "host-model-batch-v1"
+        _require(type(batch) is dict and (batch.get("schema_version") == "host-model-batch-v1"
+                 or (batch.get("schema_version") == "host-model-batch-v2"
+                     and batch.get("implementation_version") == 2
+                     and type(batch.get("body")) is dict and batch["body"].get("provider") == "delegated"))
                  and batch.get("project_id") == project_id
                  and path.name == "batch-" + str(batch.get("request_id")) + ".json"
                  and batch.get("record_status") in ("incomplete", "completed"),

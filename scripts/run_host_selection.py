@@ -95,6 +95,14 @@ def main():
     batch = commands.add_parser("advance-batch", help="Advance at most two CLI decisions using saved feedback and one frozen batch; original IDs resume without resending.")
     _prepare_args(batch, purpose=False)
     batch.add_argument("--max-decisions", type=int, choices=(1, 2), required=True)
+    delegated = commands.add_parser("advance-delegated-batch", help="Prepare or resume delegated decisions without dispatching a model; import each original response separately.")
+    _request_args(delegated)
+    delegated.add_argument("--expected-state-version", type=int, required=True)
+    delegated.add_argument("--decision-limit", type=int, required=True, help="Original cumulative Host decision-slot limit, at most 8.")
+    delegated.add_argument("--cli-budget-usd", type=float, required=True, help="Original CLI estimate threshold; delegated cost remains unknown.")
+    delegated.add_argument("--reason", required=True)
+    delegated.add_argument("--max-decisions", type=int, choices=(1, 2), required=True, help="Maximum selection steps; an optional plan uses one additional original Host slot.")
+    delegated.add_argument("--post-action-plan", action="store_true", help="After a completed action, prepare one feedback plan for explicit adoption; no saved per-query materials are added automatically.")
     batch_status = commands.add_parser("batch-status", help="Read one saved model batch without dispatch, consumption or recovery.")
     _request_args(batch_status)
     command_help = {
@@ -125,6 +133,11 @@ def main():
                 expected_state_version=args.expected_state_version, max_decisions=args.max_decisions,
                 decision_limit=args.decision_limit, cli_budget_usd=args.cli_budget_usd,
                 reason=args.reason, executable=args.claude_executable)
+        elif args.command == "advance-delegated-batch":
+            result = HostModelBatch(args.workspace).advance_delegated(request_id=args.request_id,
+                expected_state_version=args.expected_state_version, max_decisions=args.max_decisions,
+                decision_limit=args.decision_limit, cli_budget_usd=args.cli_budget_usd,
+                reason=args.reason, post_action_plan=args.post_action_plan)
         elif args.command == "batch-status":
             result = HostModelBatch(args.workspace).status(request_id=args.request_id)
         elif args.command in ("prepare", "advance"):

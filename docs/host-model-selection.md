@@ -44,6 +44,20 @@
 
 新代码身份改变，不替换原生产者，不自动升级旧项目或改写旧pending输入。[S035](execution/SPRINT-035.md)试跑的3次研究委派/2工具已用完，原计划仍proposed；本工程改动不使其自动采纳，也不授权用新ID、目录或项目续开额度。
 
+## 宿主委派的持久批次
+
+`HostModelBatch.advance_delegated`与CLI `advance-delegated-batch`使用独立`host-model-batch-v2`回执，保留原Claude `advance-batch` v1的输入和请求身份。它不启动模型，而是产品生成唯一Host请求和冻结输入，等待调用方提供原回答；目前只接库与CLI，未接工作台继续按钮或新增网页控件。
+
+已有兼容项目和明确剩余额度时，用`advance-delegated-batch`提交`--workspace`、`--request-id`、`--expected-state-version`、`--max-decisions`、原`--decision-limit`、原`--cli-budget-usd`和原`--reason`。`max_decisions`为1或2次selection；可选`--post-action-plan`最多再用一个原Host slot，全部仍受原累计`decision_limit`。配置数值和reason不是新增授权，旧满额项目不得提高上限、换ID或复制目录重开。delegated的物理请求、token和金额仍unknown，CLI阈值不是其费用硬上限。
+
+批次返回`awaiting_external_response`时，以`batch-status`读取唯一`steps[].host_request_id`或`plan_step.host_request_id`；用原`status --request-id`取得该次完整context/prompt。调用方在自己的授权范围取得回答，再用既有`import-response`向这个Host ID保存原字节；重新调用完全相同的batch命令，包含**初始expected-state-version和原所有参数**。同ID接续不传新的当前版本、不替换选择描述、不重新创建请求。`prepared`是已知等待；重复恢复会返回同一份输入，不表示外部调用方可重复向模型委派。
+
+收到原回答后仅消费该记录。真实Controller子行动completed、项目版本/来源仍吻合时，产品更新cursor并准备下一允许候选，下一context包含已保存反馈；没有候选、wait、失败、预算用尽或代码/状态变化就停止。请求过反馈计划且至少一个行动真正完成时，可在选择限额到达或无候选、无blocker时准备唯一plan；它用当前反馈摘要，不自动加入S036逐查询材料。
+
+计划回复进入`awaiting_adoption`后只保留proposed，须原`adopt-plan`或`reject-plan`明确处理，再恢复同batch记录结果，不自动进行下一实验。独立科学复核仍由调用方在其授权范围安排，本接口不伪造复核通过。
+
+`sending/unknown`与不完整回执保留原身份等待核对，不重派。若Host已经缓存applied但Controller outcome仍unknown，本增量不能自动刷新该缓存，也不声称自动恢复任何unknown；需保留原Controller请求进行受控核对，Host缓存收敛仍是后续能力。终态重复返回的是保存回执，不是对最新runtime/原工件的重新验真。代码身份不符时用原源码pin恢复，不自动升级旧pending。
+
 ## 根据真实反馈建议研究计划
 
 `prepare`和`advance`支持`--purpose plan`，默认用途为`selection`。计划请求与选择请求使用同一份累计grant，`decision_limit`、`cli_budget_usd`和原授权`reason`沿用原值。准备一次计划请求也占一个决策名额。CLI的`advance`会取得一次回答并消费为计划建议，`advance-batch`仍用于候选行动选择。
