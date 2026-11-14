@@ -175,3 +175,5 @@ S023增加固定无query GET study-capsule/study-capsule.zip，先size/SHA/ident
 S026沿用固定project-summary GET，增加stored_history/stored_report，旧字段不变；每组256KiB上限，原manager/project双快照和新模块sourceguard覆盖。没有新增恢复或报告下载动作。[字段与真实边界](../../docs/execution/SPRINT-026.md)。
 
 S028沿既有advance/advance_recipe body与响应，不增新POST或自动恢复端点；manager落盘原core响应status，显式同ID仍经core。终态/unknown漂移不覆盖，核心异常不制造完成。[同ID语义与验证](../../docs/manager-advance-receipts.md)。
+
+S030在project-summary原controller子项增加request_handoff，固定GET不变；原body仅canonical语义与双用途摘要验证，非原wirebytes/执行许可，缺失或错配无body。S031最新安装不改变旧原案。[字段与精确边界](../../docs/execution/SPRINT-030.md)。

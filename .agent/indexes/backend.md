@@ -146,3 +146,5 @@ S020–022正式LocalWorkbench.open_readonly/readonly_workbench模块、stored_p
 S026 [stored_project_history](../../src/autoresearch/stored_project_history.py)从同一只读快照投影原计划/完整context/子请求与外层收据；报告仅读manifest/report.json，其他SHA声明和当前性unknown明确分开。[原案110GET与独审](../../docs/execution/g5-local/stored-plan-report-verification.json)。不调用恢复/执行，不改旧preparing收据。
 
 S028 advance/advance_recipe从原core响应保存同ID外层receipt，waiting/unknown不美化，重复请求不绕core，原unknown预留保留；不自动修改历史原案。[使用与严格边界](../../docs/manager-advance-receipts.md)；S029新安装Python fixture另验，旧3b127包不含该写路径修复。
+
+S030 stored_project_history对原controller request和manager row/intent三方SHA核对后，只读投影canonical语义请求与producer，未识别或不一致不造body；不是恢复调用。[原3ID独立SQLite及真实UI](../../docs/execution/g5-local/saved-request-handoff-verification.json)。

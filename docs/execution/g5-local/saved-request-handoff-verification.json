@@ -1,0 +1,352 @@
+{
+  "schema_version": "saved-original-request-handoff-verification-v1",
+  "source_commit": "de20ce4a6590a089839da8d5186ecbacc8a88f37",
+  "source_pin": "/workspace/work/saved-request-handoff-source-de20ce4",
+  "contract": "Read-only exact canonical semantic body proven by original controller request SHA and manager row/intent SHA; not original wirebytes or execution authorization.",
+  "original_requests": [
+    "native-primary",
+    "native-audit",
+    "native-wait"
+  ],
+  "original_expected_state_versions": [
+    2,
+    7,
+    12
+  ],
+  "real_checks": 78,
+  "fixtures_checks_each": [
+    35,
+    35
+  ],
+  "wire_GETs": 51,
+  "browser_GETs": 42,
+  "direct_GETs": 9,
+  "study_reader_calls": 9,
+  "capsule_verified_reads": 9,
+  "report_runtime_manifest_opens": 18,
+  "report_runtime_report_json_opens": 18,
+  "generated_captures": 22,
+  "validator_personally_viewed": 22,
+  "independent_personally_viewed": 7,
+  "root_personally_viewed": 4,
+  "image_count_scope": "overlapping scopes not additive",
+  "old_DTO_equality": "Remove exactly3request_handoff fields from newDTO; entire old project summary equalsS026. Study andcapsule also unchanged.",
+  "investigation": {
+    "path": "runs/sprint-030-saved-request-handoff-20261114/implementation/investigation.json",
+    "bytes": 10776,
+    "sha256": "f4b35174797f49ad70cb84fe2196c0c218dd27b0d5a049282564e452ae703298"
+  },
+  "test_log": {
+    "path": "runs/sprint-030-saved-request-handoff-20261114/implementation/tests-review-fix.log",
+    "bytes": 130,
+    "sha256": "e303dbe3a03b79f9ab43ed63ac9e7c072d6de8c940173782577f4bc76a0f758c"
+  },
+  "python_checks": 31,
+  "frontend_checks": "Node fakeDOM/text safety/noexecute, build/lint/format terminal output; no realscience.",
+  "precommit": {
+    "path": "runs/sprint-030-saved-request-handoff-20261114/review/precommit.json",
+    "bytes": 2712,
+    "sha256": "46eb74157a1a88a6c6b42ea725ab3a3d34cc6cd4c3c3c27abbb0785a87fa8881"
+  },
+  "independent_review": {
+    "path": "runs/sprint-030-saved-request-handoff-20261114/review/independent-final.json",
+    "bytes": 3433,
+    "sha256": "e593e9785086840217911b3c56dc4469b6bc182ee3376152d2bf822b08ea01d7"
+  },
+  "findings": {
+    "path": "runs/sprint-030-saved-request-handoff-20261114/validation/FINDINGS.md",
+    "bytes": 4551,
+    "sha256": "0ab8a8933effda40729ca905a524409cc92af34323b06e39e773d0d960c8e134"
+  },
+  "root_visual": {
+    "path": "runs/sprint-030-saved-request-handoff-20261114/root-visual-review.json",
+    "bytes": 1534,
+    "sha256": "7ff3caeb85ef8ccd42285ad15c8d97c7376d4ba624486e96b2ca1eb06fd6e825"
+  },
+  "attempts": [
+    {
+      "service": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-01-real/service-receipt.json",
+        "bytes": 58091,
+        "sha256": "4ae24076cc03e52385ce66ed617d4714224177e8d9ab9317adfe5a80915a5a71"
+      },
+      "browser": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-01-real/browser-receipt.json",
+        "bytes": 24650,
+        "sha256": "6789f6a0a1455eb349a464971e1c6214e92251d4c0229fae911106316e5e0919"
+      },
+      "summary": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-01-real/attempt-summary.json",
+        "bytes": 2307,
+        "sha256": "a13cc360d3dc5ef0403b204389d693220b0fed128b37ca3b051120414f367744"
+      },
+      "status": "passed",
+      "checks": 78,
+      "wire_GETs": 17,
+      "reader_calls": 3,
+      "capsule_verified_reads": 3,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "bootstrap_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "service": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-02-missing/service-receipt.json",
+        "bytes": 58222,
+        "sha256": "397d7c752c674fed34dce44e806fd9cb979a0db4a7ad53dd57cd26215e5de64f"
+      },
+      "browser": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-02-missing/browser-receipt.json",
+        "bytes": 12439,
+        "sha256": "7a3a7195188b7c8bf9e53c40404705659935e3ab08ed5b11193e5a6c62ba2d3b"
+      },
+      "summary": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-02-missing/attempt-summary.json",
+        "bytes": 2307,
+        "sha256": "a13cc360d3dc5ef0403b204389d693220b0fed128b37ca3b051120414f367744"
+      },
+      "status": "passed",
+      "checks": 35,
+      "wire_GETs": 17,
+      "reader_calls": 3,
+      "capsule_verified_reads": 3,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "bootstrap_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    },
+    {
+      "service": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-03-mismatch/service-receipt.json",
+        "bytes": 58223,
+        "sha256": "ad3ecb35587daf84e406f75f0d5e346aa581db948f54e440b9d23c368ec1d2fd"
+      },
+      "browser": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-03-mismatch/browser-receipt.json",
+        "bytes": 12451,
+        "sha256": "2604108b2592f062dc9f64e6875101646cb4ae376691c082ff376073e4a0021c"
+      },
+      "summary": {
+        "path": "runs/sprint-030-saved-request-handoff-20261114/validation/attempt-03-mismatch/attempt-summary.json",
+        "bytes": 2307,
+        "sha256": "a13cc360d3dc5ef0403b204389d693220b0fed128b37ca3b051120414f367744"
+      },
+      "status": "passed",
+      "checks": 35,
+      "wire_GETs": 17,
+      "reader_calls": 3,
+      "capsule_verified_reads": 3,
+      "report_runtime_opens": [
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/manifest.json"
+        },
+        {
+          "flags": 657408,
+          "mode": null,
+          "path": "/workspace/auto-research-agentarts/runs/g5-native-cases-20261113-01/scheduling/manager/reports/8dc81304e1fa0131cf4c8abbdbea637e687f3a4de109595d2cc02f82a14d9a11/report.json"
+        }
+      ],
+      "bootstrap_uname_p": 1,
+      "all_named_guards_zero": true,
+      "closed": true,
+      "before_after_equal": true
+    }
+  ],
+  "new_research_fits_model_API_audit": 0,
+  "developer_tokens_cost": null,
+  "protection": {
+    "study_files": 17,
+    "manager_files": 13,
+    "protected_hashes": 574,
+    "old_paths": 421,
+    "historical_research_fits": 50,
+    "primary": 1,
+    "formal_audit": 1,
+    "before_after": "equal in each acceptance receipt; independent review did not rehash all574"
+  },
+  "failures_limits": [
+    "Original first implementation alias fixture failure retained, correctedfixture notproduct; no oldresearch ran.",
+    "Missing/mismatch fixtures redirect only copiedcontroller dictionaries in memory; originalDB nevermodified orcopied.",
+    "Mobile digest captures partly cover final sourcehash, separate producer captures showcomplete fields.",
+    "Source andproducer hash doesnot identify Gitcommit or current executableversion.",
+    "Only reportmetadata service reads; full protection snapshots separately hashalloriginal files.",
+    "No POST, savedrequest submission, ZIP/PDF/MD/input download, newthree-armruntime, SDK or fullGate."
+  ]
+}

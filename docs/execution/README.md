@@ -137,3 +137,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint028–029：工作台同ID外层收据接续
 
 [S028](SPRINT-028.md)在原core响应后保存同ID原状态，等待/未知分开，独立真实合成wait/中断/unknown保留1预留共69checks通过；不修改旧case。[S029](SPRINT-029.md)新a906wheel/独立安装Python53checks/产品字节与独审通过，精确边界见各索引，继续只读原请求交接核对。
+
+
+## Sprint030–031：原请求语义交接及最终安装
+
+[S030](SPRINT-030.md)原3请求的core/manager不同用途摘要独立核验，原语义body只读展示，不代表原HTTP字节或执行许可；51GET/22图。[S031](SPRINT-031.md)最终33287wheel/190产品184Py/真实安装CLI17GET/19checks独审通过。下一转S032经验来源引用的原生决策接口，保持旧模型协议和额度，不再以新增展示当自主能力进展。

@@ -8,6 +8,14 @@
 
 ## 最新汇报入口
 
+### Sprint030–031：原请求交接核对完成，转向经验决策接口
+
+source `de20ce4a6590a089839da8d5186ecbacc8a88f37`／pin `/workspace/work/saved-request-handoff-source-de20ce4`：只读核原3个core request SHA、重建manager canonical语义body与row/intent摘要全等，原ID/version2/7/12/proposal/producer一致；不是原HTTPbytes、执行授权或当前源码可恢复证明。源码真实78checks+两fixture各35、51GET/22图/独审通过，剥新增组旧DTO全等。[S030](../execution/SPRINT-030.md)／[证据](../execution/g5-local/saved-request-handoff-verification.json)。
+
+新wheel1291930B/SHA33287dd157e8321db4088f2417a7d4bdb37a3a4167b8f541ec4182e0039a0a58，190/184产品字节/RECORD/exact22离线独审通过；真实安装runpy CLI19checks/17GET/4图/99origins，原件不变服务关。旧case/预算/50研究fit/唯一primary/audit保持。[S031](../execution/SPRINT-031.md)／[成品](../execution/g6-local/saved-request-handoff-release.json)。
+
+用户要求通俗说明价值与目标差距：已承认近期侧重页面/证据/恢复，尚未证明开放问题的持续自主决策或记忆因果收益。下一S032转核心：已绑定CPU经验在context可读，但proposal只能在rationale自由写，现增加有界结构化case/version/bundleSHA来源引用，保持旧模型协议、候选/权限/预算不变；源码实施中，尚未计成果。只先验证接口与真实原包工程接线，不称自动记忆收益/模型主动引用。
+
 ### Sprint028–029：原ID外层结果收尾与独立安装已验
 
 source `c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783`／pin `/workspace/work/manager-advance-receipt-source-c5bb4f8`，advance/advance_recipe在原core返回后保存同ID原status/response。waiting/unknown分别保留，不从外层缓存绕core，不自动遍历旧案。真实合成工程wait/两种写中断/unknown保留1预留、单次mock不重派发等最终69检查及独审通过；重复unknown的原core版本4→5，不称全状态不变。[S028](../execution/SPRINT-028.md)／[精确验证](../execution/g5-local/manager-advance-receipt-verification.json)。

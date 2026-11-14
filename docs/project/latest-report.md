@@ -1,15 +1,17 @@
-# 本次持续开发进展（尚在执行）
+# 本次进展：研究过程与接续已收口，转向经验决策接口
 
-北京时间开始2026-11-14 16:44:56；本次更新时间 2026-11-14T18:30:10.719062+08:00，结束时间尚未发生。继承云盘/仓库/origin已核，独有lease由root-sprint020-20261114T1644持有，四人池持续复用，未新开小任务成员。
+北京时间开始2026-11-14 16:44:56，更新时间 2026-11-14T18:44:59.495748+08:00；本执行窗口仍在推进，结束时间未发生。继承云盘/仓库/origin已核，lease由root-sprint020-20261114T1644持有；复用3名子代理加root共4人，没有按小目标新开成员。
 
-已完成S020–029：正式无写只读host、项目原预算/行动分栏、安装CLI、固定原证据ZIP显式核SHA下载、冻结假设来源，以及三版计划/controller/manager收据与保存报告身份追溯。最新源commit `c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783`；前序f85bc75/84cc5cb/b1e707a/e0db52f/79218f1完整SHA和证据见[机器报告](latest-report.json)。本次最近已推送回读main为9e2ea568ac70a0e725dea5f472a16c9f3bde18d6；后续交付以实际push/readback为准。
+通俗进度：现有产品已能做几类限定实验，保存计划、结果、失败、预算及部分中断接续；尚未证明能从开放问题开始长期自主研究，也未证明旧经验使新课题更好。最近几轮主要补过程可查、页面和恢复；用户指出价值不清后，已把下一项转到研究决定对旧经验的明确引用，不把基础设施当科研收益。
 
-S026原manager主轮128检查，含失败/补帧共110GET、32图，独审通过；原三计划/两行动/等待null与manager preparing分层。S027新wheel1289743B/SHA3b12703bd0aadac6ac5eac90cd078925354abc8281abe4e4a36266958ea325eb，190产品/184Py多路字节、离线exact22/23发行项/产品RECORD独审及真实安装CLI16GET/15checks/4图通过。完整范围见[S026](../execution/SPRINT-026.md)和[S027](../execution/SPRINT-027.md)。前序HTTP/手机补帧/安装与ZIP真实下载单列，不能将重叠检查或图数相加冒充研究收益。
+本轮已验证S020–031：正式无写host、原预算/行动与外部study分栏、安装CLI、原ZIP显式核SHA下载、冻结假设来源、三版计划和报告身份、同ID外层收据，以及原请求语义body/不同用途摘要核对。最新源码 `de20ce4a6590a089839da8d5186ecbacc8a88f37`，完整前序sourceSHA见[机器报告](latest-report.json)。最近已推送回读main为20cfce3bc7b26ea41dab0416e6f8087d779cbbc7，后续以实际交付回执为准。
 
-保留首h5py失败、早期UI缺口、旧回执比较错误、缺Playwright及遮挡/补帧。报告只有manifest/report.json被服务读取，其余文件为原声明，当前性unknown；原项目budget非新算费用。原574文件/421路径、17study/13manager/ZIP保持，旧sourcepins与预算、50科学拟合、唯一primary/audit不改；本轮0新科学研究/求解/拟合/模型API/正式审计，工程fixture另计，开发tokens/金额unknown。未完成native三臂执行runtime、SDK、OS/sealed或完整Gates。
+[S030](../execution/SPRINT-030.md)原3请求独立SQLite核对，主轮78checks/两异常各35、51GET/22图与独审通过；不代表原网络bytes或执行授权。[S031](../execution/SPRINT-031.md)最终wheel1291930B/SHA33287dd157e8321db4088f2417a7d4bdb37a3a4167b8f541ec4182e0039a0a58，190产品/184Py多路字节、RECORD/exact22离线和真实安装CLI17GET/19checks/4图/99origins通过。源图、安装代表图、mock与真实工程、全部早期失败各自记录，不叠加冒充收益。
 
-S028同ID外层receipt修复已通过独立合成69checks；两命令真实wait/写中断收尾、未知保留同child和1预留且mock不重派发。原core重复unknown版本4→5，非全状态不变；模拟unknown→completed不算真实行动完成。S029最终a906 wheel/190产品184Py/独立安装Python53checks98origins通过，非CLI/UI。初12实现测试额外发现5既有临时工程quality/grouped计算，fit/solver未单独计量；独立受控验证的指定守卫0另计。
+[S028](../execution/SPRINT-028.md)接续独立69checks：两个命令真实wait/写中断收尾，unknown保留同child和1预留、mock只一次不重派发；原core版本4→5明确，模拟unknown→completed不算真实行动完成。早期12测试误发现5既有工程quality/grouped计算，fit/solver未单独计量；独立指定guard0另计。S029安装Python53checks不是CLI/UI。
 
-正在继续S030只读原ID请求canonical语义body与core/manager双摘要核对，非原网络bytes或执行授权，不补写旧研究。没有新增用户决策阻塞。
+本轮无新科学研究/拟合/排名/求解/模型API或正式审计；开发tokens/金额unknown，工程fixture不冒称科学0成本。原574文件/421路径、17study/13manager/原ZIP保持；root另复核22旧pin的原HEAD和全部30非main工作树clean、8参考库HEAD/manifest字节不变。科学历史50fits、study唯一primary/audit和预算/producer不升级。缺Worker已接受，SDK/原native三臂/OSsealed/完整Gates仍未完成。
 
-下一配置计划2026-11-14 19:47:27北京时间。平台run/result与notification_delivery均unknown；enabled或marker不能当完成/送达证明。本会话结束时再保存实际收尾、释放lease并回传final；此文不是常驻后台执行承诺。
+当前S032：已有显式导入经验可进入context，但只能自由文字提及；将直接proposal的可选case/version/bundleSHA引用接到保存决策/核验view/报告JSON。旧模型/配方协议不变，不加候选或额度，不称模型主动使用或因果收益。正等待冻结后的真实原经验包+隔离0tool工程目标验证；没有新增用户决策阻塞。
+
+下一配置计划2026-11-14 19:47:27北京时间。平台run/result及notification_delivery均unknown；enabled/marker不证明完成或送达。结束时另保存实际收尾并release，本文件不代表轮间常驻模型。

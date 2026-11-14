@@ -94,3 +94,6 @@ Sprint026–027：source3b01只读三版计划/完整context/两action/等待nul
 
 
 Sprint028–029：sourcec5bb通过外层manager同ID原status/response落盘，不跳过core或自动遍历历史案；独立合成69checks真实wait/写中断/一次mock后unknown、reserved1保留，原core版本4→5明确。最终a906 wheel/190产品184Py/exact22离线/安装Python53checks98origins独审通过，非CLI/UI。初broader12误发现5既有quality/grouped工程计算，fit/solver未单独计量；原科学50fits/唯一primary/audit和预算保持。继续S030只读canonical语义请求与双purpose SHA，不当原wirebytes或执行许可。
+
+
+Sprint030–031 source de20/wheel33287，原3请求canonical语义body与core/manager双purpose摘要和生产身份真实核对、51GET/22图及安装17GET/19checks/4图独审通过，不是原wirebytes或执行许可。用户明确需通俗解释目标差距，root承认近期偏页面/追溯/恢复；下一S032转原nativeproposal已绑定经验引用与决策保存/报告核验，旧模型/recipe协议和预算不变，不认领自动记忆或科研收益。差距审计指出CPU候选不因FTS/case新增，P02有FTS改变顺序例外；原50科研fit/预算/producer保持。

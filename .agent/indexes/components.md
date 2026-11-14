@@ -90,3 +90,5 @@ local-experience按saved_cpu_fixed_pair显示CPU原对照/不利表/出处与摘
 保存研究页面另有[saved-capsule.ts](../../frontend/src/saved-capsule.ts)显式byte/SHA核验下载、[hypothesis-source.ts](../../frontend/src/hypothesis-source.ts)冻结来源/反证原样阅读；不能把ID相等当项目关联。最终source792与wheel3770对应，旧b1/91af不含这些能力。
 
 [stored-plan-report.ts](../../frontend/src/stored-plan-report.ts)将原计划、选择时提议、保存行动与工作台收据分层展示；报告文件仅manifest声明，当前性unknown，无执行/刷新按钮。[S026原案双尺寸与补帧范围](../../docs/execution/g5-local/stored-plan-report-verification.json)，source3b01与旧3770安装包范围分开。
+
+S030同组件可展开原ID语义JSON、不同用途摘要及producer，pre.textContent呈现，不提供执行控件。[原案/缺失/错配的实际范围](../../docs/execution/g5-local/saved-request-handoff-verification.json)，最新安装source de20/wheel33287。

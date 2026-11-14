@@ -1,0 +1,166 @@
+{
+  "bootstrap_process_network": "unknown",
+  "component_hashes": {
+    "local_workbench": {
+      "bytes": 111434,
+      "sha256": "2bbb0be202b50218b8afb30360c102df874ff4fa73fd7c2e192eecf6ddee6187"
+    },
+    "project_workbench": {
+      "bytes": 52068,
+      "sha256": "9b8f7055256e77efeaa7a8d46c6b181ca1fa4d66456148eec63120c458ff42b0"
+    },
+    "readonly_workbench": {
+      "bytes": 2286,
+      "sha256": "9077d054c82871a77bebefcbd487975730339d9c74b87a4e4ed1c8dbccdc8650"
+    },
+    "research_project": {
+      "bytes": 87296,
+      "sha256": "4426d2501c2583776a3966ca118c11131712c1b1f1105ff30ee7ccea64eae17d"
+    },
+    "saved_study_capsule": {
+      "bytes": 3434,
+      "sha256": "3cc018458a96df789adc41b935637dec07ebf5b37a8c1cf4e782af09178644de"
+    },
+    "saved_study_reference": {
+      "bytes": 18004,
+      "sha256": "46332db3d2c7af964444d324a3254a13163c12c1534681da27a99ae6caf67f73"
+    },
+    "stored_project_history": {
+      "bytes": 22226,
+      "sha256": "568b7bad9a132d27ee16bb8851ea7d9dba006d10ab47ec640fb09175ae7e179f"
+    },
+    "stored_project_summary": {
+      "bytes": 9930,
+      "sha256": "8859d02cb010726fafc7f923e138dfee5a89bd4466b168ea909cb92945370759"
+    }
+  },
+  "dependency_record_scope": "third-party RECORD content not independently verified",
+  "distributions": {
+    "agentarts-autoresearch": "0.1.0",
+    "charset-normalizer": "3.5.2",
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.61.1",
+    "h5py": "3.16.0",
+    "joblib": "1.5.3",
+    "kiwisolver": "1.4.9",
+    "matplotlib": "3.10.8",
+    "numpy": "2.5.4",
+    "packaging": "26.3",
+    "pillow": "13.0.0",
+    "pip": "25.0.1",
+    "pyparsing": "3.3.2",
+    "pypdf": "6.21.4",
+    "python-dateutil": "4.0.0",
+    "reportlab": "4.4.9",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.17.0",
+    "setuptools": "84.2.1",
+    "threadpoolctl": "3.6.0",
+    "tzdata": "2026.6",
+    "wheel": "0.48.0"
+  },
+  "guard_scope": "only code_identity after import; no project or study read",
+  "guarded_calls": 0,
+  "installed_product_record_rows": 384,
+  "installed_venv": "/workspace/work/g6-saved-request-handoff-20261114/venv",
+  "model_api_fits_research": 0,
+  "native_runtime_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
+  "no_sources_boundary": "prior b1 fresh base-only installation: help works and startup returned DEPENDENCY_NOT_AVAILABLE h5py; no root created. CLI and pyproject byte-identical; not rerun for this source",
+  "observed_product_module_origins": 107,
+  "product_files": 190,
+  "product_record_unhashed_pyc": 184,
+  "product_record_unhashed_self": 1,
+  "python_files": 184,
+  "real_manager_access": false,
+  "sdk_runtime": "not installed or verified",
+  "source_commit": "de20ce4a6590a089839da8d5186ecbacc8a88f37",
+  "source_tar": {
+    "bytes": 11714560,
+    "sha256": "c4e1083c1f75c7f7c5c252bfa63e3aaa0f8dbfdb7f10ae116fd2fc676446273e"
+  },
+  "wheel": {
+    "bytes": 1291930,
+    "sha256": "33287dd157e8321db4088f2417a7d4bdb37a3a4167b8f541ec4182e0039a0a58"
+  },
+  "wheel_path": "/workspace/work/g6-saved-request-handoff-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+  "wheel_record_rows": 195,
+  "schema_version": "saved-request-handoff-release-verification-v1",
+  "release_result": {
+    "path": "runs/sprint-031-saved-request-handoff-release-20261114/installed-release-result.json",
+    "bytes": 3176,
+    "sha256": "83c553368357687b59f1f02a5f6a36fe9566afda5cb242f1170f64660083b114"
+  },
+  "comparison": {
+    "path": "runs/sprint-031-saved-request-handoff-release-20261114/source-wheel-installed-comparison.json",
+    "bytes": 41277,
+    "sha256": "2ce0d68c1e9f4c02cb0f032656e76c018e4534b3bd92dcfd3d6d0ca3b63d0a0a"
+  },
+  "wheel_record": {
+    "path": "runs/sprint-031-saved-request-handoff-release-20261114/wheel-record-proof.json",
+    "bytes": 36369,
+    "sha256": "d58685a2098a86e8d177ae3996629cd91de3ef411d606816f658526cf0e11593"
+  },
+  "product_record": {
+    "path": "runs/sprint-031-saved-request-handoff-release-20261114/product-record-proof.json",
+    "bytes": 76419,
+    "sha256": "3f37ef5ba66c53cd68e2c85176fac1976c098885b3a329170c94b83e0111b2aa"
+  },
+  "install_report": {
+    "path": "runs/sprint-031-saved-request-handoff-release-20261114/extras-install-report.json",
+    "bytes": 1792,
+    "sha256": "e6b9c3754e5e426a0cd341163c594fb6ba7108291abaf03066692e43be787a29"
+  },
+  "independent_review": {
+    "path": "runs/sprint-031-saved-request-handoff-release-20261114/review/independent-final.json",
+    "bytes": 2557,
+    "sha256": "2e5a859a8afffc0c767c5f901c28ed0600524dab7cedb3fb0be9dcbf5b9dca47"
+  },
+  "installed_service": {
+    "path": "runs/sprint-031-saved-request-handoff-install-20261114/validation/attempt-01-installed/service-receipt.json",
+    "bytes": 77641,
+    "sha256": "3790a79909187e4e5b276ab0d81aa584779cc00b86a06db06c9e50a5b12d70a3"
+  },
+  "installed_browser": {
+    "path": "runs/sprint-031-saved-request-handoff-install-20261114/validation/attempt-01-installed/browser-receipt.json",
+    "bytes": 5614,
+    "sha256": "a0a38ae33eac9cf6a618d36b7041a66bcc9a266aadc76dfddc160efa4f3c6212"
+  },
+  "installed_findings": {
+    "path": "runs/sprint-031-saved-request-handoff-install-20261114/validation/FINDINGS.md",
+    "bytes": 3413,
+    "sha256": "8d690e60f4ad0d213a968d292610155345cdc71a7c6dce10e2d8413cbbd438ae"
+  },
+  "installed_scope": {
+    "method": "isolated child runpy real CLI main/argv, not literal shell -m",
+    "readonly_factory": 1,
+    "loaded_product_origins": 99,
+    "checks": 19,
+    "wire_GETs": 17,
+    "browser_GETs": 14,
+    "direct_GETs": 3,
+    "project_DTO": "full S026baseline plus3S030verifiedhandoffs equalsinstalled",
+    "captures": 4,
+    "validator_personally_viewed": 4,
+    "independent_personally_viewed": 2,
+    "study_reads": 3,
+    "capsule_verified_reads": 3,
+    "report_runtime_manifest_opens": 6,
+    "report_runtime_report_json_opens": 6,
+    "archive_downloads": 0,
+    "saved_requests_submitted": 0,
+    "bootstrap_uname_p": 1,
+    "other_named_guards": 0,
+    "closed_exit": 0,
+    "closed_socket_fileno": -1,
+    "originals_before_after_equal": true
+  },
+  "unchanged_S028_receipt": "local_workbench hash2bbb identical to recovery-testedS029; thatfixture not rerun",
+  "limits": [
+    "Product190/184byte andRECORD independent checks; thirdpartyRECORD not all rehashed.",
+    "Self bootstrap unknown; installedservice guard separately scoped.",
+    "Base h5py boundary borrowed unchangedb1CLI/pyproject, notrerun.",
+    "Representative installed4images not complete source22 matrix.",
+    "Originalwirebyte/current executability/scientific validity/sourceauth/SDK/fullGate notestablished."
+  ]
+}

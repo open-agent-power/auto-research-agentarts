@@ -25,3 +25,5 @@ SQLite使用只读immutable连接、固定路径/slot校验和前后stat/副文�
 source3b01另增加“保存的计划与控制器记录”和“保存的报告记录”。三版计划原文及完整选择上下文、两条匹配行动、第三条等待/null、工作台preparing/null分别保留，读取不会恢复执行。保存报告显示原快照/导出器身份及四文件manifest声明；服务仅读取manifest/report.json，不下载或生成报告，当前性unknown。缺失组独立显示，不丢弃已读预算。[S026真实验收](execution/SPRINT-026.md)明确源码截图与安装物范围；旧792/3770包不含这些字段。
 
 最新[S027安装物](execution/g6-local/stored-plan-report-release.json)对应source3b01，wheel1289743B/SHA3b12703b…，新venv `/workspace/work/g6-stored-plan-report-20261114/venv`。真实CLI与桌面/手机代表性smoke已验；完整源码矩阵、第三方依赖核查和原Gate范围分别记载。
+
+S030在原控制器记录下增加“核对原请求与身份”：仅全部原摘要相符时显示规范JSON语义body及两个用途摘要，不代表原HTTP字节或执行授权；页面不提交原请求。缺失/不一致分别显示状态。[真实原案与异常验收](execution/g5-local/saved-request-handoff-verification.json)。最新[S031安装物](execution/g6-local/saved-request-handoff-release.json)为source de20/wheel33287dd1…，含S028收据修复及本只读视图，旧包原样保留。

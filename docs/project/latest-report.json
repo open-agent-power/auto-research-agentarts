@@ -1,11 +1,11 @@
 {
   "schema_version": "project-automation-progress-report-v1",
   "timezone": "Asia/Shanghai",
-  "sprint": "Sprint020–029",
+  "sprint": "Sprint020–031",
   "start_time": "2026-11-14T16:44:56+08:00",
   "end_time": null,
-  "updated_at": "2026-11-14T18:30:10.719062+08:00",
-  "status": "S020_029_verified_publishing_continuing_S030_readonly_sameID_handoff",
+  "updated_at": "2026-11-14T18:44:59.495748+08:00",
+  "status": "S020_031_verified_publishing_continuing_S032_experience_decision_refs",
   "base_commit": "b29a9cac5edd0c6406dc03246a0836d0aa7f1bcc",
   "implementation_commits": [
     "f85bc75f42bd486c43d85b67296bc662062a5454",
@@ -14,9 +14,10 @@
     "e0db52ff3cfa206cb78f95c7a1ad2a0449fabab6",
     "79218f16e10d0dbf58dff6dc669875febcb4d15c",
     "3b01b2a6d11c2661023c8301da0f55a02f30393a",
-    "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783"
+    "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783",
+    "de20ce4a6590a089839da8d5186ecbacc8a88f37"
   ],
-  "latest_verified_source_pin": "/workspace/work/manager-advance-receipt-source-c5bb4f8",
+  "latest_verified_source_pin": "/workspace/work/saved-request-handoff-source-de20ce4",
   "verified": [
     "Formal no-write manager opening and stored project budget/action projection",
     "Independent saved-study reading; real original-manager HTTP and desktop/mobile/keyboard/missing-state fixtures",
@@ -27,10 +28,12 @@
     "Original 3 plans/controllers/two completed actions/wait null child and manager preparing receipts projected distinctly; source110GET/main128checks/32captures/independent review",
     "Source3b01 wheel3b127/190product184Py/offline newvenv/independent bytes and RECORD; actual installed CLI16GET/15checks/4images/originals unchanged",
     "Original core returned response/status saved to same manager request; independent synthetic realwait/crash/unknown69checks; unknown reservation1 retained; no original case replay",
-    "Sourcec5bb wheel a906/190product184Py/exact22offline/RECORD; installed isolated Python53checks98origins; not CLI/UI"
+    "Sourcec5bb wheel a906/190product184Py/exact22offline/RECORD; installed isolated Python53checks98origins; not CLI/UI",
+    "Original3request semanticbody/controller+managerpurpose SHA proof; 51GET/78mainchecks/22images/sourceindependentreview",
+    "Finalsource de20 wheel33287/190product184Py/exact22offline; actual installed CLI17GET/19checks/4images/99origins independentlyverified"
   ],
   "validation_index": "docs/execution/g5-local/readonly-study-view-verification.json",
-  "installed_product_index": "docs/execution/g6-local/manager-receipt-release.json",
+  "installed_product_index": "docs/execution/g6-local/saved-request-handoff-release.json",
   "this_trigger_research_usage": {
     "new_scientific_projects": 0,
     "native_solver_calls": 0,
@@ -63,22 +66,27 @@
     "S026 original report metadata currentness unknown; reportPDF/input/MD are declarations only.",
     "S028 harness01 full state assumption and02 wrong mockproject ID retained; original core unknown replay advances fixture state_version4to5 while action/budget/receipt unchanged.",
     "S029 setup wrongcwd did not launch fixture; installation fixture53checks is direct Python product, not CLI/UI.",
-    "Unknown to completed source transition is mocked only, not real child or scientific completion."
+    "Unknown to completed source transition is mocked only, not real child or scientific completion.",
+    "S030 canonical semantic reconstruction is not original HTTPbytes or current execution permission; no oldrequest sent.",
+    "S030 mobile digest sourcehash partly obscured, separate producer frame full; no allpositionsclaim.",
+    "User priority clarified: recent UI/evidence/recovery is supporting work; pivot to decision/experience interface and independent comparisons rather than more presentation increments."
   ],
   "active_execution": {
     "owner": "root-sprint020-20261114T1644",
     "team_pool": 4,
     "research_executor_running": false,
-    "work": "root publishing S028–029; same implementation/review agents S030 read-only request handoff; validator preparing actual source verification",
+    "work": "root publishing S030–031; implementation/review S032 coreproposal native case citation interface; validator fixture ready pending freeze",
     "lease": "active"
   },
   "blockers": [],
   "needs_user_decision": false,
-  "next_task": "S030 read-only original canonical request body/core+manager digest handoff. No execution or old case reconciliation.",
+  "next_task": "S032 native directproposal structured experience case references; frozenactivecase triples saved with decision/view/report. Keep legacy model/recipe protocols and budgets; not model-generated references or causal memory gain.",
   "next_planned_trigger_time": "2026-11-14T19:47:27+08:00",
   "platform_run_result": "unknown",
   "notification_delivery": "unknown",
   "plan_report_validation_index": "docs/execution/g5-local/stored-plan-report-verification.json",
-  "published_main_last_readback": "9e2ea568ac70a0e725dea5f472a16c9f3bde18d6",
-  "receipt_validation_index": "docs/execution/g5-local/manager-advance-receipt-verification.json"
+  "published_main_last_readback": "20cfce3bc7b26ea41dab0416e6f8087d779cbbc7",
+  "receipt_validation_index": "docs/execution/g5-local/manager-advance-receipt-verification.json",
+  "request_handoff_validation_index": "docs/execution/g5-local/saved-request-handoff-verification.json",
+  "plain_progress": "A trusted-local workbench can perform a few real experiment classes, retain plans/results/negative evidence and partially resume. Sustained autonomous problem-to-experiment decisions and causal benefit of experience reuse remain unproved."
 }
