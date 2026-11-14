@@ -1,5 +1,6 @@
 /** Explicit reader for a fixed, external saved study; never imports it into a project. */
 import { el, numeric, text } from "./dom";
+import { createSavedCapsule } from "./saved-capsule";
 type Obj = Record<string, unknown>;
 const obj = (value: unknown): Obj => value && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const list = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
@@ -40,10 +41,10 @@ function draw(host: HTMLElement, data: Obj, project: Obj): void {
   const intro = section("独立研究 · 保存记录");
   intro.append(el("p", "saved-study-status", stateLabels[status] || "状态未知：" + status),
     el("p", "", "这是一项独立研究的保存引用，不属于当前项目；阅读不会导入、执行研究或改变项目预算。"));
-  if (status !== "completed") { intro.append(el("p", "detail-note", text(data.reason, "未提供原因；请保留原状态并检查原始记录。"))); host.append(intro); const current = section("当前项目 · 原记录"); drawProject(current, project); host.append(current); return; }
+  if (status !== "completed") { intro.append(el("p", "detail-note", text(data.reason, "未提供原因；请保留原状态并检查原始记录。"))); host.append(intro, createSavedCapsule()); const current = section("当前项目 · 原记录"); drawProject(current, project); host.append(current); return; }
   const summary = obj(data.saved_summary), cases = list(summary.performance_cases);
   intro.append(el("h3", "", "原假设未获支持"), el("p", "", "在预先指定的 12 个小规模案例中，阈值策略均慢于固定二分查找；保存的总体时间比为 " + numeric(summary.primary_policy_over_binary, 15) + "（大于 1 表示更慢）。"),
-    el("p", "detail-note", "该结论限于保存的计时与原协议；本页没有重新计算、运行算法或验证更广泛的科学结论。")); host.append(intro);
+    el("p", "detail-note", "该结论限于保存的计时与原协议；本页没有重新计算、运行算法或验证更广泛的科学结论。")); host.append(intro, createSavedCapsule());
   const accounting = section("额度与归属"), columns = el("div", "saved-study-columns"), original = el("div"), current = el("div");
   original.append(el("h3", "", "独立研究"), el("p", "", "以下为原研究的计划和记录消耗，不计入当前项目。开发成本与 token 未知。"));
   const used = el("details"); used.open = true; used.append(el("summary", "", "实际消耗"), pairs(data.actual_spent));

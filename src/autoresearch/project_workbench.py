@@ -11,8 +11,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
-# Import the stored reader before _runtime_sources() snapshots startup code.
-from . import research_methods, snapshot_viewer, method_registry, stored_project_summary
+# Import the fixed readers before _runtime_sources() snapshots startup code.
+from . import research_methods, snapshot_viewer, method_registry, stored_project_summary, saved_study_capsule
 from .contracts import ResearchError, fingerprint, identifier
 from .project_knowledge import POINTS
 from .project_controller import ProjectController
@@ -497,7 +497,10 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                 parsed = urlsplit(self.path)
                 _require(not parsed.scheme and not parsed.netloc and not parsed.fragment,
                          "INVALID_QUERY", "Use a relative local request path.")
-                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/project/knowledge"}:
+                decoded = unquote(parsed.path)
+                if decoded != parsed.path and decoded.startswith("/api/local-workbench/study-capsule"):
+                    return self.project_error(404, "LOCAL_WORKBENCH_ROUTE_NOT_FOUND", "Unknown local workbench route.")
+                if parsed.path in {"/api/project/selection-context.json", "/api/project/plan-context.json", "/api/local-workbench/recipes", "/api/local-workbench/designs", "/api/local-workbench/experiences", "/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip", "/api/project/knowledge"}:
                     _require_runtime_current(runtime_sources)
                 if parsed.path == "/favicon.ico" and not parsed.query:
                     return self.send_data(204, b"", "image/x-icon")
@@ -514,8 +517,20 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     _require(not parsed.query, "INVALID_QUERY", "Workspace metadata does not accept a query.")
                     return self.send_json(200, {**local_workspace.describe(), "enabled": allow_local_actions, "csrf_token": csrf_token,
                                                 "read_only": getattr(local_workspace, "read_only", False)})
-                if getattr(local_workspace, "read_only", False) and parsed.path not in {"/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary"}:
+                if getattr(local_workspace, "read_only", False) and parsed.path not in {"/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip"}:
                     return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and stored summaries are available in this read-only host mode.")
+                if parsed.path in {"/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip"}:
+                    _require("?" not in self.path, "INVALID_QUERY", "The fixed saved capsule does not accept a query.")
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    if parsed.path.endswith(".zip"):
+                        descriptor, raw = saved_study_capsule.read_capsule()
+                        if raw is None:
+                            return self.send_json(404 if descriptor['status'] == 'unavailable' else 409, descriptor)
+                        return self.send_data(200, raw, "application/zip", descriptor['filename'])
+                    return self.send_json(200, saved_study_capsule.describe_capsule())
+                if parsed.path.startswith("/api/local-workbench/study-capsule"):
+                    return self.project_error(404, "LOCAL_WORKBENCH_ROUTE_NOT_FOUND", "Unknown local workbench route.")
                 if parsed.path == "/api/local-workbench/project-summary":
                     _require("?" not in self.path, "INVALID_QUERY", "The stored project summary does not accept a query.")
                     if local_workspace is None:
