@@ -11,6 +11,7 @@ import operator
 import re
 
 from . import saved_retrieval_reader as reader
+from . import staged_relevance_adapter as staged
 from .contracts import ResearchError, canonical, fingerprint, identifier
 from .research_project import require
 
@@ -18,6 +19,17 @@ MAX_ITEMS = 16
 OPS = {"gt": operator.gt, "gte": operator.ge, "lt": operator.lt,
        "lte": operator.le, "eq": operator.eq}
 TEST_NOTICE = "Existing retrieval adapters have already computed test metrics; they are not blind."
+STAGED_NOTICE = ("This source contains only dev and validation; any final evaluation requires separate registration. "
+                 "Feedback does not read final data and does not establish prior non-exposure, blindness or scientific validation.")
+
+
+def _family(method_id):
+    if method_id in (staged.TOOL_ID, staged.AUDIT_TOOL_ID):
+        # Use only the fixed adapter identity here; its saved-result reader is separate.
+        class StagedFamily:
+            module = staged
+        return StagedFamily()
+    return reader._family(method_id)
 
 
 def _condition(hypothesis):
@@ -37,7 +49,7 @@ def _condition(hypothesis):
 
 def _branches(value, primary_method_id):
     """Permit only wait or the same family's existing saved-audit method."""
-    family = reader._family(primary_method_id)
+    family = _family(primary_method_id)
     require(primary_method_id == family.module.TOOL_ID and type(value) is dict
             and set(value) == {"condition_met", "condition_not_met"},
             "INVALID_REQUEST", "Provide exactly the two known-outcome branches; unknown always waits.")
@@ -94,7 +106,7 @@ def register(project, *, request_id, expected_state_version, hypothesis):
         matches = [item for item in context["candidates"] if item["id"] == hypothesis["candidate_id"]]
         require(len(matches) == 1 and not context["blockers"], "CONDITION_NOT_SATISFIED", "Choose one currently eligible candidate.")
         candidate = matches[0]
-        family = reader._family(candidate["method_id"])
+        family = _family(candidate["method_id"])
         require(candidate["method_id"] == family.module.TOOL_ID and not candidate["parameters"]
                 and candidate["method_id"] == stored["registration"]["method_id"],
                 "CONDITION_NOT_SATISFIED", "Only the existing primary citation or relevance pair can be predicted.")
@@ -230,18 +242,22 @@ def _outcome(project, state, record):
                 or type(result["recovered"]) is not bool or result["reused"] is not False
                 or parent_child != {key: action[key] for key in fields}):
             return None, "child_binding_changed", None, None
-        family, binding, _, _, metric_rows, *_ = reader._bundle(project, state, action["id"])
-        if (family.module.TOOL_ID != candidate["method_id"] or fingerprint(family.module.COMPARISON) != record["protocol_sha256"]
-                or binding["primary_action_id"] != action["id"]):
-            return None, "protocol_binding_changed", None, None
-        # Check the previously saved aggregate against the adapter's paired arithmetic;
-        # this reads saved numbers only and performs no ranking or qrel scoring.
-        result = reader._envelope(project, state, action, family)
-        summary, _, _ = family.module._paired(list(metric_rows.values()))
-        if canonical(result["paired_summary"]) != canonical(summary):
-            return None, "saved_summary_changed", None, None
         metric = record["condition"]["metric"]
-        value = result["paired_summary"]["splits"]["validation"]["paired_candidate_minus_baseline"][metric]["mean"]
+        if candidate["method_id"] == staged.TOOL_ID:
+            if fingerprint(staged.COMPARISON) != record["protocol_sha256"]:
+                return None, "protocol_binding_changed", None, None
+            from .staged_feedback_reader import read_validation_delta
+            value = read_validation_delta(project, state, action, metric)
+        else:
+            family, binding, _, _, metric_rows, *_ = reader._bundle(project, state, action["id"])
+            if (family.module.TOOL_ID != candidate["method_id"] or fingerprint(family.module.COMPARISON) != record["protocol_sha256"]
+                    or binding["primary_action_id"] != action["id"]):
+                return None, "protocol_binding_changed", None, None
+            result = reader._envelope(project, state, action, family)
+            summary, _, _ = family.module._paired(list(metric_rows.values()))
+            if canonical(result["paired_summary"]) != canonical(summary):
+                return None, "saved_summary_changed", None, None
+            value = result["paired_summary"]["splits"]["validation"]["paired_candidate_minus_baseline"][metric]["mean"]
         if type(value) not in (int, float) or not math.isfinite(value) or not -1 <= value <= 1:
             return None, "invalid_saved_metric", None, None
         return value, None, action["id"], action["result_sha256"]
@@ -271,8 +287,10 @@ def feedback_context(project, state):
         if "branches" in record:
             item["branches"] = copy.deepcopy(record["branches"])
         items.append(item)
+    staged_items = [item["candidate"]["method_id"] == staged.TOOL_ID for item in items]
+    require(all(staged_items) or not any(staged_items), "EVIDENCE_CHANGED", "Feedback families cannot be mixed.")
     value = {"schema_version": "hypothesis-feedback-context-v1", "items": items,
-             "scientific_validation": False, "test_notice": TEST_NOTICE}
+             "scientific_validation": False, "test_notice": STAGED_NOTICE if all(staged_items) else TEST_NOTICE}
     return validate_context(value)
 
 
@@ -280,7 +298,7 @@ def validate_context(value):
     code = "INVALID_SELECTION_CONTEXT"
     require(type(value) is dict and set(value) == {"schema_version", "items", "scientific_validation", "test_notice"}
             and value["schema_version"] == "hypothesis-feedback-context-v1" and value["scientific_validation"] is False
-            and value["test_notice"] == TEST_NOTICE and type(value["items"]) is list and 1 <= len(value["items"]) <= MAX_ITEMS,
+            and value["test_notice"] in (TEST_NOTICE, STAGED_NOTICE) and type(value["items"]) is list and 1 <= len(value["items"]) <= MAX_ITEMS,
             code, "Invalid prediction feedback context.")
     ids = set()
     for item in value["items"]:
@@ -316,4 +334,8 @@ def validate_context(value):
                     and type(item["result_sha256"]) is str and re.fullmatch(r"[0-9a-f]{64}", item["result_sha256"]) is not None
                     and (item["outcome"] == "condition_met") == OPS[item["condition"]["operator"]](n, item["condition"]["threshold"]),
                     code, "Known feedback must preserve its exact comparison and evidence identity.")
+    staged_items = [item["candidate"]["method_id"] == staged.TOOL_ID for item in value["items"]]
+    require((all(staged_items) and value["test_notice"] == STAGED_NOTICE)
+            or (not any(staged_items) and value["test_notice"] == TEST_NOTICE),
+            code, "Prediction notice must match its unmixed retrieval family.")
     return value

@@ -127,6 +127,12 @@ def condition_reference_notice(selection):
 def hypothesis_notice(selection):
     if "hypothesis_feedback" not in selection:
         return ""
+    from .hypothesis_feedback import STAGED_NOTICE
+    if selection["hypothesis_feedback"].get("test_notice") == STAGED_NOTICE:
+        return (" Hypothesis feedback compares a preregistered validation condition with the original saved action. "
+                "condition_met and condition_not_met are numeric predicate outcomes, not scientific approval or "
+                "hypothesis rankings. Preserve unknown and its reason; zero is a known value. Choose only current "
+                "eligible candidates or wait, without new permissions or budget. " + STAGED_NOTICE)
     return (" Hypothesis feedback compares a preregistered validation condition with the original saved action. "
             "condition_met and condition_not_met are numeric predicate outcomes, not scientific approval or "
             "hypothesis rankings. Preserve unknown and its reason; zero is a known value. Choose only current "

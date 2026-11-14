@@ -5,13 +5,14 @@ caller must obtain the registration and sealed context from the original project
 """
 import copy
 
-from . import method_registry, project_selection, retrieval_adapter, relevance_retrieval_adapter
+from . import method_registry, project_selection, retrieval_adapter, relevance_retrieval_adapter, staged_relevance_adapter
 from .contracts import ResearchError, fingerprint
 
 
 _AUDITS = {
     retrieval_adapter.TOOL_ID: retrieval_adapter.AUDIT_TOOL_ID,
     relevance_retrieval_adapter.TOOL_ID: relevance_retrieval_adapter.AUDIT_TOOL_ID,
+    staged_relevance_adapter.TOOL_ID: staged_relevance_adapter.AUDIT_TOOL_ID,
 }
 
 

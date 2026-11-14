@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+S051 `staged_feedback_reader`把独立 dev/validation primary 接入原事前假设与 `advance_feedback`，源/SQL/grades/坐标/完整覆盖核验，原 audit/wait 与同ID预算保持；不读取 final、不重排评分，旧家族消息保持。S047 固定续作尚不自动遵循 wait。见[合同](../../docs/hypothesis-feedback.md#独立-staged-development-的反馈)与[Sprint](../../docs/execution/SPRINT-051.md)。
+
 [S042](../../docs/execution/SPRINT-042.md)验证事前条件→真实保存结果→分支审计/wait及delegated同ID链路，使用构造工程输入和回复；不代表科研收益。已计算0按预定gt/gte比较，unknown保留原因；现有检索test已暴露，validation-only新投影不能宣称整个流程盲测。
 
 独立相关性迁移先冻结 source-only Recall20 选臂、BM25 基线和固定 TF-IDF 等臂对照，再独审一次执行；候选与负对照同值不能证明记忆收益。新语义、程序分区和真实准入见[相关性对照](../../docs/relevance-retrieval.md)与[执行协议](../../docs/execution/g5-local/retrieval-transfer-protocol.md)。

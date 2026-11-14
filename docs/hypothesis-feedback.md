@@ -6,7 +6,7 @@
 
 ## 登记与读取
 
-先保存研究计划，再从当前 selection context 取得 citation 或 relevance 的 primary candidate。调用 `ResearchProject.register_hypothesis(request_id=..., expected_state_version=..., hypothesis=...)`，或向启用本地操作的工作台发送：
+先保存研究计划，再从当前 selection context 取得 citation、relevance 或独立 staged development 的 primary candidate。调用 `ResearchProject.register_hypothesis(request_id=..., expected_state_version=..., hypothesis=...)`，或向启用本地操作的工作台发送：
 
 ```json
 {
@@ -55,6 +55,16 @@ Workbench 的活动项目 GET 和报告 JSON 保存反馈；报告输入同时�
 
 工程验收使用新合成输入、真实本地适配器/SQLite/文件/HTTP 和构造的 delegated 回复；它们不替代旧研究，不是实际模型推理或科研收益。已完成的旧 Concrete、原 pilot、调度阈值实验及其预算不恢复、不重置。
 
-既有检索适配器会计算并保存 dev/validation/test，本投影仅取 validation，**整条旧流程不具备盲测保证**。新独立 final test、长期自适应收益、跨课题因果收益和受控 Linux 模型运行时仍待验证。改变源码会改变 core/Controller/批次身份，旧 pending/unknown 仍需原 source pin；没有跨版本自动迁移。
+旧 citation/relevance 适配器会计算并保存 dev/validation/test，本投影仅取 validation，**整条旧流程不具备盲测保证**。独立 staged 路径见下节。长期自适应收益、跨课题因果收益和受控 Linux 模型运行时仍待验证。改变源码会改变 core/Controller/批次身份，旧 pending/unknown 仍需原 source pin；没有跨版本自动迁移。
+
+## 独立 staged development 的反馈
+
+S051 将 `research.relevance-validation-pair` 接入相同登记与 `advance_feedback`，可选分支只允许等待或本家族 `research.relevance-validation-saved-audit`。原字段、validation 指标、原请求/预算语义保持；不能通过分支选择 final 或其他家族的方法。
+
+`staged_feedback_reader.read_validation_delta` 复用已有分阶段证据校验器，核对原公开 dev/validation source、action/SQLite 请求指纹、工件封套、完整双臂覆盖、原 query/document 坐标、qrel 资产 SHA 和 grades，再核保存指标的配对算术。它不读取私有 final、不构建索引或重新排名评分；不把 staged 强行套入旧 train/test 阅读器。无完整原证据时反馈 unknown 并等待，已知零值仍按原比较符判定。
+
+staged 的 context/prompt 使用独立说明：来源仅含 dev/validation，任何 final 需单独登记；读取反馈不建立此前未接触、盲测或科学有效性。旧家族说明和消息仍保留原范围，混用 family/说明会被拒绝。合成输入的条件分支及重放验证只证明工程接线；旧 SQuAD 验证负差的只读读取不能补造事前假设或证明新的研究收益。
+
+`continue_staged` 仍是另外一次明确授权的固定审计→冻结→final→报告流程，不自动遵循 `advance_feedback` 的等待分支。调用者不能在收到 wait/unknown 后把固定流程描述为本条件的自动续作。
 
 [S043](execution/SPRINT-043.md)补齐reader源身份与非终态恢复无写门禁；源码不符不会将原未完成parent永久拒绝或把child改成unknown，回到原pin仍可核对/恢复。可运行的[独立演示](../examples/hypothesis-feedback/README.md)展示登记、分进程执行和终态重放，使用独立工程输入和预算。
