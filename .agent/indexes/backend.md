@@ -1,5 +1,7 @@
 # 后端索引
 
+`staged_project_experience`以独立schema只读捕获原staged三行动/冻结与负结果，复用Memory/dispatcher/目标import/status/Controller refs/报告；final只聚合并明示离线需原件核来源。见[合同](../../docs/staged-project-experience.md)。
+
 `LocalWorkbench.continue_staged`复用原manager意图、Controller/Project和export，固定审计→冻结→final→报告；POST `/api/local-workbench/staged-continue`、GET同路径`/<request_id>.json`，原预算/ID/unknown/source pin不变。见[合同](../../docs/staged-evaluation-continuation.md)。
 
 `staged_relevance_adapter`为独立dev/validation source与原生方法；`retrieval_holdout`在原Project事务中登记私有final包、依据保存validation固定规则冻结方法、通过原step/预算/持久启动标记一次final配对。候选和提示仅metadata，私有原文不进source/report.input。见[阶段合同](../../docs/staged-retrieval-evaluation.md)，不升级旧已曝test的案例。

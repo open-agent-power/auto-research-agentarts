@@ -1,6 +1,7 @@
 """Explicit experience schema routing; each family keeps its own validator."""
 from . import cpu_project_experience as cpu
 from . import project_experience as ridge
+from . import staged_project_experience as staged
 from .contracts import ResearchError
 from .research_recipe import parse_json
 
@@ -14,6 +15,8 @@ def _family(bundle):
         return ridge
     if bundle.get("schema_version") == cpu.SCHEMA:
         return cpu
+    if bundle.get("schema_version") == staged.SCHEMA:
+        return staged
     raise ResearchError("INVALID_PROJECT_EXPERIENCE", "Unsupported experience bundle schema.")
 
 

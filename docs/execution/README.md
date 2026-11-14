@@ -4,6 +4,8 @@
 
 最新持续执行：[S045](SPRINT-045.md)完成独立development/validation→固定策略冻结→一次私有final原生接线；[S046](SPRINT-046.md)已按发布协议真实运行SQuAD段落检索，validation TFIDF−BM25 Recall20=-.01，保留BM25，final=.97/delta0，同ID恢复36文件字节不变。继续S047原Workbench有界阶段接续；root lease保持。原Gate不扩张；精确状态见current/latest-report。
 
+[S048](SPRINT-048.md)真实S046负结果已只读捕获并接入原经验链，HTTP目标引用/报告/撤回通过，原研究和预算不变；持续S049报告原收据恢复。
+
 [S047](SPRINT-047.md)原Workbench一次授权的阶段接续及真实跨进程原ID恢复已验；继续S048历史负结果经验适配器，不重开S046。
 
 最新源码续作：[S042](SPRINT-042.md)已交付事前预测、三态反馈、有限下一决定与工作台持久delegated链路；继续[S043](SPRINT-043.md)补源码pin恢复门禁和可运行演示。旧盘缺失、旧S041原合同未恢复；以current/latest-report记录的真实提交及证据为准，不重建旧研究账本。工作流已换Adaptive Agent Workflow，旧dev-system引用保留历史范围。

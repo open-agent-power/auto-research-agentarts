@@ -1,5 +1,7 @@
 # 知识、数据与记忆索引
 
+`staged_project_experience`以独立schema只读捕获原staged三行动/冻结与负结果，复用Memory/dispatcher/目标import/status/Controller refs/报告；final只聚合并明示离线需原件核来源。见[合同](../../docs/staged-project-experience.md)。
+
 固定CPU保存经验使用独立schema与binding-only条目，完整原结果/协议保留、资产原字节只引用SHA；沿ResearchMemory撤回/精确scope和现有项目案例资格，不自动选臂。见[CPU经验](../../docs/cpu-project-experience.md)。
 
 独立 ArguAna 来源已通过官方 Webis/Zenodo CC BY 4.0 与原件映射审计；NFCorpus 学术限定负证据保留。完整 corpus/query/qrels 与无成绩 SHA 选样见[准入审计](../../docs/execution/g5-local/retrieval-transfer-source-audit.json)，不由代码许可推断数据许可。

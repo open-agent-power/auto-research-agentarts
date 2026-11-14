@@ -8,7 +8,7 @@
 
 S045 42100fa79d6f4a6d96b924ba36fba2f769d2c468完成原生分阶段检索。S046 4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0发布后真实SQuAD检索，固定2067doc/100-100-100query；验证TFIDF比BM25 Recall20低.01，规则保留BM25，final .97、delta0。3/3工具耗尽、0model/fit/来源行动。精确唯一pin/workspace/请求/输入/恢复见[s046原件索引](../execution/g5-local/squad-paragraph-results.json)；同IDresume全部36文件不变，不能用main的新代码升级原项目或另建study。
 
-S047原Workbench显式固定阶段接续已验（101相关/19独审/真实HTTP跨进程同ID），继续S048历史案例适配器。engineering单写staged_continuation helper/tests；workbench_continuation单写LocalWorkbench/HTTP/tests；root集成/持久文档；capability_review独审。S046固定源不受后续主树开发影响。用户不需例行再确认；原模型/API/采购额度不增加，开发token/金额unknown。附件上传401及原件仅本云盘的持久性缺口保留。
+S047原Workbench显式固定阶段接续已验（101相关/19独审/真实HTTP跨进程同ID），S048历史案例已从真实S046只读捕获并完成HTTP目标导入/报告/重放/撤回，原36files不变，target研究行动0。继续S049原报告收据恢复。engineering单写staged_continuation helper/tests；workbench_continuation单写LocalWorkbench/HTTP/tests；root集成/持久文档；capability_review独审。S046固定源不受后续主树开发影响。用户不需例行再确认；原模型/API/采购额度不增加，开发token/金额unknown。附件上传401及原件仅本云盘的持久性缺口保留。
 
 ## 目标及授权
 

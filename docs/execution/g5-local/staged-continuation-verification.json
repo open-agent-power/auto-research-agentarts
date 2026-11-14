@@ -1,8 +1,8 @@
 {
   "schema_version": "s047-staged-continuation-verification-v1",
-  "status": "verified_pending_commit",
+  "status": "verified_and_pushed",
   "checkpoint": "2026-11-15T01:51:26.139476+08:00",
-  "source_commit": "resolve Git commit containing these exact source files; not assigned before commit",
+  "source_commit": "304c25a9989a8aa0c395500a5fb3834a771c0b7a",
   "project_code_identity": "3b2d0e84ec1263387b7032b201d1898a1c95706ef03b3e6ab117a5e64ea9533e",
   "controller_code_identity": "ea63841f4fdd82228f464657247c93ea4dd679c8e6dfd368b158fd03b888b5f4",
   "source_file_count": 189,
@@ -922,5 +922,6 @@
     "Partial report files without original manager receipt stop OPERATION_INCOMPLETE at original request; no automatic convergence or new output directory.",
     "Same-user trusted-local, not OS-isolated or blind science; no real product model sends or research efficacy claim."
   ],
-  "retained_failure": "Initial HTTP5s timeout was caused by recursive test mock; fixture cleanup then removed its temporary path. Returned tool output transcribed in runs/s047-staged-continuation-workbench; final fixed source actual loopback passes."
+  "retained_failure": "Initial HTTP5s timeout was caused by recursive test mock; fixture cleanup then removed its temporary path. Returned tool output transcribed in runs/s047-staged-continuation-workbench; final fixed source actual loopback passes.",
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/304c25a"
 }

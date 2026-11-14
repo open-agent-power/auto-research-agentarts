@@ -25,7 +25,7 @@ TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存
 
 EXPERIENCE_NOTE = ("以下为显式导入的历史方法案例，数值属于原项目、目标与协议，不是本项目的结果。"
                    "方法卡条件仍需核对，案例不创建候选或增加执行额度。源记忆撤回限制后续导出；"
-                   "已导入快照须在本项目明确撤回。完整原件及资格历史保留在JSON和输入包。")
+                   "已导入快照须在本项目明确撤回。可导出的来源记录及资格历史保留在JSON和输入包，原件提供范围以案例限制为准。")
 
 
 def _experience_rows(report):
@@ -34,6 +34,23 @@ def _experience_rows(report):
         origin = case["origin_evidence"]
         scope = case["source_scope"]
         saved = case["observation"]
+        if saved.get("kind") == "saved_staged_retrieval":
+            final = saved["final"]
+            delta = saved["paired_summary"]["splits"]["validation"]["paired_candidate_minus_baseline"]["recall@20"]["mean"]
+            source = (str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id", "未提供"))
+                      + "；原合同 " + str(scope.get("contract", "未提供")))
+            observation = ("原验证 Recall@20 候选减基线 " + _number(delta)
+                           + "；原最终选择 " + final["selected_method"] + "，Recall@20 "
+                           + _number(final["summary"]["selected"]["recall@20"]))
+            if final["comparison_status"] == "selected_equals_baseline_single_computation":
+                observation += "；最终为基线单臂一次计算，零差不表示最终TF-IDF打平。"
+            else:
+                observation += "；最终选择方法减BM25差 " + _number(final["summary"]["delta"]["recall@20"]) + "。"
+            observation += "仅为历史参照；final聚合的离线来源绑定须回查原工件，非本项目结果，未重新排名或计分。"
+            rows.append([case["case_id"] + " v" + str(case["case_version"]),
+                         "用于后续参考" if case["inclusion_status"] == "active" else "已从后续参考撤回",
+                         source, observation])
+            continue
         if saved.get("kind") == "saved_cpu_fixed_pair":
             comparison, counts = saved["comparison"], saved["saved_counts"]
             source = (str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id", "未提供"))

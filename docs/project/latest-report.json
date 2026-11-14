@@ -2,10 +2,10 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T00:42:14+08:00",
-  "last_checkpoint": "2026-11-15T01:51:26.139476+08:00",
+  "last_checkpoint": "2026-11-15T02:09:08.456825+08:00",
   "end_time": null,
-  "status": "running_S048_staging_review_after_S047_verified",
-  "confirmed_commit": "faee6ea38fa3509fcd0312917572fa438c312b6e",
+  "status": "running_S049_preparation_after_S048_verified",
+  "confirmed_commit": "304c25a9989a8aa0c395500a5fb3834a771c0b7a",
   "origin_readback_matches": true,
   "completed": [
     "S045 development-only native retrieval, separate preregistered private final package, validation-frozen fixed method, one original-budget final paired evaluation, same-ID/marker recovery, bounded public context/report",
@@ -14,11 +14,14 @@
     "S046 fixed driver independently reviewed; synthetic derivation2/2 and corrupted-body pre-dispatch0-call probe1/1; driver SHA5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619",
     "S046 real public data:2067docs/100-100-100queries;3 original tools completed; same-ID resume36 files byte identical/0 new actions",
     "S046 independent saved-value arithmetic and binary evidence audit passed;36 replay files and11 prepared files independently rehashed",
-    "S047 native Workbench audit/freeze/final/report continuation;101 related and19 independent tests; real loopback+new process same-ID no changed DB/actions/budget/report/source"
+    "S047 native Workbench audit/freeze/final/report continuation;101 related and19 independent tests; real loopback+new process same-ID no changed DB/actions/budget/report/source",
+    "S048 native adapter/dispatch/report integration99/99; independent staging12/integration7; actual S046 read-only capture574775B with36 original files/budget unchanged and no research action",
+    "S048 actual historical-case HTTP import/reference/report/replay/retire verified; target actions0, budget/candidates/evidence unchanged"
   ],
   "not_completed": [
-    "S047 source publication in progress",
-    "S048 staged historical-case adapter not yet integrated"
+    "S048 code publication in progress",
+    "S049 report receipt recovery patch preparing, source not yet changed",
+    "native Linux model transport not implemented or tested with real model"
   ],
   "actual_research_results": {
     "validation_delta_recall20": -0.01,
@@ -37,14 +40,14 @@
   },
   "activity": {
     "owner": "root-evaluation-20261115T0042",
-    "root": "active continuing work, lease held",
-    "engineering": "S047 helper/core handback complete; reusable",
-    "capability_review": "S048 staging independent review",
+    "root": "integration/push, continuing existing lease",
+    "engineering": "native transport feasibility metadata complete; reusable",
+    "capability_review": "S048 actual capture/source independent review passed",
     "old_disk_executor": "unknown",
     "background_model_process_claim": false,
-    "workbench_continuation": "S047 manager/HTTP handback complete; reusable",
-    "research_mechanisms": "fixing two concrete S048 provenance findings in staging",
-    "runtime_evidence": "S047 real HTTP/restart completed; reusable"
+    "workbench_continuation": "S049 report recovery patch in staging only",
+    "research_mechanisms": "S048 implementation frozen, reusable",
+    "runtime_evidence": "S048 overbroad draft interrupted before execution; root minimal real HTTP completed"
   },
   "known_negative_results": [
     "NFCorpus academic-use scope not confirmed; CQADupStack rights/capacity unresolved, not adopted",
@@ -57,7 +60,7 @@
     "no native Linux model transport or real efficacy result yet",
     "old model/fit budgets not expanded"
   ],
-  "next": "Publish S047 verified code then integrate/review S048 staged case adapter, capture existing S046 read-only and bind to synthetic target without research actions",
+  "next": "Publish S048 code and preserve pin; implement versioned original-manifest receipt recovery, independent validation; no extra model/API calls",
   "user_decision_required": null,
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
@@ -80,7 +83,10 @@
     "docs/execution/SPRINT-046.md",
     "docs/execution/g5-local/squad-paragraph-results.json",
     "docs/execution/SPRINT-047.md",
-    "docs/execution/g5-local/staged-continuation-verification.json"
+    "docs/execution/g5-local/staged-continuation-verification.json",
+    "docs/execution/SPRINT-048.md",
+    "docs/staged-project-experience.md",
+    "docs/execution/g5-local/staged-experience-verification.json"
   ],
   "research_workspace": "/workspace/development-continuation-20261114/source-pins/4a159a9/runs/s046-squad-paragraph-retrieval-v1"
 }

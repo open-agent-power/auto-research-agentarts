@@ -1,0 +1,213 @@
+{
+  "schema_version": "s048-staged-experience-verification-v1",
+  "status": "verified_pending_commit",
+  "checkpoint": "2026-11-15T02:09:08.456825+08:00",
+  "source_commit": "resolve Git commit containing exact frozen files; not assigned before commit",
+  "capture_core": "2672508d1205341d2294a202ac72bdf9cfbd29cdc70b1c8730c5ab37b943eb8b",
+  "source_files": 190,
+  "source_freeze_sha256": "87c6eeb997d6d31a1431b07b87f316fc87d1bf126957b3487057a34de908db18",
+  "adapter_sha256": "4f491520cea01b9280dcc8aa5002bbd58f740c8161e53a8cf9af59677fa3faa5",
+  "related_regression": {
+    "command": [
+      "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "test_staged_project_experience",
+      "test_staged_experience_binding",
+      "test_cpu_project_experience",
+      "test_cpu_experience_integration",
+      "test_project_experience_binding",
+      "test_project_experience_controller",
+      "test_parent_experience_report",
+      "test_research_memory_binding",
+      "test_project_report_current_sources",
+      "test_staged_continuation",
+      "test_local_staged_continuation",
+      "test_staged_retrieval_workbench",
+      "test_retrieval_holdout",
+      "test_project_selection",
+      "test_pending_source_pin",
+      "test_feedback_source_pin"
+    ],
+    "started_at": "2026-11-15T01:57:02.050866+08:00",
+    "ended_at": "2026-11-15T01:57:48.897690+08:00",
+    "seconds": 46.846805373999814,
+    "exit_code": 0,
+    "source_unchanged": true,
+    "log_sha256": "a201c2262debcd1a8f62e3428cd1573de849c6228db31acd7c5a46c771170c6d",
+    "scope": "isolated engineering fixture use, not historical or S046 research rerun",
+    "passed_tests": 99
+  },
+  "independent_review": {
+    "staging_passed": 12,
+    "integration_passed": 7,
+    "staging_path": "/workspace/skill-refresh-20261114/review/s048-staging-review.md",
+    "staging_sha256": "d6602443d37ad82c36d77af699444b834c765c91a00d28bbe41eaf2359a4dd0e",
+    "integration_and_actual_source_path": "/workspace/skill-refresh-20261114/review/s048-integration-review.md",
+    "integration_sha256": "c28a2c298aecb3ca12331d506a6635b96e5444edfcb3a89ddba70c303661612c"
+  },
+  "actual_old_pin_capture": {
+    "started_at_utc": "2026-11-14T17:56:06.257092+00:00",
+    "ended_at_utc": "2026-11-14T17:56:06.919726+00:00",
+    "status": "passed",
+    "source_project_id": "project-7858ce02138a48e3bdeac39c26f7be06",
+    "source_commit": "4a159a9e5a0142c3a69a091aaf1e9a9c110b7be0",
+    "source_core": "6a5c9e47a19ceebe883930a51d9524788374245e9fd8d774a4e88af2db20c0ab",
+    "capture_core": "2672508d1205341d2294a202ac72bdf9cfbd29cdc70b1c8730c5ab37b943eb8b",
+    "source_unchanged": true,
+    "source_files_unchanged": 36,
+    "source_budget_before": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "existing_cash_cap_cny": 5,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s046-squad-paragraph-retrieval-v1",
+      "local_tool_call_limit": 3,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "local_tool_calls_used": 3,
+      "local_tool_calls_reserved": 0,
+      "local_tool_dispatches": 3,
+      "evidence_reads_used": 0,
+      "evidence_reads_reserved": 0,
+      "fit_limit": 0,
+      "fit_attempts_used": 0,
+      "fits_reserved": 0,
+      "preprocessing_fits": 0,
+      "fits_completed": 0,
+      "ridge_fits_completed": 0,
+      "preprocessing_fits_completed": 0
+    },
+    "source_budget_after": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "existing_cash_cap_cny": 5,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s046-squad-paragraph-retrieval-v1",
+      "local_tool_call_limit": 3,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "local_tool_calls_used": 3,
+      "local_tool_calls_reserved": 0,
+      "local_tool_dispatches": 3,
+      "evidence_reads_used": 0,
+      "evidence_reads_reserved": 0,
+      "fit_limit": 0,
+      "fit_attempts_used": 0,
+      "fits_reserved": 0,
+      "preprocessing_fits": 0,
+      "fits_completed": 0,
+      "ridge_fits_completed": 0,
+      "preprocessing_fits_completed": 0
+    },
+    "bundle_bytes": 574775,
+    "bundle_sha256": "5a6833e120624280f42949096bda3d3641d613b68c5641beb08df440ba80f8e8",
+    "entry_id": "94e96ad8c069506bac36f18df50d8d08fa6cd45bd3c5bb65c439bd90bb3af12f",
+    "case_id": "s046-squad-paragraph-history",
+    "captured_validation_delta": -0.01,
+    "captured_final": {
+      "baseline_method": "bm25",
+      "comparison_status": "selected_equals_baseline_single_computation",
+      "limitations": [
+        "Procedural same-user separation only; not OS-isolated or independently blind.",
+        "Final binary relevance metrics do not establish scientific validity."
+      ],
+      "query_count": 100,
+      "selected_method": "bm25",
+      "summary": {
+        "baseline": {
+          "mrr@10": 0.8332896825396826,
+          "ndcg@10": 0.8568386584609118,
+          "recall@10": 0.93,
+          "recall@20": 0.97,
+          "recall@5": 0.9
+        },
+        "delta": {
+          "mrr@10": 0.0,
+          "ndcg@10": 0.0,
+          "recall@10": 0.0,
+          "recall@20": 0.0,
+          "recall@5": 0.0
+        },
+        "selected": {
+          "mrr@10": 0.8332896825396826,
+          "ndcg@10": 0.8568386584609118,
+          "recall@10": 0.93,
+          "recall@20": 0.97,
+          "recall@5": 0.9
+        }
+      },
+      "usage": {
+        "index_builds": 1,
+        "model_calls": 0,
+        "native_fits": 0,
+        "ranking_calls": 100,
+        "scoring_calls": 100
+      },
+      "verification": "source_verified_at_capture; offline_final_binding_unverifiable_without_origin"
+    },
+    "final_query_hashes_absent": true,
+    "guards": "no private bytes/rank/score/index/step/recovery/controller dispatch; source inventory hashing outside capture guard",
+    "new_research_actions": 0,
+    "model_requests": 0,
+    "fits": 0,
+    "development_tokens": "unknown",
+    "development_cost": "unknown",
+    "case_budget_proof": "case has no independent budget proof; receipt refers to original source ledger"
+  },
+  "actual_case_to_synthetic_HTTP": {
+    "status": "passed",
+    "started_at_utc": "2026-11-14T18:08:07.621161+00:00",
+    "ended_at_utc": "2026-11-14T18:08:09.908845+00:00",
+    "fixture": "synthetic target; actual S046 history, no target research",
+    "project_id": "project-a24a2278a8b14b748a82a62bdffe51b0",
+    "case_sha256": "5a6833e120624280f42949096bda3d3641d613b68c5641beb08df440ba80f8e8",
+    "source_files_unchanged": 190,
+    "association": "applicable",
+    "target_new_actions": 0,
+    "target_budget_unchanged": true,
+    "retired_import_did_not_reactivate": true,
+    "report_files": {
+      "report.json": {
+        "sha256": "f69afa89fc4dbbe321fbe75cd7be29a964b690f5bb0cfc2ddea1ca402b7bcc2f",
+        "bytes": 813247
+      },
+      "report.md": {
+        "sha256": "45d9b09d15e6d82856727f2190d2612358345788f9a37d855440675a75490f68",
+        "bytes": 9438
+      },
+      "report.pdf": {
+        "sha256": "16acd3d891e741c4f4e2f143a81841d6fa54e03b7d313605d9c52d7cff67173f",
+        "bytes": 16408
+      },
+      "input.json": {
+        "sha256": "9485ee739b9a2c3de5e04420f41c833d1b61bdbeb3dbfea4d8ac429f5b645355",
+        "bytes": 787504
+      }
+    },
+    "report_root": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/s048-verification/minimal-http-case/manager/reports/8a244a8a7bfdb9643bb71351c36bd7aa73871c56c0922a6d1910c54e84552bba",
+    "model_calls": 0,
+    "fits": 0,
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "limits": [
+    "Historical reference, no cross-task efficacy result.",
+    "Portable final aggregate source binding requires original artifact; case alone does not prove original budget.",
+    "Actual source files currently local cloud only; old disk unavailable and release upload401 persists."
+  ],
+  "retained_failures": [
+    "Initial staging missed actions.fingerprint column and parent context correspondence; both independently reproduced and fixed.",
+    "Initial S048 HTTP harness preparation grew beyond needed scope; agent interrupted before execution, draft retained as unexecuted; minimal existing-helper HTTP run completed in2.29s."
+  ]
+}

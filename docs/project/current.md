@@ -1,3 +1,7 @@
+## S048历史案例闭合，继续S049报告原ID恢复
+
+[S048](../execution/SPRINT-048.md)已将staged专用案例接入原ResearchMemory/dispatcher/Controller refs/报告，99相关与独审通过。真实S046只读导出574775B案例，原36文件/预算完全不变、新行动0；旧producer/capture pin分开。最终仅聚合，无final query/hash/逐行数据；离线需回原工件核来源。真实HTTP导入/报告/原请求重放/撤回不复活已验，target研究行动0；见[精确索引](../execution/g5-local/staged-experience-verification.json)。root原lease active，持续S049原报告完成/receipt丢失恢复，不扩大模型额度。
+
 ## S047原生接续已验，继续S048历史案例
 
 [S047](../execution/SPRINT-047.md)完成Workbench一次授权后的原audit→freeze→final→report接续；原ID/预算、unknown停点及新source pin保持。相关101/101+独审19/19、真实HTTP新进程同ID恢复/全部报告及SQLite字节不变通过。见[精确验证](../execution/g5-local/staged-continuation-verification.json)。报告文件已完成而manager receipt丢失仍停原ID，未自动收敛。继续S048负结果经验适配器（staging独审修复中，尚未接入）。root原lease继续，不以里程碑停止。
