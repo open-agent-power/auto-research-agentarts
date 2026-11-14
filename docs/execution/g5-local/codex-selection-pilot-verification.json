@@ -1,0 +1,55 @@
+{
+  "schema_version": "s050-codex-pilot-preparation-verification-v1",
+  "status": "code_verified_pending_publication_and_zero_call_prepare",
+  "checkpoint": "2026-11-15T02:48:47.941118+08:00",
+  "source_commit": "resolve exact containing Git commit, not assigned before commit",
+  "frozen_files": {
+    "scripts/probe_codex_selection.py": "94bfbaf145470841ef47e159c46a31cbdedde7ced211d6aaa99482df79a301e0",
+    "tests/test_codex_selection_pilot.py": "e5883d75f4380ca776503d785fc44f5440d0b51dde20c6ee28f84397f4f42ba1",
+    "docs/execution/g5-local/codex-selection-pilot-proposal.md": "8d7113665a50e9fd595c3402cfe6ae192b32f7c652c4ba9336925f3c4cd95d4a",
+    "docs/execution/g5-local/codex-selection-pilot-proposal.json": "1ba12033c33b05384d75f9cc5df728bcd8a1b99c6c659fcc6c6debe1a7db9e5e"
+  },
+  "product_source190_unchanged": true,
+  "root_regression": {
+    "command": [
+      "/workspace/development-continuation-20261114/auto-research-agentarts/runs/source-continuation-20261114/runtime/baseline-20261114T1541Z/venv/bin/python",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "test_codex_selection_pilot"
+    ],
+    "started_at_utc": "2026-11-14T18:46:42.883233+00:00",
+    "ended_at_utc": "2026-11-14T18:46:45.572831+00:00",
+    "exit_code": 0,
+    "passed_tests": 12,
+    "files_unchanged": true,
+    "product_source190_unchanged": true,
+    "log_sha256": "7d8320b34240fe63d00ded80f04b8124dc4f6e3c6badb03ed050cbc1ad42bac3",
+    "scope": "fake CLI engineering, no real model or fixed pilot creation"
+  },
+  "independent_review": {
+    "path": "/workspace/skill-refresh-20261114/review/s050-pilot-review.md",
+    "sha256": "e7bb25b57adec7e05ed671d5f54e1ff8a71bd023e679793afdc7d5366e44b96f",
+    "synthetic_tests_passed": 16
+  },
+  "real_model_authorization": false,
+  "real_model_invocations": 0,
+  "actual_fixed_pilot_created": false,
+  "approval_file_created": false,
+  "proposed_new_scope": {
+    "cli_processes": 1,
+    "logical_host_delegations": 1,
+    "project_tool_dispatches": 0,
+    "fits": 0,
+    "cost_tokens_provider_request_counts": "unknown",
+    "new_paid_API_provisioning": false
+  },
+  "retained_findings": [
+    "Local origin/main is not proof of publication; actual ls-remote/ancestry and source shadow checks added.",
+    "Exact English hash challenge replaced by actual user-message/source reference plus separate prepare digest, a cooperative attestation rather than authentication.",
+    "Safe reasoning/JSON whitespace accepted while tools/unknown/multiple terminals remain rejected.",
+    "Valid stale bytecode can execute despite -B; independent reproduction retained and fresh private bytecode namespace precedes project imports.",
+    "Marker file and parent directory fsynced; failed sync stops before Host or model."
+  ]
+}

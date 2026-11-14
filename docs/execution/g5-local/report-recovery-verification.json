@@ -1,8 +1,8 @@
 {
   "schema_version": "s049-report-recovery-verification-v1",
-  "status": "verified_pending_commit",
+  "status": "verified_and_pushed",
   "checkpoint": "2026-11-15T02:23:49.205989+08:00",
-  "source_commit": "resolve Git commit containing exact frozen source; not assigned before commit",
+  "source_commit": "052b76300d34e72b29076c39813f9157ede78f2d",
   "source_files": 190,
   "source_freeze_sha256": "d82ae240ff7887c6ea8cc00cbec41a6353d1d11d352ebdcd8e5e35f7721d28e1",
   "critical_files": {
@@ -95,5 +95,6 @@
     "live_hooks": "not activated; explicit owner loop per host fallback",
     "current_note": "docs/project/current.md",
     "previous_current_bytes_archive": "docs/project/current-history-through-S048-20261115.md"
-  }
+  },
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/052b763"
 }
