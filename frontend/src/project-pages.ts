@@ -27,7 +27,7 @@ export function createProjectPages(host: HTMLElement, options: {
   manage.append(managementSummary, ...options.management); panes.get("overview")?.insertBefore(manage, content.get("overview")!);
   const original = el("section", "project-original-entry content-section");
   const originalLink = el("a", "text-button", "进入 P02 研究工作区 ↗"); originalLink.href = "http://127.0.0.1:18785/#/overview"; originalLink.target = "_blank"; originalLink.rel = "noopener";
-  original.append(el("h2", "section-title", "原研究工作区"), el("p", "", "P02 · ChemoTopoChip：细胞与材料表面研究。该入口保留原课题五页与记录，与当前CSV项目分别阅读。"), originalLink); panes.get("overview")?.append(original);
+  original.append(el("h2", "section-title", "原研究工作区"), el("p", "", "P02 · ChemoTopoChip：细胞与材料表面研究。该入口保留原课题五页与记录，与当前研究项目分别阅读。"), originalLink); panes.get("overview")?.append(original);
   const flow = createProjectFlow(options.announce), operation = el("details", "project-operations content-section");
   operation.append(el("summary", "", "开展下一步 · 方法选择、资料登记与连续批次"), el("p", "detail-note", "展开只显示已有操作草稿，不会执行方法。所有操作仍需明确提交；切页保留原请求、输入与未确认状态。"), options.operations.action);
   const operationGroups = new Map<ProjectOperation, HTMLDetailsElement>(), revealed = new Set<string>();
