@@ -2,9 +2,9 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T04:48:03+08:00",
-  "last_checkpoint": "2026-11-15T06:30:16.483744+08:00",
+  "last_checkpoint": "2026-11-15T07:10:01.467849+08:00",
   "end_time": null,
-  "status": "S054_real_S055_capture_S056_pushed_continuing_S057_contract",
+  "status": "S057_verified_publishing_S058_archive_verified_upload_pending",
   "confirmed_commit": "7c60095450107b99d4755f1df741ba8264d65db5",
   "completed": [
     "AAW remote fetched 02e72e3/v0.3.1 all7 installed files match",
@@ -12,11 +12,14 @@
     "S054 real TRAIN2200/100-100-100: validation .98→.99, final .97→.98; MRR/nDCG losses retained, no overall promotion",
     "S054 3/3 tools/2index/600rank/600score/0model/fit/evidence; original47 files/summary/budget/IDs identical after new-process original-pin resume; independent original chain/arithmetic/report verified",
     "S055 native Memory capture632278B, source unchanged, idempotent0new entries",
-    "S056 saved query GET interfaces pushed main after75related/5independent and actualS054 readonlyGET"
+    "S056 saved query GET interfaces pushed main after75related/5independent and actualS054 readonlyGET",
+    "S057 bounded v3 staged plan materials59related/5new independent fixed pass; actual readonlyS05428513bytes/reader1/top3+3; original47/state/budget unchanged and CODE_CHANGED retained",
+    "S058 v2 archive27816933B SHA1c1df555... independently verified123members; original100+claim+Memory18 unchanged; limited credential scan no hit"
   ],
   "not_completed": [
-    "Explicit staged materials into Host/plan not yet connected; S057 next bounded slice",
-    "S050 one new model-call question pending genuine user reply; not executed"
+    "S057 code ordinary publication pending root command",
+    "S058 remote asset upload/download not verified; old401 root cause unknown",
+    "S050 one new model-call question pending genuine user reply, no execution"
   ],
   "actual_research_results": {
     "study_id": "s054-squad-train-conditional-v1",
@@ -55,9 +58,9 @@
   },
   "activity": {
     "owner": "root-g5-continuation-20261115T0448",
-    "root": "active lease held; S057 contract next",
-    "engineering": "S056 handed back, reusable",
-    "capability_review": "S054 actual and S056 independent reviews handed back, reusable",
+    "root": "active lease held; S057 publication and S058 one official upload attempt",
+    "engineering": "archive and S057 handed back, idle",
+    "capability_review": "S057 fixed and archive independent assessments handed back, idle",
     "old_disk_executor": "unknown"
   },
   "boundaries": [
@@ -65,7 +68,7 @@
     "S050 still pending user decision, no model/API scope expanded",
     "trusted local only, not OS/sealed/scientific benefit claim"
   ],
-  "next": "S057 explicit bounded staged materials into existing plan/Host, without models or old budget/source migration",
+  "next": "publish fixed S057; one scoped official upload of reviewedv2 to existingdraft then confirm asset/download SHA, preserve failures/no blind retries",
   "user_decision_required": "existing S0501-call question remains pending; no repeat question, independent S051 continues",
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",

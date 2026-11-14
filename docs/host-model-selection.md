@@ -478,3 +478,14 @@ A67使用明确标记的工程夹具验证意见保存、提示组装和报告�
 Host及工作台入口支持候选选择、研究计划建议和明确采用。模型解释、来源声明与工具结果按领域证据核对，`scientific_validation`保持false。CLI报告的token、模型标签和USD估值按原报告口径保留，现金结算及旧历史费用继续记录实际已知或unknown。`runs/`证据在本机忽略目录，共享时按资料许可提供获准分发的原件与说明。
 
 A35未重启18791服务：该进程能读取新静态页面，Python后端仍缓存旧实现，不能据页面变化认定A34费用修复已经加载。A34真实记录及费用补记前快照的只读界面投影只覆盖超阈值、未知费用的显示，投影阻止所有POST，不代表线上请求执行或恢复验证。
+
+
+## staged开发验证查询材料
+
+S057 新增明确 plan-only kind `staged_retrieval_adverse_query`，selector 精确含 `kind/action_id/result_sha256/split/query_id`；split仅dev或validation，必须原已完成staged primary的不利查询。旧 `retrieval_adverse_query` 仍不含原文；默认v2和旧材料消息保持原字节，不静默切换family。
+
+现有v3 supplied_materials由S056只读reader一次取得：原query文本/截断标记、两臂完整至多20个保存rank/ID/行/指标、完整qrel grade/缺失正例及每臂最前3个原文节选（title512、正文4096字符与各自截断标记）。coverage明确不是全集或完整语料。原producer、当前reader、source/action/SQL/坐标/快照保持绑定；外部文本是证据，不是指令。四选择器跨新旧检索kind共同限额与去重、最终64KiB UTF8完整context不扩，超限整次拒绝，不悄悄裁标签或上下文。
+
+规范化及materialization拒绝test/final、audit/未知/损坏或非不利query。离线sealed validator校验字段关系，不能脱离原件证明文本真实。recipe两个入口与Host selection不接材料；只有原plan路径使用。Host report与Markdown/PDF仅记query ID/split/行/SHA、producer/binding/coverage，不把query或doc正文复制进材料摘要；修正了旧retrieval摘要无fields导致renderer异常的路径，原诊断行保持。
+
+真实S054只读v3校验为28,513/65,536字节，保20+20排名、3+3节选；其原producer core300421与当前新实现不同，仍有CODE_CHANGED执行阻断，未prepare Host、未修改旧计划或发送模型。[精确验收](execution/g5-local/staged-plan-material-verification.json)。新类型不是新增模型/API或研究额度授权；旧pending仍用原source pin。

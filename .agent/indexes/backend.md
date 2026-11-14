@@ -1,5 +1,7 @@
 # 后端索引
 
+S057 plan-only opt-in `staged_retrieval_adverse_query`复用原v3供原query、完整保存rank/qrels/metrics及每臂top3节选，4selector/64KiB不扩，旧wire保持；recipe两入口拒绝，Host/Markdown/PDF报告只身份摘要。原source CODE_CHANGED不绕、0真实模型。见[材料合同](../../docs/host-model-selection.md#staged开发验证查询材料)。
+
 S056 原两条retrieval GET按注册staged源显式分派独立dev/validation DTO，返回原query/正例/两臂保存排名和坐标；source/action/SQL/完整覆盖/前后snapshot强绑定，原producer与reader身份分列，1MiB/25/20及文本上限不扩。旧train/test DTO不变，final/test拒绝；saved_materials/Host/plan尚未接此family。见[reader合同](../../docs/staged-retrieval-reader.md)。
 
 S052 原 `continue_staged` 新增六字段 opt-in registration/v2，原五字段v1保持；原反馈 wait/unknown持久停止且不锁路线，核原policy audit后才freeze/final/report，已知primary错绑定接受前拒绝。见[条件模式](../../docs/staged-evaluation-continuation.md#显式条件模式s052)。

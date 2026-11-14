@@ -9,6 +9,7 @@ from .project_selection import _hash, _text
 
 FIELDS = ("groups", "folds", "rows")
 RETRIEVAL_KIND = "retrieval_adverse_query"
+STAGED_RETRIEVAL_KIND = "staged_retrieval_adverse_query"
 MAX_RETRIEVAL_SELECTORS = 4
 METHODS = {"data.saved-oof-random-diagnostics": ("random_cv", "data.ridge-random-validation"),
            "data.saved-oof-group-diagnostics": ("group_cv", "data.ridge-group-validation")}
@@ -28,10 +29,11 @@ def normalize_requests(value):
     _require(type(value) is list, "Saved materials must be an array of explicit saved diagnostic selectors.", code)
     known, queries = set(), set()
     for item in value:
-        if type(item) is dict and item.get("kind") == RETRIEVAL_KIND:
+        if type(item) is dict and item.get("kind") in (RETRIEVAL_KIND, STAGED_RETRIEVAL_KIND):
             _require(set(item) == {"kind", "action_id", "result_sha256", "split", "query_id"}
                      and _text(item["action_id"], 160) and _hash(item["result_sha256"])
-                     and item["split"] in ("dev", "validation", "test") and _text(item["query_id"], 80),
+                     and type(item["split"]) is str and item["split"] in (("dev", "validation") if item["kind"] == STAGED_RETRIEVAL_KIND else ("dev", "validation", "test"))
+                     and _text(item["query_id"], 80),
                      "Select an exact saved adverse query, split, action and result SHA.", code)
             identity = (item["action_id"], item["split"], item["query_id"])
             _require(identity not in queries and len(queries) < MAX_RETRIEVAL_SELECTORS,
@@ -325,6 +327,9 @@ def materialize(project, state, normalized_requests):
         if request.get("kind") == RETRIEVAL_KIND:
             materials.append(_retrieval_material(project, state, action, request))
             continue
+        if request.get("kind") == STAGED_RETRIEVAL_KIND:
+            materials.append(_staged_retrieval_material(project, state, action, request))
+            continue
         diagnostic, source_ref, binding = _diagnostic(project, state, action)
         materials.append({"action_id": action["id"], "result_sha256": action["result_sha256"], "artifact_ref": action["artifact"],
             "producer": {"request_id": action["request_id"], "method_id": action["command"],
@@ -348,6 +353,9 @@ def validate_supplied(context):
     for material in materials:
         if type(material) is dict and material.get("kind") == RETRIEVAL_KIND:
             _validate_retrieval_material(context, material, feedback, queries)
+            continue
+        if type(material) is dict and material.get("kind") == STAGED_RETRIEVAL_KIND:
+            _validate_staged_retrieval_material(context, material, feedback, queries)
             continue
         _require(type(material) is dict and set(material) == {"action_id", "result_sha256", "artifact_ref", "producer",
                      "source_ref", "fields", "coverage", "scientific_validation"}
@@ -410,3 +418,141 @@ def validate_supplied(context):
                          "The complete supplied group count differs from its retained table reference.", code)
         known.add(material["action_id"])
     return context
+
+
+def _staged_retrieval_material(project, state, action, request):
+    """Copy one strictly bound staged query; never access final or execute tools."""
+    from . import staged_feedback_reader as reader, staged_relevance_adapter as staged
+    _require(action.get("command") == staged.TOOL_ID and action.get("status") == "completed",
+             "Staged materials require an original completed primary action.")
+    value = reader.read_adverse_query(project, state, action_id=action["id"],
+                                      split=request["split"], query_id=request["query_id"])
+    binding = value["binding"]
+    _require(binding["project_id"] == state["id"] and binding["snapshot_ref"] == state["snapshot_ref"]
+             and binding["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+             and binding["action_id"] == binding["primary_action_id"] == action["id"]
+             and binding["result_sha256"] == binding["primary_result_sha256"] == request["result_sha256"]
+             and value["origin"]["producer_code_identity"] == action["code_identity"],
+             "Staged query source, producer, primary or snapshot differs.")
+    arms = [{"method": arm["method"], "metrics": copy.deepcopy(arm["metrics"]), "qrel": copy.deepcopy(arm["qrel"]),
+             "ranking": [{key: doc[key] for key in ("rank", "id", "line")} for doc in arm["documents"]],
+             "top_documents": copy.deepcopy(arm["documents"][:3])} for arm in value["arms"]]
+    return {"kind": STAGED_RETRIEVAL_KIND, "action_id": action["id"], "result_sha256": action["result_sha256"],
+            "artifact_ref": action["artifact"], "binding": copy.deepcopy(binding), "origin": copy.deepcopy(value["origin"]),
+            "producer": {"request_id": action["request_id"], "method_id": action["command"],
+                         "code_identity": action["code_identity"], "evaluation_ref": action["method_instance"]["evaluation_ref"]},
+            "query": copy.deepcopy(value["query"]),
+            "corpus_source_sha256": state["source_scope"]["input_identities"]["corpus"]["sha256"],
+            "category": value["category"], "contract": copy.deepcopy(value["contract"]), "arms": arms,
+            "coverage": "complete_saved_qrels_rankings_metrics; top_three_documents_per_arm",
+            "source_text_included": True, "scientific_validation": False}
+
+
+def _validate_staged_retrieval_material(context, material, feedback, seen):
+    """Validate sealed fields and associations; original bytes require live materialization."""
+    from . import staged_relevance_adapter as staged, saved_retrieval_reader as legacy
+    from .method_registry import evaluation_ref
+    code = "INVALID_PLAN_CONTEXT"
+    try:
+        fields = {"kind", "action_id", "result_sha256", "artifact_ref", "binding", "origin", "producer", "query",
+                  "corpus_source_sha256", "category", "contract", "arms", "coverage", "source_text_included", "scientific_validation"}
+        _require(set(material) == fields and material["kind"] == STAGED_RETRIEVAL_KIND
+                 and material["coverage"] == "complete_saved_qrels_rankings_metrics; top_three_documents_per_arm"
+                 and material["source_text_included"] is True and material["scientific_validation"] is False,
+                 "Use the exact staged saved query material.", code)
+        query, binding, origin, producer = (material[k] for k in ("query", "binding", "origin", "producer"))
+        _require(type(query) is dict and set(query) == {"id", "split", "text", "text_truncated", "line", "source_sha256"}
+                 and _text(query["id"], 80) and type(query["split"]) is str and query["split"] in staged.SPLITS
+                 and type(query["text"]) is str and len(query["text"]) <= 4096
+                 and type(query["text_truncated"]) is bool and (not query["text_truncated"] or len(query["text"]) == 4096)
+                 and type(query["line"]) is int and query["line"] > 0 and _hash(query["source_sha256"]),
+                 "Invalid saved staged query or source locator.", code)
+        _require(_text(material["action_id"], 160) and _hash(material["result_sha256"]), "Invalid saved action identity.", code)
+        identity = (material["action_id"], query["split"], query["id"])
+        _require(identity not in seen and len(seen) < MAX_RETRIEVAL_SELECTORS, "Use at most four distinct saved queries.", code)
+        selection = context["selection_context"]
+        bfields = {"project_id", "snapshot_ref", "action_id", "result_sha256", "source_snapshot_sha256", "primary_action_id", "primary_result_sha256"}
+        _require(type(binding) is dict and set(binding) == bfields and binding["project_id"] == selection["project_id"]
+                 and binding["snapshot_ref"] == selection["snapshot_ref"]
+                 and binding["source_snapshot_sha256"] == selection["source_snapshot_sha256"]
+                 and binding["action_id"] == binding["primary_action_id"] == material["action_id"]
+                 and binding["result_sha256"] == binding["primary_result_sha256"] == material["result_sha256"],
+                 "Saved staged action, source or snapshot differs.", code)
+        _require(type(origin) is dict and set(origin) == {"source_file_sha256", "producer_code_identity", "reader_implementation_sha256"}
+                 and all(_hash(v) for v in origin.values()) and origin["producer_code_identity"] == selection["project_code_identity"],
+                 "Saved staged producer or reader identity differs.", code)
+        saved_action = feedback.get(material["action_id"], {})
+        _require(type(producer) is dict and set(producer) == {"request_id", "method_id", "code_identity", "evaluation_ref"}
+                 and producer["method_id"] == staged.TOOL_ID == saved_action.get("method_id")
+                 and producer["request_id"] == saved_action.get("request_id") and _text(producer["request_id"], 160)
+                 and producer["code_identity"] == origin["producer_code_identity"]
+                 and producer["evaluation_ref"] == evaluation_ref(staged.TOOL_ID)
+                 and saved_action.get("status") == "completed" and material["artifact_ref"] == saved_action.get("artifact_ref")
+                 and material["artifact_ref"] == "artifacts/" + material["action_id"] + ".json",
+                 "Saved staged primary feedback or producer differs.", code)
+        contract = {"id": staged.CONTRACT, "stage": "development", "baseline": "bm25", "candidate": "tfidf_cosine",
+                    "qrels_semantics": "positive_relevance_binary_projection", "missing_document_policy": "retain_in_denominator",
+                    "ignore_identical_ids": True}
+        assets = selection["domain_scope"]["input_identities"]
+        _require(canonical(material["contract"]) == canonical(contract) and type(assets) is dict
+                 and all(type(assets.get(k)) is dict for k in ("queries", "corpus", "qrels"))
+                 and query["source_sha256"] == assets["queries"].get("sha256")
+                 and _hash(material["corpus_source_sha256"])
+                 and material["corpus_source_sha256"] == assets["corpus"].get("sha256"),
+                 "Saved staged development contract or input differs.", code)
+        arms = material["arms"]
+        _require(type(arms) is list and len(arms) == 2 and all(type(a) is dict for a in arms)
+                 and [a.get("method") for a in arms] == ["bm25", "tfidf_cosine"], "Both saved arms are required.", code)
+        excerpt_docs = {}
+        for arm in arms:
+            _require(set(arm) == {"method", "metrics", "qrel", "ranking", "top_documents"}, "Invalid saved arm.", code)
+            metrics, qrel, ranking, top = (arm[k] for k in ("metrics", "qrel", "ranking", "top_documents"))
+            _require(type(metrics) is dict and set(metrics) == set(legacy.METRICS)
+                     and all(type(x) in (int, float) and math.isfinite(x) and 0 <= x <= 1 for x in metrics.values()),
+                     "Saved metrics must be finite and bounded.", code)
+            _require(type(qrel) is dict and set(qrel) == {"doc_ids", "source_sha256", "role", "grades", "missing_doc_ids"}
+                     and qrel["role"] == "qrels" and qrel["source_sha256"] == assets["qrels"].get("sha256")
+                     and _hash(qrel["source_sha256"]) and type(qrel["doc_ids"]) is list
+                     and len(qrel["doc_ids"]) <= staged.LIMITS["max_qrel_pairs"]
+                     and all(_text(doc, 80) for doc in qrel["doc_ids"]) and qrel["doc_ids"] == sorted(set(qrel["doc_ids"]))
+                     and type(qrel["grades"]) is dict and set(qrel["grades"]) == set(qrel["doc_ids"])
+                     and all(type(v) is int and v in (1, 2) for v in qrel["grades"].values())
+                     and type(qrel["missing_doc_ids"]) is list and qrel["missing_doc_ids"] == sorted(set(qrel["missing_doc_ids"]))
+                     and all(doc in qrel["doc_ids"] for doc in qrel["missing_doc_ids"]), "Saved qrel grades or source differ.", code)
+            _require(type(ranking) is list and len(ranking) <= 20
+                     and all(type(d) is dict and set(d) == {"rank", "id", "line"} and type(d["rank"]) is int
+                             and _text(d["id"], 80) and type(d["line"]) is int and d["line"] > 0 for d in ranking)
+                     and [d["rank"] for d in ranking] == list(range(1, len(ranking) + 1))
+                     and len({d["id"] for d in ranking}) == len(ranking)
+                     and query["id"] not in {d["id"] for d in ranking}, "Saved ranking differs.", code)
+            _require(type(top) is list and len(top) == min(3, len(ranking)), "Only the first three saved documents are included.", code)
+            for doc, rank in zip(top, ranking):
+                dfields = {"rank", "id", "title", "text", "title_truncated", "text_truncated", "line", "source_sha256", "relevant", "original_grade"}
+                _require(type(doc) is dict and set(doc) == dfields and type(doc["rank"]) is int and type(doc["line"]) is int
+                         and all(doc[k] == rank[k] for k in ("rank", "id", "line"))
+                         and type(doc["title"]) is str and len(doc["title"]) <= 512
+                         and type(doc["text"]) is str and len(doc["text"]) <= 4096
+                         and type(doc["title_truncated"]) is bool and (not doc["title_truncated"] or len(doc["title"]) == 512)
+                         and type(doc["text_truncated"]) is bool and (not doc["text_truncated"] or len(doc["text"]) == 4096)
+                         and doc["source_sha256"] == material["corpus_source_sha256"]
+                         and type(doc["relevant"]) is bool and doc["relevant"] == (doc["id"] in qrel["grades"])
+                         and (doc["original_grade"] is None or type(doc["original_grade"]) is int)
+                         and doc["original_grade"] == qrel["grades"].get(doc["id"]) and doc["id"] not in qrel["missing_doc_ids"],
+                         "Document excerpt must match the saved rank, labels and source.", code)
+                previous = excerpt_docs.get(doc["id"])
+                content = {k: v for k, v in doc.items() if k != "rank"}
+                _require(previous is None or previous == content, "Shared document excerpts differ between arms.", code)
+                excerpt_docs[doc["id"]] = content
+        _require(arms[0]["qrel"] == arms[1]["qrel"], "Both arms must retain the same labels.", code)
+        baseline, candidate = arms[0]["metrics"], arms[1]["metrics"]
+        category = ("metric_loss" if any(candidate[k] - baseline[k] < -1e-12 for k in legacy.METRICS)
+                    else "no_metric_loss_both_incomplete" if baseline["recall@20"] < 1 and candidate["recall@20"] < 1
+                    else "no_metric_loss_baseline_only_incomplete" if baseline["recall@20"] < 1 and candidate["recall@20"] == 1
+                    else "no_metric_loss_other")
+        _require(material["category"] == category and (category != "no_metric_loss_other" or min(baseline["recall@20"], candidate["recall@20"]) < 1),
+                 "Saved adverse category differs.", code)
+        seen.add(identity)
+    except ResearchError:
+        raise
+    except (KeyError, TypeError, ValueError, OverflowError, RecursionError):
+        raise ResearchError(code, "Malformed staged saved query material.") from None

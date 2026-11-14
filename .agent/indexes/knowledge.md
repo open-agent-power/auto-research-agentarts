@@ -1,5 +1,7 @@
 # 知识、数据与记忆索引
 
+S057 plan-only opt-in `staged_retrieval_adverse_query`复用原v3供原query、完整保存rank/qrels/metrics及每臂top3节选，4selector/64KiB不扩，旧wire保持；recipe两入口拒绝，Host/Markdown/PDF报告只身份摘要。原source CODE_CHANGED不绕、0真实模型。见[材料合同](../../docs/host-model-selection.md#staged开发验证查询材料)。
+
 `staged_project_experience`以独立schema只读捕获原staged三行动/冻结与负结果，复用Memory/dispatcher/目标import/status/Controller refs/报告；final只聚合并明示离线需原件核来源。见[合同](../../docs/staged-project-experience.md)。
 
 固定CPU保存经验使用独立schema与binding-only条目，完整原结果/协议保留、资产原字节只引用SHA；沿ResearchMemory撤回/精确scope和现有项目案例资格，不自动选臂。见[CPU经验](../../docs/cpu-project-experience.md)。

@@ -1,0 +1,117 @@
+{
+  "schema_version": "s057-staged-plan-material-verification-v1",
+  "status": "fixed_verified_before_publication",
+  "kind": "staged_retrieval_adverse_query",
+  "core_identity": "e05a7272f675625c6972e71ab3d2702f3c7adfc34cdd5cd3450d3b96bd64e7d5",
+  "source_freeze_sha256": "c8aad6c4e1b017db881a70f7f530c26735146cd1d1437e25a7f5fb2e371747f5",
+  "source_sha256": {
+    "src/autoresearch/saved_materials.py": "4e4f2f9de9b296329ab824be13d879c3c939bd97a14633b941852971a793940c",
+    "src/autoresearch/recipe_change_proposal.py": "13595cbaacae3db7d4c1513097cddc6c0ecbdeab0de46090cc084c5a56f73529",
+    "src/autoresearch/host_model_report.py": "d6b1789f58e70b8e4d6fbc8dd9c38f42a4dd79782245d4cfe59dc204e69c087f",
+    "src/autoresearch/research_plan_proposal.py": "a9ff215c5bcc6ad77f23c901baf67d8da07f82549aede9ce1e3f610470b0b41f",
+    "src/autoresearch/project_report.py": "d649b85bef252be9ab10b4f9b47dcd703924a8dc063d172af9f2e99f2ff02cb8"
+  },
+  "author_related_fixed": 44,
+  "root_related_fixed": 59,
+  "independent_new_fixed": 5,
+  "independent_initial_count_note": "initial10 included5new+5previousS056 accidentally discovered, not10new samples",
+  "native_real_readonly_v3": {
+    "status": "passed",
+    "schema_version": "research-plan-context-v3",
+    "context_bytes": 28513,
+    "context_sha256": "443de296358a96b038e1eda74a464dc9847ad18b65a1882da7e6872d039fc4f5",
+    "source_reader_calls": 1,
+    "top_documents_per_arm": [
+      3,
+      3
+    ],
+    "ranking_count_per_arm": [
+      20,
+      20
+    ],
+    "bm25_positive_rank": 1,
+    "tfidf_positive_rank": 2,
+    "selection_blockers": [
+      {
+        "code": "CODE_CHANGED",
+        "reason": "Explicitly register a compatible project revision before execution."
+      }
+    ],
+    "budget": {
+      "cash_settlement": "unknown",
+      "evidence_read_limit": 0,
+      "existing_cash_cap_cny": 5,
+      "historical_request_counts": null,
+      "historical_spend_cny": null,
+      "historical_unknowns_resolved": false,
+      "lineage_ref": "s054-squad-train-conditional-v1",
+      "local_tool_call_limit": 3,
+      "model_requests_allowed": 0,
+      "model_requests_reserved": 0,
+      "new_fits": 0,
+      "new_model_requests": 0,
+      "local_tool_calls_used": 3,
+      "local_tool_calls_reserved": 0,
+      "local_tool_dispatches": 3,
+      "evidence_reads_used": 0,
+      "evidence_reads_reserved": 0,
+      "fit_limit": 0,
+      "fit_attempts_used": 0,
+      "fits_reserved": 0,
+      "preprocessing_fits": 0,
+      "fits_completed": 0,
+      "ridge_fits_completed": 0,
+      "preprocessing_fits_completed": 0
+    },
+    "project_state_before": "b43a3e037d9ac723af03294fb21f4b1ef9a0573116518a001d576dbb75f74b79",
+    "project_state_after": "b43a3e037d9ac723af03294fb21f4b1ef9a0573116518a001d576dbb75f74b79",
+    "private_guards": "private evaluation, case private, host private paths; execution and Host prepare blocked",
+    "integrity_hash_scope": "before/after hash reads all source bytes including private outside guards, without parsing",
+    "limit": "no Host prepare or model request; old project code pin unchanged; no claim of scientific improvement",
+    "source_files_count": 47,
+    "source_files_unchanged": true
+  },
+  "legacy_wire": "default and old retrieval prompt compared to clean7c pin exact",
+  "preserved_constraints": {
+    "max_selectors_combined": 4,
+    "full_context_bytes": 65536,
+    "max_document_excerpts_per_arm": 3,
+    "full_saved_rank_ids_metrics_and_qrels_preserved": true,
+    "stage_splits": [
+      "dev",
+      "validation"
+    ],
+    "recipe_both_entrypoints_reject": true,
+    "report_identity_summary_only_no_query_or_document_text": true,
+    "no_real_model_or_Host_prepare": true,
+    "old_S054_CODE_CHANGED_not_bypassed": true
+  },
+  "real_failure_fixed": {
+    "initial_manifest_sha256": "cb5ede973db7998732761db34222f68fb1353c89ffa1a0af003c7e3f006d6a41",
+    "initial_191_source_snapshot": "runs/s057-verification/initial-source",
+    "defect": "dict equality treated contract.ignore_identical_ids numeric1 as booltrue in offline sealed context; independently reproduced; canonical typed comparison now rejects",
+    "failed_log": "runs/s057-review/initial-contract-type-failure.log",
+    "original_evidence_preserved": true
+  },
+  "source_freshness": "materialization verifies original project/source/action/SQLite/rank/coordinate/grade through S056 reader; offline context only verifies sealed relationships, cannot prove source text independently without origin",
+  "validation_evidence": {
+    "root_log": "runs/s057-verification/root-regression-fixed.log",
+    "root_log_sha256": "0b5c7286b91b2e682422213d4791c1dcda737d7f17dca45656db4b6dba3f924f",
+    "review": "runs/s057-review/independent-assessment.md",
+    "review_sha256": "896fb759b02c4ffa4abecc11a2b7413104e9767195471600f7a0f4e728d5dba6"
+  },
+  "usage": {
+    "new_research_actions": 0,
+    "new_research_models": 0,
+    "new_research_fits": 0,
+    "synthetic_Host_journal_tests": "engineering only; no real transport",
+    "engineering_dispatches": "not separately metered",
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "limits": [
+    "No S054 Host prepare, plan change or source-pin migration; original47 bytes/state/budget protected.",
+    "Private bytes read outside guards only for whole-source integrity hashes, no whole-process zero-private-I/O assertion.",
+    "No native Linux model transport, actual model decision or scientific benefit acceptance."
+  ]
+}

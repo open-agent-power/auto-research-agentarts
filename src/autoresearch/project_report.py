@@ -523,6 +523,15 @@ def _supplied_material_rows(report):
     rows = []
     for record in report["host_models"]["records"]:
         for material in host_model_report.supplied_material_summaries(record):
+            if material.get("kind") in ("retrieval_adverse_query", "staged_retrieval_adverse_query"):
+                query = material.get("query", {})
+                rows.extend([["请求 / 检索行动", record["request_id"] + " / " + material.get("action_id", "未记录")],
+                             ["保存查询 / 划分 / 行", str(query.get("id", "未记录")) + " / " + str(query.get("split", "未记录")) + " / " + str(query.get("line", "未记录"))],
+                             ["查询来源 SHA256", query.get("source_sha256", "未记录")],
+                             ["语料来源 SHA256", material.get("corpus_source_sha256", "未记录")],
+                             ["保存结果 SHA256", material.get("result_sha256", "未记录")],
+                             ["供应范围", material.get("coverage", "未记录")]])
+                continue
             fields = "; ".join(name + ": " + str(field.get("count", "未记录"))
                                for name, field in material["fields"].items())
             rows.extend([["请求 / 诊断行动", record["request_id"] + " / " + material.get("action_id", "未记录")],

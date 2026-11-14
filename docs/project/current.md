@@ -13,8 +13,9 @@ S055现有Memory捕获真实取舍case632278B，SHA6aa0ca75d05630df69eabec5abaec
 
 S056原两个GET新增明确staged dev/validation DTO，原query原文/正例/两臂保存排名/指标/坐标可查，test/final拒绝，旧train/test DTO不变。实际S054一条纽约收入问题正例BM25排1、TFIDF排2，原47files/状态/3预算不变；root75相关/独审5通过。源freeze8d4165764c7820e7f6e2fe2896d57f37dbc2d2c1b43609d11997d05151e095b0，新core2b0b552c54f9a7a2c577b405746d61743396090d8c0e24e0e851882694182fa7。[API合同](../staged-retrieval-reader.md)。saved_materials/Host/plan/前端未接staged，不把可读GET冒称模型已看到原文。
 
-当前下一片：S057先确定显式、有界staged材料选择kind接既有plan/Host，保64KiB/4选择器、原请求/旧wire/sourcepin与0模型约束；不改S054旧计划或阈值。root负责协议/集成/持久交接，engineering与capability_review可复用，尚未分派新产品writer。
+S057已验待发布：显式plan-only kind staged_retrieval_adverse_query复用现有v3/Host封存，完整两臂rank/qrel/metrics+原query及每臂top3节选，仍4selector/64KiB；recipe两入口拒绝，Host/Markdown/PDF仅身份摘要。旧default/legacy prompt与7c pin逐字相同。fixed59相关/独审5新项通过；原S054真实只读v3为28513bytes、reader1次/20+20排名/3+3节选，47files/3预算不变，CODE_CHANGED执行阻断未绕，未Hostprepare/调用模型/改旧plan。初版true可被1冒充的离线类型缺口已独立复现并修，191初源/失败/manifest保留；fixed c8aad6c4e1b017db881a70f7f530c26735146cd1d1437e25a7f5fb2e371747f5，新coree05a7272f675625c6972e71ab3d2702f3c7adfc34cdd5cd3450d3b96bd64e7d5。[S057](../execution/SPRINT-057.md)。
 
+当前S058归档交付：白名单三个可用snapshot100原文件+S054永久claim+S05518文件及README/LICENSE/verify3，总122payload+manifest。v2 ZIP27816933B/SHA1c1df555a0a6e3f96b0a73a9d2f8bd22efffe83b0b81b83479bea84412cfedd6，本地独立全成员CRC/bytes/SHA/type/mode/path已核，有限凭据扫描无命中，原预算和pending保护。它不含产品checkout/venv/credentials/旧盘，未做canonical完整恢复，未重跑研究。当前draft release445432218/assets0，原upload401原因unknown；root审包后仅一次当前官方上传尝试，再回读/下载核SHA才可称远端交付。root负责发布/回执；两位原成员打包/独审交回，可复用，无新agent。
 ## 环境、来源与权限
 
 repo `/workspace/development-continuation-20261114/auto-research-agentarts`，origin open-agent-power/auto-research-agentarts，当前owner `root-g5-continuation-20261115T0448` 持lease/heartbeat；原/workspace/auto-research-agentarts、原参考8库和旧云盘不可见，原全球executor unknown，不重建历史。短暂starting后同盘/改动/lease/原件已核。
