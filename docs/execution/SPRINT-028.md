@@ -1,0 +1,9 @@
+# Sprint028：同ID控制器结果保存至工作台原收据
+
+源码 `c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783`，clean pin `/workspace/work/manager-advance-receipt-source-c5bb4f8`。advance/advance_recipe在原core返回后将其原status/response落到同一个manager请求，不再只留preparing intent。每次明确调用仍进入原core的同ID路径，不从manager缓存短路、不引入新的无parent/child拒绝，也不自动遍历或补写历史case。
+
+外层waiting/unknown等保持原值；completed须有匹配的completed child。manager command/digest/intent及响应schema/project/request/status一致，终态及重复unknown除顶层replayed外漂移拒绝覆盖；unknown实际转终态时保留previous_unknown。异常不伪造完成。原core终态重放不重新校验全部工件或当前runtime，本增量没有增加这种保证。
+
+实现最终10项针对性检查通过。独立新合成manager的受控fixture最终69检查通过：selection/recipe真实wait及同ID/冲突、两种核心已存而外层写中断后的收尾、真实core恢复一次mock adapter中断至unknown。后者保留同child/action和1个预留slot，adapter只mock调用一次不再派发；原core重复unknown会将state_version 4→5，不能称完整状态不变。unknown→completed仅模拟core返回，不能当真实行动完成。
+
+01全状态相等假设、02模拟project ID错误等harness失败保留；03的61检查与04的69检查不叠加计成果。初实现轮误发现额外5既有临时工程测试，真实执行tabular-quality/grouped-profile，fit/solver未单独仪表计数，不能写全部工程计算0。独立验证的明确列举fit/adapter/solver/model/network守卫0，uname-p1另计。17/13/574/421/ZIP保护前后相同，无旧案runtime调用、无新科学拟合或正式审计，原50研究拟合/预算/producer/pins保持。[精确证据与边界](g5-local/manager-advance-receipt-verification.json)。

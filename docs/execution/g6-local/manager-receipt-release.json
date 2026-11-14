@@ -1,0 +1,154 @@
+{
+  "bootstrap_process_network": "unknown",
+  "component_hashes": {
+    "local_workbench": {
+      "bytes": 111434,
+      "sha256": "2bbb0be202b50218b8afb30360c102df874ff4fa73fd7c2e192eecf6ddee6187"
+    },
+    "project_workbench": {
+      "bytes": 52068,
+      "sha256": "9b8f7055256e77efeaa7a8d46c6b181ca1fa4d66456148eec63120c458ff42b0"
+    },
+    "readonly_workbench": {
+      "bytes": 2286,
+      "sha256": "9077d054c82871a77bebefcbd487975730339d9c74b87a4e4ed1c8dbccdc8650"
+    },
+    "research_project": {
+      "bytes": 87296,
+      "sha256": "4426d2501c2583776a3966ca118c11131712c1b1f1105ff30ee7ccea64eae17d"
+    },
+    "saved_study_capsule": {
+      "bytes": 3434,
+      "sha256": "3cc018458a96df789adc41b935637dec07ebf5b37a8c1cf4e782af09178644de"
+    },
+    "saved_study_reference": {
+      "bytes": 18004,
+      "sha256": "46332db3d2c7af964444d324a3254a13163c12c1534681da27a99ae6caf67f73"
+    },
+    "stored_project_history": {
+      "bytes": 16040,
+      "sha256": "af6a67b70dc9c8d65227457d844065479cb092b741be06036a20bd4fdc6aac44"
+    },
+    "stored_project_summary": {
+      "bytes": 9930,
+      "sha256": "8859d02cb010726fafc7f923e138dfee5a89bd4466b168ea909cb92945370759"
+    }
+  },
+  "dependency_record_scope": "third-party RECORD content not independently verified",
+  "distributions": {
+    "agentarts-autoresearch": "0.1.0",
+    "charset-normalizer": "3.5.2",
+    "contourpy": "1.3.3",
+    "cycler": "0.12.1",
+    "fonttools": "4.61.1",
+    "h5py": "3.16.0",
+    "joblib": "1.5.3",
+    "kiwisolver": "1.4.9",
+    "matplotlib": "3.10.8",
+    "numpy": "2.5.4",
+    "packaging": "26.3",
+    "pillow": "13.0.0",
+    "pip": "25.0.1",
+    "pyparsing": "3.3.2",
+    "pypdf": "6.21.4",
+    "python-dateutil": "4.0.0",
+    "reportlab": "4.4.9",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.17.0",
+    "setuptools": "84.2.1",
+    "threadpoolctl": "3.6.0",
+    "tzdata": "2026.6",
+    "wheel": "0.48.0"
+  },
+  "guard_scope": "only code_identity after import; no project or study read",
+  "guarded_calls": 0,
+  "installed_product_record_rows": 384,
+  "installed_venv": "/workspace/work/g6-manager-receipt-release-20261114/venv",
+  "model_api_fits_research": 0,
+  "native_runtime_identity": "4b93246c616c927921199b547a46c09c233f76aa0f764fcfa55504269a50d9c9",
+  "no_sources_boundary": "prior b1 fresh base-only installation: help works and startup returned DEPENDENCY_NOT_AVAILABLE h5py; no root created. CLI and pyproject byte-identical; not rerun for this source",
+  "observed_product_module_origins": 107,
+  "product_files": 190,
+  "product_record_unhashed_pyc": 184,
+  "product_record_unhashed_self": 1,
+  "python_files": 184,
+  "real_manager_access": false,
+  "sdk_runtime": "not installed or verified",
+  "source_commit": "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783",
+  "source_tar": {
+    "bytes": 11663360,
+    "sha256": "fbcbbb91419d46eb488d84c6a08b239a827c793ab1033368af743ac8e820dc38"
+  },
+  "wheel": {
+    "bytes": 1290408,
+    "sha256": "a9064fe861988d11d4ddf479a07cccba8ad9f34e875f9eb01a65b70d139ba32d"
+  },
+  "wheel_path": "/workspace/work/g6-manager-receipt-release-20261114/wheelhouse/agentarts_autoresearch-0.1.0-py3-none-any.whl",
+  "wheel_record_rows": 195,
+  "schema_version": "manager-receipt-release-verification-v1",
+  "release_result": {
+    "path": "runs/sprint-029-manager-receipt-release-20261114/installed-release-result.json",
+    "bytes": 3180,
+    "sha256": "f1ebf11db08d25d2e214a148b2159537e032cfb300b1aa05c0d43118f87c44fa"
+  },
+  "source_comparison": {
+    "path": "runs/sprint-029-manager-receipt-release-20261114/source-wheel-installed-comparison.json",
+    "bytes": 41277,
+    "sha256": "494c5dc8834b48521e9ed4a50c66b73692d63dcb75ee7e14206e829fe73be496"
+  },
+  "wheel_record": {
+    "path": "runs/sprint-029-manager-receipt-release-20261114/wheel-record-proof.json",
+    "bytes": 36369,
+    "sha256": "973d12d60a25c5b82a72cd4f986b4b52300a76cd326928a28794699cdb5689a0"
+  },
+  "installed_product_record": {
+    "path": "runs/sprint-029-manager-receipt-release-20261114/product-record-proof.json",
+    "bytes": 76419,
+    "sha256": "1bd6ef830abf4abc5bde2d998caede19747457fc24fe18e58c8161625ae60d94"
+  },
+  "install_report": {
+    "path": "runs/sprint-029-manager-receipt-release-20261114/extras-install-report.json",
+    "bytes": 1794,
+    "sha256": "48c4b1962f3e80e0a94becc23ac24b90ddd941398ae970f943cce0c944c8f41b"
+  },
+  "independent_review": {
+    "path": "runs/sprint-029-manager-receipt-release-20261114/review/independent-final.json",
+    "bytes": 2959,
+    "sha256": "12286c40587b38336a5f0e898c5568f4ab4e1db21cf41b3f227f4174fdafc10a"
+  },
+  "installed_fixture": {
+    "path": "runs/sprint-029-manager-receipt-install-20261114/validation/attempt-01/receipt.json",
+    "bytes": 70945,
+    "sha256": "1030669f6db292aea5e01b1f9f9e6c238ea79868e9d08b233623023c397bf318"
+  },
+  "installed_findings": {
+    "path": "runs/sprint-029-manager-receipt-install-20261114/validation/FINDINGS.md",
+    "bytes": 1808,
+    "sha256": "075fe708f4d9a892fade99fc3b7085576669341c1ef17dd1f80d96ff1be4d3fc"
+  },
+  "real_installed_scope": {
+    "kind": "isolated installed Python fixture -I -B, noPYTHONPATH/cwdoutside; not CLI or UI",
+    "checks": 53,
+    "loaded_product_origins": 98,
+    "originals_before_after_equal": true,
+    "actual_wait_commands": 2,
+    "mock_adapter_calls": 1,
+    "unknown_reserved_slot": 1,
+    "unknown_repeat_state_version": [
+      4,
+      5
+    ],
+    "HTTP_services": 0,
+    "bootstrap_uname_p": 1,
+    "other_named_guards": 0
+  },
+  "limits": [
+    "Previous3b127/c5sourcepin andallolderartifacts retained.",
+    "Only engineering fixture continuity; unknown to completion remains mocked in source test, not real research.",
+    "Self import bootstrap unknown; postimport identity guard and validation separate scope.",
+    "ThirdpartyRECORD not independently rehashed; base h5py boundary borrowed unchangedb1 CLI/pyproject and not rerun.",
+    "S029 installedfixture is not CLI/UI smoke; source3b01/S027 earlierread-onlyviews separatelyverified, current sourcebytes hold.",
+    "Setupcwd error before fixture process launch retained in findings; no protected original access by that setup.",
+    "No SDK/OSsealed/fullGate/scientific benefit claim."
+  ]
+}

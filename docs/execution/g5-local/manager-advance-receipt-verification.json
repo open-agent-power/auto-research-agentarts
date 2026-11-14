@@ -1,0 +1,223 @@
+{
+  "schema_version": "manager-advance-receipt-recovery-verification-v1",
+  "source_commit": "c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783",
+  "source_pin": "/workspace/work/manager-advance-receipt-source-c5bb4f8",
+  "local_workbench_sha256": "2bbb0be202b50218b8afb30360c102df874ff4fa73fd7c2e192eecf6ddee6187",
+  "contract": "Persist original core returned status/response; same-ID always delegates to original core without new recovery restrictions or manager-cache bypass. No background replay of original cases.",
+  "precommit": {
+    "path": "runs/sprint-028-manager-receipt-recovery-20261114/review/precommit.json",
+    "bytes": 2744,
+    "sha256": "1cbb0a8ebcb52ab366bfb512a1f4351e07537ecff65b3628a4df7f3534bd2cf2"
+  },
+  "independent_final": {
+    "path": "runs/sprint-028-manager-receipt-recovery-20261114/review/independent-final.json",
+    "bytes": 3407,
+    "sha256": "fa7538aec59be8d51d832ba47febf4899323fb7d7116ed701e9960722e4c73a1"
+  },
+  "independent04addendum": {
+    "path": "runs/sprint-028-manager-receipt-recovery-20261114/review/fixture04-addendum.json",
+    "bytes": 1387,
+    "sha256": "1d2f75980b1250285486f0af0190e5bdc5d980cc5f174ffb884876af519803bd"
+  },
+  "findings": {
+    "path": "runs/sprint-028-manager-receipt-recovery-20261114/validation/FINDINGS.md",
+    "bytes": 3381,
+    "sha256": "add5d4b6f64e108f0aa272db4b4bcab0565d11584845bfeaa1fe229da7ebea75"
+  },
+  "protocol": {
+    "path": "runs/sprint-028-manager-receipt-recovery-20261114/validation/PROTOCOL.md",
+    "bytes": 3832,
+    "sha256": "d392d30281a698749b616bd6e8b02ca95a75451df59151272ed1be42116e10db"
+  },
+  "implementation_tests": {
+    "targeted_final_checks": 10,
+    "log": {
+      "path": "runs/sprint-028-advance-receipt-20261114/implementation/tests-targeted-v3.log",
+      "bytes": 109,
+      "sha256": "b4b86868203cce66e46c5ecf1bb218e71aa90b6168a4be6b55e43f8f829e519d"
+    },
+    "earlier_broader_log": {
+      "path": "runs/sprint-028-advance-receipt-20261114/implementation/tests.log",
+      "bytes": 111,
+      "sha256": "57b0026864c4d067e595ffe360dadac190a42950a187a38c0507e116c0c22d56"
+    },
+    "earlier_broader_checks": 12,
+    "earlier_broader_scope": "includes5preexisting temp engineering tests and actual tabular-quality/grouped-profile execution; engineering fit/solver not separately instrumented or counted; do not label zero"
+  },
+  "attempts": [
+    {
+      "receipt": {
+        "path": "runs/sprint-028-manager-receipt-recovery-20261114/validation/attempt-01/receipt.json",
+        "bytes": 54614,
+        "sha256": "57369b4c14ab622a9d34facb84944feac0a55d4de10093531c472828a4c4785e"
+      },
+      "status": "failed",
+      "checks": 47,
+      "passed_checks": 46,
+      "error": "unknown replay no redispatch or state drift",
+      "bootstrap_uname_p": 1,
+      "guards": {
+        "protected_tree_access_during_fixture": 0,
+        "subprocess.Popen": 0,
+        "socket.connect": 0,
+        "socket.getaddrinfo": 0,
+        "os.system": 0,
+        "os.popen": 0,
+        "os.fork": 0,
+        "autoresearch.tabular_quality_adapter.execute": 0,
+        "autoresearch.grouped_quality_adapter.execute": 0,
+        "autoresearch.source_evidence_adapter.execute": 0,
+        "autoresearch.scheduling_adapter.execute": 0,
+        "autoresearch.scheduling_kernel.schedule": 0,
+        "autoresearch.scheduling_kernel.brute_force": 0,
+        "autoresearch.scheduling_kernel.jobs_for": 0,
+        "ChatClient.complete": 0,
+        "LocalHTTP.request": 0,
+        "LocalHTTP._blocking_request": 0,
+        "sklearn.linear_model.Ridge.fit": 0
+      },
+      "mock_adapter_interrupt_calls": 1,
+      "originals_equal": true,
+      "services_started": 0
+    },
+    {
+      "receipt": {
+        "path": "runs/sprint-028-manager-receipt-recovery-20261114/validation/attempt-02/receipt.json",
+        "bytes": 56796,
+        "sha256": "0f1990f4a42dfe0aac256a74d3b7a81ecdc7579f85ce1760608c32e55bfacc03"
+      },
+      "status": "failed",
+      "checks": 58,
+      "passed_checks": 58,
+      "error": "The original controller response is incomplete or belongs to another request.",
+      "bootstrap_uname_p": 1,
+      "guards": {
+        "protected_tree_access_during_fixture": 0,
+        "subprocess.Popen": 0,
+        "socket.connect": 0,
+        "socket.getaddrinfo": 0,
+        "os.system": 0,
+        "os.popen": 0,
+        "os.fork": 0,
+        "autoresearch.tabular_quality_adapter.execute": 0,
+        "autoresearch.grouped_quality_adapter.execute": 0,
+        "autoresearch.source_evidence_adapter.execute": 0,
+        "autoresearch.scheduling_adapter.execute": 0,
+        "autoresearch.scheduling_kernel.schedule": 0,
+        "autoresearch.scheduling_kernel.brute_force": 0,
+        "autoresearch.scheduling_kernel.jobs_for": 0,
+        "ChatClient.complete": 0,
+        "LocalHTTP.request": 0,
+        "LocalHTTP._blocking_request": 0,
+        "sklearn.linear_model.Ridge.fit": 0
+      },
+      "mock_adapter_interrupt_calls": 1,
+      "originals_equal": true,
+      "services_started": 0
+    },
+    {
+      "receipt": {
+        "path": "runs/sprint-028-manager-receipt-recovery-20261114/validation/attempt-03/receipt.json",
+        "bytes": 55696,
+        "sha256": "20e92c57f9660255410e3790b3ebc75b315492987149eb0b07b4c86a1515f43d"
+      },
+      "status": "passed",
+      "checks": 61,
+      "passed_checks": 61,
+      "error": null,
+      "bootstrap_uname_p": 1,
+      "guards": {
+        "protected_tree_access_during_fixture": 0,
+        "subprocess.Popen": 0,
+        "socket.connect": 0,
+        "socket.getaddrinfo": 0,
+        "os.system": 0,
+        "os.popen": 0,
+        "os.fork": 0,
+        "autoresearch.tabular_quality_adapter.execute": 0,
+        "autoresearch.grouped_quality_adapter.execute": 0,
+        "autoresearch.source_evidence_adapter.execute": 0,
+        "autoresearch.scheduling_adapter.execute": 0,
+        "autoresearch.scheduling_kernel.schedule": 0,
+        "autoresearch.scheduling_kernel.brute_force": 0,
+        "autoresearch.scheduling_kernel.jobs_for": 0,
+        "ChatClient.complete": 0,
+        "LocalHTTP.request": 0,
+        "LocalHTTP._blocking_request": 0,
+        "sklearn.linear_model.Ridge.fit": 0
+      },
+      "mock_adapter_interrupt_calls": 1,
+      "originals_equal": true,
+      "services_started": 0
+    },
+    {
+      "receipt": {
+        "path": "runs/sprint-028-manager-receipt-recovery-20261114/validation/attempt-04/receipt.json",
+        "bytes": 56438,
+        "sha256": "d221470dcd31f337a2f1ddaef9686d87afe70f9b1b2396a2d6abf188cd850abc"
+      },
+      "status": "passed",
+      "checks": 69,
+      "passed_checks": 69,
+      "error": null,
+      "bootstrap_uname_p": 1,
+      "guards": {
+        "protected_tree_access_during_fixture": 0,
+        "subprocess.Popen": 0,
+        "socket.connect": 0,
+        "socket.getaddrinfo": 0,
+        "os.system": 0,
+        "os.popen": 0,
+        "os.fork": 0,
+        "autoresearch.tabular_quality_adapter.execute": 0,
+        "autoresearch.grouped_quality_adapter.execute": 0,
+        "autoresearch.source_evidence_adapter.execute": 0,
+        "autoresearch.scheduling_adapter.execute": 0,
+        "autoresearch.scheduling_kernel.schedule": 0,
+        "autoresearch.scheduling_kernel.brute_force": 0,
+        "autoresearch.scheduling_kernel.jobs_for": 0,
+        "ChatClient.complete": 0,
+        "LocalHTTP.request": 0,
+        "LocalHTTP._blocking_request": 0,
+        "sklearn.linear_model.Ridge.fit": 0
+      },
+      "mock_adapter_interrupt_calls": 1,
+      "originals_equal": true,
+      "services_started": 0
+    }
+  ],
+  "verified_final_checks": 69,
+  "real_scenarios": [
+    "selection and recipe wait, exactsameID replay/conflict",
+    "KeyboardInterrupt after durable core wait before manager receipt then exactsameID finish, eachcommand",
+    "preparing manager without parent delegates originalreal wait",
+    "mock adapter one KeyboardInterrupt then actual core unknown recovery, samechild/action/reservation1, no redispatch",
+    "invalidintent and terminal/unknown response drift cannot overwrite"
+  ],
+  "mock_only_scenarios": [
+    "unknown to completed preserving previous_unknown",
+    "prepared parent without child delegates mocked PROJECT_BUSY",
+    "malformed core completion rejected"
+  ],
+  "negative_and_limits": [
+    "Unknown repeated core recovery increments synthetic project state_version4to5; actions/budget/outerreceipt unchanged, not entire state.",
+    "01 harness whole-state equality assumption and02 wrong mockproject ID failed, retained; originals unchanged.",
+    "Original core terminal replay does not reverify all child artifacts or current runtime; no stronger promise.",
+    "No historical nativeproject or standalone study runtime invoked; originalpreparing receipts unchanged.",
+    "Named guards scope includes Ridge.fit and namedactualadapters/solver/model/network/SQLiteprotectedtree access, not all potential host operations.",
+    "This is engineering continuity evidence, not scientific improvement."
+  ],
+  "protected": {
+    "study_files": 17,
+    "manager_files": 13,
+    "old_files": 574,
+    "old_paths": 421,
+    "zip_sha256": "3c12efc995a4a4e4e61763150b1d5de818755dbbdf6e892c15d43c9c96a0c598",
+    "historical_research_fits": 50,
+    "study_primary": 1,
+    "formal_audit": 1,
+    "scope": "acceptance before/after receipts, independentreview not rehash574"
+  },
+  "new_scientific_fit_model_API_audit": 0,
+  "developer_cost_tokens": null
+}

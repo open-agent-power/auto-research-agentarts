@@ -132,3 +132,8 @@ GitHub交付：2026-11-13组织授权生效后，已成功推送`codex/execution
 ## Sprint026–027：原计划与保存报告的追溯及安装
 
 [S026](SPRINT-026.md)在原只读project-summary保留三计划/两行动/第三等待和外层preparing差异，保存报告仅核metadata，当前性unknown；110GET和实际双尺寸独审通过。[S027](SPRINT-027.md)source3b01新独立wheel/190产品/安装CLI16GET/4图验收通过，旧包和原案预算保持，继续同ID外层收据缺口。
+
+
+## Sprint028–029：工作台同ID外层收据接续
+
+[S028](SPRINT-028.md)在原core响应后保存同ID原状态，等待/未知分开，独立真实合成wait/中断/unknown保留1预留共69checks通过；不修改旧case。[S029](SPRINT-029.md)新a906wheel/独立安装Python53checks/产品字节与独审通过，精确边界见各索引，继续只读原请求交接核对。

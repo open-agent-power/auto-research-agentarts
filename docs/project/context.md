@@ -91,3 +91,6 @@ S023–025已完成：e0固定原ZIP显式下载byte匹配，792原协议来源/
 
 
 Sprint026–027：source3b01只读三版计划/完整context/两action/等待null与manager preparing分别展示；保存report身份/currentnessunknown/manifest声明范围闭合。原案110GET/主轮128checks/32图和新wheel3b127/190product/184Py/exact22离线/安装CLI16GET/4图独审通过，见current及精确证据。旧source792/3770包保留；科学50fit/primary1/audit1/预算不改。原4人池继续S028 manager返回core响应后外层收据落盘，必须同ID经core、不重选/不把unknown完成，不主动改旧案。
+
+
+Sprint028–029：sourcec5bb通过外层manager同ID原status/response落盘，不跳过core或自动遍历历史案；独立合成69checks真实wait/写中断/一次mock后unknown、reserved1保留，原core版本4→5明确。最终a906 wheel/190产品184Py/exact22离线/安装Python53checks98origins独审通过，非CLI/UI。初broader12误发现5既有quality/grouped工程计算，fit/solver未单独计量；原科学50fits/唯一primary/audit和预算保持。继续S030只读canonical语义请求与双purpose SHA，不当原wirebytes或执行许可。

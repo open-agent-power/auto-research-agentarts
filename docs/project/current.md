@@ -8,6 +8,14 @@
 
 ## 最新汇报入口
 
+### Sprint028–029：原ID外层结果收尾与独立安装已验
+
+source `c5bb4f8f2af9c78f5b9fa2f1baa42757264dd783`／pin `/workspace/work/manager-advance-receipt-source-c5bb4f8`，advance/advance_recipe在原core返回后保存同ID原status/response。waiting/unknown分别保留，不从外层缓存绕core，不自动遍历旧案。真实合成工程wait/两种写中断/unknown保留1预留、单次mock不重派发等最终69检查及独审通过；重复unknown的原core版本4→5，不称全状态不变。[S028](../execution/SPRINT-028.md)／[精确验证](../execution/g5-local/manager-advance-receipt-verification.json)。
+
+新wheel1290408B/SHAa9064fe861988d11d4ddf479a07cccba8ad9f34e875f9eb01a65b70d139ba32d，190/184产品字节/RECORD/exact22离线与独审通过；独立安装Python fixture53checks/98origins，不是CLI/UI。原17/13/574/421/ZIP、50研究拟合及唯一primary/audit保持；早期额外5临时工程测试的计算未单独计量，不写整体0。[S029](../execution/SPRINT-029.md)／[成品](../execution/g6-local/manager-receipt-release.json)。
+
+继续S030：已只读确认原3请求可核对core request SHA，再无损重建manager canonical语义body与原digest/intent SHA相符；不是原网络bytes或新执行授权。将接既有只读计划视图，源码/实际UI独审尚待完成，未计交付。原4人池继续复用，无用户决策阻塞。
+
 ### Sprint026–027：三版计划、分层行动与保存报告可追溯
 
 source `3b01b2a6d11c2661023c8301da0f55a02f30393a`／pin `/workspace/work/stored-plan-report-source-3b01b2a`，只读project-summary新增原计划/controller/manager收据和报告metadata。三计划全值匹配，两个真实行动completed、第三waiting/null；外层三preparing/null不改写、不作为活跃执行者。报告只读manifest/report.json，其他三文件SHA为原声明，currentness unknown。源码110GET/128主轮checks、32图及独审通过，失败/遮挡与补帧分开。[S026](../execution/SPRINT-026.md)／[精确验收](../execution/g5-local/stored-plan-report-verification.json)。
