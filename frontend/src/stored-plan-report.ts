@@ -15,6 +15,22 @@ function receipt(parent: HTMLElement, value: unknown, label: string): void {
   parent.append(el("p", "detail-note", label + " · 请求 " + display(data.request_id) + " · 原记录状态 " + display(data.record_status)
     + " · 原结果状态 " + (data.result_recorded === false ? "未记录" : data.result_present === false ? "null（原值）" : display(data.result_status))));
 }
+function handoff(parent: HTMLElement, value: unknown): void {
+  const data = obj(value), detail = el("details"); detail.append(el("summary", "", "核对原请求与身份"),
+    el("p", "detail-note", "仅供核对原 ID 与原源码 pin；这不是执行授权，也不表示当前源码可以执行旧研究。"));
+  if (data.status !== "available" || data.schema_version !== "stored-original-request-handoff-v1"
+      || data.scope !== "canonical_semantic_body_only_not_execution_authorization" || typeof data.canonical_semantic_json !== "string") {
+    detail.append(el("p", "", "原请求无法完整核对：" + text(data.status, "未记录") + " · " + text(data.reason, "未记录")));
+    parent.append(detail); return;
+  }
+  detail.append(el("p", "detail-note", "以下为按原保存字段重建并核对摘要的规范 JSON 语义，不代表原网络字节或字段顺序。"));
+  const original = el("pre"); original.style.whiteSpace = "pre-wrap"; original.style.overflowWrap = "anywhere";
+  original.textContent = data.canonical_semantic_json; detail.append(original);
+  for (const [label, item] of [["工作台请求摘要", data.manager_body_sha256], ["工作台 intent 摘要", data.manager_intent_sha256],
+    ["控制器请求摘要", data.controller_request_sha256], ["原项目生产代码身份", data.project_producer_code_identity],
+    ["原控制器代码身份", data.controller_producer_code_identity], ["原来源快照", data.source_snapshot_sha256]] as const) field(detail, label, item);
+  parent.append(detail);
+}
 function controller(parent: HTMLElement, value: Obj): void {
   const block = el("div", "saved-study-reference"), decision = obj(value.decision_next_action), matched = obj(value.matched_action);
   block.append(el("strong", "", "控制器原请求 " + display(value.request_id)), el("p", "", "控制器保存状态：" + display(value.status)),
@@ -25,7 +41,8 @@ function controller(parent: HTMLElement, value: Obj): void {
   if (value.child_binding_status === "explicit_null") block.append(el("p", "detail-note", "子请求在原记录中为 null；不据此推断其他执行。"));
   if (value.child_binding_status === "not_recorded") block.append(el("p", "detail-note", "子请求字段未记录。"));
   if (value.child_binding_status === "matched") block.append(el("p", "", "按子请求匹配的项目行动：" + display(matched.id) + " · 保存状态 " + display(matched.status)));
-  receipt(block, value.manager_receipt, "工作台 advance 收据"); parent.append(block);
+  receipt(block, value.manager_receipt, "工作台 " + display(obj(value.manager_receipt).command) + " 收据");
+  handoff(block, value.request_handoff); parent.append(block);
 }
 export function createStoredPlanReport(historyValue: unknown, reportValue: unknown): HTMLElement {
   const container = el("div"), history = obj(historyValue), report = obj(reportValue), plans = el("details");

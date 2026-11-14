@@ -9,7 +9,7 @@ import sqlite3
 import stat
 
 from .research_project import safe_path
-from .contracts import ResearchError
+from .contracts import ResearchError, canonical, fingerprint
 
 _MAX_RECORD = 4 * 1024 * 1024
 _MAX_HISTORY = 256 * 1024
@@ -81,6 +81,71 @@ def _receipt(manager, request_id, command, project_id, *, expected_plan=None):
     return view
 
 
+def _request_handoff(controller, manager, project_id):
+    """Prove a canonical semantic manager body from two saved request identities."""
+    view = {'schema_version': 'stored-original-request-handoff-v1',
+            'scope': 'canonical_semantic_body_only_not_execution_authorization', 'status': 'partial'}
+    try:
+        request_id, request = controller.get('request_id'), controller.get('request')
+        _need(type(request_id) is str and bool(request_id) and type(request) is dict,
+              'partial', 'The original controller request or identity is not recorded.')
+        _need(controller.get('project_id') is not None, 'partial', 'The controller project identity is not recorded.')
+        _need(controller['project_id'] == project_id, 'integrity_error', 'The controller project identity differs.')
+        core_sha = controller.get('request_sha256')
+        _need(type(core_sha) is str and re.fullmatch(r'[a-f0-9]{64}', core_sha),
+              'partial', 'The original controller request digest is not recorded.')
+        _need(fingerprint(request) == core_sha, 'integrity_error', 'The original controller request digest differs.')
+        _need(request.get('project_id') is not None, 'partial', 'The original request project identity is not recorded.')
+        _need(request['project_id'] == project_id, 'integrity_error', 'The original request project identity differs.')
+        producers = (controller.get('code_identity'), controller.get('controller_code_identity'), controller.get('source_snapshot_sha256'))
+        _need(all(type(value) is str and re.fullmatch(r'[a-f0-9]{64}', value) for value in producers),
+              'partial', 'The original producer or source identity is not recorded.')
+        row = manager.execute('SELECT command,digest,length(CAST(record AS BLOB)) FROM requests WHERE id=?', (request_id,)).fetchone()
+        _need(row is not None, 'unavailable', 'The original manager request is missing.')
+        command, manager_sha, size = row
+        _need(type(size) is int and 0 <= size <= _MAX_RECORD, 'partial', 'The original manager record exceeds its bound.')
+        record = _parse(manager.execute('SELECT record FROM requests WHERE id=?', (request_id,)).fetchone()[0])
+        _need(type(record) is dict and type(record.get('intent')) is dict, 'partial', 'The original manager intent is not recorded.')
+        intent = record['intent']
+        _need(intent.get('project_id') is not None, 'partial', 'The original manager project identity is not recorded.')
+        _need(intent['project_id'] == project_id, 'integrity_error', 'The original manager project identity differs.')
+        intent_sha = intent.get('request_sha256')
+        _need(all(type(value) is str and re.fullmatch(r'[a-f0-9]{64}', value) for value in (manager_sha, intent_sha)),
+              'partial', 'The original manager digests are not recorded.')
+        _need(request.get('need') == 'next_check' and type(request.get('expected_state_version')) is int
+              and request['expected_state_version'] >= 0,
+              'partial', 'The original need or expected version cannot be reconstructed without a default.')
+        common = {'request_id': request_id, 'project_id': project_id, 'expected_state_version': request['expected_state_version']}
+        if command == 'advance' and request.get('command') == 'controller.advance_selection':
+            _need(set(request) == {'project_id', 'command', 'need', 'expected_state_version', 'proposal'}
+                  and type(request.get('proposal')) is dict, 'partial', 'The saved selection request cannot be reconstructed losslessly.')
+            body = {**common, 'proposal': request['proposal']}
+        elif command == 'advance_recipe' and request.get('command') == 'controller.advance_recipe':
+            decision = request.get('recipe_decision')
+            _need(set(request) == {'project_id', 'command', 'need', 'expected_state_version', 'proposal', 'recipe_decision'}
+                  and type(decision) is dict and type(decision.get('recipe')) is dict and type(request.get('proposal')) is dict,
+                  'partial', 'The saved recipe request cannot be reconstructed losslessly.')
+            _need(decision.get('proposal') == request['proposal'], 'integrity_error', 'The saved recipe proposal differs from the controller request.')
+            body = {**common, 'recipe': decision['recipe']}
+        elif request.get('command') in ('controller.advance_selection', 'controller.advance_recipe'):
+            raise _Failure('integrity_error', 'The original manager and controller command identities differ.')
+        else:
+            raise _Failure('partial', 'The saved command cannot be reconstructed without assumptions.')
+        _need(fingerprint(body) == manager_sha == intent_sha,
+              'integrity_error', 'The reconstructed request does not match both original manager digests.')
+        view.update(status='available', original_request_id=request_id, manager_command=command,
+                    canonical_semantic_body=body, canonical_semantic_json=canonical(body),
+                    manager_body_sha256=manager_sha, manager_intent_sha256=intent_sha,
+                    controller_request_sha256=core_sha, project_producer_code_identity=producers[0],
+                    controller_producer_code_identity=producers[1], source_snapshot_sha256=producers[2],
+                    notice='Canonical semantic reconstruction only; original wire bytes and key order are not established. Not authorization to execute.')
+        return view
+    except _Failure as error:
+        return {**view, 'status': error.status, 'reason': str(error)}
+    except (sqlite3.Error, OSError, TypeError, ValueError, UnicodeError, RecursionError):
+        return {**view, 'status': 'unknown', 'reason': 'The original request could not be checked.'}
+
+
 def _controller(controller, actions, manager, project_id):
     request_id = controller.get('request_id')
     child = controller.get('child_request_id')
@@ -90,10 +155,13 @@ def _controller(controller, actions, manager, project_id):
                     else 'unavailable' if not matches else 'ambiguous')
     decision = controller.get('decision')
     next_action = decision.get('next_action') if type(decision) is dict else None
+    original_command = (controller.get('request') or {}).get('command') if type(controller.get('request')) is dict else None
+    manager_command = 'advance_recipe' if original_command == 'controller.advance_recipe' else 'advance'
     return {'request_id': request_id, 'status': controller.get('status'), 'child_request_id': child,
             'decision_next_action': next_action, 'child_binding_status': child_status,
             'matched_action': matches[0] if len(matches) == 1 else None,
-            'manager_receipt': _receipt(manager, request_id, 'advance', project_id)}
+            'manager_receipt': _receipt(manager, request_id, manager_command, project_id),
+            'request_handoff': _request_handoff(controller, manager, project_id)}
 
 
 def read_history(manager, project, actions):
