@@ -30,11 +30,18 @@ def projection_notice(context):
                    "physical impossibility, sample independence or scientific approval.")
     if context["schema_version"] == "research-plan-context-v3":
         notice = notice.replace("This v2 research context", "This v3 research context")
-        notice += (" supplied_materials contains complete original saved diagnostic fields selected explicitly by action_id "
+        if any("kind" not in item for item in context.get("supplied_materials", [])):
+            notice += (" supplied_materials contains complete original saved diagnostic fields selected explicitly by action_id "
                    "and result_sha256. Only fields actually included there are supplied: other diagnostic_ref and "
                    "group_errors_ref fields remain unread references. Counts describe complete saved fields, never ranked "
                    "examples or recomputed tables. Rows contain only saved input_values; missing original inputs were not "
                    "joined from CSV or invented. These supplied values establish no scientific approval.")
+        if any(item.get("kind") == "retrieval_adverse_query" for item in context.get("supplied_materials", [])):
+            notice += (" Explicitly selected retrieval adverse queries include saved positive document IDs, both saved "
+                       "ranking ID lists and recorded metrics only. Empty rankings remain empty; these are individual "
+                       "adverse queries, not a complete query set. Query and document original text is not supplied. "
+                       "For citation retrieval, labels identify cited documents, not support or refutation. These records do not "
+                       "establish independent validation, scientific approval or permission to run a new action.")
     return notice
 
 

@@ -154,3 +154,5 @@ S032 project_selection/Controller/selection_view接受直接proposal可选active
 S033 Controller新active完整case context声明能力版本，Host/native模型消息按保存context选择parser，receive/consume/report三处接线；旧pending CODE_CHANGED/_fresh不绕，原pin仍恢复。当前project身份0574266b…与原4b独立。[协议/模拟日志/跨pin的真实边界](../../docs/execution/g5-local/model-experience-protocol-verification.json)，不称Linux模型runtime或实际模型研究。
 
 S034 host-only [model_feedback_pilot_guard.py](../../scripts/model_feedback_pilot_guard.py)仅固定外层票据与request/response SHA，预留先独立凭据；原AA日志回退负例与新54check修复分别存证。它不派发模型/工具、不替代Host/Project或证明硬预算，真实试跑尚未授权。[范围](../../docs/execution/SPRINT-034.md)。
+
+S036通过现有saved_retrieval_reader只读校验与原生行动/结果/producer/source绑定，向新plan v3明确供应指定不利查询（非全集/原文），不调用排名/评分。原OOF/默认context路径保持，源码身份变化由既有CODE_CHANGED门禁处理；不迁移旧pilot，不扩研究预算。见[材料合同](../../docs/host-model-selection.md#明确供应保存的不利检索查询)。

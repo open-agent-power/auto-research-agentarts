@@ -181,3 +181,5 @@ S030在project-summary原controller子项增加request_handoff，固定GET不变
 S032直接project-selection-proposal-v1可选experience_case_refs（最多4唯一case_id/case_version/bundle_sha256）；Controller原接口不增权限，结果view/report留原association。Host/local-model/recipe当前仍旧wire，不称模型可生成。[边界](../../docs/experience-decision-citations.md)。
 
 S033新context带selection_capabilities={experience_case_refs:v1}时Host/native selection消息可选相同引用；省略仍旧三字段，不靠响应猜版本，旧无marker消息byte同、plan/recipe不变。只是协议能力，实际模型输出未验证。[范围](../../docs/execution/SPRINT-033.md)。
+
+S036计划的`saved_materials`新增显式`retrieval_adverse_query` selector（原action/resultSHA/split/queryID），仅复制指定不利查询的保存标注/两臂排名ID与指标，原文未供应；最多4条/完整64KiB超限拒绝，不供recipe、不新增网页控件/额度。旧冻结请求不改，原pilot不升级；见[材料合同](../../docs/host-model-selection.md#明确供应保存的不利检索查询)。

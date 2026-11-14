@@ -36,6 +36,9 @@ def _context(context):
              and context["schema_version"] == "recipe-change-context-v1",
              code, "Use the complete frozen recipe change context.")
     plan_protocol._context(context["research_context"])
+    _require(not any(item.get("kind") == "retrieval_adverse_query"
+                     for item in context["research_context"].get("supplied_materials", [])), code,
+             "Saved retrieval query materials are supported for plan proposals only.")
     current = research_recipe.validate_recipe(context["current_recipe"])
     selection = context["research_context"]["selection_context"]
     _require(current["need"] == selection["need"]
@@ -53,6 +56,8 @@ def _context(context):
 def build_context(project, current_recipe, improvement_goal, *, saved_materials=None):
     current = research_recipe.validate_recipe(current_recipe)
     selectors = normalize_requests(saved_materials)
+    _require(not any(item.get("kind") == "retrieval_adverse_query" for item in selectors),
+             "INVALID_RECIPE_CHANGE_CONTEXT", "Saved retrieval query materials are supported for plan proposals only.")
     materials = {"saved_materials": selectors} if selectors else {}
     research = plan_protocol.build_context(project, need=current["need"], **materials)
     return _context({"schema_version": "recipe-change-context-v1", "research_context": research,
