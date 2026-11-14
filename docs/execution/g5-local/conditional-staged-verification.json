@@ -1,0 +1,195 @@
+{
+  "schema_version": "s052-engineering-verification-v1",
+  "source_commit": "6d536f3ee92a0d422bef8068613a2bb8caabe12b",
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/6d536f3",
+  "project_core": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+  "source_file_count": 191,
+  "mode": "Explicit optional registration_request_id => local-staged-continuation-v2; original five-field v1 unchanged",
+  "verification": {
+    "author_related_fixed": 45,
+    "root_related_fixed": 54,
+    "independent_fixed": 9,
+    "actual_http_cases_fixed": 2,
+    "http_original_responses_equal_new_process": true,
+    "project_state_budget_public_files_unchanged_on_replay": true,
+    "private_inventory_excluded": true,
+    "scientific_validation": false
+  },
+  "fixed_http": {
+    "cases": [
+      {
+        "case": "audit",
+        "project_id": "project-5e20580882084376997e560604492311",
+        "run_id": "run-54411a4db5a04207a3fb34379facad19",
+        "request": {
+          "request_id": "conditional",
+          "project_id": "project-5e20580882084376997e560604492311",
+          "expected_state_version": 7,
+          "primary_action_id": "action-40da299021226e420e2a49c4c1d67366",
+          "registration_request_id": "prediction",
+          "reason": "Explicit synthetic conditional continuation only"
+        },
+        "actions": [
+          {
+            "id": "action-40da299021226e420e2a49c4c1d67366",
+            "command": "research.relevance-validation-pair",
+            "request_id": "controller-child-108830997d0bc658e0845bb2967f453f",
+            "result_sha256": "9acf05229e03fd32b05cc3e07f5bb1c1235e73cb04b442bf9219c63ed525c3bb"
+          },
+          {
+            "id": "action-a2f3a5ac11fe7d9996b79b5ac81fbbad",
+            "command": "research.relevance-validation-saved-audit",
+            "request_id": "controller-child-b55a5931373967bb677e09eb2e1b0912",
+            "result_sha256": "1c1e98eb79fc602df690e8fe59d28e4f21567487e157441defcf9f567ca4b353"
+          },
+          {
+            "id": "action-5ced45ca00b23c527c684d254a34a8a1",
+            "command": "research.relevance-final-evaluation",
+            "request_id": "controller-child-d6f0e6dd0cbeb156cc6e7bcc6849b3d2",
+            "result_sha256": "45e640b7903bc40d139f5b8e1606f30ec9f532e0fa77f1c86227a08991f494dc"
+          }
+        ],
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 8,
+          "existing_cash_cap_cny": 5,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "fixture",
+          "local_tool_call_limit": 3,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "local_tool_calls_used": 3,
+          "local_tool_calls_reserved": 0,
+          "local_tool_dispatches": 3,
+          "evidence_reads_used": 0,
+          "evidence_reads_reserved": 0,
+          "fit_limit": 0,
+          "fit_attempts_used": 0,
+          "fits_reserved": 0,
+          "preprocessing_fits": 0,
+          "fits_completed": 0,
+          "ridge_fits_completed": 0,
+          "preprocessing_fits_completed": 0
+        },
+        "report_path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/s052-verification/http-fixed/audit/manager/reports/5a64773f9d8d281da6cb52a7f27c23beabc24180b05e1718d61d66498c96b0d8",
+        "original_request_replayed_new_process": true
+      },
+      {
+        "case": "wait",
+        "project_id": "project-2cb4f5f563b64576827b7723e2578160",
+        "run_id": "run-1d6350b0c02f46d6a091c8d8fee30e5c",
+        "request": {
+          "request_id": "conditional",
+          "project_id": "project-2cb4f5f563b64576827b7723e2578160",
+          "expected_state_version": 7,
+          "primary_action_id": "action-ccdab635ebfee1764edbb4e9c6d2ddfc",
+          "registration_request_id": "prediction",
+          "reason": "Explicit synthetic conditional continuation only"
+        },
+        "actions": [
+          {
+            "id": "action-ccdab635ebfee1764edbb4e9c6d2ddfc",
+            "command": "research.relevance-validation-pair",
+            "request_id": "controller-child-76415bc6cfaa6e8c5aed347d9ed57397",
+            "result_sha256": "36049b871e3bc82906f5cdd8b803f3c35bbd3dc8ebb457c0ce47fa8495a4f844"
+          }
+        ],
+        "budget": {
+          "cash_settlement": "unknown",
+          "evidence_read_limit": 8,
+          "existing_cash_cap_cny": 5,
+          "historical_request_counts": null,
+          "historical_spend_cny": null,
+          "historical_unknowns_resolved": false,
+          "lineage_ref": "fixture",
+          "local_tool_call_limit": 3,
+          "model_requests_allowed": 0,
+          "model_requests_reserved": 0,
+          "new_fits": 0,
+          "new_model_requests": 0,
+          "local_tool_calls_used": 1,
+          "local_tool_calls_reserved": 0,
+          "local_tool_dispatches": 1,
+          "evidence_reads_used": 0,
+          "evidence_reads_reserved": 0,
+          "fit_limit": 0,
+          "fit_attempts_used": 0,
+          "fits_reserved": 0,
+          "preprocessing_fits": 0,
+          "fits_completed": 0,
+          "ridge_fits_completed": 0,
+          "preprocessing_fits_completed": 0
+        },
+        "report_path": null,
+        "original_request_replayed_new_process": true
+      }
+    ],
+    "scientific_validation": false,
+    "private_io_scope": "private bytes excluded from file inventory; authorized final/report may read original private fixture",
+    "replay_index_rank_scoring_guards_passed": true
+  },
+  "original_read_protection": {
+    "protected_S046_files": 36,
+    "protected_S050_files": 17,
+    "all_bytes_unchanged": true,
+    "source_freeze_files_unchanged": 191
+  },
+  "failure_and_supersession": {
+    "real_bug": "Known policy-wait did not check body primary_action_id; could save feedback from another action. No audit/final was dispatched. Fixed before accept for every known branch; wrong ID EVIDENCE_CHANGED with no receipt. Unknown remains wait.",
+    "initial_freeze": "301519286dc47d7faaa0950754375cdf04d31b6c617cfd7b4f649bd42a8a1d38",
+    "initial_project_core": "987dd37c7b9dc106253e00c5ebcde21e436cb15283b531b1a93a101bd9976cbc",
+    "initial_exact_191_source_snapshot": "runs/s052-verification/initial-source",
+    "initial_actual_http": "runs/s052-verification/http",
+    "initial_http_tool_actions": 4,
+    "independent_probe_authoring_errors": [
+      "wrong injection hook did not interrupt",
+      "safe raised rejection wrongly asserted as returned incomplete"
+    ],
+    "all_original_logs_preserved": true
+  },
+  "private_io_scope": "Wait/feedback/audit private canaries verified within independent probe; authorized final and original report verify may read synthetic private holdout. No whole-chain zero-private-I/O or blind claim.",
+  "recovery": {
+    "same_exact_body_required": true,
+    "wait_outer_status": "completed",
+    "wait_phase_and_result": "waiting",
+    "wait_final_performed": false,
+    "wait_does_not_permanently_lock_other_explicit_routes": true,
+    "audit_uses_original_sealed_policy_context": true,
+    "v2_initial_existing_audit_rejected": true,
+    "v1_existing_stage_reuse_unchanged": true,
+    "unknown_final_not_redispatched_even_with_new_parent_id": true,
+    "original_source_pin_required": true,
+    "report_uses_S049_presealed_manifest": true
+  },
+  "sha256": {
+    "runs/s052-verification/source-freeze-fixed.json": "f8ee42fe9a56d045207d4cdff5b2dcadcbe85c8550dff0207c4547f05d0b26a0",
+    "src/autoresearch/local_workbench.py": "db1b95f97fae38691e206ee3ae2e316d169b5f9e54f49b99675c474e23f158fb",
+    "src/autoresearch/staged_continuation.py": "58f0f374906a4a67d15e77292aace1f43a6c9bc7d7363bfedad72b7df73a4bff",
+    "tests/test_conditional_staged_continuation.py": "02eec0248259bccc2541f454d7e6eba5b734a7f9daa11a92a720b256d46e603c",
+    "runs/s052-verification/http_e2e.py": "3230ea449aa44de16b59cac436571220ed74f96c4c561239e80109022a16d8ed",
+    "runs/s052-verification/root-regression-fixed.log": "f149f2f179ec34c8cafbe435703cc4d008f39b602f537b455543a3c4bfcceacf",
+    "runs/s052-review/test_independent_s052.py": "3ce3d17b42364724d88238b9c48910fcdf9489d9909cba9dd78da1174458a162",
+    "runs/s052-review/independent-run-fixed.log": "ef4f61cbc6b144dc51337d8674c892bb29e66b276801a4c02ce68b03c058f1e4",
+    "runs/s052-review/primary-mismatch-initial.log": "892c6fa81b9eb42d008811f8bf0c266b5ad86cd1704b4d2bf26e37b2c2d6b428"
+  },
+  "research_usage": {
+    "new_research_actions": 0,
+    "new_research_models": 0,
+    "new_research_fits": 0,
+    "persistent_http_final_fixed_tool_actions": 4,
+    "persistent_http_superseded_initial_tool_actions": 4,
+    "all_regression_dispatches": "not separately metered",
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "limitations": [
+    "synthetic engineered inputs, not new scientific benefit",
+    "trusted-local; no OS/sealed or native model runtime acceptance",
+    "old disk/history not restored",
+    "no new S050 model approval or execution"
+  ]
+}

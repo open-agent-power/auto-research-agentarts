@@ -2,20 +2,23 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T04:48:03+08:00",
-  "last_checkpoint": "2026-11-15T05:08:44.277686+08:00",
+  "last_checkpoint": "2026-11-15T05:29:12.978701+08:00",
   "end_time": null,
-  "status": "S051_pushed_continuing_S052",
-  "confirmed_commit": "c32dc77bb06c1b18cec081edd77c26c2d20c49a9",
+  "status": "S051_S052_pushed_continuing_S053_input_audit",
+  "confirmed_commit": "6d536f3ee92a0d422bef8068613a2bb8caabe12b",
   "completed": [
     "远端AAW已fetch，最新版02e72e3/v0.3.1与本地完整7文件相同",
     "S051原生staged事前条件/保存反馈/原audit或wait已实现并推main",
     "root60相关与独审4项通过，191冻结源未变",
     "三组合成真实HTTP与不同PID原body重放：正2工具、负/零各1，无新增预算或行动",
-    "旧S046保存验证差−.01只读核验；S04636+S05017原件字节/状态/预算不变"
+    "旧S046保存验证差−.01只读核验；S04636+S05017原件字节/状态/预算不变",
+    "S052显式条件续作实现并推main，原v1保持，wait/unknown不进入final",
+    "独审新增发现并修复已知wait错误primary回执绑定；初版191源/失败/HTTP原件保留",
+    "修复后54相关/9独审与两组实际HTTP/新PID原body重放通过，完整回执及Project状态预算公开文件相同"
   ],
   "not_completed": [
-    "S052条件续作实现/独审/E2E仍在执行",
-    "S050一次新模型待真实用户答复；未执行"
+    "S053真实输入审计进行中；未注册或运行新研究",
+    "S050一次新模型仍待真实用户答复，未执行"
   ],
   "actual_research_results": null,
   "research_usage": {
@@ -28,9 +31,9 @@
   },
   "activity": {
     "owner": "root-g5-continuation-20261115T0448",
-    "root": "active lease held; integrating S052",
-    "engineering": "S052 single writer local_workbench/staged_continuation/tests",
-    "capability_review": "S052 independent acceptance/probes",
+    "root": "active lease held; integration and next input audit",
+    "engineering": "S053 independent input/license/capacity audit, no product writes",
+    "capability_review": "S052 final independent assessment handed back, idle",
     "old_disk_executor": "unknown"
   },
   "boundaries": [
@@ -38,7 +41,7 @@
     "S050 still pending user decision, no model/API scope expanded",
     "trusted local only, not OS/sealed/scientific benefit claim"
   ],
-  "next": "完成S052 opt-in条件续作，保留原五字段v1语义和原ID恢复",
+  "next": "S053验证不同公开输入的原许可/容量/是否历史已用，再固定一次新独立CPU研究协议，不扩模型或重开旧额度",
   "user_decision_required": "existing S0501-call question remains pending; no repeat question, independent S051 continues",
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
@@ -56,7 +59,11 @@
     "runs/s051-verification/original-read-verification.json",
     "runs/s051-verification/http/result.json",
     "runs/s051-verification/http/limits.json",
-    "runs/s052-exploration/next-contract.md"
+    "runs/s052-exploration/next-contract.md",
+    "runs/s052-verification/source-freeze-fixed.json",
+    "runs/s052-verification/http-fixed/result.json",
+    "runs/s052-review/independent-assessment.md",
+    "docs/execution/g5-local/conditional-staged-verification.json"
   ],
   "verification": {
     "root_related": 60,
@@ -66,5 +73,16 @@
     "synthetic_http_cases": 3,
     "new_research_benefit_proven": false,
     "private_io_scope": "server feedback/replay guarded; parent read synthetic private bytes for file hashing"
+  },
+  "verification_S052": {
+    "root_related_final": 54,
+    "independent_final": 9,
+    "source_freeze_sha256": "f8ee42fe9a56d045207d4cdff5b2dcadcbe85c8550dff0207c4547f05d0b26a0",
+    "core_identity": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+    "fixed_http_cases": 2,
+    "full_exact_response_equal_new_process": true,
+    "new_research_benefit_proven": false,
+    "real_bug_fixed": "Known wait wrong-primary receipt rejected before accept",
+    "private_io_scope": "wait private guards; authorized final/report may read original private fixture; private bytes excluded from HTTP inventory"
   }
 }

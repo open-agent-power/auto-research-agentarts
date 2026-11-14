@@ -20,4 +20,4 @@ S051 已能根据独立 staged 验证反馈选择 saved-audit 或等待，但 S0
 
 复用同一 root、engineering、capability_review 团队及 AAW v0.3.1 显式 owner loop、项目 router、已有 Project/Controller/SQLite 意图和 S049 report 预封，不新增 ledger 或费用范围。新研究行动/模型/fit 均0；最终修复版新合成 HTTP 实际4次工具，初版已完成合成 HTTP 另4次工具保留、未冒充最终版，均另计，所有回归总 dispatch 未单独计量，开发 token/费用 unknown。
 
-使用见[条件模式](../staged-evaluation-continuation.md#显式条件模式s052)。最终修复版实际 HTTP 及原body位于 `runs/s052-verification/http-fixed/`，最终回归日志 `root-regression-fixed.log`，独审 `independent-run-fixed.log`。原始命令/输入/ID/状态/预算/回执及失败日志位于 ignored `runs/s052-verification/`、`runs/s052-review/`；精确共享索引随本轮发布保存。源码身份改变，S051 及更早 pending 必须使用原 pin；不得用新代码升级旧项目。
+使用见[条件模式](../staged-evaluation-continuation.md#显式条件模式s052)。最终修复版实际 HTTP 及原body位于 `runs/s052-verification/http-fixed/`，最终回归日志 `root-regression-fixed.log`，独审 `independent-run-fixed.log`。原始命令/输入/ID/状态/预算/回执及失败日志位于 ignored `runs/s052-verification/`、`runs/s052-review/`；[精确共享索引](g5-local/conditional-staged-verification.json)保存源码提交、输入/行动ID、预算、恢复与原失败身份。源码身份改变，S051 及更早 pending 必须使用原 pin；不得用新代码升级旧项目。

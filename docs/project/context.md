@@ -8,7 +8,7 @@
 
 S051 `c32dc77bb06c1b18cec081edd77c26c2d20c49a9` 已推main并建clean sourcepin：staged事前validation条件→原saved feedback→原audit/wait。60相关/4独审，三组合成HTTP和异PID原body重放通过；core c26292e780972ee40637ced8c6b5896eb73d4710a707723ced86162195c48cfa、191源freeze65969d7f…核同。server路径private/重算哨兵未触发；父进程文件hash读过syntheticprivate原bytes，未解析且非整体验证无I/O声明。S046旧公开结果只读−.01，36+17个S046/S050原文件不变，不补假设或研究行动。新研究模型/fit/行动0，开发费用unknown。
 
-已继续S052显式条件续作，使用既有LocalWorkbench intent，原v1语义不改；实现及独审进行中，不据计划认领完成。S050一次新模型仍pending，原pin2956482/prepare b2a2d3…和原请求不变，不能execute。附件上传401与旧云盘缺失仍保留。精确证据/本轮状态以latest-report和对应Sprint为准。
+S052 `6d536f3ee92a0d422bef8068613a2bb8caabe12b` 已普通推main并建clean pin，显式六字段v2遵循原validation条件，wait/unknown持久停止、不锁用户另选路线；原五字段v1不改。真wrong-primary回执绑定缺口已修、初版191源/HTTP/失败留存，最终54相关/9独审与两个新PID实际HTTP/原回执同等通过；core300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1。S050新模型pending不变。当前S053输入准备，NFC作者限制未采用，Argu仅新副本且S010已实际评价，不能冒称新未曝光数据或复跑重开额度；详见current及latest-report。旧盘/附件401等范围不变。
 
 ## 目标及授权
 
