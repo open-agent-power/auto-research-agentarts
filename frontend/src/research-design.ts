@@ -1,5 +1,5 @@
 /** Saved research designs and explicit project bindings share the workbench command journal. */
-import { el, numeric, safeUrl } from "./dom";
+import { el, field as detailField, numeric, safeUrl } from "./dom";
 
 type Obj = Record<string, unknown>;
 type Host = {
@@ -53,6 +53,87 @@ const previewTerms = (columns: string[], basis: string, transformed: string[] = 
   : basis === "log1p" ? columns.map(column => transformed.includes(column) ? "log1p(" + column + ")" : column) : columns;
 const savedTerms = (protocol: Obj): string[] => "input_basis" in protocol ? words(protocol.model_input_terms) : words(protocol.feature_columns);
 const comparisonTitle = (record: Obj): string => record.comparison_kind === "fixed_input_basis" ? "同评价划分的输入基对照" : "同协议特征对照";
+type FixedCPU = { title: string; contract: string; task: string; schema: string; baseline: string; candidate: string; kind: string };
+const fixedCPUs: Record<string, FixedCPU> = {
+  "research.retrieval-fixed-pair": { title: "固定引用检索对照", contract: "citation-retrieval-fixed-pair-v1", task: "citation_retrieval", schema: "citation-retrieval-spec-v1", baseline: "tfidf_cosine", candidate: "bm25", kind: "citation_retrieval_pair" },
+  "research.relevance-fixed-pair": { title: "固定相关性检索对照", contract: "relevance-retrieval-fixed-pair-v1", task: "relevance_retrieval", schema: "relevance-retrieval-spec-v1", baseline: "bm25", candidate: "tfidf_cosine", kind: "relevance_retrieval_pair" },
+  "research.weighted-interval-fixed-pair": { title: "合成加权区间调度对照", contract: "weighted-interval-fixed-pair-v1", task: "weighted_interval", schema: "weighted-interval-spec-v1", baseline: "quadratic_scan_dp", candidate: "binary_search_dp", kind: "weighted_interval_fixed_pair" },
+};
+const fixedCPU = (project: Obj): FixedCPU | null => typeof project.primary_method === "string" && Object.hasOwn(fixedCPUs, project.primary_method) ? fixedCPUs[project.primary_method] : null;
+const digest = (value: unknown): value is string => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+const count = (value: unknown): string => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? numeric(value) : "未记录";
+const canonicalView = (value: unknown): string => JSON.stringify(value, (_, child: unknown) => child && typeof child === "object" && !Array.isArray(child)
+  ? Object.fromEntries(Object.entries(child).sort(([a], [b]) => a.localeCompare(b))) : child);
+const equalView = (a: unknown, b: unknown): boolean => canonicalView(a) === canonicalView(b);
+const primaryActions = (project: Obj): Obj[] => objects(project.actions).filter(action => action.command === project.primary_method);
+const uniqueValue = (values: unknown[], valid: (value: unknown) => boolean): unknown => values.length && values.every(valid) && values.every(value => value === values[0]) ? values[0] : undefined;
+const protocolValue = (value: unknown): string => typeof value === "string" ? value : typeof value === "boolean" ? String(value)
+  : typeof value === "number" && Number.isFinite(value) ? String(value) : Array.isArray(value) && value.every(item => typeof item === "string") ? value.join("、") : "未记录";
+type ProtocolProjection = { rows: [string, string][]; assets: [string, string][]; notice: string; noSavedAction: boolean };
+const scalar = (value: unknown): boolean => value === null || typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value);
+const positiveCount = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+const exactFields = (value: Obj, keys: string[]): boolean => Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+
+function capturedProtocol(project: Obj, input: Obj, definition: FixedCPU): ProtocolProjection {
+  const context = object(input.binding), spec = object(input.declared_spec), scope = object(input.scalar_scope), publicScope = object(project.domain_scope);
+  const require = (valid: boolean, message: string): void => { if (!valid) throw Error(message); };
+  require(new TextEncoder().encode(JSON.stringify(input)).length <= 128 * 1024 && input.schema_version === "fixed-cpu-protocol-view-v1"
+    && exactFields(input, ["schema_version", "binding", "adapter_version", "evaluation_ref", "source_spec_identity", "declared_spec", "scalar_scope", "input_identities", "splits", "projection_notice"]), "固定协议摘要的结构或有界大小不符，未显示参数。");
+  require(exactFields(context, ["project_id", "run_id", "snapshot_ref", "state_version", "method_id", "project_code_identity", "source_snapshot_sha256", "source_file_sha256"])
+    && typeof project.id === "string" && !!project.id && typeof project.run_id === "string" && !!project.run_id
+    && digest(project.snapshot_ref) && typeof project.state_version === "number" && Number.isSafeInteger(project.state_version)
+    && context.project_id === project.id && context.run_id === project.run_id && context.state_version === project.state_version && context.snapshot_ref === project.snapshot_ref
+    && context.method_id === project.primary_method && digest(context.source_snapshot_sha256) && digest(context.project_code_identity) && digest(context.source_file_sha256),
+    "固定协议摘要与当前项目、登记方法或快照不一致，请刷新后核对。");
+  require(input.adapter_version === "1" && input.evaluation_ref === definition.contract
+    && exactFields(spec, ["schema_version", "dataset_label", "source_url", "attribution", "license_notes", "source_provenance", "files", "comparison", "limits"])
+    && spec.schema_version === definition.schema && scope.contract === definition.contract && Object.values(scope).every(scalar)
+    && equalView(scope, Object.fromEntries(Object.entries(publicScope).filter(([, value]) => scalar(value))))
+    && equalView(input.input_identities, publicScope.input_identities), "固定协议摘要的版本、评价或来源范围与当前登记不一致。");
+  const actions = primaryActions(project);
+  if (actions.length) {
+    const producer = uniqueValue(actions.map(action => action.code_identity), digest);
+    const sourceSHA = uniqueValue(actions.map(action => action.source_snapshot_sha256), digest);
+    require(!!producer && producer === context.project_code_identity && !!sourceSHA && sourceSHA === context.source_snapshot_sha256
+      && actions.every(action => {
+        const instance = object(action.method_instance);
+        return object(instance.definition_ref).id === project.primary_method && object(instance.definition_ref).version === "1" && instance.evaluation_ref === definition.contract
+          && object(instance.input_bindings).source_snapshot_sha256 === sourceSHA && equalView(instance.scope, publicScope);
+      }), "保存原行动的生产代码、来源或评价协议无法唯一绑定，未显示原件参数。");
+  }
+  const comparison = object(spec.comparison), specSource = object(input.source_spec_identity), identities = object(input.input_identities), files = object(spec.files), splits = object(input.splits);
+  require(comparison.baseline === definition.baseline && comparison.candidate === definition.candidate && exactFields(specSource, ["sha256", "bytes"])
+    && digest(specSource.sha256) && positiveCount(specSource.bytes) && Object.keys(identities).length > 0 && exactFields(files, Object.keys(identities))
+    && Object.values(files).every(value => typeof value === "string" && !!value)
+    && Object.values(identities).every(value => exactFields(object(value), ["sha256", "bytes"]) && digest(object(value).sha256) && positiveCount(object(value).bytes))
+    && typeof input.projection_notice === "string" && !!input.projection_notice && input.projection_notice.length <= 2000,
+    "固定协议摘要的算法角色、原件身份或投影说明不完整。");
+  const rows: [string, string][] = [["原件协议", text(spec.schema_version)], ["登记适配器版本", text(input.adapter_version)], ["评价引用", text(input.evaluation_ref)],
+    ["原 spec SHA", text(specSource.sha256)], ["原 spec 字节数", count(specSource.bytes)],
+    ["来源快照 SHA", text(context.source_snapshot_sha256)], ["登记项目的生产代码 SHA", text(context.project_code_identity)], ["原来源文件 SHA", text(context.source_file_sha256)],
+    ["原件署名", text(spec.attribution)], ["原件来源", text(spec.source_url)], ["基线算法", text(comparison.baseline)], ["候选算法", text(comparison.candidate)]];
+  if (definition.task === "weighted_interval") {
+    require(Object.keys(splits).length > 0 && Object.entries(splits).every(([name, value]) => ["correctness", "dev", "validation", "test"].includes(name)
+      && exactFields(object(value), ["cases", "jobs"]) && positiveCount(object(value).cases) && positiveCount(object(value).jobs))
+      && Object.values(splits).reduce<number>((sum, value) => sum + Number(object(value).cases), 0) === scope.case_count
+      && Object.values(splits).reduce<number>((sum, value) => sum + Number(object(value).jobs), 0) === scope.job_count, "保存调度任务的划分计数与来源总数不一致。");
+    for (const [name, value] of Object.entries(splits)) rows.push(["原任务划分 · " + name, `${count(object(value).cases)} 个任务、${count(object(value).jobs)} 个作业`]);
+    for (const [key, label] of [["objective", "目标函数"], ["compatibility", "区间相容条件"], ["sort_keys", "排序键"], ["tie_rule", "目标相等时的规则"],
+      ["test_repetitions", "测试划分重复次数"], ["other_repetitions", "其他划分重复次数"], ["time_unit", "时间单位"], ["weight_unit", "权重单位"]]) rows.push([label, protocolValue(comparison[key])]);
+  } else {
+    require(exactFields(splits, ["dev", "validation", "test"]) && Object.values(splits).every(value => exactFields(object(value), ["queries", "query_ids_sha256"])
+      && positiveCount(object(value).queries) && digest(object(value).query_ids_sha256)), "保存协议的查询划分摘要不完整。");
+    const total = Object.values(splits).reduce<number>((sum, value) => sum + Number(object(value).queries), 0);
+    require(typeof scope.query_count === "number" && total <= scope.query_count, "协议选定查询数超出来源查询总数。");
+    rows.push(["协议选定查询", `开发 ${count(object(splits.dev).queries)}、验证 ${count(object(splits.validation).queries)}、测试 ${count(object(splits.test).queries)}；合计 ${count(total)}`]);
+    for (const [name, value] of Object.entries(splits)) rows.push(["原有序查询清单 SHA · " + name, text(object(value).query_ids_sha256)]);
+    for (const [key, label] of [["top_k", "保存排名上限"], ["k1", "BM25 k1"], ["b", "BM25 b"], ["tokenizer", "分词规则"], ["tie_break", "同分排序"], ["metrics", "评价指标"]]) rows.push([label, protocolValue(comparison[key])]);
+    if (definition.task === "relevance_retrieval") {
+      rows.push(["相同查询/文档 ID 排除", protocolValue(comparison.ignore_identical_ids)], ["缺失正例规则", protocolValue(comparison.missing_document_policy)]);
+    }
+  }
+  return { rows, assets: Object.entries(identities).map(([role, value]) => { const asset = object(value); return [role + " · " + text(files[role]), `${text(asset.sha256)} · ${count(asset.bytes)} 字节`]; }), notice: input.projection_notice as string, noSavedAction: !actions.length };
+}
 
 function field(label: string, control: HTMLElement): HTMLElement {
   const wrap = el("label", "local-field"); wrap.append(el("span", "local-label", label), control); return wrap;
@@ -227,7 +308,7 @@ export function createResearchDesignPanel(host: Host): {
 } {
   const section = el("section", "local-panel content-section research-design"), library = el("section", "local-panel content-section research-design-library");
   section.id = "research-design";
-  section.append(el("h2", "section-title", "研究设计与验证"));
+  const heading = el("h2", "section-title", "研究设计与验证"); section.append(heading);
   const status = el("p", "research-design-status", "正在读取研究设计…"); status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
   const bindingNote = el("p", "detail-note"), copy = el("div", "research-design-copy");
   const form = el("form", "research-design-form"), fields = el("fieldset", "local-fieldset"); form.setAttribute("aria-label", "选择研究设计与输入声明");
@@ -262,6 +343,10 @@ export function createResearchDesignPanel(host: Host): {
   formDetails.append(el("summary", "", "选择或调整研究设计"));
   fields.append(columns, targetNote, training, field("采用理由", reason), bind); form.append(fields); formDetails.append(form);
   const results = el("div", "research-design-results"), assessment = el("div", "research-design-assessment");
+  const protocol = el("div", "research-design-fixed-protocol"), protocolSummary = el("dl", "detail-dl research-design-protocol-summary"),
+    protocolLoad = el("button", "quiet-button research-design-protocol-load", "读取固定协议摘要"), protocolStatus = el("p", "detail-note research-design-protocol-status"), protocolDetails = el("div", "research-design-protocol-details");
+  protocol.hidden = true; protocolLoad.type = "button"; protocolStatus.setAttribute("role", "status"); protocolStatus.setAttribute("aria-live", "polite");
+  protocol.append(protocolSummary, protocolLoad, protocolStatus, protocolDetails);
   const next = el("a", "text-button", "选择并明确执行下一项验证"); next.href = "#/research?focus=operations";
   const improve = el("details", "research-design-improvement"), improveForm = el("form"), improveFields = el("fieldset", "local-fieldset");
   const improveReason = el("textarea"); improveReason.rows = 2; improveReason.required = true; improveReason.maxLength = 2000;
@@ -269,7 +354,7 @@ export function createResearchDesignPanel(host: Host): {
   const improveButton = el("button", "action-button", "根据实际反馈生成候选新版"); improveButton.type = "submit";
   improveFields.append(field("改进理由", improveReason), improveButton); improveForm.append(improveFields);
   improve.append(el("summary", "", "从真实反馈改进研究设计"), el("p", "detail-note", "依据已完成的基线记录，生成包含分组与敏感性检查的候选版本。生成后可在目录中查看，并明确选择采用。"), improveForm);
-  section.append(status, bindingNote, copy, formDetails, fitBudget, assessment, next, results, improve);
+  section.append(status, protocol, bindingNote, copy, formDetails, fitBudget, assessment, next, results, improve);
   library.append(el("h2", "section-title", "研究设计资源目录"), el("p", "detail-note", "查看可复用的主张、竞争解释与检查计划。版本的使用次数与验证记录来自已保存项目。"));
   const libraryStatus = el("p", "research-design-status", "正在读取资源目录…"), libraryItems = el("div", "research-design-resources");
   const importDetails = el("details", "research-design-import"), importForm = el("form"), importFields = el("fieldset", "local-fieldset");
@@ -281,6 +366,7 @@ export function createResearchDesignPanel(host: Host): {
   importDetails.append(el("summary", "", "导入研究设计资源"), importForm);
   libraryStatus.setAttribute("role", "status"); library.append(libraryStatus, importDetails, libraryItems);
   let project: Obj = {}, catalog: Obj = {}, projectId = "", locked = true, libraryLocked = true, ready = false, generation = 0;
+  let protocolBusy = false, protocolCurrent = false;
   let importedResource: Obj | null = null, readingImport = false, importGeneration = 0;
   const drafts = new Map<string, Draft>(), libraryChoices: HTMLButtonElement[] = [];
   const draft = (): Draft => {
@@ -295,7 +381,71 @@ export function createResearchDesignPanel(host: Host): {
   const resources = (): Obj[] => objects(catalog.resources);
   const selected = (): Obj | undefined => resources().find(resource => resourceKey(resource) === selection.value);
   const binding = (): Obj => object(catalog.binding);
+  function protocolAvailable(): boolean {
+    return protocolCurrent && typeof project.id === "string" && !!project.id && digest(project.snapshot_ref) && typeof project.state_version === "number" && Number.isSafeInteger(project.state_version)
+      && typeof project.run_id === "string" && !!project.run_id && object(project.domain_scope).contract === fixedCPU(project)?.contract;
+  }
+  function displayMode(cpu: boolean): void {
+    section.dataset.designMode = cpu ? "fixed_cpu" : "tabular"; heading.textContent = cpu ? "固定协议与输入" : "研究设计与验证";
+    protocol.hidden = !cpu; library.hidden = cpu;
+    for (const node of [bindingNote, copy, formDetails, assessment, results]) node.hidden = cpu;
+    fitBudget.hidden = true; next.hidden = true; improve.hidden = true;
+  }
+  function showProtocolRegistration(definition: FixedCPU): void {
+    const scope = object(project.domain_scope), actions = primaryActions(project), instances = actions.map(action => object(action.method_instance));
+    const matchingInstances = instances.every(instance => object(instance.definition_ref).id === project.primary_method);
+    const version = matchingInstances ? uniqueValue(instances.map(instance => object(instance.definition_ref).version), value => typeof value === "string" && !!value) : undefined;
+    const evaluation = matchingInstances ? uniqueValue(instances.map(instance => instance.evaluation_ref), value => typeof value === "string" && !!value) : undefined;
+    const sourceSHA = uniqueValue(actions.map(action => action.source_snapshot_sha256), digest);
+    const sameSource = sourceSHA && matchingInstances && instances.every(instance => object(instance.input_bindings).source_snapshot_sha256 === sourceSHA && equalView(instance.scope, scope));
+    protocolSummary.replaceChildren();
+    for (const [label, value] of [["已登记方法", definition.title], ["方法 ID", text(project.primary_method)], ["来源范围标签", text(scope.dataset_label)],
+      ["登记协议", text(scope.contract)], ["保存方法版本", text(version, "尚无一致的保存方法版本")], ["保存评价引用", text(evaluation, "尚无一致的保存评价引用")],
+      ["保存行动来源 SHA", sameSource ? text(sourceSHA) : "尚无一致的保存行动来源身份"]]) detailField(protocolSummary, label, value, label.includes("SHA") || label.includes("ID"));
+    if (definition.task === "weighted_interval") {
+      detailField(protocolSummary, "原合成任务数", count(scope.case_count)); detailField(protocolSummary, "原作业总数", count(scope.job_count));
+    } else {
+      detailField(protocolSummary, "原文档总数", count(scope.document_count)); detailField(protocolSummary, "原查询总数", count(scope.query_count));
+      const observation = actions.filter(action => action.status === "completed").flatMap(action => objects(action.observations)).find(item => item.kind === definition.kind && equalView(item.scope, scope));
+      detailField(protocolSummary, "已保存对照查询数", count(object(observation?.summary).query_pairs));
+    }
+    const validContract = scope.contract === definition.contract;
+    status.textContent = validContract ? "保存项目的方法登记与来源范围；原件中的算法参数、划分和身份按需读取。" : "当前登记方法与来源协议尚待核对；保留只读元数据，不显示推断参数。";
+    protocolStatus.textContent = protocolAvailable() ? "点击后只读取当前项目已捕获输入的有界协议摘要，无需报告或已执行行动；不执行研究或创建设计绑定。"
+      : "当前项目的登记身份或来源协议尚待核对；请刷新保存状态。";
+  }
+  async function loadProtocol(): Promise<void> {
+    const definition = fixedCPU(project); if (!definition || !protocolAvailable() || protocolBusy) return;
+    const token = generation, current = project; protocolBusy = true; protocolStatus.classList.remove("error");
+    protocolStatus.textContent = "正在读取固定协议摘要…"; controls();
+    try {
+      const selectors = new URLSearchParams({ project_id: text(current.id), snapshot_ref: text(current.snapshot_ref) });
+      const input = await host.read("/api/project/fixed-protocol.json?" + selectors);
+      if (token !== generation || !fixedCPU(project)) return;
+      const projection = capturedProtocol(current, input, definition), detail = el("dl", "detail-dl");
+      for (const [label, value] of [...projection.rows, ...projection.assets]) detailField(detail, label, value, label.includes("SHA") || projection.assets.some(row => row[0] === label));
+      protocolDetails.replaceChildren(el("h3", "", "已捕获固定协议摘要（只读）"), detail,
+        el("p", "detail-note", definition.task === "weighted_interval" ? "原件为合成加权区间工程任务；固定对照使用已知精确动态规划，不能据此声称新算法发现。"
+          : "原查询总数与协议选定查询数分别保留。固定程序划分和公开标签不构成封存盲测；算法对照本身不能证明记忆的因果收益。"),
+        el("p", "detail-note", "摘要省略原始数据、查询 ID 清单、完整作业和缺失正例 ID 清单。来源与许可为已捕获声明；机械核对不等于科学有效性、独立许可批准或封存评价。协议清单不表示行动已执行，实际结果见实验中心。"));
+      const notice = el("details"); notice.append(el("summary", "", "查看原投影说明"), el("p", "detail-note", projection.notice)); protocolDetails.append(notice);
+      if (object(current.report).available === true && object(current.report).stale === false) {
+        const link = el("a", "text-button", "下载已保存报告输入 JSON"); link.href = "/api/project/input.json"; link.download = "input.json"; protocolDetails.append(link);
+      }
+      if (projection.noSavedAction) protocolDetails.append(el("p", "detail-note", "当前没有保存的原方法行动，无法核对行动级生产者身份；此处仅显示与当前登记绑定的输入摘要。"));
+      protocolStatus.textContent = "已读取与当前项目、快照和来源范围绑定的固定协议摘要。";
+    } catch (error) {
+      if (token !== generation || !fixedCPU(project)) return;
+      protocolDetails.replaceChildren(); protocolStatus.textContent = error instanceof Error ? error.message : "保存协议读取失败；登记元数据保留。"; protocolStatus.classList.add("error");
+    } finally { if (token === generation) { protocolBusy = false; controls(); } }
+  }
   function controls(): void {
+    protocolLoad.disabled = !protocolAvailable() || protocolBusy;
+    if (fixedCPU(project)) {
+      fields.disabled = true; bind.disabled = true; improveFields.disabled = true; improveButton.disabled = true; importFields.disabled = true; importButton.disabled = true;
+      for (const button of libraryChoices) button.disabled = true;
+      return;
+    }
     const editable = ready && !locked && !!projectId && catalog.project_id === projectId && catalog.state_version === project.state_version;
     fields.disabled = !editable;
     const raw = rawDesign(selected() ?? {}), fit = fitLimit.valueAsNumber, budget = object(catalog.budget);
@@ -326,6 +476,7 @@ export function createResearchDesignPanel(host: Host): {
   function showTransformColumns(): void {
     const saved = draft(), available = saved.features;
     columnChecks(transformOptions, available, saved.transformColumns, values => {
+      if (fixedCPU(project)) return;
       saved.transformColumns = [...saved.transformColumns.filter(column => !available.includes(column)), ...values]; controls();
     });
   }
@@ -338,8 +489,8 @@ export function createResearchDesignPanel(host: Host): {
     if (raw) {
       const saved = draft(), groupColumns = words(catalog.group_columns);
       columnChecks(featureOptions, words(catalog.numeric_columns).filter(column => column !== catalog.target_column && !groupColumns.includes(column)), saved.features,
-        values => { draft().features = values; showTransformColumns(); controls(); });
-      columnChecks(groupOptions, groupColumns, saved.groups, values => { draft().groups = values; controls(); }); fitLimit.value = String(saved.fitLimit); inputBasis.value = saved.inputBasis;
+        values => { if (!fixedCPU(project)) { draft().features = values; showTransformColumns(); controls(); } });
+      columnChecks(groupOptions, groupColumns, saved.groups, values => { if (!fixedCPU(project)) { draft().groups = values; controls(); } }); fitLimit.value = String(saved.fitLimit); inputBasis.value = saved.inputBasis;
       showTransformColumns();
       trainingProtocol.textContent = "按设计执行" + words(resource?.checks).filter(check => ["random_cv", "group_cv"].includes(check)).map(check => checkNames[check]).join("、")
         + "，Ridge alpha 为1；输入映射后，在各训练折内单独拟合标准化器与模型。";
@@ -421,6 +572,7 @@ export function createResearchDesignPanel(host: Host): {
     if (text(resource.id, "")) assessment.append(rawRecord(bound, "查看已采用设计与绑定原记录"));
   }
   function choose(resource: Obj): void {
+    if (fixedCPU(project)) return;
     draft().resource = resourceKey(resource); selection.value = draft().resource; showSelection(); formDetails.open = true;
     location.hash = "#/research?focus=design";
     host.announce(rawDesign(resource) ? "已选择资源版本，请明确选择训练特征、拆分组与累计fit上限，再填写采用理由。" : "已选择资源版本，请核对保存预测列并填写采用理由。");
@@ -458,12 +610,19 @@ export function createResearchDesignPanel(host: Host): {
   }
   function invalidate(): void {
     generation++; ready = false; status.textContent = "正在核对当前研究设计…"; libraryStatus.textContent = "正在读取资源目录…";
+    protocolCurrent = false; protocolBusy = false; protocolDetails.replaceChildren(); protocolStatus.textContent = "正在核对当前项目的保存状态…";
     bindingNote.textContent = ""; copy.replaceChildren(); results.replaceChildren(); assessment.replaceChildren(); next.hidden = true; improve.hidden = true;
     fitBudget.replaceChildren();
     section.setAttribute("aria-busy", "true"); controls();
   }
   async function update(value: Obj): Promise<void> {
-    const token = ++generation; ready = false; project = value; projectId = text(value.id, ""); controls();
+    const token = ++generation; ready = false; project = value; projectId = text(value.id, ""); protocolBusy = false; protocolCurrent = false;
+    const cpu = fixedCPU(project); displayMode(!!cpu); protocolDetails.replaceChildren();
+    if (cpu) {
+      protocolCurrent = true; status.classList.remove("error"); protocolStatus.classList.remove("error"); showProtocolRegistration(cpu);
+      section.setAttribute("aria-busy", "false"); controls(); return;
+    }
+    status.textContent = "正在读取研究设计…"; controls();
     try {
       const result = await host.read("/api/local-workbench/designs");
       if (token !== generation) return;
@@ -488,14 +647,15 @@ export function createResearchDesignPanel(host: Host): {
       status.textContent = message; libraryStatus.textContent = message; status.classList.add("error"); libraryStatus.classList.add("error");
     } finally { if (token === generation) { section.setAttribute("aria-busy", "false"); controls(); } }
   }
-  selection.addEventListener("change", () => { draft().resource = selection.value; showSelection(); });
-  prediction.addEventListener("change", () => { draft().prediction = prediction.value; controls(); });
-  reason.addEventListener("input", () => { draft().reason = reason.value; controls(); });
-  improveReason.addEventListener("input", () => { draft().improvement = improveReason.value; controls(); });
-  fitLimit.addEventListener("input", () => { draft().fitLimit = fitLimit.valueAsNumber; controls(); });
-  inputBasis.addEventListener("change", () => { draft().inputBasis = inputBasis.value; controls(); });
+  protocolLoad.addEventListener("click", () => { void loadProtocol(); });
+  selection.addEventListener("change", () => { if (!fixedCPU(project)) { draft().resource = selection.value; showSelection(); } });
+  prediction.addEventListener("change", () => { if (!fixedCPU(project)) { draft().prediction = prediction.value; controls(); } });
+  reason.addEventListener("input", () => { if (!fixedCPU(project)) { draft().reason = reason.value; controls(); } });
+  improveReason.addEventListener("input", () => { if (!fixedCPU(project)) { draft().improvement = improveReason.value; controls(); } });
+  fitLimit.addEventListener("input", () => { if (!fixedCPU(project)) { draft().fitLimit = fitLimit.valueAsNumber; controls(); } });
+  inputBasis.addEventListener("change", () => { if (!fixedCPU(project)) { draft().inputBasis = inputBasis.value; controls(); } });
   form.addEventListener("submit", event => {
-    event.preventDefault(); const resource = selected(); if (bind.disabled || !resource || !form.reportValidity()) return;
+    event.preventDefault(); if (fixedCPU(project)) return; const resource = selected(); if (bind.disabled || !resource || !form.reportValidity()) return;
     const body = { project_id: projectId, expected_state_version: project.state_version, resource_id: resource.id, resource_version: resource.version, reason: reason.value.trim() };
     void host.submit("design-bind", rawDesign(resource) ? { ...body, prediction_column: null,
       training: { feature_columns: draft().features, split_group_columns: draft().groups, fit_limit: fitLimit.valueAsNumber,
@@ -504,10 +664,11 @@ export function createResearchDesignPanel(host: Host): {
       : { ...body, prediction_column: prediction.value });
   });
   improveForm.addEventListener("submit", event => {
-    event.preventDefault(); if (improveButton.disabled || !improveForm.reportValidity()) return;
+    event.preventDefault(); if (fixedCPU(project) || improveButton.disabled || !improveForm.reportValidity()) return;
     void host.submit("design-improve", { project_id: projectId, expected_state_version: project.state_version, reason: improveReason.value.trim() });
   });
   importFile.addEventListener("change", () => { void (async () => {
+    if (fixedCPU(project)) return;
     const file = importFile.files?.[0], token = ++importGeneration; importedResource = null; readingImport = !!file; controls();
     importStatus.classList.remove("error");
     if (!file) { importStatus.textContent = "尚未选择资源文件。"; return; }
@@ -524,13 +685,13 @@ export function createResearchDesignPanel(host: Host): {
     } finally { if (token === importGeneration) { readingImport = false; controls(); } }
   })(); });
   importForm.addEventListener("submit", event => { event.preventDefault(); void (async () => {
-    if (importButton.disabled || !importedResource) return;
+    if (fixedCPU(project) || importButton.disabled || !importedResource) return;
     const result = await host.submit("design-import", { resource: importedResource });
     importStatus.classList.toggle("error", !result);
     importStatus.textContent = result ? "研究设计资源已保存，可在下方目录查看并选择。" : "导入尚未确认完成，请查看页面顶部提示并核对原请求。文件内容已保留。";
   })(); });
   controls();
   return { element: section, libraryElement: library, update, invalidate, setLocked(value, libraryValue = value) { locked = value; libraryLocked = libraryValue; controls(); },
-    resolved(name, requestId) { return ["design-bind", "design-improve", "design-import"].includes(name) && (words(catalog.completed_requests).includes(requestId)
+    resolved(name, requestId) { return !fixedCPU(project) && ["design-bind", "design-improve", "design-import"].includes(name) && (words(catalog.completed_requests).includes(requestId)
       || name === "design-bind" && binding().request_id === requestId); } };
 }

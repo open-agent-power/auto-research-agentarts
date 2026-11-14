@@ -1,5 +1,7 @@
 # 组件搭建索引
 
+固定CPU研究页按三项精确primary展示捕获范围和按需协议阅读；隐藏不适用的CSV/Ridge编辑入口，其他方法保持原目录/草稿。读取可用于旧代码只读项目，异步切换隔离，见[协议阅读](../../docs/fixed-cpu-protocol.md)。
+
 相关性原行动复用retrieval-reader组件，按需分页/原文/grade/缺正例显示BM25基线→TF-IDF候选，拒绝家族/响应/失效绑定混淆；原citation显示保持。[合同](../../docs/saved-retrieval-reader.md)。
 
 

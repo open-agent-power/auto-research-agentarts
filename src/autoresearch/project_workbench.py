@@ -23,6 +23,7 @@ from .research_plan_proposal import build_context as build_plan_context
 from .research_recipe import parse_json
 from .saved_materials import normalize_requests
 from .saved_retrieval_reader import read_adverse_page, read_adverse_query
+from .cpu_protocol_reader import MAX_RESPONSE_BYTES as MAX_PROTOCOL_RESPONSE_BYTES, read_fixed_protocol
 
 MAX_REPORT_FILE_BYTES = 64 * 1024 * 1024
 MAX_REPORT_TOTAL_BYTES = 128 * 1024 * 1024
@@ -78,6 +79,24 @@ def _bound_state(project, iteration_snapshot):
     _require(iteration_snapshot is None or state.get("source_scope", {}).get("iteration_snapshot_sha256") == iteration_snapshot,
              "BUNDLE_PROJECT_MISMATCH", "Project and sealed iteration identities differ.")
     return state
+
+
+def _fixed_protocol_query(raw):
+    """Only select the already bound project; never a path, method or command."""
+    _require(len(raw.encode("utf-8")) <= 1024, "INVALID_QUERY", "Protocol selectors exceed their input limit.")
+    try:
+        values = parse_qs(raw, keep_blank_values=True, strict_parsing=True,
+                          max_num_fields=2, errors="strict")
+    except (ValueError, UnicodeError):
+        raise ResearchError("INVALID_QUERY", "Use one project and snapshot selector.") from None
+    _require(set(values) == {"project_id", "snapshot_ref"}
+             and all(len(items) == 1 and items[0] for items in values.values()),
+             "INVALID_QUERY", "Use one project and snapshot selector.")
+    result = {key: items[0] for key, items in values.items()}
+    identifier(result["project_id"], "project_id")
+    _require(re.fullmatch(r"[a-f0-9]{64}", result["snapshot_ref"]) is not None,
+             "INVALID_QUERY", "Use a full project snapshot identity.")
+    return result
 
 
 def _retrieval_reader_query(raw, *, detail):
@@ -526,6 +545,20 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     _require(not parsed.query, "INVALID_QUERY", "Project status does not accept a query.")
                     state = _bound_state(project, iteration_snapshot)
                     return self.send_json(200, _projection(project, state, report))
+                if parsed.path == "/api/project/fixed-protocol.json":
+                    selectors = _fixed_protocol_query(parsed.query)
+                    before = _bound_state(project, iteration_snapshot)
+                    _require(before["id"] == selectors["project_id"]
+                             and before["snapshot_ref"] == selectors["snapshot_ref"],
+                             "STALE_STATE", "The bound protocol project changed.")
+                    value = read_fixed_protocol(project, before)
+                    current, current_snapshot, _ = binding()
+                    after = _bound_state(current, current_snapshot)
+                    _require(before["id"] == after["id"] and before["snapshot_ref"] == after["snapshot_ref"],
+                             "STALE_STATE", "The bound protocol project changed while loading.")
+                    raw = json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+                    _require(len(raw) <= MAX_PROTOCOL_RESPONSE_BYTES, "READER_TOO_LARGE", "Protocol view exceeds its display limit.")
+                    return self.send_data(200, raw, "application/json; charset=utf-8")
                 if parsed.path in {"/api/project/retrieval-adverse.json", "/api/project/retrieval-query.json"}:
                     detail = parsed.path == "/api/project/retrieval-query.json"
                     selectors = _retrieval_reader_query(parsed.query, detail=detail)

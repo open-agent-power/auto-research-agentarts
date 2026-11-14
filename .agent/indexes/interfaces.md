@@ -1,5 +1,7 @@
 # 接口索引
 
+新增只读 `GET /api/project/fixed-protocol.json`，绑定原project/snapshot，直接核验三类固定CPU原source并返回≤128KiB摘要，不依赖报告或行动、不执行研究。字段、省略内容与错误见[固定协议接口](../../docs/fixed-cpu-protocol.md)。
+
 同两条保存GET新增独立saved-relevance-*-v1响应和6字段contract；详情原grades、missing_doc_ids、original_grade=null语义与旧citation隔离，选择器/上限/快照门禁保持。见[相关性保存记录](../../docs/saved-retrieval-reader.md#相关性保存记录)。
 
 
