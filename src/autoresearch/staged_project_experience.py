@@ -21,6 +21,19 @@ SCHEMA = "staged-retrieval-experience-bundle-v1"
 PROTOCOL = "staged-retrieval-saved-binding-v1"
 SCHEMA_V2 = "staged-retrieval-experience-bundle-v2"
 PROTOCOL_V2 = "staged-retrieval-feedback-binding-v2"
+SCHEMA_V3 = "staged-retrieval-experience-bundle-v3"
+PROTOCOL_V3 = "staged-retrieval-shadow-binding-v3"
+_S067_COMMIT = "5bd9883dd435a1d39b857a51bb6f4d20a53f156b"
+_S067_PROTOCOL_SHA = "ca8e7212ed1aa1ce65e197571e0613d3ace738855470ef7c71d7b4f40efaf5c1"
+_S067_DRIVER_SHA = "0e40c8d2ab4b38890ac1b28b519bad645d6dcc1f735a1a2c33583b9a999d0892"
+_S067_CASE_SHA = "4ff88cb1fb5c365b9cd333f9dd56035d7d2cc366b2df98a2a6ddf8ded4a7712a"
+_S067_PROJECT_ID = "project-dc1b1b59889f49c0b744254b1a1afd68"
+_S067_RUN_ID = "run-276475c33d7542509c840bc575005271"
+_S067_PRIMARY_ID = "action-ad83795edf793a9dc19125edbd2ee442"
+_S067_SOURCE_SNAPSHOT = "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb"
+_S067_DECISION_SHA = "6a4356387fb73b75b1b111a9e619cb57845f1aab63e51b0f54c2920c7c7da383"
+_SHADOW_VERIFICATION = ("source_checked_at_capture; offline_shadow_binding_unverifiable_without_origin; "
+                        "pre_anchor_snapshot_unverifiable_without_original_snapshot")
 MAX_BUNDLE_BYTES = 4 * 1024 * 1024
 NOTICE = ("Historical analogy only. Final aggregate was checked against the original at capture; "
           "offline_final_binding_unverifiable_without_origin. Self-contained hashes are not signatures. "
@@ -37,6 +50,226 @@ def _require(value, message, code="INVALID_STAGED_EXPERIENCE"):
 def _hash(value):
     return type(value) is str and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
+
+
+_SHADOW_A_CONDITION = {"split": "validation", "measure": "candidate_minus_baseline",
+                       "metric": "recall@20", "operator": "gt", "threshold": 0}
+_SHADOW_B_CONDITION = {
+    "all": [_SHADOW_A_CONDITION, {"split": "validation", "measure": "candidate_minus_baseline",
+                                   "metric": "mrr@10", "operator": "gte", "threshold": 0}],
+    "leave_one_out": {"split": "validation", "measure": "leave_one_out_mean",
+                      "metric": "recall@20", "operator": "gt", "threshold": 0},
+}
+
+
+def _shadow_comparison(feedback, condition, value, final):
+    """Compare only the fixed S067 rules; missing evidence is not a zero difference.
+
+    This pure helper assumes its arguments will be source-verified by a future
+    explicit capture entry point. It does not authenticate them by itself.
+    """
+    from . import hypothesis_feedback
+    from . import retrieval_lexical as lexical
+    _require(type(feedback) is dict and canonical(feedback.get("condition")) == canonical(_SHADOW_A_CONDITION)
+             and canonical(condition) == canonical(_SHADOW_B_CONDITION),
+             "Shadow rules differ from the fixed protocol.", "EVIDENCE_CHANGED")
+    outcome = feedback.get("outcome")
+    _require(outcome in ("condition_met", "condition_not_met", "unknown"), "Invalid native feedback.", "EVIDENCE_CHANGED")
+    if outcome == "unknown" or value is None:
+        return {"A_method": None, "B_method": None, "outcome": "unknown", "reason": "policy_unknown", "B_minus_A": None}
+    a_value = feedback.get("value")
+    _require(type(a_value) in (int, float) and math.isfinite(a_value) and -1 <= a_value <= 1
+             and hypothesis_feedback._valid_loo_value(value, condition)
+             and canonical(a_value) == canonical(value["means"][0])
+             and (outcome == "condition_met") == (a_value > 0),
+             "The fixed rules do not match the same saved validation values.", "EVIDENCE_CHANGED")
+    a = "tfidf_cosine" if outcome == "condition_met" else "bm25"
+    b = "tfidf_cosine" if hypothesis_feedback._loo_matches(condition, value) else "bm25"
+    _require(not (a == "bm25" and b == "tfidf_cosine"), "Fixed rules select impossible arms.", "EVIDENCE_CHANGED")
+    result = {"A_method": a, "B_method": b, "outcome": "unknown", "reason": "same_arm", "B_minus_A": None}
+    if a == b:
+        return result
+    if final is None:
+        result["reason"] = "final_unmeasured"
+        return result
+    _require(type(final) is dict and final.get("selected_method") == "tfidf_cosine"
+             and final.get("baseline_method") == "bm25"
+             and final.get("comparison_status") == "distinct_selected_and_baseline"
+             and type(final.get("summary")) is dict,
+             "The requested counterfactual was not measured in the saved final.", "EVIDENCE_CHANGED")
+    try:
+        baseline, selected = final["summary"]["baseline"], final["summary"]["selected"]
+        _require(type(baseline) is dict and type(selected) is dict
+                 and set(baseline) == set(selected) == set(lexical.METRICS),
+                 "Invalid saved final aggregate.", "EVIDENCE_CHANGED")
+        _require(all(type(number) in (int, float) and math.isfinite(number) and 0 <= number <= 1
+                     for table in (baseline, selected) for number in table.values()),
+                 "Invalid saved final metric.", "EVIDENCE_CHANGED")
+        delta = {metric: baseline[metric] - selected[metric] for metric in lexical.METRICS}
+    except (KeyError, TypeError, ValueError, OverflowError):
+        raise ResearchError("EVIDENCE_CHANGED", "Invalid saved final aggregate.") from None
+    result.update(outcome=("condition_met" if delta["mrr@10"] > 0 and delta["recall@20"] >= 0
+                           else "condition_not_met"), reason="different_arms_measured", B_minus_A=delta)
+    return result
+
+
+def _read_s067_shadow_checked(project, state, base_record, study_workspace):
+    """WIP source-side check for the fixed S067 operator shadow receipt.
+
+    No research is dispatched. This returns a compact projection only. A valid
+    hash chain is a local consistency check, not a signature or a trusted clock.
+    """
+    from . import project_experience_binding, staged_feedback_reader as reader
+    from .local_workbench import LocalWorkbench
+    from .research_project import safe_path
+
+    def raw(path, maximum):
+        return source_reader._read_file(safe_path(path), maximum)
+
+    def document(path, maximum):
+        data = raw(path, maximum)
+        value = staged._parse(data)
+        _require(canonical(value).encode('utf-8') == data, 'Shadow source JSON changed.', 'EVIDENCE_CHANGED')
+        return value, hashlib.sha256(data).hexdigest()
+
+    root = safe_path(Path(study_workspace).absolute())
+    _require(root.name == 's067-boolq-paired-passage-v1' and root.parent.name == 'runs',
+             'Only the fixed S067 receipt is supported.', 'INVALID_REQUEST')
+    start, start_sha = document(root / 'start.json', 65536)
+    decision, decision_sha = document(root / 'private/shadow-decision.json', 65536)
+    inputs, inputs_sha = document(root / 'private/shadow-inputs.json', 2 * 1024 * 1024)
+    claim_path = root.parent.parent.parent / '.study-claims/s067-boolq-paired-passage-v1.json'
+    claim, claim_sha = document(claim_path, 65536)
+    _require(start.get('schema_version') == 's067-start-v1' and start.get('study_id') == root.name
+             and start.get('workspace') == str(root) and start.get('claim_sha256') == claim_sha
+             and start.get('source_commit') == _S067_COMMIT and start.get('protocol_sha256') == _S067_PROTOCOL_SHA
+             and start.get('driver_sha256') == _S067_DRIVER_SHA and decision.get('case_sha256') == _S067_CASE_SHA
+             and claim.get('schema_version') == 's067-study-claim-v1' and claim.get('study_id') == root.name
+             and claim.get('workspace') == str(root) and claim.get('source_commit') == start.get('source_commit')
+             and claim.get('protocol_sha256') == start.get('protocol_sha256')
+             and claim.get('case_sha256') == decision.get('case_sha256')
+             and claim.get('original_source_sha256') == 'ebc29ea3808c5c611672384b3de56e83349fe38fc1fe876fd29b674d81d0a80a',
+             'Original source claim or startup identity differs.', 'EVIDENCE_CHANGED')
+    pin = root.parent.parent
+    for relative, key in (('scripts/run_boolq_case_comparison_study.py', 'driver_sha256'),
+                          ('docs/execution/g5-local/boolq-case-comparison-protocol-v1.json', 'protocol_sha256'),
+                          ('tests/test_boolq_case_comparison_study.py', 'test_sha256'),
+                          ('scripts/run_squad_paragraph_study.py', 'helper_sha256')):
+        _require(_hash(start.get(key)) and hashlib.sha256(raw(pin / relative, 5 * 1024 * 1024)).hexdigest() == start[key],
+                 'Original producer source file differs.', 'EVIDENCE_CHANGED')
+    _require(start.get('source_commit') == decision.get('source_commit')
+             and start.get('driver_sha256') == decision.get('driver_sha256')
+             and start.get('protocol_sha256') == decision.get('protocol_sha256')
+             and start.get('project_code_identity') == state.get('code_identity'),
+             'Original producer identity differs.', 'EVIDENCE_CHANGED')
+    manager = LocalWorkbench.open_readonly(root / 'manager')
+    with manager._connect(readonly=True) as con:
+        _, managed = manager._project(con, state['id'])
+    _require(managed.root == project.root, 'Study manager does not bind this Project.', 'EVIDENCE_CHANGED')
+    expected_fields = {'case_sha256','driver_sha256','native_A_condition','native_A_method','native_A_outcome',
+                       'native_A_value','plan_sha256','plan_version','primary_action_id','primary_parent_request_sha256',
+                       'primary_result_sha256','project_id','protocol_sha256','registration_sha256','run_id',
+                       'schema_version','shadow_B_condition','shadow_B_method','shadow_B_value','snapshot_ref',
+                       'source_commit','source_snapshot_sha256','state_version','study_id','validation_inputs_sha256'}
+    _require(type(decision) is dict and set(decision) == expected_fields
+             and decision['schema_version'] == 's067-shadow-decision-v1' and decision['study_id'] == root.name
+             and type(decision['state_version']) is int and _hash(decision['snapshot_ref'])
+             and state['id'] == decision['project_id'] == _S067_PROJECT_ID
+             and state['run_id'] == decision['run_id'] == _S067_RUN_ID
+             and decision_sha == _S067_DECISION_SHA
+             and decision['source_snapshot_sha256'] == state['source_snapshot_sha256'] == _S067_SOURCE_SNAPSHOT
+             and decision['validation_inputs_sha256'] == inputs_sha,
+             'Original shadow decision shape or Project binding differs.', 'EVIDENCE_CHANGED')
+    p = base_record['provenance']; primary = p['actions']['primary']; history = p['feedback_history']
+    primary_parent = next(x for x in state['controller_requests'] if x['request_id'] == p['parent_bindings']['primary']['request_id'])
+    audit_parent = next(x for x in state['controller_requests'] if x['request_id'] == p['parent_bindings']['audit']['request_id'])
+    final_parent = p['parent_bindings']['final']
+    case_revisions = state.get('experience_revisions', [])
+    _require(len(case_revisions) == 1 and case_revisions[0]['inclusion_status'] == 'active'
+             and case_revisions[0]['bundle_sha256'] == decision['case_sha256']
+             and case_revisions[0]['based_on_state_version'] < primary_parent['state_version_before'],
+             'Original historical case inclusion differs.', 'EVIDENCE_CHANGED')
+    case, case_raw = project_experience_binding._load(project.root, case_revisions[0])
+    _require(hashlib.sha256(case_raw).hexdigest() == decision['case_sha256']
+             and primary_parent['request']['proposal'].get('experience_case_refs') == [{
+                 'case_id': case['id'], 'case_version': case['version'], 'bundle_sha256': decision['case_sha256']}]
+             and canonical(case['record']['provenance']['feedback_history']['registration']['condition'])
+                 == canonical(_SHADOW_B_CONDITION),
+             'Original case or primary proposal reference differs.', 'EVIDENCE_CHANGED')
+    anchors = [item for item in state.get('researcher_feedback', []) if item.get('request_id') == 's067-shadow-anchor']
+    _require(len(anchors) == 1, 'Original shadow anchor is missing or ambiguous.', 'EVIDENCE_CHANGED')
+    anchor = anchors[0]
+    _require(anchor.get('id') == 'feedback-s067-shadow-anchor' and anchor.get('action_id') == primary['id']
+             and anchor.get('comment') == 'sha256:' + decision_sha
+             and anchor.get('content_trust') == 'unverified_researcher_statement'
+             and type(anchor.get('based_on_state_version')) is int
+             and anchor['based_on_state_version'] == decision['state_version']
+             and primary_parent['state_version_after'] == anchor['based_on_state_version']
+             and audit_parent['state_version_before'] == anchor['based_on_state_version'] + 1
+             and audit_parent['state_version_after'] <= p['freeze']['request']['expected_state_version']
+             and p['freeze']['request']['expected_state_version'] < final_parent['state_version_before']
+             and [x for x in audit_parent['selection_context'].get('researcher_feedback', []) if x.get('request_id') == anchor['request_id']] == [anchor],
+             'Original operator anchor or its pre-audit sequence differs.', 'EVIDENCE_CHANGED')
+    fb = history['feedback']; reg = history['registration']
+    _require(decision['primary_action_id'] == primary['id'] == _S067_PRIMARY_ID
+             and start.get('controller_code_identity') == primary_parent['controller_code_identity']
+             and decision['primary_result_sha256'] == primary['result_sha256']
+             and decision['primary_parent_request_sha256'] == primary_parent['request_sha256']
+             and decision['registration_sha256'] == reg['registration_sha256']
+             and decision['plan_sha256'] == reg['plan_sha256'] and decision['plan_version'] == reg['plan_version']
+             and canonical(decision['native_A_condition']) == canonical(fb['condition'])
+             and canonical(decision['native_A_value']) == canonical(fb['value'])
+             and decision['native_A_outcome'] == fb['outcome'],
+             'Original shadow and preregistered primary feedback differ.', 'EVIDENCE_CHANGED')
+    original = next(x for x in state['actions'] if x['id'] == primary['id'])
+    checked = reader._checked_primary(project, state, original)
+    qids = sorted(checked['source']['spec']['query_splits']['validation'])
+    _require(len(qids) == 200 and len(set(qids)) == 200, 'Original validation coverage differs.', 'EVIDENCE_CHANGED')
+    rows = []
+    for qid in qids:
+        row = {'query_id': qid}
+        for method in ('bm25', 'tfidf_cosine'):
+            metrics = checked['metrics'][('validation', qid, method)]['metrics']
+            row[method] = {key: metrics[key] for key in ('recall@20', 'mrr@10')}
+        rows.append(row)
+    expected_inputs = {'schema_version':'s067-shadow-validation-inputs-v1','rows':rows,
+                       'case_sha256':decision['case_sha256'],'primary_action_id':primary['id'],
+                       'primary_result_sha256':primary['result_sha256']}
+    _require(canonical(inputs) == canonical(expected_inputs), 'Original validation inputs differ.', 'EVIDENCE_CHANGED')
+    paired = checked['summary']['splits']['validation']['paired_candidate_minus_baseline']
+    deltas = [r['tfidf_cosine']['recall@20'] - r['bm25']['recall@20'] for r in rows]
+    aggregate = reader._stability_aggregate(deltas, paired['recall@20'])
+    value = {'means':[paired[k]['mean'] for k in ('recall@20','mrr@10')],
+             'leave_one_out':{'minimum':aggregate['leave_one_out']['minimum'],
+                              'maximum':aggregate['leave_one_out']['maximum'],'queries':len(qids)}}
+    _require(canonical(value) == canonical(decision['shadow_B_value']), 'Original shadow arithmetic differs.', 'EVIDENCE_CHANGED')
+    result = _shadow_comparison(fb, decision['shadow_B_condition'], value, base_record['payload']['final'])
+    _require(result['A_method'] == decision['native_A_method'] and result['B_method'] == decision['shadow_B_method'],
+             'Original shadow decision selects different methods.', 'EVIDENCE_CHANGED')
+    _require(document(root / 'private/shadow-decision.json', 65536)[1] == decision_sha
+             and document(root / 'private/shadow-inputs.json', 2 * 1024 * 1024)[1] == inputs_sha
+             and document(root / 'start.json', 65536)[1] == start_sha
+             and document(claim_path, 65536)[1] == claim_sha and project.status() == state,
+             'Original shadow evidence changed during capture.', 'STALE_STATE')
+    return {'schema_version':'staged-shadow-comparison-v1','case_sha256':decision['case_sha256'],
+            'source_commit':decision['source_commit'],'protocol_sha256':decision['protocol_sha256'],
+            'driver_sha256':decision['driver_sha256'],'decision_sha256':decision_sha,
+            'validation_inputs_sha256':inputs_sha,'start_sha256':start_sha,'claim_sha256':claim_sha,
+            'anchor_request_id':anchor['request_id'],
+            'anchor_based_on_state_version':anchor['based_on_state_version'],
+            'anchor_content_trust':'unverified_researcher_statement',
+            'audit_parent_request_id':audit_parent['request_id'],'audit_context_sha256':audit_parent['selection_context']['context_sha256'],
+            'condition':copy.deepcopy(decision['shadow_B_condition']),'value':value,'comparison':result,
+            'verification':_SHADOW_VERIFICATION}
+
+
+def _read_s067_shadow(project, state, base_record, study_workspace):
+    try:
+        return _read_s067_shadow_checked(project, state, base_record, study_workspace)
+    except ResearchError:
+        raise
+    except (KeyError, TypeError, ValueError, AttributeError, IndexError, StopIteration, UnicodeError, OverflowError, OSError):
+        raise ResearchError('EVIDENCE_CHANGED', 'Original shadow source is unavailable or malformed.') from None
 
 def _read(project, action):
     from .research_project import safe_path
@@ -644,17 +877,142 @@ def _validate_record(record):
     return record
 
 
+
+def _base_from_shadow_record(record):
+    """Reconstruct the exact v2 evidence subset before validating a v3 extension."""
+    _require(type(record) is dict and type(record.get('scope')) is dict
+             and record['scope'].get('protocol') == PROTOCOL_V3 and type(record.get('provenance')) is dict,
+             'Invalid shadow record scope.')
+    extension = record['provenance'].get('shadow_comparison')
+    _require(type(extension) is dict and set(extension) == {'base_scope', 'projection'},
+             'Invalid shadow extension.')
+    base = copy.deepcopy(record); base['provenance'].pop('shadow_comparison')
+    base['scope'] = copy.deepcopy(extension['base_scope']); base['id'] = observation_id(base)
+    _validate_record(base)
+    return base, extension['projection']
+
+
+def _validate_shadow_record(record):
+    from . import staged_feedback_reader as reader
+    base, shadow = _base_from_shadow_record(record)
+    fields = {'schema_version','case_sha256','source_commit','protocol_sha256','driver_sha256',
+              'decision_sha256','validation_inputs_sha256','start_sha256','claim_sha256','anchor_request_id','anchor_based_on_state_version',
+              'anchor_content_trust','audit_parent_request_id','audit_context_sha256','condition','value',
+              'comparison','verification'}
+    _require(type(shadow) is dict and set(shadow) == fields and shadow['schema_version'] == 'staged-shadow-comparison-v1'
+             and shadow['case_sha256'] == _S067_CASE_SHA
+             and all(_hash(shadow[k]) for k in ('case_sha256','protocol_sha256','driver_sha256','decision_sha256',
+                                                 'validation_inputs_sha256','start_sha256','claim_sha256','audit_context_sha256'))
+             and shadow['decision_sha256'] == _S067_DECISION_SHA
+             and shadow['source_commit'] == _S067_COMMIT and shadow['protocol_sha256'] == _S067_PROTOCOL_SHA
+             and shadow['driver_sha256'] == _S067_DRIVER_SHA
+             and shadow['anchor_request_id'] == 's067-shadow-anchor'
+             and shadow['anchor_content_trust'] == 'unverified_researcher_statement'
+             and shadow['verification'] == _SHADOW_VERIFICATION,
+             'Invalid compact shadow binding.')
+    parent = base['provenance']['parent_bindings']; primary = base['provenance']['actions']['primary']
+    origin = base['provenance']['origin']
+    _require(origin['project_id'] == _S067_PROJECT_ID and origin['run_id'] == _S067_RUN_ID
+             and origin['source_snapshot_sha256'] == _S067_SOURCE_SNAPSHOT and primary['id'] == _S067_PRIMARY_ID,
+             'Shadow case is not the fixed S067 source.')
+    _require(type(shadow['anchor_based_on_state_version']) is int
+             and parent['primary']['state_version_after'] == shadow['anchor_based_on_state_version']
+             and shadow['anchor_based_on_state_version'] + 1 == parent['audit']['state_version_before']
+             and shadow['audit_parent_request_id'] == parent['audit']['request_id']
+             and shadow['audit_context_sha256'] == parent['audit']['context_sha256'],
+             'Compact shadow sequence differs.')
+    expected_scope = copy.deepcopy(base['scope']); expected_scope['protocol'] = PROTOCOL_V3
+    expected_scope['inputs_sha256'] = fingerprint({'base_inputs_sha256':base['scope']['inputs_sha256'],
+                                                   'shadow_decision_sha256':shadow['decision_sha256']})
+    _require(record['scope'] == expected_scope and observation_id(record) == record['id'],
+             'Shadow scoped identity differs.')
+    saved = staged._saved(base['provenance']['artifacts']['primary']['tool_result'])
+    qids = sorted(base['provenance']['source']['spec']['query_splits']['validation'])
+    metrics = {(r['split'],r['query_id'],r['method']):r['metrics'] for r in saved['per_query_metrics']}
+    _require(len(qids) == 200 and len(set(qids)) == 200, 'Shadow validation coverage differs.')
+    try:
+        rows = [{'query_id':qid, **{method:{k:metrics[('validation',qid,method)][k] for k in ('recall@20','mrr@10')}
+                                    for method in ('bm25','tfidf_cosine')}} for qid in qids]
+        paired = base['payload']['paired_summary']['splits']['validation']['paired_candidate_minus_baseline']
+        deltas = [r['tfidf_cosine']['recall@20']-r['bm25']['recall@20'] for r in rows]
+        aggregate = reader._stability_aggregate(deltas,paired['recall@20'])
+        value = {'means':[paired[k]['mean'] for k in ('recall@20','mrr@10')],
+                 'leave_one_out':{'minimum':aggregate['leave_one_out']['minimum'],
+                                  'maximum':aggregate['leave_one_out']['maximum'],'queries':len(qids)}}
+        inputs = {'schema_version':'s067-shadow-validation-inputs-v1','rows':rows,'case_sha256':shadow['case_sha256'],
+                  'primary_action_id':primary['id'],'primary_result_sha256':primary['result_sha256']}
+    except (KeyError, TypeError, ValueError, OverflowError):
+        raise ResearchError('INVALID_STAGED_EXPERIENCE', 'Shadow saved validation values differ.') from None
+    _require(fingerprint(inputs) == shadow['validation_inputs_sha256']
+             and canonical(value) == canonical(shadow['value'])
+             and canonical(shadow['comparison']) == canonical(_shadow_comparison(
+                 base['provenance']['feedback_history']['feedback'], shadow['condition'], value, base['payload']['final'])),
+             'Shadow validation arithmetic or comparison differs.')
+    return record
+
+
+def derive_staged_shadow_observation(workspace, primary_action_id, *, study_workspace):
+    """Explicit S067 source-side shadow capture, without dispatch or private holdout access."""
+    project = ResearchProject(workspace); before = project.status()
+    initial_code = runtime_code_identity(); initial_implementation = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    derived = derive_staged_observation(workspace, primary_action_id)
+    base = derived['entries'][0]
+    _require(base['scope']['protocol'] == PROTOCOL_V2, 'The fixed shadow needs a native v2 feedback record.', 'INVALID_REQUEST')
+    shadow = _read_s067_shadow(project, before, base, study_workspace)
+    result = copy.deepcopy(base); result['provenance']['shadow_comparison'] = {'base_scope':copy.deepcopy(base['scope']),
+                                                                             'projection':shadow}
+    result['scope']['protocol'] = PROTOCOL_V3
+    result['scope']['inputs_sha256'] = fingerprint({'base_inputs_sha256':base['scope']['inputs_sha256'],
+                                                    'shadow_decision_sha256':shadow['decision_sha256']})
+    result['id'] = observation_id(result)
+    _validate_shadow_record(result)
+    original_actions = [next(x for x in before['actions'] if x['id'] == base['provenance']['actions'][name]['id'])
+                        for name in ('primary','audit','final')]
+    _verify_action_rows(project, original_actions)
+    _require(all(_read(project, action)[1] == base['provenance']['artifact_file_sha256'][name]
+                 for name, action in zip(('primary','audit','final'), original_actions)),
+             'Original action artifacts changed during shadow capture.', 'STALE_STATE')
+    source_sha, _, _ = _dev_source(project, before)
+    _require(source_sha == base['provenance']['origin']['source_file_sha256'],
+             'Original source changed during shadow capture.', 'STALE_STATE')
+    from . import project_experience_binding
+    _, original_case = project_experience_binding._load(project.root, before['experience_revisions'][0])
+    from .research_project import safe_path
+    study = safe_path(Path(study_workspace).absolute())
+    for relative, expected in (('private/shadow-decision.json',shadow['decision_sha256']),
+                               ('private/shadow-inputs.json',shadow['validation_inputs_sha256']),
+                               ('start.json',shadow['start_sha256'])):
+        _require(hashlib.sha256(source_reader._read_file(safe_path(study / relative), 2 * 1024 * 1024)).hexdigest() == expected,
+                 'Original shadow source changed during capture.', 'STALE_STATE')
+    start = staged._parse(source_reader._read_file(safe_path(study / 'start.json'),65536))
+    for relative, key in (('scripts/run_boolq_case_comparison_study.py','driver_sha256'),
+                          ('docs/execution/g5-local/boolq-case-comparison-protocol-v1.json','protocol_sha256'),
+                          ('tests/test_boolq_case_comparison_study.py','test_sha256'),
+                          ('scripts/run_squad_paragraph_study.py','helper_sha256')):
+        _require(hashlib.sha256(source_reader._read_file(safe_path(study.parent.parent / relative),5 * 1024 * 1024)).hexdigest() == start[key],
+                 'Original producer source changed during capture.', 'STALE_STATE')
+    claim = study.parent.parent.parent / '.study-claims/s067-boolq-paired-passage-v1.json'
+    _require(hashlib.sha256(source_reader._read_file(safe_path(claim),65536)).hexdigest() == shadow['claim_sha256']
+             and hashlib.sha256(original_case).hexdigest() == shadow['case_sha256'] and project.status() == before
+             and runtime_code_identity() == initial_code
+             and hashlib.sha256(Path(__file__).read_bytes()).hexdigest() == initial_implementation,
+             'Project, claim or historical case changed during shadow capture.', 'STALE_STATE')
+    return {'scope':result['scope'],'entries':[result],
+            'validation':{**derived['validation'],'protocol':PROTOCOL_V3,'shadow_source_checked_at_capture':True,
+                          'offline_shadow_binding_unverifiable_without_origin':True}}
+
 def validate_bundle(bundle):
     try:
         _require(type(bundle) is dict and set(bundle) == {"schema_version", "id", "version", "record", "method_card", "limitations", "source_inclusion_status", "scientific_validation"}
-                 and bundle["schema_version"] in (SCHEMA, SCHEMA_V2) and bundle["source_inclusion_status"] == "active_at_export"
+                 and bundle["schema_version"] in (SCHEMA, SCHEMA_V2, SCHEMA_V3) and bundle["source_inclusion_status"] == "active_at_export"
                  and bundle["scientific_validation"] is False and type(bundle["version"]) is int and 1 <= bundle["version"] <= 2**31 - 1,
                  "Invalid staged case bundle.")
         identifier(bundle["id"], "case_id")
         _require(len(canonical(bundle).encode("utf-8")) <= MAX_BUNDLE_BYTES, "Staged case bundle exceeds 4 MiB.", "BUNDLE_TOO_LARGE")
-        record = _validate_record(bundle["record"])
-        _require((bundle["schema_version"] == SCHEMA_V2) == (record["scope"]["protocol"] == PROTOCOL_V2),
-                 "Bundle version differs from its saved feedback protocol.")
+        record = (_validate_shadow_record(bundle["record"]) if bundle["schema_version"] == SCHEMA_V3
+                  else _validate_record(bundle["record"]))
+        _require({SCHEMA:PROTOCOL, SCHEMA_V2:PROTOCOL_V2, SCHEMA_V3:PROTOCOL_V3}[bundle["schema_version"]]
+                 == record["scope"]["protocol"], "Bundle version differs from its saved feedback protocol.")
         card = research_recipe.validate_method_card(bundle["method_card"])
         _require(card["scope_match"] == {"domain": "retrieval", "contract": staged.CONTRACT}
                  and card["method_refs"] == [{"method_id": staged.TOOL_ID, "evaluation_ref": EVALUATION}], "Method card must match the staged source.")
@@ -674,6 +1032,15 @@ def parse_bundle(raw):
 def summary(bundle):
     bundle = validate_bundle(bundle)
     record = bundle["record"]
+    if bundle["schema_version"] == SCHEMA_V3:
+        base, shadow = _base_from_shadow_record(record)
+        historical = copy.deepcopy(bundle); historical["schema_version"] = SCHEMA_V2; historical["record"] = base
+        value = summary(historical)
+        value["origin_evidence"]["binding_scope"] = copy.deepcopy(record["scope"])
+        value["observation"]["shadow_comparison"] = copy.deepcopy(shadow)
+        value["limitations"].append("External operator shadow is not a second native registration; " + _SHADOW_VERIFICATION)
+        _require(len(canonical(value).encode("utf-8")) <= 64 * 1024, "Staged case summary exceeds 64 KiB.", "SUMMARY_TOO_LARGE")
+        return value
     p, payload = record["provenance"], record["payload"]
     compact_scope = {k: copy.deepcopy(v) for k, v in payload["source_scope"].items()
                      if v is None or type(v) in (str, int, float, bool) or k == "input_identities"}
@@ -709,6 +1076,10 @@ class StagedExperienceMemory(ResearchMemory):
     def import_project(self, workspace, primary_action_id):
         return self._import_derived(derive_staged_observation(workspace, primary_action_id), verification="binding")
 
+    def import_project_with_shadow(self, workspace, primary_action_id, *, study_workspace):
+        return self._import_derived(derive_staged_shadow_observation(workspace, primary_action_id,
+                                    study_workspace=study_workspace), verification="binding")
+
     def export_case(self, scope, entry_id, *, case_id, version, method_card, limitations):
         validate_scope(scope)
         with self._connect() as con:
@@ -717,5 +1088,7 @@ class StagedExperienceMemory(ResearchMemory):
             record = self._verify(con, row)
             _require(record["scope"] == scope, "Export requires exact source scope.", "INVALID_SCOPE")
             _require(row["status"] == "active", "Retired evidence cannot be exported.", "EXPERIENCE_RETIRED")
-            return validate_bundle({"schema_version": SCHEMA_V2 if record["scope"]["protocol"] == PROTOCOL_V2 else SCHEMA, "id": case_id, "version": version, "record": record,
+            schema = {PROTOCOL:SCHEMA, PROTOCOL_V2:SCHEMA_V2, PROTOCOL_V3:SCHEMA_V3}.get(record["scope"]["protocol"])
+            _require(schema is not None, "Unsupported staged experience protocol.")
+            return validate_bundle({"schema_version": schema, "id": case_id, "version": version, "record": record,
                     "method_card": method_card, "limitations": limitations, "source_inclusion_status": "active_at_export", "scientific_validation": False})

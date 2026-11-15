@@ -15,7 +15,7 @@ def _family(bundle):
         return ridge
     if bundle.get("schema_version") == cpu.SCHEMA:
         return cpu
-    if bundle.get("schema_version") in (staged.SCHEMA, staged.SCHEMA_V2):
+    if bundle.get("schema_version") in (staged.SCHEMA, staged.SCHEMA_V2, staged.SCHEMA_V3):
         return staged
     raise ResearchError("INVALID_PROJECT_EXPERIENCE", "Unsupported experience bundle schema.")
 

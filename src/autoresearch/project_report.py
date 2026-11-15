@@ -68,6 +68,11 @@ def _experience_rows(report):
             if "preregistered_feedback" in saved:
                 feedback = saved["preregistered_feedback"]
                 observation += "；原事前反馈判定 " + feedback["outcome"] + "（条件与映射见下文）。"
+            if "shadow_comparison" in saved:
+                shadow = saved["shadow_comparison"]
+                comparison = shadow["comparison"]
+                observation += ("；外层操作者规则比较 " + comparison["outcome"] + "（" + comparison["reason"]
+                                + "），非第二条原生登记，离线绑定须回查来源。")
             if final["comparison_status"] == "selected_equals_baseline_single_computation":
                 observation += "；最终为基线单臂一次计算，零差不表示最终TF-IDF打平。"
             else:
@@ -111,9 +116,15 @@ def _experience_feedback_lines(case):
     feedback = case["observation"].get("preregistered_feedback")
     if feedback is None:
         return []
-    return ["原事前反馈条件：" + canonical(feedback["condition"]),
-            "原反馈值：" + canonical(feedback["value"]) + "；原判定：" + feedback["outcome"] + "。",
-            "原固定选择映射：" + canonical(feedback["policy"]) + "。原策略离线绑定须回查源项目。"]
+    lines = ["原事前反馈条件：" + canonical(feedback["condition"]),
+             "原反馈值：" + canonical(feedback["value"]) + "；原判定：" + feedback["outcome"] + "。",
+             "原固定选择映射：" + canonical(feedback["policy"]) + "。原策略离线绑定须回查源项目。"]
+    shadow = case["observation"].get("shadow_comparison")
+    if shadow is not None:
+        lines.extend(["外层操作者规则条件：" + canonical(shadow["condition"]),
+                      "外层操作者规则值：" + canonical(shadow["value"]) + "；比较：" + canonical(shadow["comparison"]) + "。",
+                      "该锚是未验证操作者声明，非第二条原生登记；离线绑定和锚前快照须回查原件。"])
+    return lines
 
 
 def _experience_comparison_lines(case):
