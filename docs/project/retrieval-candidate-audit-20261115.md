@@ -23,3 +23,9 @@
 英语 **enwikinews**（不是 enwiki）2026-11-01 官方 [dump](https://dumps.wikimedia.org/enwikinews/20261101/) 的 pages-articles.xml.bz2，经独立 HEAD 核为 47,533,780 字节；官方 sha1sums 为 `ce2fe5bdec3ef6b11fdd065b434b4283a695c40c`，实际文件字节和 SHA-256 未获取或复核。[站点 rightsinfo](https://en.wikinews.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json)目前是 CC BY 4.0；[版权说明](https://en.wikinews.org/wiki/Wikinews:Copyrights)区分历史 CC BY 2.5 与较新 CC BY 4.0，逐篇归因、历史许可、转载等例外仍需核。它大于此前 40 MiB 接收上限，解压大小、可用文章、最终 packet 大小均 unknown。
 
 标题→原文可以作为弱配对检索任务，不能当作人工完整相关性或真实性评价；标题与正文词汇重合、模板及事件重复可造成捷径，其他相关文章未标记而二元指标会计为不相关。须事前固定清洗、去重、分组和上限，确保 query/doc ID 不同以免 identical-ID 过滤误排正例，并核正例存在。解析整个 dump 可能接触未来 final 标题和配对，不能声称未读或盲测。两个候选目前均未准入；需独立固定来源、授权、预算和唯一 claim，不以新 ID 重开旧课题。元数据结果非真实研究收益。
+
+## 后续跨领域候选与意外曝光（2026-11-16）
+
+仅按官方网页与 API 元数据筛选：[UCI Beijing Multi-Site Air Quality 501](https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data)，DOI `10.24432/C5RK5G`，页面标 CC BY 4.0、12站逐小时、2013-03-01 至 2017-02-28，原压缩包网页显示约 7.6 MB，实际字节和 SHA-256 未下载核定，API last_updated 不是不可变版本。总 420,768 行超过本项目表格 50,000 行上限，压缩包大小不证明选定 CSV 满足 8 MiB 或 packet 上限。页面称缺失值 Yes、缺失用 NA；[官方 API](https://archive.ics.uci.edu/api/dataset?id=501) 却为 `has_missing_values: no`，且缺 data_url/feature；冲突待核，不能假设无缺失。原污染/气象监测机构数据归属与具体归因、压缩解压规模仍待核。若将来获批准，必须接触数值前固定站点与时间窗，不按结果筛选；只支持描述性观察，季节及时间依赖使因果结论不成立。此候选不是检索数据，不能证明 S109 经验迁移或 BM25/TF-IDF 收益，现未准入、未下载或执行。
+
+另筛选 NFCorpus 官方数据卡时，网页预览意外展示一条医学文献标题和摘要片段，故不能声称完全未接触样本；未读取 final 查询/qrel 或下载文件。其[作者许可页](https://webserver.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/)仅明确学术用途免费，与其他数据卡许可声明及原文权利尚需核对；当前不准入。
