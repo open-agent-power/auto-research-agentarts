@@ -2067,6 +2067,13 @@ class LocalWorkbench:
 
     def save_staged_feedback_plan(self, body):
         """Save an explicit successor of authenticated feedback; never dispatch research."""
+        return self._save_staged_feedback_plan(body, resume_only=False)
+
+    def resume_staged_feedback_plan(self, body):
+        """Reconcile only the exact previously accepted successor-plan request."""
+        return self._save_staged_feedback_plan(body, resume_only=True)
+
+    def _save_staged_feedback_plan(self, body, *, resume_only):
         from .research_project import _check_plan_experience_refs, validate_plan_experience_refs
         from .tabular_quality_feedback import _manager_claim
         from .retrieval_holdout import FINAL_TOOL_ID
@@ -2090,6 +2097,8 @@ class LocalWorkbench:
             with self._connect() as con:
                 _, project = self._project(con, body["project_id"], active=True)
                 old = self._old(con, body, digest)
+                _require(not resume_only or old is not None, "OPERATION_INCOMPLETE",
+                         "Original successor-plan intent is absent; acceptance cannot be established and this call did not create a request.")
                 self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
                 if old is not None:
                     row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
