@@ -198,6 +198,20 @@ def _projection(project, state, report=None):
                 method_options=research_methods.match_methods(state), scientific_validation=False)
     revisions = state.get("plan_revisions", [])
     view["research_plan"] = {"current": revisions[-1] if revisions else None, "revisions": revisions}
+    current_plan = revisions[-1] if revisions else None
+    if type(current_plan) is dict and type(current_plan.get("staged_feedback_ref")) is dict:
+        ref = current_plan["staged_feedback_ref"]
+        from .research_project import validate_staged_feedback_plan_ref
+        validate_staged_feedback_plan_ref(ref, code="EVIDENCE_CHANGED")
+        view["staged_successor_plan_identity"] = {
+            "schema_version":"staged-successor-plan-identity-v1", "verification":"state_fields_only_not_claim_sql_or_artifacts",
+            "project_id":state["id"], "run_id":state["run_id"], "snapshot_ref":state["snapshot_ref"], "state_version":state["state_version"],
+            "plan_request_id":current_plan["request_id"], "plan_version":current_plan["version"], "plan_sha256":fingerprint(current_plan),
+            "original_plan_version":ref["original_plan_version"], "original_plan_sha256":ref["original_plan_sha256"],
+            "source_snapshot_sha256":ref["source_snapshot_sha256"], "registration_request_id":ref["registration_request_id"],
+            "registration_sha256":ref["registration_sha256"], "primary_action_id":ref["primary_action_id"],
+            "primary_result_sha256":ref["primary_result_sha256"], "feedback_request_id":ref["feedback_parent_request_id"],
+            "feedback_sha256":ref["feedback_sha256"], "feedback_outcome":ref["feedback_outcome"], "original_feedback_decision":ref["decision"]}
     view["recipe_revisions"] = copy.deepcopy(state.get("recipe_revisions", []))
     registrations = state.get("tabular_quality_registrations", [])
     if type(registrations) is not list or registrations:
@@ -510,6 +524,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/staged-primary-resume": "resume_staged_primary",
                             "/api/local-workbench/staged-feedback": "advance_staged_feedback",
                             "/api/local-workbench/staged-feedback-resume": "resume_staged_feedback",
+                            "/api/local-workbench/staged-feedback-plan-preview": "preview_staged_feedback_plan",
                             "/api/local-workbench/tabular-quality-registration": "register_tabular_quality_conditions",
                             "/api/local-workbench/advance-tabular-quality-feedback": "advance_tabular_quality_feedback",
                             "/api/local-workbench/quality-plan": "save_quality_plan",

@@ -1,6 +1,7 @@
 /** Explicit local commands above the existing saved-result reader; no automatic research. */
 import { $, el } from "./dom";
 import { posthocPlanAdviceCases } from "./plan-advice";
+import { createStagedSuccessorPreviewPanel } from "./staged-successor-preview";
 import { createProjectPages, type ProjectOperation } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalExperiencePanel } from "./local-experience";
@@ -839,9 +840,11 @@ export async function mountLocalWorkbench(): Promise<void> {
   const stagedHypothesisPanel = createStagedHypothesisPanel({ current: () => current, context: () => context, submit: body => submit(command("staged-hypothesis", body)),
     submitPrimary: (body, identity) => submit({command:"staged-primary", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedPrimaryContext:identity}),
     submitFeedback: (body, identity) => submit({command:"staged-feedback", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedFeedbackContext:identity}) });
+  const stagedSuccessorPreview = createStagedSuccessorPreviewPanel({ current: () => current, context: () => context,
+    active: () => activeId(), preview: body => previewLocal("staged-feedback-plan-preview", body) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    planning: [planPanel.element, stagedHypothesisPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
+    planning: [planPanel.element, stagedSuccessorPreview.element, stagedHypothesisPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
     operations: { action: runSection, evidence: evidencePanel.element, continuation: batchPanel.element, model: modelPanel.element, recipe: recipePanel.element },
     design: designPanel.element, designLibrary: designPanel.libraryElement, experience: experiencePanel.element, reportButton, announce });
   function planContinuation(requestId = ""): Obj | undefined {
@@ -927,6 +930,11 @@ export async function mountLocalWorkbench(): Promise<void> {
     designPanel.setLocked(locked || current.id !== activeId(), globalLocked);
     planPanel.setLocked(locked || current.id !== activeId());
     stagedHypothesisPanel.setLocked(locked || current.id !== activeId());
+    const pendingSuccessor = description.pending_staged_feedback_plan_summary;
+    const successorSummary = obj(pendingSuccessor);
+    const successorPending = pendingSuccessor !== undefined && (successorSummary.project_id !== activeId()
+      || typeof successorSummary.total !== "number" || !Number.isSafeInteger(successorSummary.total) || successorSummary.total < 0 || successorSummary.total > 0);
+    stagedSuccessorPreview.setLocked(locked || current.id !== activeId() || successorPending);
     feedbackPanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
     candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
@@ -1161,14 +1169,14 @@ export async function mountLocalWorkbench(): Promise<void> {
     const value: unknown = await response.json(); if (!response.ok) throw Error("读取失败：" + text(obj(value).code, String(response.status)));
     return obj(value);
   }
-  async function previewLocal(name: "recipe-preview" | "plan-fact-check", body: Obj): Promise<Obj> {
+  async function previewLocal(name: "recipe-preview" | "plan-fact-check" | "staged-feedback-plan-preview", body: Obj): Promise<Obj> {
     const response = await fetch("/api/local-workbench/" + name, {
       method: "POST", credentials: "same-origin", cache: "no-store",
       headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") },
       body: JSON.stringify(body), signal: AbortSignal.timeout(15000),
     });
     const result = obj(await response.json());
-    if (!response.ok) throw Error((name === "recipe-preview" ? "外环核对失败：" : "断言核对失败：") + text(result.code, String(response.status)));
+    if (!response.ok) throw Error((name === "recipe-preview" ? "外环核对失败：" : name === "plan-fact-check" ? "断言核对失败：" : "后续决策预览失败：") + text(result.code, String(response.status)));
     return result;
   }
   function candidates(): void {
@@ -1210,6 +1218,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   }
   async function refresh(): Promise<void> {
     const previousId = activeId(); context = null; candidates();
+    stagedSuccessorPreview.invalidate(); stagedSuccessorPreview.setLocked(true);
     planPanel.setLocked(true);
     stagedHypothesisPanel.setLocked(true);
     feedbackPanel.setLocked(true);
@@ -1276,7 +1285,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (next.project_id !== now || next.schema_version !== "project-selection-context-v1") throw Error("候选不属于当前项目，请刷新后核对。");
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
-      planPanel.update(current); stagedHypothesisPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
+      planPanel.update(current); stagedSuccessorPreview.update(current); stagedHypothesisPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
       await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await designPanel.update(current);
       await experiencePanel.refresh(now, current, items(description.pending_requests)); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
@@ -1286,7 +1295,7 @@ export async function mountLocalWorkbench(): Promise<void> {
       } catch { /* Saved model records remain authoritative. */ }
       showPending();
       revealPendingOperations();
-    } else { planPanel.update({}); stagedHypothesisPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await designPanel.update({}); await workspacePages.update({}, null); }
+    } else { planPanel.update({}); stagedSuccessorPreview.update({}); stagedHypothesisPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await designPanel.update({}); await workspacePages.update({}, null); }
     if (lastRequest && experiencePanel.resolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
     try {
       const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));

@@ -421,3 +421,11 @@ unknown Controller 查询要求 `project_id` 和 `snapshot_ref` 各恰好一次�
 计划编辑器可从当前项目同一快照中的有效 S109 后验案例显式选择并预览确定性建议：历史验证集中召回变化近零而排序指标下降的已曝子集提示操作者，在未来计划中同时考虑总体 Recall@20 和 MRR@10。建议不推导比较符、阈值或行动分支，不证明总体变化、因果、匿名或迁移；原来源只绑定公开字节，未重算或验证签名。已完成的 primary 不能被追认事前登记或 final。
 
 明确点击才可把建议复制到空白步骤和预期反馈，已有内容不会覆盖；操作者仍须自行编辑、勾选相同案例并填写适用差异，才能沿现有计划接口保存。项目快照或案例变化后，该建议不得保存，原草稿保留，须由操作者清空建议字段并清除绑定。建议本身不修改案例、登记或研究账本，不调用模型或工具；后续登记和行动均需另行明确操作，既有计划与旧接口不自动迁移。
+
+### 后续计划的事后决策预览
+
+活动项目若当前计划含 `staged_feedback_ref`，`GET /api/project` 附带可选 `staged_successor_plan_identity`：包含 project/run/snapshot/state 以及由服务端对原完整计划计算的 SHA、版本、登记、primary 和反馈身份。这只是状态字段投影，不认证 manager claim、SQL 或工件；没有该引用的旧项目响应不增加此字段。页面使用该身份与同快照 selection context 对照，不在浏览器对可能脱敏的计划重新算 SHA。
+
+显式启用本地操作的普通工作台提供 `POST /api/local-workbench/staged-feedback-plan-preview`，沿用本地 Host、Origin、CSRF、JSON 大小和运行时代码门。body 为原 S122 的 `project_id/snapshot_ref/plan_request_id/plan_sha256`，可选携带操作者确认的 `posthoc_rule`；未选规则时默认等待。服务端原 S122 路径重核 S121 manager 已完成原回执、原登记/primary/反馈、计划 revision/claim、来源、SQL、工件、当前 context 和预算。它不保存计划、不写研究账本、不补回执、不调用模型或派发工具；现有协作锁可能创建或填充 `writer.lock`，immutable SQLite 遇 sidecar 会停查，不能称全文件零写或 OS 隔离。受限只读宿主不开放该 POST。
+
+页面将观察后声明的规则与原登记分支分开显示。审计建议只是在现有候选及额度内的事后预览，若以后另行授权，潜在费用为 1 次本地工具、0 次 evidence、0 次 fit；本页不执行，也不能追认原 wait 分支或 holdout final。已完成审计或额度不足显示等待，unknown、原件/身份不符或项目变化停查；旧项目与 manager pin 不自动升级。预览可能读取已注册 dev/validation、保存排名、共享来源语料、Host journal 和已引用案例；共享语料可能含与其他评测共享的 passage，不访问 final query/qrels 或 private 包。当前页面只接预览，S121 后续计划的保存与恢复仍未接 HTTP/UI。

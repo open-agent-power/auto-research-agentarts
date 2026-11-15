@@ -207,3 +207,4 @@ S039 `HostModelBatch.advance_delegated`/host-model-batch-v2复用Host journal、
 
 - 严格 staged 反馈后的显式后续计划：仅无 holdout 的新版本 Project，可在 `LocalWorkbench.save_staged_feedback_plan` 内认证原 manager/Project 记录并原子保存 revision 与 claim；原 ID 仅认证已存计划，不自动派发。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
 - staged 后续计划的 `LocalWorkbench.preview_staged_feedback_plan` 仅提供已认证的事后规则预览，不写研究账本、不补回执、不派发；锁文件可有副作用。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
+- 工作台的 staged 后续计划预览只调用既有 S122 认证路径；后续计划保存/恢复尚未通过 HTTP/UI 接线。[合同](../../docs/local-workbench.md#后续计划的事后决策预览)。

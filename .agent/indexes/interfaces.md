@@ -218,3 +218,4 @@ S039新增`advance-delegated-batch`：最多2selection及可选1个原Host plan 
 
 - 严格 staged 反馈后续计划当前仅提供 `LocalWorkbench.save_staged_feedback_plan` Python 入口，无 HTTP 或页面；原登记、原 plan 与含 holdout 项目不迁移。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
 - staged 后续计划的决策预览仅为 `LocalWorkbench.preview_staged_feedback_plan` Python 入口，默认 wait，显式后验规则不构成授权；没有 HTTP/页面。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
+- 工作台 `POST /api/local-workbench/staged-feedback-plan-preview` 接 S122 事后规则预览；仅活动普通宿主，身份投影是状态摘要，后台原件核验且不派发，锁文件可能变化。[合同](../../docs/local-workbench.md#后续计划的事后决策预览)。
