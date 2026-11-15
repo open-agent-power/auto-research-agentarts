@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T22:53:26+08:00",
-  "status": "S105_verified_strict_adoption_ui_in_progress",
+  "end_time": "2026-11-15T23:18:08+08:00",
+  "status": "S106_verified_integrated_workflow_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -36,7 +36,8 @@
     "S102 four strict three-layer fixed windows independently verified using actual SIGKILL and distinct recovery PIDs; synthetic 4/4 each",
     "S103 existing Workbench fact check compares explicitly mapped original response span with frozen registered quality feedback; final author/independent 50/50 and additional independent 20/20 synthetic checks",
     "S104 workbench UI quality fact checks over previously supplied frozen materials; independent actual Chromium/HTTP and 23 related synthetic checks",
-    "S105 quality registration selector and read-only preview in Workbench plan UI; independent dual-project Chromium/HTTP and 36 Python synthetic tests"
+    "S105 quality registration selector and read-only preview in Workbench plan UI; independent dual-project Chromium/HTTP and 36 Python synthetic tests",
+    "S106 Workbench strict supplied-quality adoption and resume-only endpoint independently validated in actual Chromium and synthetic Project; missing original manager intent cannot be accepted"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -58,7 +59,8 @@
     "Clean HEAD pre-existing one test failure OPERATION_INCOMPLETE vs IDEMPOTENCY_CONFLICT preserved; excluded from S094 70 passing regression, separate fix in progress",
     "S099 independent review found changed plan causes reader early unknown before SQL/artifact authentication; two pre-fix failing cases retained, fixed by refusing supplied material on plan drift.",
     "S103 original context/prompt relationship allowed synchronized ledger+prompt tamper; retained failing synthetic log and added current-reader prompt recompilation check.",
-    "S105 repeated preview left submit temporarily enabled; fixed and independently browser verified. Test fixture timing failure and BrokenPipe retained."
+    "S105 repeated preview left submit temporarily enabled; fixed and independently browser verified. Test fixture timing failure and BrokenPipe retained.",
+    "S106 test SQL INSERT column order wrong, so same-digest different-command was initially not covered; independent direct verification and corrected independent 5/5 preserved."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -67,12 +69,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Expose explicit strict supplied quality adoption in Workbench UI, with original three-layer ownership and safe recovery.",
+  "next": "Assess and verify integrated synthetic user workflow: select and preview quality feedback, import explicitly synthetic response, fact-check, strict adopt and report, with original IDs and budget.",
   "next_planned_trigger": "2026-11-16T01:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "1bb20d0dbef4309e5065528ea8c83624b9a1f54b",
-  "last_checkpoint": "2026-11-15T22:53:26+08:00",
+  "code_commit": "4b3c5d4ec042a22a9701bd714039ebfd7b25b4a8",
+  "last_checkpoint": "2026-11-15T23:18:08+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -779,5 +781,12 @@
     "additional_independent": 27,
     "browser_evidence_sha256": "b567a0300dbd9810ee862479c4e4ca25e30062aaca6ab1980a3b2becf56d0c9d",
     "scope": "dual-project actual HTTP, model POST intercepted; mixed and max-four materials mocked"
+  },
+  "S106": {
+    "commit": "4b3c5d4ec042a22a9701bd714039ebfd7b25b4a8",
+    "independent_legacy": 40,
+    "independent_fixed": 5,
+    "browser_evidence_sha256": "75c42aec4a464de5e4fd2a5b103e64dcd5b29a61524b91f20645327fc4bcd7c9",
+    "scope": "synthetic local browser/HTTP, no real model or research; successful confirmation may fill original manager receipt"
   }
 }
