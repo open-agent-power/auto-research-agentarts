@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T00:00:46+08:00",
-  "status": "S107_verified_research_evidence_review_in_progress",
+  "end_time": "2026-11-16T00:25:29+08:00",
+  "status": "S108_actual_analysis_verified_memory_assessment_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -39,7 +39,8 @@
     "S105 quality registration selector and read-only preview in Workbench plan UI; independent dual-project Chromium/HTTP and 36 Python synthetic tests",
     "S106 Workbench strict supplied-quality adoption and resume-only endpoint independently validated in actual Chromium and synthetic Project; missing original manager intent cannot be accepted",
     "S106 strict quality adoption UI with resume-only original intent; independently verified synthetic browser/HTTP",
-    "S107 same-project synthetic UI: original quality preview, direct Host manual response, fact check, strict adoption, report and original-ID replay independently verified via Chromium/HTTP"
+    "S107 same-project synthetic UI: original quality preview, direct Host manual response, fact check, strict adoption, report and original-ID replay independently verified via Chromium/HTTP",
+    "S108 published fixed protocol/reader before real input, computed S065/S067 saved validation subgroup and independently recomputed Decimal; original states and budgets unchanged"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -72,12 +73,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Assess meaningful analysis of existing authorized real results without new model, API, research actions, fit or ranking; distinguish post hoc and scientific limits.",
+  "next": "Assess whether S108 negative subgroup evidence can be referenced by future Native Memory/plans without claiming model adoption or adding research budget.",
   "next_planned_trigger": "2026-11-16T01:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "37232fb0584b4223a7db37da59856c36f7d9a174",
-  "last_checkpoint": "2026-11-16T00:00:46+08:00",
+  "code_commit": "5fa9dce69fd447e9c885e15e732667caf1af5df5",
+  "last_checkpoint": "2026-11-16T00:25:29+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -803,5 +804,21 @@
     "browser_evidence_sha256": "6cd0592a222422b2949e9891e7249a1177ee95bd42a9a6f8546f04f17ddaa596",
     "budget": "1 preexisting synthetic quality tool, Host decision 1; native model/fit/evidence 0; manual response model/inference/cost unknown",
     "scope": "same-session protection and synthetic workflow; not actual model understanding, research benefit or tamperproof signature"
+  },
+  "S108": {
+    "protocol_commit": "a4c2eb01e92526b73e2dee4e24f1ba7aa38d5867",
+    "result_commit": "5fa9dce69fd447e9c885e15e732667caf1af5df5",
+    "result_sha256": "762d92f53422976fd6b0928f4a7f35d0572fc6803bfb11cb04315cc1176493f8",
+    "s065": {
+      "count": 16,
+      "mean_mrr_loss": 0.4026
+    },
+    "s067": {
+      "count": 24,
+      "mean_mrr_loss": 0.3724
+    },
+    "budget": "both original 3/3 tool, reserved 0; no new study actions/models/fits/rank/score",
+    "independent": "Decimal rechecked; second read-only run retained full log after first output truncation",
+    "limitations": "selected negative validation subgroup, exposed post hoc, not overall mean, causality, blind study or generalization; shared corpus and final metadata may be read, no final query/qrels/artifact/private"
   }
 }
