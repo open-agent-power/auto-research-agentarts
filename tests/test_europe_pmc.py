@@ -7,7 +7,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 
 import test_research_project as fixtures
-from autoresearch import europe_pmc as epmc
+from autoresearch import europe_pmc as epmc, research_project
 from autoresearch.project_controller import ProjectController
 
 DOI = "10.1016/j.biomaterials.2021.120740"
@@ -91,6 +91,45 @@ class PublicSourceTests(unittest.TestCase):
             self.assertEqual(recovered["status"], "received")
             network.assert_called_once()
         self.assertEqual(self.project.status()["budget"]["source_requests_reserved"], 0)
+
+    def test_unknown_controller_parent_blocks_new_fetch_after_child_completes(self):
+        # Form the state through the real parent/child recovery path.  Only the
+        # response transport is simulated; no socket is opened.
+        with self.transport() as network:
+            original = self.connector.fetch("original-source", DOI, self.root / "original-response")
+            self.assertEqual(original["status"], "received")
+            self.project.register_evidence(request_id="registered", bundle=self.bundle)
+            controller = ProjectController(self.project.root)
+            pending = []
+
+            def interrupt(path, envelope):
+                pending.append((path, envelope))
+                raise KeyboardInterrupt("synthetic interruption before child artifact publication")
+
+            with patch.object(research_project, "write_once", side_effect=interrupt):
+                with self.assertRaises(KeyboardInterrupt):
+                    controller.advance(request_id="original-parent")
+            self.assertEqual(len(pending), 1)
+            self.assertEqual(controller.advance(request_id="original-parent")["status"], "unknown")
+            parent = self.project.status()["controller_requests"][-1]
+            research_project.write_once(*pending[0])
+            receipt_sha = parent["decision"]["next_action"]["parameters"]["receipt_snapshot_sha256"]
+            self.assertEqual(self.project.read_evidence(request_id=parent["child_request_id"],
+                                                        receipt_snapshot_sha256=receipt_sha)["status"], "completed")
+            before = self.project.status()
+            self.assertEqual(before["controller_requests"][-1]["status"], "unknown")
+            self.assertEqual(before["evidence_actions"][-1]["status"], "completed")
+            before_db = self.project.db.read_bytes()
+            self.assert_code("EXECUTION_UNKNOWN", self.connector.fetch, request_id="new-source",
+                             doi="10.1000/another", output=self.root / "blocked-response")
+            self.assertEqual(self.project.db.read_bytes(), before_db)
+            self.assertEqual(self.project.status(), before)
+            self.assertFalse((self.root / "blocked-response").exists())
+            self.assertTrue(self.connector.fetch("original-source", DOI, self.root / "original-response")["replayed"])
+            network.assert_called_once()
+            self.assertEqual(controller.advance(request_id="original-parent")["status"], "completed")
+            self.assertEqual(self.connector.fetch("new-source", "10.1000/another", self.root / "blocked-response")["status"], "received")
+            self.assertEqual(network.call_count, 2)
 
     def test_bad_json_is_retained_as_failed_and_output_changes_cannot_reset_budget(self):
         with self.transport(raw=b'{"error":"fixture, not zero results"}') as network:

@@ -1,6 +1,7 @@
 """Verify and project saved imported choices without dispatching research."""
 
 import copy
+import re
 
 from . import method_registry, project_selection, research_recipe
 from .contracts import ResearchError, fingerprint, identifier
@@ -127,9 +128,24 @@ def _verify(state, parent):
                          and child["id"] == "action-" + fingerprint(
                              {"request_id": parent["child_request_id"], **child_request})[:32])
             if result_child is not None:
-                _require(child is not None and result_child == {key: child[key] for key in
+                _require(child is not None)
+                current_child = {key: child[key] for key in
                     ("id", "request_id", "command", "status", "artifact", "result_sha256", "failure") if key in child}
-                         and parent["status"] == child["status"])
+                if parent["status"] == "unknown" and child["status"] == "completed":
+                    # Recovery can commit the same child before its controller parent
+                    # is reconciled. Preserve the parent's original observation.
+                    expected_unknown = {"id": child["id"], "request_id": child["request_id"],
+                        "command": child["command"], "status": "unknown",
+                        "failure": {"code": "EXECUTION_UNKNOWN", "automatic_retry": False}}
+                    _require(type(result_child) is dict and fingerprint(result_child) == fingerprint(expected_unknown)
+                        and type(parent["state_version_after"]) is int
+                        and parent["dispatch_state_version"] < parent["state_version_after"] < state["state_version"]
+                        and child["failure"] is None
+                        and child["artifact"] == "artifacts/" + child["id"] + ".json"
+                        and type(child["result_sha256"]) is str
+                        and re.fullmatch(r"[0-9a-f]{64}", child["result_sha256"]) is not None)
+                else:
+                    _require(result_child == current_child and parent["status"] == child["status"])
             else:
                 _require(parent["status"] in ("prepared", "running", "rejected"))
         # selection_ref is redundant display metadata, but must agree when saved.

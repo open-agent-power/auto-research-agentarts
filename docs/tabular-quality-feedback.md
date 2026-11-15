@@ -92,6 +92,8 @@ profile 和空 flags 不核实上游来源或许可、字段含义和单位、�
 
 Controller 的原 parent 为 `unknown` 时，即便原 child 后来独立恢复成 `completed`，该 parent 仍需检查。当前 Controller 预览和 selection context 将其标为 `EXECUTION_UNKNOWN`，不提供新的执行候选；plan readiness 因此为 blocked。通用 Controller 在 writer 锁内拒绝新的请求 ID，而原普通 Controller 请求仍可按自身原 ID 和原 body 恢复；质量策略自己的非终态原 ID 则仍按其更严格的停查合同处理。这不改变直接 `Project.step` 的原有恢复语义，也不是全局质量条件门。
 
+在这一原 child 已完成、parent 尚未对账的合法分叉中，只读 selection history 和报告可以查看；selection history 保留 parent 的 `unknown` 和它当时封存的 child `unknown` 快照，不能把后来的 child 完成视为 parent 已确认。纯 selection view 只校验传入状态中的请求、身份和顺序关系，不读取 SQLite 或磁盘工件；报告收集过程会另行核验已完成 child 的保存工件。查看不会替代或改变上述原 ID 恢复。
+
 ## 显式调用 Controller v1 条件策略
 
 在质量行动完成并保存后，调用方可在已获授权的项目和预算范围内显式调用：

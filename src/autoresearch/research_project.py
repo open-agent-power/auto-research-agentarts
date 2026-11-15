@@ -369,7 +369,8 @@ class ResearchProject:
         require(project["code_identity"] == code_identity(), "CODE_CHANGED", "Explicitly upgrade this project first.")
         require(not any(action["status"] in ("running", "pending", "unknown")
                         for action in current["actions"] + current["evidence_actions"])
-                and not any(item["status"] in ("sending", "unknown") for item in project.get("source_requests", [])),
+                and not any(item["status"] in ("sending", "unknown") for item in project.get("source_requests", []))
+                and not any(item.get("status") == "unknown" for item in project.get("controller_requests", [])),
                 "EXECUTION_UNKNOWN", "Recover the original operation before accepting new work.")
 
     def preview_recipe_round(self, round_input):
@@ -733,6 +734,8 @@ class ResearchProject:
             if old:
                 require(old["request_sha256"] == digest, "IDEMPOTENCY_CONFLICT", "Request ID is bound to different content.")
                 return self._recover(old)
+            require(not any(item.get("status") == "unknown" for item in project.get("controller_requests", [])),
+                    "EXECUTION_UNKNOWN", "Inspect the original unknown controller request before accepting new work.")
             self._require_unclaimed(project, request_id)
             require(expected_state_version is None or (type(expected_state_version) is int and
                     expected_state_version == project["state_version"]), "STALE_STATE", "Read the current project state before submitting.")
@@ -898,6 +901,7 @@ class ResearchProject:
             current = self.status()
             require(not any(a["status"] in ("running", "unknown") for a in current["actions"] + current["evidence_actions"])
                     and not any(item["status"] in ("sending", "unknown") for item in project.get("source_requests", []))
+                    and not any(item.get("status") == "unknown" for item in project.get("controller_requests", []))
                     and not any(item["status"] == "reserved" for item in project.get("local_model_requests", [])),
                     "EXECUTION_UNKNOWN", "Resolve existing execution with its original code before upgrading.")
             payload = self._source(project)

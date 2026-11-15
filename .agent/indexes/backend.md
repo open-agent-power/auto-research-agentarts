@@ -1,5 +1,7 @@
 # 后端索引
 
+S090 Project新预算/source/step/upgrade在原writer内阻断unknown controller parent，原ID恢复及prepared首次child保留；selection view支持合法parent unknown→child completed分叉、报告另核工件。[Sprint](../../docs/execution/SPRINT-090.md)。
+
 S089 原 Controller parent unknown 时预览/候选阻断且新ID锁内拒绝；原ID原body沿原恢复，非把未知当失败或新额度。[Sprint](../../docs/execution/SPRINT-089.md)。
 
 S087 独立 LocalWorkbench/HTTP 路径读取质量引用、保存后续计划并显式运行v2策略；manager nonce/root与Project同事务claim保护原ID，旧普通plan不升级。[合同](../../docs/tabular-quality-feedback.md)。
