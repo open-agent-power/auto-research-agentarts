@@ -323,7 +323,7 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 | POST `/api/local-workbench/advance-tabular-quality-feedback` | 显式按原已核验质量反馈选择等待或绑定的数值关联；通过时可能立即执行一次工具 |
 | GET `/api/local-workbench/tabular-quality-feedback.json` | 按活动 `project_id`、当前 `snapshot_ref` 和 `registration_request_id` 只读原质量反馈；受限只读宿主模式不提供此路由 |
 | GET `/api/local-workbench/tabular-quality-plan-ref.json` | 使用相同三个精确 query 参数，只读派生原已完成质量反馈的后继计划引用；受限只读宿主模式不提供此路由 |
-| GET `/api/local-workbench/unknown-controller-requests.json` | 按活动 `project_id` 和当前 `snapshot_ref` 只读列出保存的 unknown Controller parent 摘要；受限只读宿主模式不提供此路由 |
+| GET `/api/local-workbench/unknown-controller-requests.json` | 按活动 `project_id` 和当前 `snapshot_ref` 只读列出保存的 unknown Controller parent 摘要；普通和受限只读宿主均提供 |
 | POST `/api/local-workbench/quality-plan` | 原 `request_id/project_id/expected_state_version/plan/reason`，保存带 `quality_feedback_ref` 的直接后继计划 |
 | POST `/api/local-workbench/advance-tabular-quality-feedback-v2` | 原 `request_id/project_id/expected_state_version/registration_request_id/plan_request_id/plan_sha256`，按当前质量引用计划选择，可能执行一次工具 |
 | POST `/api/local-workbench/evidence` | 当前project/version/task_ref、未核验contributor、原文件Base64、明确选区及remaining_questions；只登记 |
@@ -347,7 +347,9 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 POST使用同源JSON与`X-AutoResearch-CSRF`，严格字段由宿主校验，不把任意JSON扩成工具调用；资料登记请求上限90MiB，其余命令保持12MiB。候选的method/parameters/evaluation完全由宿主提供，UI不能更改评价或原结果。取得新CLI回答的接口须另外显式启用，只运行启动时固定的CLI，CLI工具关闭。采用或拒绝已保存计划建议使用本地操作权限。当前开放受管表格输入、资料登记及已登记白名单分析/选区读取，科学批准、跨域策略收益和真实用户价值按相应证据确认。
 
-unknown Controller 查询要求 `project_id` 和 `snapshot_ref` 各恰好一次，项目须为当前活动项目，快照须为当前 64 位小写 SHA-256；读取前后核对快照、活动项目绑定与运行时代码身份。普通本地 Workbench 宿主提供该 GET；`LocalWorkbench.open_readonly` 的受限 HTTP 宿主返回 404，不提供该路由。该查询不发送原 body、不恢复或派发行动。
+unknown Controller 查询要求 `project_id` 和 `snapshot_ref` 各恰好一次，项目须为当前活动项目，快照须为当前 64 位小写 SHA-256；读取前后核对快照、活动项目绑定与运行时代码身份。普通本地 Workbench 宿主及 `LocalWorkbench.open_readonly` 的受限 HTTP 宿主均提供该 GET；受限宿主不支持 POST。该查询不发送原 body、不恢复或派发行动。
+
+此查询在受限只读宿主中以 SQLite `mode=ro&immutable=1` 读取 manager 与 Project 数据库，不创建 SQLite sidecar；读取前后检查数据库文件身份并拒绝已有或新出现的 `-wal`、`-shm`、`-journal`，包括悬空链接。文件身份漂移或 sidecar 使读取拒绝，应在没有并发写入者时检查原件。此检查用于受信本地场景的变化检测，不提供抵御恶意并发改写的隔离保证。
 
 返回 `local-unknown-controller-requests-v1`、项目/run/快照身份以及最多 8 条 `items`。每项保留可用的原 parent 请求 ID、命令、`status: unknown`、child 请求 ID 和当前 child 状态，以及原/当前 source、Project 和 Controller 代码身份摘要、`identity_binding`、`record_binding`、`unknown_reason`；不完整或无效字段可能为 null，`record_binding: malformed` 表示不能从有限字段建立该关系。原 parent 保持 unknown，即使当前 child 已是 completed，也不能据此推断 parent 已对账。
 

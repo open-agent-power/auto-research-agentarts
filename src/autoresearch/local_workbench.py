@@ -28,6 +28,41 @@ MAX_PLAN_RECOVERY_BYTES = 192 * 1024
 PLAN_RECOVERY_VERSION = "local-plan-experience-recovery-v1"
 
 
+def _no_database_sidecars(path):
+    for suffix in ("-wal", "-shm", "-journal"):
+        try:
+            Path(str(path) + suffix).lstat()
+        except FileNotFoundError:
+            continue
+        except OSError:
+            return False
+        return False
+    return True
+
+
+@contextmanager
+def _immutable_inspection_database(path, *, project_status=False):
+    """Use the stored-reader sidecar and file-identity checks without SQLite writes."""
+    from .stored_project_summary import _database, _Unavailable
+    try:
+        with _database(path) as con:
+            con.row_factory = sqlite3.Row
+            if project_status:
+                # ResearchProject.status starts its own read transaction.
+                con.rollback()
+            yield con
+    except _Unavailable:
+        raise ResearchError("WORKBENCH_CHANGED", "Stored database is unavailable or changed during read-only inspection.") from None
+
+
+class _InspectionProject(ResearchProject):
+    @contextmanager
+    def _connect(self, readonly=False):
+        _require(readonly, "READ_ONLY", "Inspection does not open a writable project connection.")
+        with _immutable_inspection_database(self.db, project_status=True) as con:
+            yield con
+
+
 def batch_code_identity():
     """Bind unfinished grants to the local orchestration implementation too."""
     return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
@@ -137,7 +172,7 @@ class LocalWorkbench:
         instance.db = safe_path(instance.root / "workbench.sqlite")
         _require(instance.db.is_file(), "WORKBENCH_NOT_FOUND", "The existing workbench database is required.")
         # SQLite can create or update sidecars even on a read-only connection.
-        _require(not any(Path(str(instance.db) + suffix).exists() for suffix in ("-wal", "-shm", "-journal")),
+        _require(_no_database_sidecars(instance.db),
                  "WORKBENCH_CHANGED", "A workbench database sidecar requires inspection before read-only opening.")
         with instance._connect(readonly=True) as con:
             row = con.execute("SELECT value FROM metadata WHERE key='schema_version'").fetchone()
@@ -147,7 +182,8 @@ class LocalWorkbench:
 
     def __getattribute__(self, name):
         # No command is exposed by a read-only manager, even when invoked directly.
-        readers = {"describe", "saved_study_reference", "project_summary", "preview_continuation", "staged_continuation_record"}
+        readers = {"describe", "saved_study_reference", "project_summary", "preview_continuation", "staged_continuation_record",
+                   "read_unknown_controller_requests"}
         if not name.startswith("_") and name not in readers and name not in {"root", "db", "read_only", "open_readonly"}:
             if object.__getattribute__(self, "__dict__").get("read_only", False):
                 raise ResearchError("READ_ONLY", "This workbench was opened read-only.")
@@ -164,7 +200,7 @@ class LocalWorkbench:
         safe_path(self.db)
         before = None
         if self.read_only:
-            _require(not any(Path(str(self.db) + suffix).exists() for suffix in ("-wal", "-shm", "-journal")),
+            _require(_no_database_sidecars(self.db),
                      "WORKBENCH_CHANGED", "A workbench database sidecar requires inspection before reading.")
             before = self.db.stat()
         # immutable prevents SQLite from creating WAL shared-memory files. The
@@ -180,7 +216,7 @@ class LocalWorkbench:
                 if self.read_only:
                     safe_path(self.db)
                     after = self.db.stat()
-                    _require(not any(Path(str(self.db) + suffix).exists() for suffix in ("-wal", "-shm", "-journal"))
+                    _require(_no_database_sidecars(self.db)
                              and (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns)
                              == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns),
                              "WORKBENCH_CHANGED", "The workbench changed during the read; retry only when no writer is active.")
@@ -240,9 +276,12 @@ class LocalWorkbench:
         identifier(project_id, "project_id")
         _require(type(snapshot_ref) is str and re.fullmatch(r"[a-f0-9]{64}", snapshot_ref) is not None,
                  "INVALID_QUERY", "Use the exact project snapshot identity.")
-        with self._connect(readonly=True) as con:
+        manager_read = (lambda: _immutable_inspection_database(self.db)) if self.read_only else (lambda: self._connect(readonly=True))
+        with manager_read() as con:
             row, project = self._project(con, project_id, active=True)
             slot = row["slot"]
+        if self.read_only:
+            project = _InspectionProject(project.root)
         state = project.status()
         _require(state.get("id") == project_id and state.get("snapshot_ref") == snapshot_ref,
                  "STALE_STATE", "The active project snapshot changed; reload it first.")
@@ -320,7 +359,7 @@ class LocalWorkbench:
         _require(project.status().get("snapshot_ref") == snapshot_ref, "STALE_STATE", "The project changed during this read.")
         _require(project_code_identity() == runtime_project and project_controller.code_identity() == runtime_controller,
                  "CODE_CHANGED", "The runtime identities changed during this read.")
-        with self._connect(readonly=True) as con:
+        with manager_read() as con:
             after, _ = self._project(con, project_id, active=True)
             _require(after["slot"] == slot, "WORKBENCH_CHANGED", "The managed project binding changed during this read.")
         return {"schema_version": "local-unknown-controller-requests-v1", "project_id": project_id,

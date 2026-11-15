@@ -12,7 +12,7 @@ S088 以真实不同进程+SIGKILL验证合成链五个固定中断切点，同I
 
 S089 真实合成恢复链发现旧 Controller 未阻断 unknown parent；现新ID被拒且原ID仍可恢复。该producer行为变化仅适用于新源码，旧项目保留原pin，不擅自升级。
 
-S090 补 Project 新请求的unknown parent保护及合法未收敛父子状态只读视图；连接器使用同一Project门。S091 增普通活动 Workbench 的独立只读 unknown parent ID 查询，保留 partial/截断及身份不匹配；不含原body、不自动恢复、不是 SQL/工件认证，readonly宿主仍404。
+S090 补 Project 新请求的unknown parent保护及合法未收敛父子状态只读视图；连接器使用同一Project门。S091 增只读 unknown parent ID 查询，保留 partial/截断及身份不匹配；S092 已开放该查询于受限只读宿主。不含原body、不自动恢复、不是 SQL/工件认证，POST仍禁用。
 
 ## 当前任务基线（2026-11-15 15:48 后）
 

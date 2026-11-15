@@ -82,7 +82,11 @@ class UnknownControllerProjectionTests(unittest.TestCase):
         self.assertNotEqual(other["project_id"], state["id"])
         self.assertEqual(self.request(server, path + query)[0], 409)
         readonly = self.serve(local_workspace=LocalWorkbench.open_readonly(self.manager.root), allow_local_actions=False)
-        self.assertEqual(self.request(readonly, path + query)[0], 404)
+        self.assertEqual(self.request(readonly, path + query)[0], 409)
+        active, _ = self.manager.binding()
+        current = active.status()
+        new_query = "?project_id=" + current["id"] + "&snapshot_ref=" + current["snapshot_ref"]
+        self.assertEqual(self.request(readonly, path + new_query)[0], 200)
 
     def test_malformed_parent_and_midread_snapshot_change_rejected(self):
         project, _ = self.unknown()

@@ -1,5 +1,7 @@
 # 后端索引
 
+S092 unknown parent 只读查询已开放至受限宿主；此查询对manager/Project使用immutable SQLite及sidecar/身份检查，不赋执行权限、不证明对抗性隔离。[Sprint](../../docs/execution/SPRINT-092.md)。
+
 S091 普通活动 Workbench 可按project/snapshot只读投影unknown controller parent ID；部分字段匹配不代表SQL/工件或恢复认证，历史损坏/截断显式标记。[合同](../../docs/local-workbench.md)。
 
 S090 Project新预算/source/step/upgrade在原writer内阻断unknown controller parent，原ID恢复及prepared首次child保留；selection view支持合法parent unknown→child completed分叉、报告另核工件。[Sprint](../../docs/execution/SPRINT-090.md)。
