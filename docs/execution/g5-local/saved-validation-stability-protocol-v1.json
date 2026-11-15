@@ -1,0 +1,65 @@
+{
+  "schema_version": "saved-validation-stability-protocol-v1",
+  "declared_at": "2026-11-15T07:59:37.430536+08:00",
+  "scope": "Retrospective descriptive audit of saved validation metrics only; not new experiment, preregistered scientific confirmation or blind evaluation",
+  "reader_commit": "030af51c4ff06813d08a5f75610dea9f6573ad26",
+  "reader_core": "a05f668cb8de230b134ab4e0394c17297b7aa5cd026c378172bce2001325b4b5",
+  "split": "validation",
+  "metrics": [
+    "recall@20",
+    "mrr@10"
+  ],
+  "arms": {
+    "baseline": "bm25",
+    "candidate": "tfidf_cosine"
+  },
+  "expected_queries_per_case": 100,
+  "epsilon": 1e-12,
+  "mean_check_absolute_tolerance": 1e-12,
+  "case_inventory_manifest_sha256": "4e90b2329ab4cddb9ae16ce29d560d12b9bd5c786903cffa6422e6fd4533aed7",
+  "cases": [
+    {
+      "label": "S046",
+      "relative_path": "4a159a9/runs/s046-squad-paragraph-retrieval-v1",
+      "project_relative_path": "project",
+      "project_id": "project-7858ce02138a48e3bdeac39c26f7be06",
+      "producer_core": "6a5c9e47a19ceebe883930a51d9524788374245e9fd8d774a4e88af2db20c0ab",
+      "source_snapshot_sha256": "f7b9c00a52243ed9f08de48c4311bb0036a5bc8eda4696ef4c17978efae613e3"
+    },
+    {
+      "label": "S054",
+      "relative_path": "f23de20/runs/s054-squad-train-conditional-v1",
+      "project_relative_path": null,
+      "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+      "producer_core": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+      "source_snapshot_sha256": "73f2d1a934cef56e096c3ef26770aabe56c2c9aa736616111084854c773697b9"
+    }
+  ],
+  "statistics": [
+    "full paired wins/losses/ties under original epsilon",
+    "saved mean checked against math.fsum full-precision deltas/n",
+    "all100 leave-one-query-out means from math.fsum(other99)/99",
+    "min/max all tied query SHA identities",
+    "LOO positive/negative/near-zero counts",
+    "if original mean nonzero under epsilon: LOO near-zero and opposite-sign counts, else null/not applicable"
+  ],
+  "guard_scope": "During analysis block final/Host/private paths and non-primary artifacts, rank/score/index/fit/model/dispatch/writes/recovery. Native checked reader verifies public dev+validation, output selects validation only. Whole-case hashes outside guards include private-marked bytes without semantic reading.",
+  "bounds": {
+    "cases": 2,
+    "queries_per_case": 100,
+    "metrics_per_query": 2,
+    "paired_differences": 400,
+    "leave_one_out_means": 400,
+    "new_ranking_scoring_fitting_model_calls": 0,
+    "new_native_research_projects_or_actions": 0,
+    "data_or_protocol_mutations": 0
+  },
+  "limitations": [
+    "Historical outcomes already exposed; plan is frozen before this supplemental calculation but is not prospective research registration",
+    "Query independence, representative sampling and target population not established; no p values, confidence intervals or significance claim",
+    "Leave-one-out is a single-query influence description, not multiple-query robustness",
+    "Same public dataset, different corpus/cohort/split selection; no controlled cross-cohort or cross-dataset causal comparison",
+    "epsilon only descriptive count convention; original strict mathematical preregistration/freeze untouched"
+  ],
+  "failure_policy": "Any missing/duplicate pair, changed input/source/identity, nonnumeric or nonfinite metric, summary disagreement, bound overrun or guard hit fails without partial success, no new project or retries that reset research; preserve failed output/log"
+}
