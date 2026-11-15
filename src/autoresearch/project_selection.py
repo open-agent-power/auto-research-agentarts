@@ -235,7 +235,7 @@ def _context(payload):
         text_limits = {"question": 4000, "basis": 6000, "steps": 12000, "expected_feedback": 4000, "reason": 2000}
         plan_fields = set(text_limits) | {"version", "request_id", "based_on_state_version"}
         _require(type(plan) is dict and plan_fields <= set(plan)
-                 and set(plan) <= plan_fields | {"experience_case_refs", "quality_feedback_ref"}
+                 and set(plan) <= plan_fields | {"experience_case_refs", "quality_feedback_ref", "staged_feedback_ref"}
                  and type(plan["version"]) is int and plan["version"] >= 1
                  and type(plan["based_on_state_version"]) is int
                  and 0 <= plan["based_on_state_version"] < payload["state_version"]
@@ -249,6 +249,9 @@ def _context(payload):
         if "quality_feedback_ref" in plan:
             from .tabular_quality_plan import validate_reference
             validate_reference(plan["quality_feedback_ref"], code=code)
+        if "staged_feedback_ref" in plan:
+            from .research_project import validate_staged_feedback_plan_ref
+            validate_staged_feedback_plan_ref(plan["staged_feedback_ref"], code=code)
     if "researcher_feedback" in payload:
         notes = payload["researcher_feedback"]
         _require(type(notes) is list, code, "Researcher feedback must contain saved statements.")

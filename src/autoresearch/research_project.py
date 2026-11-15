@@ -19,6 +19,38 @@ def require(condition, code, message):
         raise ResearchError(code, message)
 
 
+
+def validate_staged_feedback_plan_ref(ref, *, code="INVALID_REQUEST"):
+    """Validate shape only; the workbench separately authenticates original evidence."""
+    fields = {"schema_version", "registration_request_id", "registration_sha256", "original_plan_version",
+              "original_plan_sha256", "source_snapshot_sha256", "primary_parent_request_id", "primary_action_id",
+              "primary_result_sha256", "feedback_parent_request_id", "feedback_parent_request_sha256",
+              "feedback_intent_sha256", "feedback_sha256", "feedback_outcome", "decision",
+              "audit_action_id", "audit_result_sha256"}
+    hashes = ("registration_sha256", "original_plan_sha256", "source_snapshot_sha256", "primary_result_sha256",
+              "feedback_parent_request_sha256", "feedback_intent_sha256", "feedback_sha256")
+    require(type(ref) is dict and set(ref) == fields and ref.get("schema_version") == "staged-feedback-plan-reference-v1"
+            and type(ref.get("original_plan_version")) is int and ref["original_plan_version"] >= 1
+            and all(type(ref.get(k)) is str and re.fullmatch(r"[a-f0-9]{64}", ref[k]) for k in hashes)
+            and ref.get("feedback_outcome") in ("condition_met", "condition_not_met")
+            and ref.get("decision") in ("wait", "audit"), code, "Malformed staged feedback plan reference.")
+    for key in ("registration_request_id", "primary_parent_request_id", "primary_action_id", "feedback_parent_request_id"):
+        try:
+            identifier(ref[key], key)
+        except ResearchError:
+            raise ResearchError(code, "Malformed staged feedback plan reference identifier.") from None
+    if ref["decision"] == "wait":
+        require(ref["audit_action_id"] is None and ref["audit_result_sha256"] is None,
+                code, "A waiting feedback reference cannot claim an audit.")
+    else:
+        try:
+            identifier(ref["audit_action_id"], "audit_action_id")
+        except ResearchError:
+            raise ResearchError(code, "Malformed staged audit identifier.") from None
+        require(type(ref["audit_result_sha256"]) is str and re.fullmatch(r"[a-f0-9]{64}", ref["audit_result_sha256"]),
+                code, "Malformed staged audit result identity.")
+    return ref
+
 def _staged_primary_parent_claim_sha(parent):
     """Bind only immutable parent and staged registration identities."""
     meta = parent.get("staged_primary") if type(parent) is dict else None
@@ -374,6 +406,15 @@ class ResearchProject:
         loaded_plan_cases = {}
         for plan in project.get("plan_revisions", []):
             _check_plan_experience_refs(self.root, project, plan, loaded=loaded_plan_cases)
+            if "staged_feedback_ref" in plan:
+                ref = validate_staged_feedback_plan_ref(plan["staged_feedback_ref"], code="EVIDENCE_CHANGED")
+                revisions = project["plan_revisions"]
+                require(type(plan.get("version")) is int and plan["version"] == ref["original_plan_version"] + 1
+                        and plan["version"] <= len(revisions) and revisions[plan["version"]-1] == plan
+                        and type(plan.get("based_on_state_version")) is int
+                        and 0 <= plan["based_on_state_version"] < project["state_version"]
+                        and fingerprint(revisions[ref["original_plan_version"]-1]) == ref["original_plan_sha256"],
+                        "EVIDENCE_CHANGED", "Staged successor plan history is malformed.")
         numerical = [a for a in actions if not registry.is_source(a["command"])]
         sources = [a for a in actions if registry.is_source(a["command"])]
         project["actions"], project["evidence_actions"] = numerical, sources
@@ -490,6 +531,8 @@ class ResearchProject:
                 project = self._project(con)
                 previous = next((item for item in project.get("plan_revisions", []) if item["request_id"] == request_id), None)
                 if previous is not None:
+                    require("staged_feedback_ref" not in previous, "OPERATION_INCOMPLETE",
+                            "A staged-feedback successor must use its original manager entry point.")
                     require(previous["based_on_state_version"] == expected_state_version
                             and previous["reason"] == reason and all(previous[key] == plan[key] for key in limits)
                             and ("experience_case_refs" in previous) == ("experience_case_refs" in plan)

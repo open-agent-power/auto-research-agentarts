@@ -204,3 +204,5 @@ S034 host-only [model_feedback_pilot_guard.py](../../scripts/model_feedback_pilo
 S036通过现有saved_retrieval_reader只读校验与原生行动/结果/producer/source绑定，向新plan v3明确供应指定不利查询（非全集/原文），不调用排名/评分。原OOF/默认context路径保持，源码身份变化由既有CODE_CHANGED门禁处理；不迁移旧pilot，不扩研究预算。见[材料合同](../../docs/host-model-selection.md#明确供应保存的不利检索查询)。
 
 S039 `HostModelBatch.advance_delegated`/host-model-batch-v2复用Host journal、原Controller与累计grant；先持久context/prompt身份，原ID导入接续，completed child才推进，可选反馈plan停待显式采用。库/CLI已验，Workbench未接，cached unknown不自动收敛；见[S039](../../docs/execution/SPRINT-039.md)。
+
+- 严格 staged 反馈后的显式后续计划：仅无 holdout 的新版本 Project，可在 `LocalWorkbench.save_staged_feedback_plan` 内认证原 manager/Project 记录并原子保存 revision 与 claim；原 ID 仅认证已存计划，不自动派发。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。

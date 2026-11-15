@@ -215,3 +215,5 @@ S033新context带selection_capabilities={experience_case_refs:v1}时Host/native 
 S036计划的`saved_materials`新增显式`retrieval_adverse_query` selector（原action/resultSHA/split/queryID），仅复制指定不利查询的保存标注/两臂排名ID与指标，原文未供应；最多4条/完整64KiB超限拒绝，不供recipe、不新增网页控件/额度。旧冻结请求不改，原pilot不升级；见[材料合同](../../docs/host-model-selection.md#明确供应保存的不利检索查询)。
 
 S039新增`advance-delegated-batch`：最多2selection及可选1个原Host plan slot，原batch参数/初始version恢复，awaiting原字节导入后只consume，原grant不扩；库/CLI及报告v2，未接网页，CLI阈值不是delegated费用cap。见[合同](../../docs/host-model-selection.md#宿主委派的持久批次)。
+
+- 严格 staged 反馈后续计划当前仅提供 `LocalWorkbench.save_staged_feedback_plan` Python 入口，无 HTTP 或页面；原登记、原 plan 与含 holdout 项目不迁移。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。

@@ -100,3 +100,11 @@ staged 的 context/prompt 使用独立说明：来源仅含 dev/validation，任
 ### 显式事前单题留一条件（S062）
 
 在staged双指标登记中可另提供 `leave_one_out`，例如 `{"metric":"recall@20","operator":"gt","threshold":0}`。该指标须属于两项已登记指标，操作符限gt/gte/lt/lte；用户须在primary之前确定条件。整体结果要求两项原保存均值和全部单题移除均值均满足条件；不足两题或任何值未知则整体unknown并等待。比较使用原数值的严格运算，不按描述性epsilon四舍五入。新增v3不改变v1/v2，也不改变原Recall20冻结规则或约束其他低层调用。留一结果仅反映单题影响，不等于显著性或多题稳健。
+
+### 严格反馈后的显式后续计划
+
+`LocalWorkbench.save_staged_feedback_plan` 是独立 Python opt-in 入口，接收 `request_id`、活动 `project_id`、当前 `expected_state_version`、原 `feedback_request_id`、操作者编写的四字段 `plan` 和 `reason`；计划可另携现有 `experience_case_refs`。它在 manager→Project 锁序下重核同项目 S111 登记、S112 primary、S115 known 终态反馈的原 manager 请求、Project claims、SQL、来源和原工件；保存的 `staged_feedback_ref` 指向原计划、登记、primary、反馈和可选 audit 身份。引用的格式有效本身不是来源认证。待保存的案例引用也在提交前核原字节；全部校验仅适用于可信协作进程，不是对本机账本的签名或防篡改保证。
+
+入口只允许原登记计划仍为最新计划且项目没有 private evaluation、freeze 或 final；这些项目应继续使用原已登记路径，不能以新计划追认或授权原 holdout。保存新计划会让旧登记策略的最新计划绑定不再满足，旧策略不会自动升级或消费新计划。反馈为 unknown、原件缺失或来源/身份漂移时停查。保存 revision 与专用 Project claim 同事务；若中断后 revision 或 claim 缺失，重复原 ID 与完整原 body 仅停查，不创建替代计划。若两者都存在，同 ID 原 body 只核原链及必要时补原 manager 回执；异 body 冲突。旧普通 Project 保存入口不认领新引用计划。manager 持久意图和 Project 数据库属于不同事务，不能称全链原子。
+
+入口只保存操作者计划，不调用模型、派发工具、增加预算或验证科学结论；复核既存 primary 可读取已登记 dev/validation 与共享来源语料。它没有 HTTP/Workbench 页面，也不自动选择下一方法或宣称模型采用。变更源码会改变 Project/Controller/manager 身份，已有项目和未决操作继续使用原 pin，不自动迁移。

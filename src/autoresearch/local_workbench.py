@@ -414,7 +414,16 @@ class LocalWorkbench:
             active_staged_pending = 0
             active_primary_pending = 0
             active_feedback_pending = 0
+            active_staged_plan_pending = 0
             if active is not None:
+                for row in con.execute("SELECT id,record FROM requests WHERE command='save_staged_feedback_plan' ORDER BY rowid DESC"):
+                    record = tabular._parse(row["record"].encode("utf-8"))
+                    if record.get("status") == "completed" or record.get("intent", {}).get("project_id") != active:
+                        continue
+                    active_staged_plan_pending += 1
+                    if len(pending) < 8:
+                        pending.append({"request_id":row["id"], "command":"save_staged_feedback_plan", "status":record.get("status"),
+                                        "project_id":active, "recovery":"original_terminal_binding_check_only"})
                 for row in con.execute("SELECT id,record FROM requests WHERE command='advance_staged_feedback' ORDER BY rowid DESC"):
                     record = tabular._parse(row["record"].encode("utf-8"))
                     if record.get("status") in ("completed", "waiting") or record.get("intent", {}).get("project_id") != active:
@@ -457,7 +466,7 @@ class LocalWorkbench:
                     except ResearchError:
                         item["recovery"] = "original_body_unavailable"
                     pending.append(item)
-            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','save_staged_feedback_plan','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt') ORDER BY rowid DESC"):
                 if len(pending) == 8:
                     break
                 if any(item["request_id"] == row["id"] for item in pending):
@@ -503,6 +512,10 @@ class LocalWorkbench:
             shown = sum(item["command"] == "advance_staged_primary" and item.get("project_id") == active for item in pending)
             result["pending_staged_primary_summary"] = {"project_id":active, "total":active_primary_pending,
                                                         "shown":shown, "truncated":shown < active_primary_pending}
+        if active_staged_plan_pending:
+            shown = sum(item["command"] == "save_staged_feedback_plan" and item.get("project_id") == active for item in pending)
+            result["pending_staged_feedback_plan_summary"] = {"project_id":active, "total":active_staged_plan_pending,
+                                                               "shown":shown, "truncated":shown < active_staged_plan_pending}
         if active_feedback_pending:
             shown = sum(item["command"] == "advance_staged_feedback" and item.get("project_id") == active for item in pending)
             result["pending_staged_feedback_summary"] = {"project_id":active, "total":active_feedback_pending,
@@ -1824,102 +1837,106 @@ class LocalWorkbench:
             raise ResearchError("EVIDENCE_CHANGED", "Original staged feedback records are malformed or unavailable.") from None
 
     def _inspect_staged_feedback_checked(self, con, project, body, digest, record):
+        with project._writer():
+            return self._inspect_staged_feedback_locked(con, project, body, digest, record)
+
+    def _inspect_staged_feedback_locked(self, con, project, body, digest, record):
+        """Authenticate the frozen feedback while the caller holds the Project writer."""
         from . import staged_continuation, staged_project_experience as saved, staged_relevance_adapter as staged
         from .research_project import _staged_feedback_parent_claim_sha, _staged_feedback_child_claim_sha
         from .tabular_quality_feedback import _manager_claim
         _check_staged_runtime()
-        with project._writer():
-            state = project.status(); intent = record.get("intent")
-            fields = {"schema_version","command","body","request_sha256","project_id","run_id","source_snapshot_sha256",
-                      "project_code_identity","controller_code_identity","manager_code_identity","manager_root","registration_intent_sha256",
-                      "primary_manager_intent_sha256","frozen","nonce","intent_sha256"}
-            _require(type(intent) is dict and set(intent) == fields and intent["schema_version"] == "local-staged-feedback-intent-v1"
-                     and intent["command"] == "advance_staged_feedback" and canonical(intent["body"]) == canonical(body)
-                     and intent["request_sha256"] == digest == fingerprint(body)
-                     and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
-                     and intent["project_id"] == body["project_id"] == state["id"] and intent["run_id"] == state["run_id"]
-                     and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
-                     and intent["project_code_identity"] == state["code_identity"] == project_code_identity()
-                     and intent["controller_code_identity"] == project_controller.code_identity()
-                     and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
-                     and intent["manager_root"] == str(self.root.resolve()) and type(intent["nonce"]) is str
-                     and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
-                     "EVIDENCE_CHANGED", "Original staged feedback intent or producer changed.")
-            registration, registration_intent, primary_intent = self._authenticated_staged_primary_locked(con, project, body["registration_request_id"], body["primary_action_id"])
-            _require(registration_intent == intent["registration_intent_sha256"] and primary_intent == intent["primary_manager_intent_sha256"]
-                     and registration["registration_sha256"] == body["registration_sha256"], "EVIDENCE_CHANGED", "Original primary registration changed.")
-            frozen = staged_continuation.verify_conditional_policy(state, body, intent["frozen"])
-            parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == body["request_id"]]
-            _require(len(parents) == 1, "OPERATION_INCOMPLETE", "Original feedback parent is missing; do not create a replacement.")
-            parent = parents[0]; meta = parent.get("staged_feedback_policy"); parent_sha = _staged_feedback_parent_claim_sha(parent)
-            primary = next(a for a in state["actions"] if a["id"] == body["primary_action_id"])
-            from .project_controller import _compact_decision
-            rebuilt = ProjectController(project.root)._selected_plan(state, "next_check", frozen["proposal"], context=frozen["context"])
-            expected_request = {"project_id":state["id"], "command":"controller.advance_selection", "need":"next_check",
-                                "expected_state_version":body["expected_state_version"], "proposal":frozen["proposal"]}
-            _require(meta["manager_intent_sha256"] == intent["intent_sha256"] and meta["primary_manager_intent_sha256"] == primary_intent
-                     and meta["registration_request_id"] == body["registration_request_id"] and meta["registration_sha256"] == body["registration_sha256"]
-                     and meta["primary_action_id"] == body["primary_action_id"] == frozen["feedback"]["action_id"]
-                     and meta["primary_result_sha256"] == primary["result_sha256"] == frozen["feedback"]["result_sha256"]
-                     and parent["project_id"] == state["id"] and parent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
-                     and parent["code_identity"] == state["code_identity"] and parent["controller_code_identity"] == intent["controller_code_identity"]
-                     and meta["decision"] == frozen["decision"] and canonical(parent["request"]) == canonical(expected_request)
-                     and canonical(parent["decision"]) == canonical(_compact_decision(rebuilt["decision"]))
-                     and canonical(parent["selection_context"]) == canonical(frozen["context"])
-                     and canonical(parent["request"]["proposal"]) == canonical(frozen["proposal"])
-                     and parent["snapshot_ref_before"] == frozen["context"]["snapshot_ref"]
-                     and parent["state_version_before"] == frozen["context"]["state_version"] == body["expected_state_version"]
-                     and parent["dispatch_state_version"] == body["expected_state_version"] + 1,
-                     "EVIDENCE_CHANGED", "Original feedback policy or context changed.")
+        state = project.status(); intent = record.get("intent")
+        fields = {"schema_version","command","body","request_sha256","project_id","run_id","source_snapshot_sha256",
+                  "project_code_identity","controller_code_identity","manager_code_identity","manager_root","registration_intent_sha256",
+                  "primary_manager_intent_sha256","frozen","nonce","intent_sha256"}
+        _require(type(intent) is dict and set(intent) == fields and intent["schema_version"] == "local-staged-feedback-intent-v1"
+                 and intent["command"] == "advance_staged_feedback" and canonical(intent["body"]) == canonical(body)
+                 and intent["request_sha256"] == digest == fingerprint(body)
+                 and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                 and intent["project_id"] == body["project_id"] == state["id"] and intent["run_id"] == state["run_id"]
+                 and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                 and intent["project_code_identity"] == state["code_identity"] == project_code_identity()
+                 and intent["controller_code_identity"] == project_controller.code_identity()
+                 and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                 and intent["manager_root"] == str(self.root.resolve()) and type(intent["nonce"]) is str
+                 and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
+                 "EVIDENCE_CHANGED", "Original staged feedback intent or producer changed.")
+        registration, registration_intent, primary_intent = self._authenticated_staged_primary_locked(con, project, body["registration_request_id"], body["primary_action_id"])
+        _require(registration_intent == intent["registration_intent_sha256"] and primary_intent == intent["primary_manager_intent_sha256"]
+                 and registration["registration_sha256"] == body["registration_sha256"], "EVIDENCE_CHANGED", "Original primary registration changed.")
+        frozen = staged_continuation.verify_conditional_policy(state, body, intent["frozen"])
+        parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == body["request_id"]]
+        _require(len(parents) == 1, "OPERATION_INCOMPLETE", "Original feedback parent is missing; do not create a replacement.")
+        parent = parents[0]; meta = parent.get("staged_feedback_policy"); parent_sha = _staged_feedback_parent_claim_sha(parent)
+        primary = next(a for a in state["actions"] if a["id"] == body["primary_action_id"])
+        from .project_controller import _compact_decision
+        rebuilt = ProjectController(project.root)._selected_plan(state, "next_check", frozen["proposal"], context=frozen["context"])
+        expected_request = {"project_id":state["id"], "command":"controller.advance_selection", "need":"next_check",
+                            "expected_state_version":body["expected_state_version"], "proposal":frozen["proposal"]}
+        _require(meta["manager_intent_sha256"] == intent["intent_sha256"] and meta["primary_manager_intent_sha256"] == primary_intent
+                 and meta["registration_request_id"] == body["registration_request_id"] and meta["registration_sha256"] == body["registration_sha256"]
+                 and meta["primary_action_id"] == body["primary_action_id"] == frozen["feedback"]["action_id"]
+                 and meta["primary_result_sha256"] == primary["result_sha256"] == frozen["feedback"]["result_sha256"]
+                 and parent["project_id"] == state["id"] and parent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                 and parent["code_identity"] == state["code_identity"] and parent["controller_code_identity"] == intent["controller_code_identity"]
+                 and meta["decision"] == frozen["decision"] and canonical(parent["request"]) == canonical(expected_request)
+                 and canonical(parent["decision"]) == canonical(_compact_decision(rebuilt["decision"]))
+                 and canonical(parent["selection_context"]) == canonical(frozen["context"])
+                 and canonical(parent["request"]["proposal"]) == canonical(frozen["proposal"])
+                 and parent["snapshot_ref_before"] == frozen["context"]["snapshot_ref"]
+                 and parent["state_version_before"] == frozen["context"]["state_version"] == body["expected_state_version"]
+                 and parent["dispatch_state_version"] == body["expected_state_version"] + 1,
+                 "EVIDENCE_CHANGED", "Original feedback policy or context changed.")
+        with project._connect(readonly=True) as pc:
+            _manager_claim(pc, "staged_feedback_parent", body["request_id"], intent["intent_sha256"], parent_sha)
+        if frozen["decision"] == "wait":
+            _require(parent.get("status") == "waiting" and parent.get("child_request_id") is None and parent.get("result") is None
+                     and frozen["proposal"].get("choice") == {"kind":"wait"}
+                     and parent.get("decision", {}).get("next_action", {}).get("kind") == "external_wait",
+                     "EVIDENCE_CHANGED", "Original waiting feedback differs.")
+            child_id = "controller-child-" + fingerprint({"project_id":state["id"], "request_id":body["request_id"]})[:32]
+            self._quality_unclaimed(project, state, (child_id,))
             with project._connect(readonly=True) as pc:
-                _manager_claim(pc, "staged_feedback_parent", body["request_id"], intent["intent_sha256"], parent_sha)
-            if frozen["decision"] == "wait":
-                _require(parent.get("status") == "waiting" and parent.get("child_request_id") is None and parent.get("result") is None
-                         and frozen["proposal"].get("choice") == {"kind":"wait"}
-                         and parent.get("decision", {}).get("next_action", {}).get("kind") == "external_wait",
-                         "EVIDENCE_CHANGED", "Original waiting feedback differs.")
-                child_id = "controller-child-" + fingerprint({"project_id":state["id"], "request_id":body["request_id"]})[:32]
-                self._quality_unclaimed(project, state, (child_id,))
-                with project._connect(readonly=True) as pc:
-                    _require(pc.execute("SELECT 1 FROM quality_manager_claims WHERE kind='staged_feedback_child' AND request_id=?", (child_id,)).fetchone() is None,
-                             "EVIDENCE_CHANGED", "Waiting feedback unexpectedly has a child claim.")
-            else:
-                _require(parent.get("status") == "completed", "EXECUTION_UNKNOWN", "Original audit parent is not completed; inspect without dispatch.")
-                _require(parent.get("child_request_id") == "controller-child-" + fingerprint({"project_id":state["id"], "request_id":body["request_id"]})[:32]
-                         and type(parent.get("state_version_after")) is int
-                         and parent["dispatch_state_version"] < parent["state_version_after"] <= state["state_version"],
-                         "EVIDENCE_CHANGED", "Original audit child or terminal state version differs.")
-                actions = [a for a in state["actions"] if a.get("request_id") == parent["child_request_id"]]
-                _require(len(actions) == 1 and actions[0].get("status") == "completed", "EXECUTION_UNKNOWN", "Original audit child is not completed.")
-                child = actions[0]; params = {"based_on_action_id":body["primary_action_id"], "based_on_result_sha256":meta["primary_result_sha256"]}
-                saved._action(child, state, staged.AUDIT_TOOL_ID, primary); saved._verify_action_rows(project, [child])
-                envelope, raw_sha = saved._read(project, child)
-                _require(raw_sha == hashlib.sha256(canonical(envelope).encode("utf-8")).hexdigest(), "EVIDENCE_CHANGED", "Original audit bytes changed.")
-                prior, _ = saved._read(project, primary); saved._check_audit(envelope["tool_result"], prior["tool_result"], params)
-                child_view = {k:copy.deepcopy(child[k]) for k in ("id","request_id","command","status","artifact","result_sha256","failure") if k in child}
-                _require(parent.get("result") == {"child":child_view,"recovered":False,"reused":False}, "EVIDENCE_CHANGED", "Original audit parent and child differ.")
-                with project._connect(readonly=True) as pc:
-                    _manager_claim(pc, "staged_feedback_child", child["request_id"], intent["intent_sha256"], _staged_feedback_child_claim_sha(parent, child["request_sha256"]))
-            # The cooperative writer does not freeze raw files or independent SQL
-            # fingerprint columns: recheck the entire primary and audit at exit.
-            _, final_registration_intent, final_primary_intent = self._authenticated_staged_primary_locked(
-                con, project, body["registration_request_id"], body["primary_action_id"])
-            _require(final_registration_intent == registration_intent and final_primary_intent == primary_intent,
-                     "EVIDENCE_CHANGED", "Original primary ownership changed during inspection.")
+                _require(pc.execute("SELECT 1 FROM quality_manager_claims WHERE kind='staged_feedback_child' AND request_id=?", (child_id,)).fetchone() is None,
+                         "EVIDENCE_CHANGED", "Waiting feedback unexpectedly has a child claim.")
+        else:
+            _require(parent.get("status") == "completed", "EXECUTION_UNKNOWN", "Original audit parent is not completed; inspect without dispatch.")
+            _require(parent.get("child_request_id") == "controller-child-" + fingerprint({"project_id":state["id"], "request_id":body["request_id"]})[:32]
+                     and type(parent.get("state_version_after")) is int
+                     and parent["dispatch_state_version"] < parent["state_version_after"] <= state["state_version"],
+                     "EVIDENCE_CHANGED", "Original audit child or terminal state version differs.")
+            actions = [a for a in state["actions"] if a.get("request_id") == parent["child_request_id"]]
+            _require(len(actions) == 1 and actions[0].get("status") == "completed", "EXECUTION_UNKNOWN", "Original audit child is not completed.")
+            child = actions[0]; params = {"based_on_action_id":body["primary_action_id"], "based_on_result_sha256":meta["primary_result_sha256"]}
+            saved._action(child, state, staged.AUDIT_TOOL_ID, primary); saved._verify_action_rows(project, [child])
+            envelope, raw_sha = saved._read(project, child)
+            _require(raw_sha == hashlib.sha256(canonical(envelope).encode("utf-8")).hexdigest(), "EVIDENCE_CHANGED", "Original audit bytes changed.")
+            prior, _ = saved._read(project, primary); saved._check_audit(envelope["tool_result"], prior["tool_result"], params)
+            child_view = {k:copy.deepcopy(child[k]) for k in ("id","request_id","command","status","artifact","result_sha256","failure") if k in child}
+            _require(parent.get("result") == {"child":child_view,"recovered":False,"reused":False}, "EVIDENCE_CHANGED", "Original audit parent and child differ.")
+            with project._connect(readonly=True) as pc:
+                _manager_claim(pc, "staged_feedback_child", child["request_id"], intent["intent_sha256"], _staged_feedback_child_claim_sha(parent, child["request_sha256"]))
+        # The cooperative writer does not freeze raw files or independent SQL
+        # fingerprint columns: recheck the entire primary and audit at exit.
+        _, final_registration_intent, final_primary_intent = self._authenticated_staged_primary_locked(
+            con, project, body["registration_request_id"], body["primary_action_id"])
+        _require(final_registration_intent == registration_intent and final_primary_intent == primary_intent,
+                 "EVIDENCE_CHANGED", "Original primary ownership changed during inspection.")
+        if frozen["decision"] == "audit":
+            saved._verify_action_rows(project, [child])
+            final_envelope, final_raw_sha = saved._read(project, child)
+            _require(final_raw_sha == raw_sha and canonical(final_envelope) == canonical(envelope),
+                     "EVIDENCE_CHANGED", "Original audit changed during inspection.")
+        _require(project.status()["snapshot_ref"] == state["snapshot_ref"] and project_code_identity() == intent["project_code_identity"]
+                 and project_controller.code_identity() == intent["controller_code_identity"] and batch_code_identity() == intent["manager_code_identity"],
+                 "EVIDENCE_CHANGED", "Project or producer changed during feedback inspection.")
+        with project._connect(readonly=True) as pc:
+            _manager_claim(pc, "staged_feedback_parent", body["request_id"], intent["intent_sha256"], parent_sha)
             if frozen["decision"] == "audit":
-                saved._verify_action_rows(project, [child])
-                final_envelope, final_raw_sha = saved._read(project, child)
-                _require(final_raw_sha == raw_sha and canonical(final_envelope) == canonical(envelope),
-                         "EVIDENCE_CHANGED", "Original audit changed during inspection.")
-            _require(project.status()["snapshot_ref"] == state["snapshot_ref"] and project_code_identity() == intent["project_code_identity"]
-                     and project_controller.code_identity() == intent["controller_code_identity"] and batch_code_identity() == intent["manager_code_identity"],
-                     "EVIDENCE_CHANGED", "Project or producer changed during feedback inspection.")
-            with project._connect(readonly=True) as pc:
-                _manager_claim(pc, "staged_feedback_parent", body["request_id"], intent["intent_sha256"], parent_sha)
-                if frozen["decision"] == "audit":
-                    _manager_claim(pc, "staged_feedback_child", child["request_id"], intent["intent_sha256"], _staged_feedback_child_claim_sha(parent, child["request_sha256"]))
-            _check_staged_runtime()
-            return ProjectController._response(parent, True)
+                _manager_claim(pc, "staged_feedback_child", child["request_id"], intent["intent_sha256"], _staged_feedback_child_claim_sha(parent, child["request_sha256"]))
+        _check_staged_runtime()
+        return ProjectController._response(parent, True)
 
     def advance_staged_feedback(self, body):
         fields = ("request_id", "project_id", "expected_state_version", "registration_request_id", "registration_sha256", "primary_action_id")
@@ -1999,6 +2016,168 @@ class LocalWorkbench:
                 with self._connect() as con:
                     self._save(con, body["request_id"], {"status":result["status"], "intent":record["intent"], "result":response})
             return dict(response, replayed=True)
+
+    def _staged_plan_reference_locked(self, con, project, feedback_id):
+        """Authenticate a completed strict feedback under manager -> Project writers."""
+        try:
+            return self._staged_plan_reference_locked_checked(con, project, feedback_id)
+        except ResearchError:
+            raise
+        except (KeyError, TypeError, ValueError, AttributeError, IndexError, OverflowError, RecursionError, OSError):
+            raise ResearchError("EVIDENCE_CHANGED", "Original staged feedback records are malformed or unavailable.") from None
+
+    def _staged_plan_reference_locked_checked(self, con, project, feedback_id):
+        from .research_project import validate_staged_feedback_plan_ref
+        identifier(feedback_id, "feedback_request_id")
+        row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (feedback_id,)).fetchone()
+        _require(row is not None and row["command"] == "advance_staged_feedback", "OPERATION_INCOMPLETE", "Original strict feedback manager request is unavailable.")
+        record = tabular._parse(row["record"].encode("utf-8"))
+        _require(type(record) is dict and record.get("status") in ("completed", "waiting") and type(record.get("intent")) is dict
+                 and type(record["intent"].get("body")) is dict, "OPERATION_INCOMPLETE", "Original feedback is not a complete manager receipt.")
+        body = record["intent"]["body"]
+        fields = ("request_id", "project_id", "expected_state_version", "registration_request_id", "registration_sha256", "primary_action_id")
+        _require(_body(body, fields) == row["digest"] and body["request_id"] == feedback_id,
+                 "EVIDENCE_CHANGED", "Original feedback body changed.")
+        controller = self._inspect_staged_feedback_locked(con, project, body, row["digest"], record)
+        expected = self._response("advance_staged_feedback", feedback_id, body["project_id"], status=controller["status"], controller=controller)
+        _require(type(record.get("result")) is dict and canonical({k:v for k,v in record["result"].items() if k != "replayed"})
+                 == canonical({k:v for k,v in expected.items() if k != "replayed"}), "EVIDENCE_CHANGED", "Original feedback receipt changed.")
+        state = project.status(); frozen = record["intent"]["frozen"]; reg = frozen["registration"]; item = frozen["feedback"]
+        parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == feedback_id]
+        _require(len(parents) == 1 and item.get("outcome") in ("condition_met", "condition_not_met"), "EVIDENCE_CHANGED", "A unique known original feedback is required.")
+        parent = parents[0]; decision = frozen["decision"]
+        child = (parent.get("result") or {}).get("child") if decision == "audit" else None
+        _require(decision == "wait" or type(child) is dict, "EVIDENCE_CHANGED", "Original audit result is unavailable.")
+        ref = {"schema_version":"staged-feedback-plan-reference-v1", "registration_request_id":reg["request_id"],
+               "registration_sha256":reg["registration_sha256"], "original_plan_version":reg["plan_version"],
+               "original_plan_sha256":reg["plan_sha256"], "source_snapshot_sha256":state["source_snapshot_sha256"],
+               "primary_parent_request_id":reg["controller_request_id"], "primary_action_id":item["action_id"],
+               "primary_result_sha256":item["result_sha256"], "feedback_parent_request_id":feedback_id,
+               "feedback_parent_request_sha256":parent["request_sha256"], "feedback_intent_sha256":record["intent"]["intent_sha256"],
+               "feedback_sha256":fingerprint(item), "feedback_outcome":item["outcome"], "decision":decision,
+               "audit_action_id":child["id"] if child else None, "audit_result_sha256":child["result_sha256"] if child else None}
+        validate_staged_feedback_plan_ref(ref, code="EVIDENCE_CHANGED")
+        dispatch = parent.get("dispatch_state_version")
+        finished = dispatch if decision == "wait" else parent.get("state_version_after")
+        _require(type(dispatch) is int and type(finished) is int and finished <= state["state_version"]
+                 and ((decision == "wait" and parent.get("state_version_after") is None and parent.get("child_request_id") is None)
+                      or (decision == "audit" and finished > dispatch)),
+                 "EVIDENCE_CHANGED", "Feedback must finish before the successor plan.")
+        return ref, finished
+
+    def save_staged_feedback_plan(self, body):
+        """Save an explicit successor of authenticated feedback; never dispatch research."""
+        from .research_project import _check_plan_experience_refs, validate_plan_experience_refs
+        from .tabular_quality_feedback import _manager_claim
+        from .retrieval_holdout import FINAL_TOOL_ID
+        fields = ("request_id", "project_id", "expected_state_version", "feedback_request_id", "plan", "reason")
+        digest = _body(body, fields)
+        identifier(body["project_id"], "project_id"); identifier(body["feedback_request_id"], "feedback_request_id")
+        limits = {"question":4000, "basis":6000, "steps":12000, "expected_feedback":4000}
+        plan = body["plan"]
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
+                 and type(plan) is dict and set(limits) <= set(plan) <= set(limits) | {"experience_case_refs"}
+                 and _text(body["reason"], 2000) and len(canonical(body).encode("utf-8")) <= MAX_PLAN_RECOVERY_BYTES,
+                 "INVALID_REQUEST", "Use one bounded explicit successor plan and current state.")
+        for key, limit in limits.items():
+            value = plan[key]
+            _require(type(value) is str and len(value) <= limit and "\x00" not in value and (key == "basis" or bool(value.strip())),
+                     "INVALID_REQUEST", "Research plan text is missing or exceeds its limit.")
+        if "experience_case_refs" in plan:
+            validate_plan_experience_refs(plan["experience_case_refs"])
+        _check_staged_runtime()
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                old = self._old(con, body, digest)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                if old is not None:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "save_staged_feedback_plan" and type(old) is dict
+                             and old.get("status") in ("preparing", "completed") and type(old.get("intent")) is dict
+                             and (old["status"] != "preparing" or old.get("result") is None),
+                             "OPERATION_INCOMPLETE", "The original successor plan intent is unavailable.")
+                with project._writer():
+                    state = project.status()
+                    _require(state.get("private_evaluation") is None and state.get("frozen_evaluation_strategy") is None
+                             and not any(a.get("command") == FINAL_TOOL_ID for a in state["actions"]),
+                             "CONDITION_NOT_SATISFIED", "Projects with holdout, freeze or final are excluded.")
+                    ref, finished_at = self._staged_plan_reference_locked(con, project, body["feedback_request_id"])
+                    revisions = state.get("plan_revisions", [])
+                    _require(type(revisions) is list and 1 <= ref["original_plan_version"] <= len(revisions)
+                             and fingerprint(revisions[ref["original_plan_version"]-1]) == ref["original_plan_sha256"],
+                             "EVIDENCE_CHANGED", "Original registered plan changed.")
+                    if old is None:
+                        _require(len(revisions) == ref["original_plan_version"] and state["state_version"] == body["expected_state_version"]
+                                 and finished_at <= body["expected_state_version"], "STALE_STATE", "Use the original plan and current state.")
+                        project._require_fresh(state, state, body["expected_state_version"])
+                        _require(not any(p.get("status") in ("prepared", "running", "unknown") for p in state.get("controller_requests", []))
+                                 and not any(x.get("status") == "reserved" for x in state.get("local_model_requests", []))
+                                 and not any(x.get("status") in PENDING for x in HostModelSelection(project.root).status()["requests"]),
+                                 "EXECUTION_UNKNOWN", "Inspect unfinished project or Host operations.")
+                        self._quality_unclaimed(project, state, (body["request_id"],))
+                        _check_plan_experience_refs(project.root, state, {**plan, "based_on_state_version":body["expected_state_version"]}, code="INVALID_REQUEST", pending=True)
+                        intent = self._quality_intent(body, digest, "save_staged_feedback_plan", state)
+                        intent["schema_version"] = "local-staged-feedback-plan-intent-v1"
+                        intent["feedback_ref_sha256"] = fingerprint(ref)
+                        intent["intent_sha256"] = fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                        _check_staged_runtime()
+                        self._accept(con, body, digest, "save_staged_feedback_plan", intent); con.commit()
+                        ref2, _ = self._staged_plan_reference_locked(con, project, body["feedback_request_id"])
+                        _require(canonical(ref2) == canonical(ref) and project.status()["snapshot_ref"] == state["snapshot_ref"],
+                                 "EVIDENCE_CHANGED", "Feedback or Project changed before saving the plan.")
+                        _check_plan_experience_refs(project.root, state, {**plan, "based_on_state_version":body["expected_state_version"]}, code="EVIDENCE_CHANGED", pending=True)
+                        _check_staged_runtime()
+                        with project._connect() as pc:
+                            stored = project._project(pc)
+                            _require(stored["state_version"] == body["expected_state_version"], "STALE_STATE", "Project changed before saving the plan.")
+                            revision = {"version":len(revisions)+1, **copy.deepcopy(plan), "staged_feedback_ref":ref,
+                                        "reason":body["reason"], "request_id":body["request_id"], "based_on_state_version":body["expected_state_version"]}
+                            stored.setdefault("plan_revisions", []).append(revision); stored["state_version"] += 1
+                            project._save(pc, stored)
+                            _manager_claim(pc, "staged_feedback_plan", body["request_id"], intent["intent_sha256"], fingerprint(revision), create=True)
+                    else:
+                        intent = old["intent"]
+                        expected_fields = {"schema_version","command","project_id","run_id","body","request_sha256","source_snapshot_sha256",
+                                           "project_code_identity","controller_code_identity","manager_code_identity","manager_root","nonce","intent_sha256","feedback_ref_sha256"}
+                        _require(set(intent) == expected_fields and intent["schema_version"] == "local-staged-feedback-plan-intent-v1"
+                                 and intent["command"] == "save_staged_feedback_plan" and canonical(intent["body"]) == canonical(body)
+                                 and intent["request_sha256"] == digest and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                                 and intent["project_id"] == state["id"] and intent["run_id"] == state["run_id"] and intent["manager_root"] == str(self.root.resolve())
+                                 and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"] and intent["project_code_identity"] == state["code_identity"] == project_code_identity()
+                                 and intent["controller_code_identity"] == project_controller.code_identity() and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                                 and type(intent["nonce"]) is str and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None
+                                 and intent["feedback_ref_sha256"] == fingerprint(ref), "EVIDENCE_CHANGED", "Original successor intent changed.")
+                        found = [p for p in revisions if p.get("request_id") == body["request_id"]]
+                        _require(len(found) == 1, "OPERATION_INCOMPLETE", "Original successor plan is absent; do not create it again.")
+                        revision = found[0]
+                        expected_revision = {"version":ref["original_plan_version"]+1, **copy.deepcopy(plan), "staged_feedback_ref":ref,
+                                             "reason":body["reason"], "request_id":body["request_id"], "based_on_state_version":body["expected_state_version"]}
+                        _require(canonical(revision) == canonical(expected_revision) and body["expected_state_version"] < state["state_version"]
+                                 and finished_at <= body["expected_state_version"], "EVIDENCE_CHANGED", "Original successor revision differs.")
+                        _check_plan_experience_refs(project.root, state, revision)
+                        with project._connect(readonly=True) as pc:
+                            _manager_claim(pc, "staged_feedback_plan", body["request_id"], intent["intent_sha256"], fingerprint(revision))
+                        _require(project.status()["snapshot_ref"] == state["snapshot_ref"], "STALE_STATE", "Project changed during verification.")
+                    # Re-authenticate both the evidence and the committed Project claim
+                    # while the same manager and Project writers remain held.
+                    final_state = project.status()
+                    final_ref, _ = self._staged_plan_reference_locked(con, project, body["feedback_request_id"])
+                    matching = [p for p in final_state.get("plan_revisions", []) if p.get("request_id") == body["request_id"]]
+                    _require(canonical(final_ref) == canonical(ref) and len(matching) == 1
+                             and canonical(matching[0]) == canonical(revision), "EVIDENCE_CHANGED", "Committed successor or feedback changed.")
+                    _check_plan_experience_refs(project.root, final_state, revision)
+                    with project._connect(readonly=True) as pc:
+                        _manager_claim(pc, "staged_feedback_plan", body["request_id"], intent["intent_sha256"], fingerprint(revision))
+                    _require(project.status()["snapshot_ref"] == final_state["snapshot_ref"], "STALE_STATE", "Project changed during successor verification.")
+                    _check_staged_runtime()
+                    response = self._response("save_staged_feedback_plan", body["request_id"], body["project_id"], status="completed", research_plan=revision)
+                    if old is not None and old["status"] == "completed":
+                        _require(type(old.get("result")) is dict and canonical({k:v for k,v in old["result"].items() if k != "replayed"})
+                                 == canonical({k:v for k,v in response.items() if k != "replayed"}), "EVIDENCE_CHANGED", "Original successor receipt changed.")
+                        return dict(response, replayed=True)
+                    self._save(con, body["request_id"], {"status":"completed", "intent":intent, "result":response}); con.commit()
+                    return dict(response, replayed=old is not None)
 
     def register_holdout(self, body):
         from .retrieval_holdout import MAX_HOLDOUT_BYTES, _feedback_policy
@@ -2570,9 +2749,9 @@ class LocalWorkbench:
     def _no_staged_switch(con, project_id):
         if project_id is None:
             return
-        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('advance_staged_feedback','advance_staged_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
+        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
             record = tabular._parse(row["record"].encode("utf-8"))
-            terminal = ({"completed", "waiting"} if row["command"] == "advance_staged_feedback" else {"completed"} if row["command"] in ("advance_staged_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"})
+            terminal = ({"completed", "waiting"} if row["command"] == "advance_staged_feedback" else {"completed"} if row["command"] in ("save_staged_feedback_plan", "advance_staged_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"})
             _require(record.get("status") in terminal or record.get("intent", {}).get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished quality request before switching projects.")
         for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
@@ -2582,9 +2761,9 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        quality_commands = ("advance_staged_feedback", "advance_staged_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
+        quality_commands = ("save_staged_feedback_plan", "advance_staged_feedback", "advance_staged_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
         commands = (("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")) + quality_commands
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','advance_staged_feedback','advance_staged_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":
