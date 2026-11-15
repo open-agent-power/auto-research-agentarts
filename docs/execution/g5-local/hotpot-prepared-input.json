@@ -103,5 +103,6 @@
     "path": "runs/s065-review/actual-preparation-assessment.md",
     "sha256": "3eaa684ce9c74aa33cc96632fc4968d2f40372bdbec0fc22a82bdca81f107aa0"
   },
-  "checked_at": "2026-11-15T12:33:30.012208+08:00"
+  "checked_at": "2026-11-15T12:33:30.012208+08:00",
+  "checkpoint_note": "This metadata records the independently verified input before execution. The same original study later ran; see SPRINT-065 actual execution. No new case or budget reset."
 }

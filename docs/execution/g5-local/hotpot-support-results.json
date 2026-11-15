@@ -1,0 +1,267 @@
+{
+  "schema_version": "s065-hotpot-support-results-v1",
+  "status": "actual_completed_independently_verified",
+  "scientific_claim": "One preregistered public supporting-document retrieval comparison with observed recall/MRR tradeoff; no generalization, significance, causal, QA, multi-hop or blind claim",
+  "study_id": "s065-hotpot-support-v1",
+  "project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+  "run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+  "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+  "project_core_identity": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/5d43109",
+  "workspace": "/workspace/development-continuation-20261114/source-pins/5d43109/runs/s065-hotpot-support-v1",
+  "source_sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+  "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb",
+  "protocol_sha256": "3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef",
+  "driver_sha256": "17b5330e4567b9f75016c7a258955269622d97deb8ee4e843c7e47bdb9ef4b69",
+  "summary_sha256": "a0eff1bf71981b4a41774e70fcf2fa5aedd0f4c9e421ff250c2bfa52048edcb3",
+  "claim_owner": "root-continuation-20261115T1052",
+  "input_counts": {
+    "original_rows": 7405,
+    "normalized_question_groups": 7405,
+    "documents": 2982,
+    "dev_queries": 100,
+    "validation_queries": 100,
+    "final_queries": 100,
+    "positive_document_pairs_total": 600
+  },
+  "preregistration_state_versions": {
+    "holdout": 2,
+    "hypothesis": 3,
+    "primary": 4
+  },
+  "validation": {
+    "delta_mrr10": 0.00855952380952381,
+    "delta_recall20": 0.01,
+    "loo_recall20_max": 0.015151515151515152,
+    "loo_recall20_min": 0.005050505050505051,
+    "outcome": "condition_met",
+    "queries": 100
+  },
+  "validation_all_aggregate_metrics": {
+    "arms": {
+      "bm25": {
+        "metrics": {
+          "mrr@10": 0.8188571428571428,
+          "ndcg@10": 0.7418083685746496,
+          "recall@10": 0.875,
+          "recall@20": 0.92,
+          "recall@5": 0.735
+        },
+        "queries": 100
+      },
+      "tfidf_cosine": {
+        "metrics": {
+          "mrr@10": 0.8274166666666667,
+          "ndcg@10": 0.7390782402180174,
+          "recall@10": 0.87,
+          "recall@20": 0.93,
+          "recall@5": 0.735
+        },
+        "queries": 100
+      }
+    },
+    "paired_candidate_minus_baseline": {
+      "mrr@10": {
+        "losses": 18,
+        "mean": 0.00855952380952381,
+        "ties": 64,
+        "wins": 18
+      },
+      "ndcg@10": {
+        "losses": 37,
+        "mean": -0.002730128356632234,
+        "ties": 30,
+        "wins": 33
+      },
+      "recall@10": {
+        "losses": 7,
+        "mean": -0.005,
+        "ties": 87,
+        "wins": 6
+      },
+      "recall@20": {
+        "losses": 1,
+        "mean": 0.01,
+        "ties": 96,
+        "wins": 3
+      },
+      "recall@5": {
+        "losses": 10,
+        "mean": 0.0,
+        "ties": 81,
+        "wins": 9
+      }
+    }
+  },
+  "selection": {
+    "outcome": "condition_met",
+    "condition": {
+      "all": [
+        {
+          "measure": "candidate_minus_baseline",
+          "metric": "recall@20",
+          "operator": "gt",
+          "split": "validation",
+          "threshold": 0
+        },
+        {
+          "measure": "candidate_minus_baseline",
+          "metric": "mrr@10",
+          "operator": "gte",
+          "split": "validation",
+          "threshold": 0
+        }
+      ],
+      "leave_one_out": {
+        "measure": "leave_one_out_mean",
+        "metric": "recall@20",
+        "operator": "gt",
+        "split": "validation",
+        "threshold": 0
+      }
+    },
+    "saved_values": {
+      "leave_one_out": {
+        "maximum": 0.015151515151515152,
+        "minimum": 0.005050505050505051,
+        "queries": 100
+      },
+      "means": [
+        0.01,
+        0.00855952380952381
+      ]
+    },
+    "selected_method": "tfidf_cosine",
+    "original_recall20_is_observation_not_sole_policy": true
+  },
+  "final": {
+    "queries": 100,
+    "selected_method": "tfidf_cosine",
+    "summary": {
+      "baseline": {
+        "mrr@10": 0.865984126984127,
+        "ndcg@10": 0.7585466521607508,
+        "recall@10": 0.855,
+        "recall@20": 0.91,
+        "recall@5": 0.715
+      },
+      "delta": {
+        "mrr@10": -0.03588888888888889,
+        "ndcg@10": -0.009793754037605568,
+        "recall@10": 0.01,
+        "recall@20": 0.01,
+        "recall@5": 0.015
+      },
+      "selected": {
+        "mrr@10": 0.8300952380952381,
+        "ndcg@10": 0.7487528981231452,
+        "recall@10": 0.865,
+        "recall@20": 0.92,
+        "recall@5": 0.73
+      }
+    },
+    "usage": {
+      "index_builds": 1,
+      "model_calls": 0,
+      "native_fits": 0,
+      "ranking_calls": 200,
+      "scoring_calls": 200
+    }
+  },
+  "actions": [
+    {
+      "command": "research.relevance-validation-pair",
+      "id": "action-4de378649a2bc9026793872874663343",
+      "request_id": "controller-child-61a516b620dd1747b6ceecc9888726c6",
+      "result_sha256": "32ced585400985fc64fb30b97877ba2ccc71c1164a651766764af4b49f0a9b1a",
+      "status": "completed"
+    },
+    {
+      "command": "research.relevance-validation-saved-audit",
+      "id": "action-169d2fa96c5f3acf7e51131ff77f6fc5",
+      "request_id": "controller-child-18ff8dcc0b92c838f9eff69a3a03cd3f",
+      "result_sha256": "7768e2a766cad2e43fbbba5abf00dff248b1b31678af145675fa453364b9943b",
+      "status": "completed"
+    },
+    {
+      "command": "research.relevance-final-evaluation",
+      "id": "action-cb1c4a4fece82d408ca0f4e902caae8a",
+      "request_id": "controller-child-043e65c6daa8500f885dfc0f8e63f80d",
+      "result_sha256": "a6eba064723a9c7881765d9c5b4c89bf2881284ea77d573eaa1dec458bb4dd71",
+      "status": "completed"
+    }
+  ],
+  "budget": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 0,
+    "evidence_reads_reserved": 0,
+    "evidence_reads_used": 0,
+    "existing_cash_cap_cny": 5,
+    "fit_attempts_used": 0,
+    "fit_limit": 0,
+    "fits_completed": 0,
+    "fits_reserved": 0,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "s065-hotpot-support-v1",
+    "local_tool_call_limit": 3,
+    "local_tool_calls_reserved": 0,
+    "local_tool_calls_used": 3,
+    "local_tool_dispatches": 3,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "preprocessing_fits": 0,
+    "preprocessing_fits_completed": 0,
+    "ridge_fits_completed": 0
+  },
+  "primary_usage": {
+    "index_builds": 1,
+    "query_pairs": 200,
+    "ranking_calls": 400,
+    "scoring_calls": 400,
+    "model_calls": 0,
+    "native_fits": 0
+  },
+  "totals": {
+    "native_tools": 3,
+    "index_builds": 2,
+    "ranking_calls": 600,
+    "scoring_calls": 600,
+    "new_model_calls": 0,
+    "new_fits": 0,
+    "evidence_actions": 0,
+    "cash": "unknown",
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "recovery": {
+    "status": "passed",
+    "file_count": 42,
+    "original_case_all_bytes_unchanged": true,
+    "run_vs_resume_response_bytes_identical": true,
+    "new_project_or_research_action": false,
+    "integrity_hash_scope": "hashes all bytes including private files; original public source and private preparation read by resume",
+    "checked_at": "2026-11-15T12:35:07.468097+08:00"
+  },
+  "independent_assessment": {
+    "path": "runs/s065-review/actual-study-assessment.md",
+    "sha256": "a9e4324017a8d0d3443011e8ac281ca5341e42c0f21182f1911b120b439b11eb",
+    "aggregate_path": "runs/s065-review/actual-study-independent.json",
+    "aggregate_sha256": "b49b28fafe0db6d16ca639cede0d66ffcfdd7bbf44445a5fb220783491e2f1de",
+    "scope": "verified original inputs, registrations, SQL/parents/children, arithmetic, report manifest and bounded output canaries; root performed separate same-ID resume"
+  },
+  "evidence_boundaries": [
+    "Public source and shared corpus, not blind; full original and private final preparation were read before native execution",
+    "Supporting-document qrels mark original annotated support; missing labels do not imply non-relevance",
+    "Selected cohort derived deterministically from public HotpotQA; no broad population or statistical inference",
+    "Validation guard satisfied but final ranking metrics decreased; no overall improvement/promotion",
+    "Individual Wikipedia revisions/contributors unknown; attribution sidecar retained locally; original report and passages not distributed",
+    "Independent final qid/hash/text/base64 and support doc ID/text canary check is bounded, not a general proof of no leakage",
+    "Both root and reviewer read private/final bytes for integrity/verification; no blanket zero private IO claim",
+    "Original S046/S050/S054 cases and budgets not reset; new separate cooperative claim, no OS isolation assertion"
+  ],
+  "created_at": "2026-11-15T12:39:50.775846+08:00"
+}

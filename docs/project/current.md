@@ -1,7 +1,7 @@
 # 当前自主研究开发
 Status: resumable
 
-S065新真实Hotpot支持文档检索已固定并发布code `5d431097f3b4846ac240745121e56070edd78e86`，唯一claim下真实prepare与独审通过：7405组→100/100/100、2982文档/600支持对，source snapshot c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb。原JSON及final候选已被准备/独审读取，不能称盲；无Project/研究行动，下一步按原claim/协议至多3tools原生执行。source pin和精确输入见[prepared](../execution/g5-local/hotpot-prepared-input.json)，旧case预算不重开。
+S065已按已发布 `5d431097f3b4846ac240745121e56070edd78e86` 和原claim真实完成一次Hotpot支持文档检索：validation R20 +.01/MRR +.0085595/留一最小 +.0050505，事前条件met→原audit→TFIDF；final支持文档R20 .91→.92，但MRR .865984→.830095、nDCG下降。3/3原工具、0model/fit，原ID新进程resume响应及42文件字节相同；费用/token unknown。原project `project-2376ca4a6db64027a1099bd737ca9640` / run `run-a1a631efa41541e2800b43ae047c4c66`，唯一workspace `/workspace/development-continuation-20261114/source-pins/5d43109/runs/s065-hotpot-support-v1`，summary SHA a0eff1bf71981b4a41774e70fcf2fa5aedd0f4c9e421ff250c2bfa52048edcb3。真实实验独立验收已完成；最终是覆盖提升/排名下降的取舍，不宣称整体科研收益或盲测，原语料/报告只留本地。[输入](../execution/g5-local/hotpot-prepared-input.json)。正在继续只读捕获这次真实负结果至S066原生Memory，不重开3/3。
 
 S064经验v2已完成独立验证并推送5e397b2693f2385f26e203af12e7f3f02c6d2507：原事前登记/反馈/audit/freeze/final聚合沿现有Memory绑定目标Project/计划，保留负结果；55相关/独审3+两个目标子例通过，合成原件源状态预算保持，原100文件保持，offline必须回源核原策略及最终聚合。未调用模型/新科研，见[SPRINT-064](../execution/SPRINT-064.md)。
 

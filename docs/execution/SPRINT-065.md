@@ -19,3 +19,13 @@ prepare及run/replay来源核验会把公开原JSON和私有selection/holdout再
 驱动/协议先以源码 `5d431097f3b4846ac240745121e56070edd78e86` 推main并固定干净pin，之后唯一claim准备成功、无Project/行动。独立从完整原JSON重新选样/生成并比对：7405行/7405题组，100/100/100，2982篇文章，每题2个支持文档共600正例；开发资产2,122,881B低于11.8MB，原准备14文件前后不变，100 final qid不在5个开发资产/spec的精确字节中。source snapshot `c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb`；sidecar `b2b5b693a0da72140d58fa71f3e41dbf075713d1adc477b84e217c7726dd7604`；holdout `6c5d0cd4627e2379b99bae3b1f1dc837be85b5ea9964ec498f314d264895a053`；原claim `b31b5c582771dfc8e21b7ecfe5d891ecee799829c24665bd4991e4c11c5cf1c9`。
 
 准备和独审实际各解析完整公开原JSON与private selection/holdout/sidecar，包括final候选，shared corpus/公开预曝均不构成盲测；qid精确不出现不保证无语义侧信道。未排名、评分、fit或调用模型，3工具只是上限、当前尚无研究账本，费用/token unknown。逐wiki revision与贡献者仍unknown；原文和原报告只在受控本地，公开仅单独检查的aggregate。[精确输入与预算](g5-local/hotpot-prepared-input.json)。
+
+## 真实原生执行及独立复核完成
+
+源pin `5d431097f3b4846ac240745121e56070edd78e86` / 独立claim / 原project `project-2376ca4a6db64027a1099bd737ca9640` / run `run-a1a631efa41541e2800b43ae047c4c66`，原summary SHA `a0eff1bf71981b4a41774e70fcf2fa5aedd0f4c9e421ff250c2bfa52048edcb3`。事前条件已知met：validation R20差+0.01、MRR差+0.00855952380952381、R20 leave-one-out最小+0.005050505050505051，原audit→TFIDF freeze→一次final。最终支持文档R20 BM25 .91 / TFIDF .92，MRR .865984126984127 / .8300952380952381，nDCG .7585466521607508 / .7487528981231452；覆盖提高但排名质量降低，不能说整体改善或推论多跳/答案效果。
+
+实际原预算3/3工具、0model/fit/evidence，primary 400 rank/400 score和1 index，final 200 rank/200 score和1 index，费用/token unknown。原pin新进程 --resume 原响应字节相同、42个完整case文件哈希相同、没有新行动；哈希完整private文件并在resume重读公开源及private准备文件，不称零private I/O或盲。真实结果和公开聚合白名单正由独审，原native report含源文本只留本地。
+
+独审已独立核原holdout/hypothesis/primary时序2/3/4、登记与原父子SQL/审计/freeze/final绑定；按原保存逐题值复算validation条件及final汇总，不新增排名或评分。原报告4文件manifest与原回执一致；公开summary有限canary检查未含final题ID/哈希/题文/base64及正例文档ID/原文。42文件前后不变并与root恢复前inventory一致，独审核root原ID恢复回执而非再次执行。原source/报告/final工件及private文件字节实际被独审读取，不称盲或零private I/O。[公开聚合与精确身份](g5-local/hotpot-support-results.json)。
+
+最终待发布aggregate文件本身已由独审核原汇总及有限canary，SHA ec43c26e7da8f86194f83df7dffe37835ef17debe0e7ea068965dc556c3a3cde；未出现100 final qid/hash/题文/base64及200正例doc ID/正文/base64。该检查实际读取private selection/holdout/corpus，是精确canary而非普遍泄露证明。

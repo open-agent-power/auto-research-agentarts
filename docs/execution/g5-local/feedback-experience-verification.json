@@ -1,6 +1,6 @@
 {
   "schema_version": "s064-feedback-experience-verification-v1",
-  "status": "fixed_verified_pending_publication",
+  "status": "fixed_verified_published",
   "base_commit": "a7f6284cd648e875f2fa309219cfd29e5242706e",
   "source_freeze_sha256": "ee64cd443857b1aff03429cb2f8cfb62ef54c7f2d94cbac19bcb057134e1bae4",
   "project_core_identity": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
@@ -819,5 +819,6 @@
     "runs/s064-verification/captured/manifest.json",
     "runs/s064-verification/root-protection.json",
     "runs/s064-review/independent-assessment.md"
-  ]
+  ],
+  "code_commit": "5e397b2693f2385f26e203af12e7f3f02c6d2507"
 }
