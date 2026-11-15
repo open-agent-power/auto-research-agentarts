@@ -2,7 +2,7 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T07:48:15+08:00",
+  "end_time": "2026-11-16T07:50:41+08:00",
   "status": "S131_synthetic_successor_recovery_verified",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
@@ -1050,5 +1050,15 @@
     "verification": "independent read-only DB table/claim/body verification and 199 file manifest; browser response dropped deliberately by author, reviewer did not rerun",
     "result": "S127 1/2 preview suggest audit requires new authorization; S129 2/2 audit already completed; both may_execute false, no new research dispatch",
     "limits": "synthetic whitebox; cooperative thread profile only; no real research/model"
+  },
+  "budget_deviation": {
+    "description": "Two unauthorized potentially billable Firecrawl scrapes for UCI 501 official metadata; stopped further use",
+    "scrape_ids": [
+      "01a1e19d-d89b-747e-8d21-c2415e4440a0",
+      "01a1e19d-d99c-748b-991f-939077462fe6"
+    ],
+    "reported_credits_used_each": 1,
+    "actual_billing": "unknown",
+    "model_or_dataset_download": "none reported"
   }
 }
