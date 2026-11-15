@@ -63,3 +63,5 @@ S074后台与UI初稿继续中：本盘新checkpoint-002 manifest SHA 690cbe4267
 用户要求调整基线与组织：新 [研究基线](research-baseline-20261115.md)优先真实反馈→下一决定/等待→原ID接续，独审已纠正G1门槛/采用与因果/团队共享lease/原字节迁移边界；root统筹，复用engineering收口S074、capability_review独审，拒绝用合成fixture冒充科研。S074已核checkpoint-003与工作树6项一致，正继续最小验收，尚未完成。检查点 2026-11-15T15:51:00.832090+08:00。
 
 应用户请求补充基线调研：[方法调研](baseline-research-20261115.md)核ScienceAgentBench、MLAgentBench、Negative Knowledge、Agent Laboratory和AgentBench原文/固定仓库，只读无模型/付费API；独审核版本、结果和成本，指出38题同任务重试、约一题差及尝试机会不同，已补限制。将执行/科学结果/实际采用/因果收益/端到端成本分层，未开展新科研；S074并行继续。检查点 2026-11-15T15:57:16.051762+08:00。
+
+S074已独审推送 `ea8152e595abca322870a9eb6c7fbc0b9e1eebbf`：两真实进程断线/原ID与source漂移、脱敏/跨项目通过；UI草稿跨项目切回未独立完成，保留失败。源码pin195项同。下一课题候选与S075仅事后analysis协议待独审，未读真实逐题。检查点 2026-11-15T16:12:17.743613+08:00。

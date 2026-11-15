@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": "2026-11-15T15:42:30.306213+08:00",
-  "status": "rebaselined_s074_in_progress",
+  "status": "S074_verified_S075_protocol_review",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Finish only necessary S074 recovery validation, then preregister and carry out a real research slice within existing authorized budgets.",
+  "next": "Independently review and publish before executing S075 descriptive saved validation joint analysis; then select a preregistered real task within existing authorization.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T15:57:16.051762+08:00",
+  "checkpoint_time": "2026-11-15T16:12:17.743613+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -340,17 +340,22 @@
     "independent_review": "runs/s073-review/independent-assessment.md"
   },
   "S074": {
-    "status": "safely_paused_for_focused_review",
-    "completed": false,
+    "status": "independently_verified_and_pushed",
+    "completed": true,
     "scope": "operator plan refs UI and same-ID recovery with local durable original request body",
     "checkpoint_path": "runs/s074-verification/checkpoint-003",
     "checkpoint_manifest_sha256": "9b9ee418f7d167409d6565bbcadeff95b6ca3750038399039e963dd8e0f44598",
     "wip_backend_tests": 14,
-    "limits": "WIP not released; latest backend changes untested; real browser/cross-process and independent review outstanding; both recovery windows must verify actual source",
+    "limits": "independent cross-project unsaved draft return incomplete; original body local manager; source drift stops both windows; legacy without original body unknown",
     "remaining": "final backend, cross-process HTTP, real browser, independent review",
     "ui": "work_in_progress_typecheck_passed",
     "checkpoint_matches_worktree": true,
-    "active_test_processes": false
+    "active_test_processes": false,
+    "commit": "ea8152e595abca322870a9eb6c7fbc0b9e1eebbf",
+    "source_pin": "/workspace/development-continuation-20261114/source-pins/ea8152e",
+    "source_freeze_sha256": "f0bf9a9d8a6f27e3564cc5350ad06b45ceed516e88db24f4114e94e36c1742f4",
+    "source_pin_files_verified": 195,
+    "independent_review": "runs/s074-review/independent-assessment.md"
   },
   "focus_review": {
     "start_time": "2026-11-15T15:38:20+08:00",
