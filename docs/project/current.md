@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S076真实表格候选[Bike 2011预案](bike-sharing-2011-study-proposal.md)已元数据/接口独审，拟2工具/0模型fit/0新增native evidence，描述温度与日租赁整体和原工作日分组关联，unknown优先；现有授权不自动覆盖该新表格项目，源码purpose标签亦有待解决。原ZIP/目标值/Project均未取得或运行，不声称已授权/预注册/科研收益。
+
 S075已发布后只读S065/S067原保存validation联合分析并独立复算，结果 [S075](../execution/SPRINT-075.md)：S065召回提高3题其中2题MRR下降；S067召回不变198题中24题MRR下降/12上升。已曝数据事后描述、非盲测/总体收益/迁移；无新模型/fit/排名/行动，原3/3预算保持。reader commit `a8207f63c3201eb2e601dc81642d15342943813b`、pin195项匹配，公开结果SHA c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb。
 
 **当前执行基线：** [自主研究任务基线（2026-11-15）](research-baseline-20261115.md)，外部证据与适配见[方法调研](baseline-research-20261115.md)。以可复核真实问题、反馈改变下一决定及原身份接续为首要验收；工程测试不替代科研收益。S074已完成限定范围验收，按基线登记并验证下一研究切片；不改旧盘、预算或授权。
