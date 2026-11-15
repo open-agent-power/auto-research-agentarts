@@ -23,6 +23,8 @@ SCHEMA = "tabular-quality-registration-v1"
 FEEDBACK_SCHEMA = "tabular-quality-feedback-v1"
 MAX_REGISTRATIONS = 16
 _HASH = re.compile(r"[a-f0-9]{64}\Z")
+_CLAIM_TABLE_SQL = ("CREATE TABLE quality_manager_claims (kind TEXT NOT NULL, request_id TEXT NOT NULL, "
+                    "intent_sha256 TEXT NOT NULL, core_sha256 TEXT NOT NULL, PRIMARY KEY(kind, request_id))")
 _FIELDS = {"schema_version", "request_id", "request_sha256", "request", "controller_request_id",
            "project_id", "run_id", "state_version_before", "candidate", "conditions", "numeric_columns",
            "source_sha256", "source_snapshot_sha256", "scope_sha256", "plan_sha256", "plan_version",
@@ -109,8 +111,41 @@ def _checked_collection(records):
     require(not requests.intersection(targets), "EVIDENCE_CHANGED", "A registration ID collides with a future controller ID.")
 
 
+def _manager_claim(con, kind, request_id, intent_sha256, core_sha256, *, create=False):
+    """Store/check cooperative ownership in the same transaction as core acceptance."""
+    require(kind in ("registration", "policy") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
+            and type(core_sha256) is str and _HASH.fullmatch(core_sha256),
+            "EVIDENCE_CHANGED", "Invalid manager ownership identity.")
+    identifier(request_id)
+    schema = con.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='quality_manager_claims'").fetchone()
+    if schema is None and create:
+        con.execute(_CLAIM_TABLE_SQL)
+        schema = con.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='quality_manager_claims'").fetchone()
+    require(schema is not None and schema[0] == _CLAIM_TABLE_SQL,
+            "OPERATION_INCOMPLETE", "The original manager ownership table is absent or changed; inspect without retrying.")
+    if create:
+        existing = con.execute("SELECT intent_sha256, core_sha256 FROM quality_manager_claims WHERE kind=? AND request_id=?",
+                               (kind, request_id)).fetchone()
+        require(existing is None, "IDEMPOTENCY_CONFLICT", "A manager ownership claim already exists.")
+        con.execute("INSERT INTO quality_manager_claims VALUES(?,?,?,?)", (kind, request_id, intent_sha256, core_sha256))
+    else:
+        row = con.execute("SELECT intent_sha256, core_sha256 FROM quality_manager_claims WHERE kind=? AND request_id=?",
+                          (kind, request_id)).fetchone()
+        require(row is not None and row[0] == intent_sha256 and row[1] == core_sha256,
+                "OPERATION_INCOMPLETE", "The original manager ownership claim is absent or changed; inspect without retrying.")
+
+
 def register(project, *, request_id, expected_state_version, controller_request_id, candidate_id, conditions):
     """Persist one opt-in registration before any quality action, never dispatch."""
+    result, _ = _register_with_created(project, request_id=request_id, expected_state_version=expected_state_version,
+                                        controller_request_id=controller_request_id, candidate_id=candidate_id,
+                                        conditions=conditions)
+    return result
+
+
+def _register_with_created(project, *, request_id, expected_state_version, controller_request_id, candidate_id, conditions,
+                           _manager_intent_sha256=None):
+    """Internal atomic creation signal for the local manager; public wire remains unchanged."""
     _check_loaded_code()
     identifier(request_id)
     identifier(controller_request_id, "controller_request_id")
@@ -137,7 +172,7 @@ def register(project, *, request_id, expected_state_version, controller_request_
                     and stored["source_snapshot_sha256"] == previous["source_snapshot_sha256"]
                     and fingerprint(stored["source_scope"]) == previous["scope_sha256"],
                     "EVIDENCE_CHANGED", "The registered source binding changed.")
-            return copy.deepcopy(previous)
+            return copy.deepcopy(previous), False
         require(len(records) < MAX_REGISTRATIONS, "LIMIT_EXCEEDED", "At most sixteen quality registrations are allowed.")
         require(project._action(con, request_id) is None and project._action(con, controller_request_id) is None,
                 "IDEMPOTENCY_CONFLICT", "A request ID already belongs to an action.")
@@ -191,7 +226,9 @@ def register(project, *, request_id, expected_state_version, controller_request_
         stored.setdefault("tabular_quality_registrations", []).append(record)
         stored["state_version"] += 1
         project._save(con, stored)
-        return copy.deepcopy(record)
+        if _manager_intent_sha256 is not None:
+            _manager_claim(con, "registration", request_id, _manager_intent_sha256, record["registration_sha256"], create=True)
+        return copy.deepcopy(record), True
 
 
 def _unknown(reason):

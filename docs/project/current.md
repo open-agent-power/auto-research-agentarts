@@ -3,7 +3,7 @@ Status: resumable
 
 S080 已完成获批的 Bike 2011 真实研究并独立复算：总体/编码0/编码1 Pearson r 为 0.771214/0.762433/0.779847，n 为 365/115/250，预先固定方向条件满足；两项工具 2/2、0 model/fit/native evidence，原计划等待。[结果和限制](../execution/g1-local/bike-2011-results.md)。这是操作者根据质量反馈修订计划的描述性链，不是模型自主或因果/跨年收益。唯一 claim、原 Project 与源码 pin `7926608e981eaf1fdfc94c0d125ae04b7f4423da` 必须保留，不重开额度。
 
-通用表格质量反馈按[设计](tabular-quality-feedback-design.md)继续推进：S081 的有界条件模块、S082 的事前登记与原行动只读认证之后，S083 已将显式 opt-in 反馈策略接原 Controller：已核条件通过才选同源关联候选，未知或不通过可等待，身份或状态冲突可拒绝；锁内拒绝非终态原请求重派。仅隔离合成闭环及故障注入验收，不声明真实科研收益或模型自主；旧项目沿原 pin、原预算保持。[S081](../execution/SPRINT-081.md) · [S082](../execution/SPRINT-082.md) · [S083](../execution/SPRINT-083.md)。
+通用表格质量反馈按[设计](tabular-quality-feedback-design.md)继续推进：S081 有界条件、S082 事前登记和原行动认证、S083 显式 Controller 策略之后，S084 已将登记、读取和推进接入 LocalWorkbench/Python/HTTP，并以同事务归属凭据保护两层原ID恢复。隔离合成 HTTP 和故障注入已独审；没有新真实研究、模型自主或科研收益声明。旧项目沿原 pin、原预算保持。[S083](../execution/SPRINT-083.md) · [S084](../execution/SPRINT-084.md)。
 
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。
 

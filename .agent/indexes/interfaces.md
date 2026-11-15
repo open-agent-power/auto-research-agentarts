@@ -1,5 +1,7 @@
 # 接口索引
 
+S084 增加 LocalWorkbench 表格质量登记、反馈 GET 与显式策略推进 HTTP/Python；各自按原manager/core身份恢复，受信本地、无全局门禁，只读宿主不开放新GET。[字段和边界](../../docs/tabular-quality-feedback.md)。
+
 S059 staged事前联合条件opt-in：同一登记恰2不同validation配对差，AND/整体unknown，单次原primary summary核验；旧scalar v1保持，新registration/context-v2及S052沿原分支消费。联合门不改变原Recall20冻结规则或预算；见[合同](../../docs/hypothesis-feedback.md#显式双指标联合条件s059)。
 
 S057 plan-only opt-in `staged_retrieval_adverse_query`复用原v3供原query、完整保存rank/qrels/metrics及每臂top3节选，4selector/64KiB不扩，旧wire保持；recipe两入口拒绝，Host/Markdown/PDF报告只身份摘要。原source CODE_CHANGED不绕、0真实模型。见[材料合同](../../docs/host-model-selection.md#staged开发验证查询材料)。

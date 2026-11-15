@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 # Import the fixed readers before _runtime_sources() snapshots startup code.
-from . import research_methods, snapshot_viewer, method_registry, stored_project_summary, stored_project_history, saved_study_capsule
+from . import research_methods, snapshot_viewer, method_registry, stored_project_summary, stored_project_history, saved_study_capsule, tabular_quality_feedback, tabular_quality_conditions
 from .contracts import ResearchError, fingerprint, identifier
 from .project_knowledge import POINTS
 from .project_controller import ProjectController
@@ -437,6 +437,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/plan-resume": "resume_plan",
                             "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/hypothesis": "register_hypothesis",
+                            "/api/local-workbench/tabular-quality-registration": "register_tabular_quality_conditions",
+                            "/api/local-workbench/advance-tabular-quality-feedback": "advance_tabular_quality_feedback",
                             "/api/local-workbench/retrieval-holdout": "register_holdout",
                             "/api/local-workbench/retrieval-freeze": "freeze_retrieval_strategy",
                             "/api/local-workbench/advance-feedback": "advance_feedback",
@@ -531,6 +533,18 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                                                 "read_only": getattr(local_workspace, "read_only", False)})
                 if getattr(local_workspace, "read_only", False) and parsed.path not in {"/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip"}:
                     return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and stored summaries are available in this read-only host mode.")
+                if parsed.path == "/api/local-workbench/tabular-quality-feedback.json":
+                    _require_runtime_current(runtime_sources)
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    try:
+                        values = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True, max_num_fields=3)
+                    except ValueError:
+                        raise ResearchError("INVALID_QUERY", "Use the three exact feedback query fields.") from None
+                    _require(set(values) == {"project_id", "snapshot_ref", "registration_request_id"}
+                             and all(len(v) == 1 for v in values.values()),
+                             "INVALID_QUERY", "Use the three exact feedback query fields.")
+                    return self.send_json(200, local_workspace.read_tabular_quality_feedback(**{k:v[0] for k,v in values.items()}))
                 if parsed.path in {"/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip"}:
                     _require("?" not in self.path, "INVALID_QUERY", "The fixed saved capsule does not accept a query.")
                     if local_workspace is None:

@@ -1,5 +1,7 @@
 # 后端索引
 
+S084 表格质量登记/反馈/显式推进已接 LocalWorkbench Python/HTTP，manager nonce+Project SQLite同事务claim绑定原意图，缺失/非终态停查；只读宿主 GET 未接，非全局门禁。[合同](../../docs/tabular-quality-feedback.md)。
+
 S083 显式 `ProjectController.advance_tabular_quality_feedback` 根据同项目已登记并认证的质量反馈选择唯一绑定关联候选；非通过/不可执行等待，锁内拒绝同ID非终态重派。合成验证，非全局低层门禁或模型自主。[Sprint](../../docs/execution/SPRINT-083.md)。
 
 S082 表格质量的显式事前登记和原行动只读反馈：绑定 Project/来源/计划/代码/Controller parent/child/SQL/工件，unknown 不派行动；仅 Python API，尚未接策略或自动选择。旧项目保留原 pin。[合同](../../docs/tabular-quality-feedback.md)。
