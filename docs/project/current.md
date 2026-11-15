@@ -1,7 +1,7 @@
 # 当前自主研究开发
 Status: resumable
 
-S071进行中：构建原请求waiting经验，known保留原primary，controller_not_started保持value/action null，final仅当时unmeasured；snapshot漂移拒绝。尚未独审/提交，源码WIP本盘快照 runs/s071-verification/checkpoint-001 manifest SHA 1fc23f4a6dedbd5b0fa49d91259d7e8445880bb41526fa1fa03336c53aeff8fb，源码可能继续变化；待完整Memory/计划/报告、篡改与独审。
+S071等待经验已独审推送 `49a9274dc243eb311e18eb00615ba873917a11f0`：known反馈绑定原primary，controller_not_started的action/value保持null，final仅当时未测、后续可继续；Memory/目标计划/报告/Workbench接入，项目漂移拒绝。旧工程原件只读；固定版23相关/独审4及真实浏览器两种导入+同ID恢复通过，旧版相关59；真实研究/模型未新增。源码pin 49a9274 196项匹配。[SPRINT-071](../execution/SPRINT-071.md)。
 
 S070修复Workbench拒绝staged v1/v2/v3和错误Ridge卡片，代码推送 `dd7cf66cefe1940d96c08e5e7e7a7388a9439301`；真实Chromium+原后端独立目标导入三版本、原字节与同ID重启恢复通过，加载期间禁用、unknown/单臂与安全文本正确。旧Ridge/CPU独审仅预览；原研究48文件/claim不变，工程目标工具0。隔离构建四产物字节同，pin dd7cf66 238项匹配。[SPRINT-070](../execution/SPRINT-070.md)。
 

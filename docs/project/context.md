@@ -2,6 +2,8 @@
 
 ## 当前接续（2026-11-15 10:51轮进行中）
 
+S071 waiting经验已推 `49a9274dc243eb311e18eb00615ba873917a11f0` 并独审：known原primary与unknown null可进入Memory/计划/报告/Workbench，final仅在等待时未测，状态漂移拒绝；工程案例非新科研。见 [SPRINT-071](../execution/SPRINT-071.md)。
+
 S070 Workbench staged经验导入/展示已推 `dd7cf66cefe1940d96c08e5e7e7a7388a9439301`，真实浏览器+原本地后端三版本导入及重启同ID恢复通过，旧Ridge/CPU独审只到预览；结果/失败与边界见 [SPRINT-070](../execution/SPRINT-070.md)。
 
 S068已将真实S067 native A反馈以现有v2经验导入工程目标 `project-e1ba4a7bfe3241c4b7838f199070212a` 并供计划引用（目标工具used0）；外层B和same-arm unknown仅未验证操作者说明，原48文件/claim/3工具预算不变。S069可选回源验证版本已独审推送 `5d091b16e45b5b172bf8bee1dc8cbd05c78eccc9`，只针对固定S067；操作者锚及离线不可证明/同臂unknown等边界保留，见 [SPRINT-069](../execution/SPRINT-069.md)。

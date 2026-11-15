@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": null,
-  "status": "S071_implementation_in_progress",
+  "status": "S071_independently_verified_continuing",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Continue S071 under existing lease; preserve unfinished work and original request identities.",
+  "next": "Continue next bounded verifiable autonomous research task, preserving all original cases and budgets.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T14:37:00.961603+08:00",
+  "checkpoint_time": "2026-11-15T14:49:18.132798+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -279,12 +279,25 @@
     "independent_review": "runs/s070-review/independent-assessment.md"
   },
   "S071": {
-    "status": "implementation_in_progress",
-    "completed": false,
+    "status": "independently_verified_and_pushed",
+    "completed": true,
     "goal": "capture known-wait and controller-not-started unknown as original-request bound experience",
     "checkpoint_path": "runs/s071-verification/checkpoint-001",
     "checkpoint_manifest_sha256": "1fc23f4a6dedbd5b0fa49d91259d7e8445880bb41526fa1fa03336c53aeff8fb",
     "limits": "not independently reviewed; worktree may change after checkpoint; waiting means unmeasured at that time only",
-    "remaining": "source tamper, memory/target/plan/report, browser and independent review"
+    "remaining": "offline wait binding requires original source; waiting does not preclude future execution",
+    "commit": "49a9274dc243eb311e18eb00615ba873917a11f0",
+    "source_pin": "/workspace/development-continuation-20261114/source-pins/49a9274",
+    "source_freeze_sha256": "bd976322248e6fec265338e53e591ef7c03f27820394eb171eed8fc7283c2c92",
+    "source_pin_files_verified": 196,
+    "project_core": "ef12a853fad1c85671b3d43f7a87dfa33d3e87b577f043acae4a43f81e7c355b",
+    "fixed_related_tests": 23,
+    "previous_related_tests": 59,
+    "independent_tests": 4,
+    "independent_browser": "known and unknown imported through local HTTP and unknown original ID replayed",
+    "target_project_id": "project-187eb7a2fe134bab96ed763edaa9926b",
+    "target_actions": 0,
+    "real_research_actions": 0,
+    "independent_review": "runs/s071-review/independent-assessment.md"
   }
 }
