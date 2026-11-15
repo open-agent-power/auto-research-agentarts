@@ -1,0 +1,135 @@
+{
+  "schema_version": "s067-boolq-case-comparison-protocol-v1",
+  "study_id": "s067-boolq-paired-passage-v1",
+  "status": "fixed_design_not_prepared_or_executed",
+  "source": {
+    "path": "/workspace/reference-exploration-20261115/boolq/original-dev-mirror.jsonl",
+    "bytes": 2238726,
+    "sha256": "ebc29ea3808c5c611672384b3de56e83349fe38fc1fe876fd29b674d81d0a80a",
+    "mirror_url": "https://raw.githubusercontent.com/svinkapeppa/boolq/65cad7c96c62f80b37394434fc4bf5a6148ccafc/dev.jsonl",
+    "mirror_commit": "65cad7c96c62f80b37394434fc4bf5a6148ccafc",
+    "recorded_original_checksum": "https://raw.githubusercontent.com/tensorflow/datasets/6db08b4249e6e5cc7a3f7b072efa59044c704a38/tensorflow_datasets/datasets/bool_q/checksums.tsv",
+    "author_readme": "https://raw.githubusercontent.com/google-research-datasets/boolean-questions/90af34107399cc7a446b373dc4ee35b8001da7c2/README.md",
+    "license": "CC BY-SA 3.0",
+    "expected_rows": 3270,
+    "expected_passage_groups": 2938,
+    "already_exposed": "Original public dev question/passage/title rows and yes/no answer labels were fully read during earlier source comparison before protocol. Labels were not used for sample selection or relevance. No blind or unseen-input claim."
+  },
+  "case": {
+    "path": "/workspace/development-continuation-20261114/auto-research-agentarts/runs/s066-verification/attempt-001/bundle.json",
+    "file_bytes": 1180183,
+    "file_sha256": "67deff921b5a42c28d075ec84129fce6df199aa3f7d5f50ae671b42d75f3d4b2",
+    "canonical_bytes": 1180182,
+    "canonical_sha256": "4ff88cb1fb5c365b9cd333f9dd56035d7d2cc366b2df98a2a6ddf8ded4a7712a",
+    "case_id": "s065-hotpot-support-history",
+    "case_version": 1,
+    "entry_id": "266a07d2f8af2e40a208a6c7d3382265e62700225ad4b5ade8078b3d4a92b363",
+    "producer_project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+    "producer_run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+    "producer_primary_action_id": "action-4de378649a2bc9026793872874663343",
+    "producer_primary_result_sha256": "32ced585400985fc64fb30b97877ba2ccc71c1164a651766764af4b49f0a9b1a",
+    "producer_source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb",
+    "producer_code_identity": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+    "provenance": "S064 v2 case; original policy context and final aggregate require the original source for offline proof; no model learning claim."
+  },
+  "preparation": {
+    "parse": "strict UTF-8 JSONL with duplicate/nonfinite rejection; entire public source already exposed; ignore answer value",
+    "question_normalization": "unicodedata.normalize('NFC',' '.join(question.split())).casefold()",
+    "require_unique_normalized_questions": true,
+    "corpus": "all exact UTF-8 passage groups, doc ID d- plus SHA256(exact passage UTF-8), original title bytewise minimum and all source titles in sidecar",
+    "representative": "smallest original one-based JSONL line per exact passage group",
+    "query_id": "q-boolq-dev- plus 8-digit one-based original line number",
+    "seed": "s067-boolq-passage-v1:",
+    "order": "SHA256(UTF8(seed+document_id)), document_id ASCII bytes",
+    "splits": {
+      "dev": 200,
+      "validation": 200,
+      "final": 200
+    },
+    "qrels": "one grade-1 positive original author-paired exact passage; never use yes/no answer as relevance",
+    "row_metadata": {},
+    "sidecar": "per doc ID original titles and percent-encoded English Wikipedia URLs; revision and contributors unknown; source receipt binds sidecar SHA",
+    "private": "final questions/qrels/selection only in local private files; full corpus shared and original public source was read; not blind",
+    "failure": "Any duplicate normalized question, hash collision, malformed input, missing title/passage, inadequate count or cap violation stops; no sample skipping, reseeding or new study."
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "unicode": "15.0.0",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "sklearn": "1.8.0",
+    "threads": 1,
+    "wall_seconds": 1800,
+    "source_pin": "clean exact published commit containing protocol/driver/tests; official origin main verified; no old pin modification"
+  },
+  "policy": {
+    "native_A": {
+      "metric": "recall@20",
+      "operator": "gt",
+      "threshold": 0
+    },
+    "shadow_B": {
+      "conditions": [
+        {
+          "metric": "recall@20",
+          "operator": "gt",
+          "threshold": 0
+        },
+        {
+          "metric": "mrr@10",
+          "operator": "gte",
+          "threshold": 0
+        }
+      ],
+      "leave_one_out": {
+        "metric": "recall@20",
+        "operator": "gt",
+        "threshold": 0
+      }
+    },
+    "native_holdout": {
+      "kind": "registered_feedback",
+      "registration_request_id": "s067-hypothesis",
+      "condition_met": "tfidf_cosine",
+      "condition_not_met": "bm25",
+      "unknown": "stop"
+    },
+    "known_branches": "research.relevance-validation-saved-audit",
+    "shadow": "Copy exact normalized condition from validated fixed S065 case; compare on same saved validation primary, freeze full inputs and decision before native conditional; B is not a second native hypothesis.",
+    "unknown": "Any A or B input unknown or invalid => preserve unknown and stop before audit/final; no short circuit to false.",
+    "sample_target": "Only when A and B differ and final measured both arms: B-minus-A final MRR@10 > 0 AND B-minus-A Recall@20 >= 0; same arm, missing counterfactual or unknown => comparison unknown."
+  },
+  "budget": {
+    "native_tools": 3,
+    "model_calls": 0,
+    "fits": 0,
+    "evidence_actions": 0,
+    "concurrency": 1,
+    "lineage": "s067-boolq-paired-passage-v1",
+    "unknown_development_tokens_and_cost": "unknown"
+  },
+  "ids": {
+    "import": "s067-import",
+    "select": "s067-select",
+    "case_import": "s067-case-import",
+    "plan": "s067-plan",
+    "evidence_cap": "s067-zero-evidence",
+    "holdout": "s067-holdout",
+    "hypothesis": "s067-hypothesis",
+    "primary": "s067-primary",
+    "shadow_anchor": "s067-shadow-anchor",
+    "conditional": "s067-conditional"
+  },
+  "recovery": {
+    "claim": "shared source-pins/.study-claims O_EXCL; exact workspace and original source/driver/protocol/case; do not recreate, replace, reseed or reset",
+    "requests": "save complete original bodies and original state versions before dispatch; exact same IDs on resume",
+    "shadow": "atomic write-once+fsync record and full validation input companion; record hash in original Project researcher-feedback entry before S052; anchor is unverified host statement not new hypothesis",
+    "unknown": "missing/corrupt DB, pending or unknown Project/Host/marker, partial source, missing shadow after accepted continuation, changed case/source/code/plan/budget => stop preserve evidence, do not redeliver",
+    "terminal": "completed terminal replay verifies original artifacts and receipt readonly even after deadline, no rerank or report rebuild"
+  },
+  "report": {
+    "native": "internal only: input.json/report.json may contain original passage/question/qrels and case bytes",
+    "public": "only separately reviewed allowlist of aggregate metrics, identities, counts, attribution, A/B decisions, budget and limitations; no passage/question text, query IDs/hashes, per-query rows or private input",
+    "claims": "no independent blindness, generalizable efficacy, causal effect of memory, model learning, answer correctness or scientific approval"
+  }
+}
