@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T03:05:08+08:00",
-  "status": "S115_backend_verified_process_and_ui_design_in_progress",
+  "end_time": "2026-11-16T03:26:01+08:00",
+  "status": "S116_verified_feedback_ui_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -48,7 +48,8 @@
     "S112 staged primary backend binds original registered future ID, parent and child transaction claims; independently verified 43+42 synthetic tests",
     "S113 independently verified seven real synthetic SIGSTOP/SIGKILL windows and old Controller genuine multi-process race, 8/8 original claim checks",
     "S114 UI explicitly executes registered future Controller ID with preserved body and resume-only; synthetic browser and 29+43 independent backend tests",
-    "S115 strict staged feedback backend for fully authenticated completed primary and known outcomes; independently verified 52+51 synthetic tests"
+    "S115 strict staged feedback backend for fully authenticated completed primary and known outcomes; independently verified 52+51 synthetic tests",
+    "S116 independent 10 synthetic real SIGKILL transaction windows, 2 actual old-entry multiprocess races, 4 asymmetric branch cases and claims verified"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -88,12 +89,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Verify actual multiprocess staged feedback wait/audit windows and design explicit UI; no real research/model.",
+  "next": "Implement explicit staged feedback wait/audit UI with original ID, clear tool cost and conservative resume-only.",
   "next_planned_trigger": "2026-11-16T04:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "a8bf70d5e7a7f9434cef338a3dce1efbb5a540a9",
-  "last_checkpoint": "2026-11-16T03:05:08+08:00",
+  "code_commit": "ce0fcc0ed070b7b2c2995186d892dc461544e4c9",
+  "last_checkpoint": "2026-11-16T03:26:01+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -895,5 +896,14 @@
     "extra_transaction_tests": 3,
     "scope": "known completed primary only; unknown/missing stop; function-injected races, no UI or new real study",
     "audit": "up to one tool using saved results; no new rank/score/fit/model/final"
+  },
+  "S116": {
+    "commit": "ce0fcc0ed070b7b2c2995186d892dc461544e4c9",
+    "source_head": "6f4abfe059207c75b042fd09b0abbbd5c805a696",
+    "windows": 10,
+    "real_races": 2,
+    "asymmetric_branch_cases": 4,
+    "scope": "independent synthetic processes, no proof power failure/all races; each case baseline 1 synthetic primary, audit separately budgeted",
+    "manifest_sha256": "76cf350c97c7508807e393aab4ec627726642575d6e721872289698ab527fbae"
   }
 }
