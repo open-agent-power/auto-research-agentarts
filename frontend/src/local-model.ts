@@ -4,6 +4,8 @@ import { el } from "./dom";
 type Obj = Record<string, unknown>;
 type MaterialField = "groups" | "folds" | "rows";
 type MaterialRequest = { action_id: string; result_sha256: string; fields: MaterialField[] };
+type QualityMaterialRequest = { kind: "tabular_quality_feedback"; registration_request_id: string; registration_sha256: string };
+type SavedMaterialRequest = MaterialRequest | QualityMaterialRequest;
 type Host = {
   read(url: string): Promise<Obj>;
   canCheckPlanFacts(): boolean;
@@ -16,6 +18,14 @@ const object = (value: unknown): Obj => value !== null && typeof value === "obje
 const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(object) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
 const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+function sameJSON(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b)
+    && a.length === b.length && a.every((value, i) => sameJSON(value, b[i]));
+  if (a === null || b === null || typeof a !== "object" || typeof b !== "object") return false;
+  const left = object(a), right = object(b), keys = Object.keys(left).sort(), other = Object.keys(right).sort();
+  return keys.length === other.length && keys.every((key, i) => key === other[i] && sameJSON(left[key], right[key]));
+}
 const number = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(value) : "未记录";
 const estimate = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(Number(value.toPrecision(8))) : "未记录";
 const pendingStates = new Set(["prepared", "sending", "unknown", "received"]);
@@ -56,6 +66,10 @@ function materialSummary(context: Obj): HTMLElement {
       const feedback = object(material.feedback);
       wrap.append(el("p", "", `质量登记 · ${text(material.registration_request_id)} · ${qualityState(feedback.outcome)}`),
         el("p", "detail-note", `登记 SHA ${text(material.registration_sha256)}；未知原因 ${text(feedback.unknown_reason, "无")}。`));
+      const detail = el("details", "local-advanced");
+      detail.append(el("summary", "", "查看原条件和已保存逐项反馈"),
+        el("pre", "project-source-text", JSON.stringify({ conditions: material.conditions, evaluation: feedback.evaluation ?? null }, null, 2)));
+      wrap.append(detail);
       continue;
     }
     const producer = object(material.producer), source = object(material.source_ref);
@@ -203,9 +217,9 @@ export function createLocalModelPanel(host: Host): {
   for (const button of [previewMaterials, saveInput, saveRequests]) button.type = "button";
   const materialActions = el("div", "local-actions"); materialActions.append(previewMaterials, saveInput, saveRequests);
   materials.append(el("summary", "", "为这次计划提供保存明细（可选）"),
-    el("p", "detail-note", "逐项勾选原诊断的完整字段。预览只读取保存结果，不创建模型请求，也不占决策名额。"),
+    el("p", "detail-note", "可勾选原诊断字段或质量登记。预览只读取保存结果，不创建模型请求，也不占决策名额。"),
     materialChoices, materialActions, materialStatus, materialPreview,
-    el("p", "detail-note", "逐行字段仅含当时保存的 input_values，可能为空，不会补入原始 CSV。字段选择 JSON 可供 CLI 的 --saved-materials 使用。"));
+    el("p", "detail-note", "逐行字段仅含当时保存的 input_values，可能为空，不会补入原始 CSV。质量材料含登记条件及反馈；完整计划上下文也可能含已有观察和敏感文本。预览和勾选不发送；明确提交后，选定材料和上下文可能发送给所选模型提供方。"));
   form.append(field("这次请模型做什么", purpose), materials, fields, start, el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
   const history = el("div", "local-model-history local-batch-history"); section.append(status, usage, currentCosts, form, history);
   const planHistory = el("section", "local-panel local-plan-proposals content-section"); planHistory.hidden = true;
@@ -219,8 +233,18 @@ export function createLocalModelPanel(host: Host): {
   const factDrafts = new Map<string, FactDraft>();
   const qualityFactDrafts = new Map<string, QualityFactDraft>();
   const materialDrafts = new Map<string, MaterialRequest[]>();
+  const qualityMaterialDrafts = new Map<string, QualityMaterialRequest[]>();
   let suppliedPreview: Obj | null = null, materialRevision = 0, materialBusy = false;
   const materialRequests = (): MaterialRequest[] => materialDrafts.get(projectId) ?? [];
+  const qualityMaterialRequests = (): QualityMaterialRequest[] => qualityMaterialDrafts.get(projectId) ?? [];
+  const allMaterialRequests = (): SavedMaterialRequest[] => [...materialRequests(), ...qualityMaterialRequests()];
+  const qualityChoices = (): Obj[] => object(project.quality_registration_choices).status === "available"
+    ? objects(object(project.quality_registration_choices).items) : [];
+  const qualityChoice = (request: QualityMaterialRequest): Obj | undefined => {
+    const matches = qualityChoices().filter(item => item.registration_request_id === request.registration_request_id
+      && item.registration_sha256 === request.registration_sha256);
+    return matches.length === 1 && matches[0].plan_matches === true && matches[0].source_matches === true ? matches[0] : undefined;
+  };
   const actionMethod = (action: Obj): string => text(object(object(action.method_instance).definition_ref).id, "");
   const diagnosticActions = (): Obj[] => objects(project.actions).filter(action => action.status === "completed"
     && ["data.saved-oof-random-diagnostics", "data.saved-oof-group-diagnostics"].includes(actionMethod(action))
@@ -256,6 +280,40 @@ export function createLocalModelPanel(host: Host): {
       }
       row.append(options); materialChoices.append(row);
     }
+    const quality = qualityChoices(), chosenQuality = qualityMaterialRequests();
+    materialChoices.append(el("h4", "", "已登记的质量条件"));
+    if (object(project.quality_registration_choices).status === "unavailable")
+      materialChoices.append(el("p", "notice error", "质量登记记录不可核对；不会自动选择其他登记。"));
+    else if (!quality.length) materialChoices.append(el("p", "empty-state", "当前项目没有可显示的质量登记。"));
+    for (const item of quality) {
+      const request: QualityMaterialRequest = { kind: "tabular_quality_feedback",
+        registration_request_id: text(item.registration_request_id, ""), registration_sha256: text(item.registration_sha256, "") };
+      const selected = chosenQuality.some(r => r.registration_request_id === request.registration_request_id && r.registration_sha256 === request.registration_sha256);
+      const valid = !!qualityChoice(request), check = el("input"); check.type = "checkbox"; check.checked = selected;
+      check.disabled = !valid || (!selected && chosenQuality.length >= 4) || loading;
+      const row = el("fieldset", "local-fieldset local-material-choice"), label = el("label", "local-checkbox");
+      label.append(check, el("span", "", `登记 ${request.registration_request_id} · 原计划 v${number(item.plan_version)}`));
+      row.append(label, el("p", valid ? "detail-note" : "notice error", valid
+        ? `登记 SHA ${request.registration_sha256}；反馈状态需显式预览核对。`
+        : `登记 SHA ${request.registration_sha256}；原计划或来源身份不匹配，不能供应。`));
+      const details = el("details", "local-advanced");
+      details.append(el("summary", "", "查看登记条件与身份"), el("pre", "project-source-text", JSON.stringify({
+        conditions: item.conditions, plan_sha256: item.plan_sha256, source_snapshot_sha256: item.source_snapshot_sha256,
+      }, null, 2))); row.append(details);
+      check.addEventListener("change", () => {
+        const rest = qualityMaterialRequests().filter(r => r.registration_request_id !== request.registration_request_id);
+        if (check.checked && valid && rest.length < 4) rest.push(request);
+        qualityMaterialDrafts.set(projectId, rest); invalidateMaterials(); renderMaterialChoices(); controls();
+      });
+      materialChoices.append(row);
+    }
+    for (const request of chosenQuality.filter(item => !qualityChoice(item))) {
+      const stale = el("div", "local-material-choice"), remove = el("button", "quiet-button", "移除失效质量选择"); remove.type = "button";
+      stale.append(el("p", "notice error", `质量登记 ${request.registration_request_id} 的原身份或计划已变化，请移除后重新核对。`), remove);
+      remove.addEventListener("click", () => { qualityMaterialDrafts.set(projectId, qualityMaterialRequests().filter(item => item !== request));
+        invalidateMaterials(); renderMaterialChoices(); controls(); });
+      materialChoices.append(stale);
+    }
     for (const request of selected.filter(item => !actions.some(action => action.id === item.action_id && action.result_sha256 === item.result_sha256))) {
       const stale = el("div", "local-material-choice"), remove = el("button", "quiet-button", "移除此选择"); remove.type = "button";
       stale.append(el("p", "notice error", `原选择 ${request.action_id} 的结果身份已不可用，请核对后移除；不会替换成其他诊断。`),
@@ -266,10 +324,11 @@ export function createLocalModelPanel(host: Host): {
   }
   function materialControls(): void {
     materials.hidden = purpose.value !== "plan";
-    const ready = !!projectId && typeof project.snapshot_ref === "string" && !loading && materialRequests().length > 0;
+    const ready = !!projectId && typeof project.snapshot_ref === "string" && !loading && allMaterialRequests().length > 0
+      && qualityMaterialRequests().every(request => !!qualityChoice(request));
     previewMaterials.disabled = !ready || materialBusy;
     previewMaterials.textContent = materialBusy ? "正在组装完整输入…" : "预览实际供应输入";
-    saveInput.disabled = !suppliedPreview || materialBusy; saveRequests.disabled = !materialRequests().length;
+    saveInput.disabled = !suppliedPreview || materialBusy; saveRequests.disabled = !allMaterialRequests().length;
   }
   const grant = (): Obj => object(object(view.journal).grant);
   const pending = (): boolean => records.some(record => pendingStates.has(text(record.status, "")));
@@ -294,8 +353,10 @@ export function createLocalModelPanel(host: Host): {
     purpose.disabled = loading || !projectId;
     start.textContent = purpose.value === "plan" ? "让模型建议研究计划" : "用模型选择并执行一步";
     const validCap = Number(cap.value) > 0 && Number(cap.value) <= 0.10;
-    const staleMaterials = purpose.value === "plan" && materialRequests().some(request => !diagnosticActions().some(action => action.id === request.action_id && action.result_sha256 === request.result_sha256));
-    start.disabled = !available() || !validCap || !reason.value.trim() || staleMaterials;
+    const staleMaterials = purpose.value === "plan" && (materialRequests().some(request => !diagnosticActions().some(action => action.id === request.action_id && action.result_sha256 === request.result_sha256))
+      || qualityMaterialRequests().some(request => !qualityChoice(request)));
+    const qualityNeedsPreview = purpose.value === "plan" && qualityMaterialRequests().length > 0 && !suppliedPreview;
+    start.disabled = !available() || !validCap || !reason.value.trim() || staleMaterials || qualityNeedsPreview;
     for (const { button, body } of resumeButtons) button.disabled = locked && body.request_id !== allowedRequestId || loading || !canResume(body);
     for (const { button, record, rejectReason } of decisionButtons) {
       const selected = object(object(record.context).selection_context);
@@ -623,7 +684,7 @@ export function createLocalModelPanel(host: Host): {
     if (typeof counts.delegated_outputs_received === "number" && counts.delegated_outputs_received > 0)
       usage.append(el("p", "detail-note", `另有${counts.delegated_outputs_received}份外部原回答导入；模型与用量的核验状态见对应记录，现金结算未知。`));
   }
-  function download(record: Obj | MaterialRequest[], suffix = ""): void {
+  function download(record: Obj | SavedMaterialRequest[], suffix = ""): void {
     const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], { type: "application/json;charset=utf-8" }));
     const link = el("a"); link.href = url; link.download = text(object(record).request_id, text(object(record).host_request_id, "model-request")).replace(/[^A-Za-z0-9_.-]/g, "_") + suffix + ".json";
     link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -743,9 +804,12 @@ export function createLocalModelPanel(host: Host): {
   }
   async function refresh(nextId: string, nextProject: Obj, nextContext: Obj | null): Promise<void> {
     const generation = ++refreshId;
-    if (projectId !== nextId || project.snapshot_ref !== nextProject.snapshot_ref)
+    if (projectId !== nextId || project.snapshot_ref !== nextProject.snapshot_ref) {
+      qualityMaterialDrafts.delete(projectId);
+      if (projectId !== nextId) qualityMaterialDrafts.delete(nextId);
       invalidateMaterials(projectId ? "项目或快照已变化，旧预览已作废；原字段选择仍保留，未改选其他诊断。"
         : "选择需要供应的完整字段，再预览本次输入。");
+    }
     if (projectId !== nextId) {
       records = []; view = {}; reason.value = ""; limit.value = "1"; cap.value = "0.10"; usage.replaceChildren(); savedRequests();
     }
@@ -768,7 +832,7 @@ export function createLocalModelPanel(host: Host): {
       if (generation !== refreshId) return;
       status.textContent = "模型状态读取失败，请只读刷新后核对；不会重新发送请求。"; status.classList.add("error");
       host.announce(error instanceof Error ? error.message : "模型状态读取失败。", true);
-    } finally { if (generation === refreshId) { loading = false; controls(); } }
+    } finally { if (generation === refreshId) { loading = false; renderMaterialChoices(); controls(); } }
   }
   form.addEventListener("submit", event => {
     event.preventDefault(); if (start.disabled || !available() || !form.reportValidity() || !context) return;
@@ -778,23 +842,40 @@ export function createLocalModelPanel(host: Host): {
     }
     void host.submit(purpose.value === "plan" ? "model-plan-advance" : "model-advance", { project_id: projectId, expected_state_version: context.state_version,
       decision_limit: decisionLimit, cli_budget_usd: cliBudget, reason: actualReason,
-      ...(purpose.value === "plan" && materialRequests().length ? { saved_materials: materialRequests() } : {}) });
+      ...(purpose.value === "plan" && allMaterialRequests().length ? { saved_materials: allMaterialRequests() } : {}) });
   });
   previewMaterials.addEventListener("click", () => { void (async () => {
     if (previewMaterials.disabled) return;
-    const revision = ++materialRevision, id = projectId, snapshot = text(project.snapshot_ref, ""), requests = JSON.stringify(materialRequests());
-    materialBusy = true; suppliedPreview = null; materialPreview.replaceChildren(); materialStatus.textContent = "正在读取并核对所选完整字段…"; materialControls();
+    const revision = ++materialRevision, id = projectId, snapshot = text(project.snapshot_ref, ""), requests = JSON.stringify(allMaterialRequests());
+    materialBusy = true; suppliedPreview = null; materialPreview.replaceChildren(); materialStatus.textContent = "正在读取并核对所选完整字段…"; controls();
     try {
       const preview = await host.read("/api/project/plan-context.json?saved_materials=" + encodeURIComponent(requests) + "&snapshot_ref=" + encodeURIComponent(snapshot));
-      if (revision !== materialRevision || id !== projectId || snapshot !== project.snapshot_ref) return;
+      if (revision !== materialRevision || id !== projectId || snapshot !== project.snapshot_ref || requests !== JSON.stringify(allMaterialRequests())) return;
       const selection = object(preview.selection_context), supplied = suppliedMaterials(preview);
       if (preview.schema_version !== "research-plan-context-v3" || selection.project_id !== id || selection.snapshot_ref !== snapshot
-        || supplied.length !== materialRequests().length || !materialRequests().every(request => supplied.some(material => material.action_id === request.action_id
-          && material.result_sha256 === request.result_sha256 && Object.keys(object(material.fields)).length === request.fields.length
-          && request.fields.every(name => { const field = object(object(material.fields)[name]); return Array.isArray(field.value) && field.count === field.value.length; }))))
+        || supplied.length !== allMaterialRequests().length || !materialRequests().every(request => supplied.filter(material => !("kind" in material)
+          && material.action_id === request.action_id && material.result_sha256 === request.result_sha256
+          && Object.keys(object(material.fields)).length === request.fields.length
+          && request.fields.every(name => { const field = object(object(material.fields)[name]); return Array.isArray(field.value) && field.count === field.value.length; })).length === 1)
+        || !qualityMaterialRequests().every(request => {
+          const choice = qualityChoice(request);
+          const matches = supplied.filter(material => material.kind === "tabular_quality_feedback"
+            && material.registration_request_id === request.registration_request_id && material.registration_sha256 === request.registration_sha256);
+          if (!choice || matches.length !== 1) return false;
+          const material = matches[0], feedback = object(material.feedback);
+          return material.plan_version === choice.plan_version && material.plan_sha256 === choice.plan_sha256
+            && material.source_snapshot_sha256 === choice.source_snapshot_sha256 && material.scientific_validation === false
+            && material.controller_request_id === choice.controller_request_id && sameJSON(material.conditions, choice.conditions)
+            && feedback.request_id === request.registration_request_id && feedback.registration_sha256 === request.registration_sha256
+            && feedback.controller_request_id === choice.controller_request_id
+            && ["condition_met", "condition_not_met", "unknown"].includes(text(feedback.outcome, ""))
+            && feedback.scientific_validation === false
+            && (feedback.outcome === "unknown" ? typeof feedback.unknown_reason === "string" && feedback.action_id === null && feedback.result_sha256 === null
+              : feedback.unknown_reason === null && typeof feedback.action_id === "string" && typeof feedback.result_sha256 === "string");
+        }))
         throw Error("返回输入的项目、快照或完整字段身份不符，请只读刷新后重新核对。");
       suppliedPreview = preview;
-      materialStatus.className = "notice"; materialStatus.textContent = "完整输入已组装，可下载核对；尚未创建或发送模型请求。";
+      materialStatus.className = "notice"; materialStatus.textContent = "完整输入已组装，可下载核对；尚未创建或发送模型请求。unknown 不证明行动未发生，也不认证尚未读取的原件。";
       materialPreview.append(materialSummary(preview));
     } catch (error) {
       if (revision !== materialRevision) return;
@@ -802,10 +883,10 @@ export function createLocalModelPanel(host: Host): {
       materialStatus.className = "notice error";
       materialStatus.textContent = (message.includes("INVALID_PLAN_CONTEXT") ? "无法组装完整输入，请核对是否超过 64 KiB 上限。" : "完整输入预览失败：" + message + "。")
         + "选择已保留；没有截断字段或换成简表。可减少勾选字段后重新预览。";
-    } finally { if (revision === materialRevision) { materialBusy = false; materialControls(); } }
+    } finally { if (revision === materialRevision) { materialBusy = false; controls(); } }
   })(); });
   saveInput.addEventListener("click", () => { if (suppliedPreview) download(suppliedPreview, "-supplied-input"); });
-  saveRequests.addEventListener("click", () => { if (materialRequests().length) download(materialRequests(), "-saved-materials"); });
+  saveRequests.addEventListener("click", () => { if (allMaterialRequests().length) download(allMaterialRequests(), "-saved-materials"); });
   for (const control of [limit, cap, reason]) control.addEventListener("input", controls);
   purpose.addEventListener("change", () => { controls(); statusText(); });
   controls();

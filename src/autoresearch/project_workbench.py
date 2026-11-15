@@ -199,6 +199,25 @@ def _projection(project, state, report=None):
     revisions = state.get("plan_revisions", [])
     view["research_plan"] = {"current": revisions[-1] if revisions else None, "revisions": revisions}
     view["recipe_revisions"] = copy.deepcopy(state.get("recipe_revisions", []))
+    registrations = state.get("tabular_quality_registrations", [])
+    if type(registrations) is not list or registrations:
+        try:
+            tabular_quality_feedback._checked_collection(registrations)
+            _require(all(r["project_id"] == state["id"] and r["run_id"] == state["run_id"] for r in registrations),
+                     "EVIDENCE_CHANGED", "Quality registrations belong to another project.")
+            current_plan = revisions[-1] if revisions else None
+            view["quality_registration_choices"] = {"status": "available", "items": [
+                {"registration_request_id": r["request_id"], "registration_sha256": r["registration_sha256"],
+                 "controller_request_id": r["controller_request_id"],
+                 "conditions": copy.deepcopy(r["conditions"]), "plan_version": r["plan_version"],
+                 "plan_sha256": r["plan_sha256"], "source_snapshot_sha256": r["source_snapshot_sha256"],
+                 "plan_matches": current_plan is not None and r["plan_version"] == current_plan.get("version")
+                                 and r["plan_sha256"] == fingerprint(current_plan),
+                 "source_matches": r["source_snapshot_sha256"] == state["source_snapshot_sha256"]}
+                for r in registrations], "verification": "registration_metadata_only"}
+        except (ResearchError, KeyError, TypeError, ValueError, AttributeError):
+            view["quality_registration_choices"] = {"status": "unavailable", "items": [],
+                                                     "verification": "registration_metadata_only"}
     public_view = _public(view, project)
     public_view["researcher_feedback"] = copy.deepcopy(state.get("researcher_feedback", []))
     if state.get("hypothesis_registrations"):
