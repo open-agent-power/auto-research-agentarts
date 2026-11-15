@@ -1,7 +1,9 @@
 # 当前自主研究开发
 Status: resumable
 
-S064经验v2已完成独立验证待发布：原事前登记/反馈/audit/freeze/final聚合沿现有Memory绑定目标Project/计划，保留负结果；55相关/独审3+两个目标子例通过，合成原件源状态预算保持，原100文件保持，offline必须回源核原策略及最终聚合。未调用模型/新科研，见[SPRINT-064](../execution/SPRINT-064.md)。
+S065固定protocol/driver已通过合成与独审、待发布，真实Hotpot支持文档检索新case准备中：固定公开源SHA4e9ecb5c…/46,320,117B、原作者CC BY-SA4/维基2017 dump，原JSON未解析或建项目；正式方案SHA3772acf2…，driver作者48相关、独审7项与异PID/unknown工程证据完成；发布前不可prepare；3tools/0model/0fit为独立新case、旧case预算不重开。见[SPRINT-065](../execution/SPRINT-065.md)。
+
+S064经验v2已完成独立验证并推送5e397b2693f2385f26e203af12e7f3f02c6d2507：原事前登记/反馈/audit/freeze/final聚合沿现有Memory绑定目标Project/计划，保留负结果；55相关/独审3+两个目标子例通过，合成原件源状态预算保持，原100文件保持，offline必须回源核原策略及最终聚合。未调用模型/新科研，见[SPRINT-064](../execution/SPRINT-064.md)。
 
 S063已完成固定验证并推送a7f6284cd648e875f2fa309219cfd29e5242706e：新holdout显式事前feedback映射实际控制原freeze选臂，unknown/wait与错误audit不得绕过；专项11/相关92及独审通过，两个合成case正确TFIDF/BM25并原ID新进程恢复，原100文件与v1反馈字节保持。v2经验捕获明确拒绝；无新模型/真实研究收益。[S063](../execution/SPRINT-063.md)。
 
@@ -32,3 +34,5 @@ AAW02e72e3e411bec53db2288651df01afb27d8904d/v0.3.1远端仍同、7安装文件�
 本轮源码pin `/workspace/development-continuation-20261114/source-pins/4e17a63` 为clean detached 4e17a63af164cd8d0cb49a1e5a3feae458df459d，191源与原reader freeze相同；数据仍在原case路径，源pin不等于整套环境已可移植恢复。
 
 本轮S063源码pin `/workspace/development-continuation-20261114/source-pins/a7f6284` 含191源码+1专项，与fixed freeze逐项同；继续S064评估v2结果能否版本化保存在原Memory并绑定下个计划，当前尚未通过。
+
+S064源码pin `/workspace/development-continuation-20261114/source-pins/5e397b2` 与191源码+2test固定清单同，旧研究未迁移。继续只读寻找许可明确的新真实CPU检索任务，尚无新研究执行。

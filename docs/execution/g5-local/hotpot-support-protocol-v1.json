@@ -1,0 +1,133 @@
+{
+  "schema_version": "s065-hotpot-support-protocol-v1",
+  "study_id": "s065-hotpot-support-v1",
+  "protocol_status": "fixed_design_not_prepared_or_executed",
+  "source": {
+    "path": "/workspace/reference-exploration-20261115/hotpotqa/hotpot-dev-distractor-v1-raglab-original-bytes.json",
+    "bytes": 46320117,
+    "sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+    "mirror_url": "https://huggingface.co/datasets/RAGLAB/data/resolve/83ec19575bcf252a53a82f68eda4a8921924ca45/eval_datasets/HotPotQA/hotpot_dev_distractor_v1.json",
+    "mirror_revision": "83ec19575bcf252a53a82f68eda4a8921924ca45",
+    "author_expected_metadata": "https://huggingface.co/datasets/hotpotqa/hotpot_qa/blob/cb440e4e72efe5808fe5df497ffa0b4e8da85c32/dataset_infos.json",
+    "author_current_server": "403; retrieved via third party; bytes match historical metadata",
+    "expected_records": 7405,
+    "preprotocol_exposure": "Downloaded public bytes; one arbitrary dataset viewer record parsed in memory for schema only. No full original JSON parsing, cohort selection, ranking or scoring before protocol."
+  },
+  "license": {
+    "dataset": "CC BY-SA 4.0 per author README",
+    "dataset_author_readme": "https://raw.githubusercontent.com/hotpotqa/hotpot/3635853403a8735609ee997664e1528f4480762a/README.md",
+    "processed_wikipedia": "CC BY-SA 4.0 per https://hotpotqa.github.io/",
+    "original_wikipedia": "CC BY-SA 3.0 noted by https://hotpotqa.github.io/wiki-readme.html",
+    "wikipedia_dump": "2017-10-01 English Wikipedia",
+    "each_document_attribution": "outside-project sidecar doc_id/title/canonical Wikipedia URL/revision unknown; source receipt binds sidecar SHA",
+    "per_article_revision_and_contributors": "unknown; no claim of complete legal rights determination",
+    "distribution": "Only reviewed allowlisted aggregate published; raw source, passages, queries, qrels and original reports remain local. Preserve source attribution and limitations."
+  },
+  "preparation": {
+    "parse": "strict UTF-8 JSON; reject duplicate keys/nonfinite numbers; full public source parse necessarily loads final candidates and labels, no blindness claim",
+    "question_group_normalization": "unicodedata.normalize('NFC',' '.join(question.split())).casefold()",
+    "group_representative": "minimum raw _id by UTF-8 bytes independent of answers, contexts, support labels and rankings",
+    "order_seed": "s065-hotpot-question-v1:",
+    "order": "SHA256(UTF8(seed+raw_id)), raw_id UTF8 bytes",
+    "select_total": 300,
+    "splits": {
+      "dev": 100,
+      "validation": 100,
+      "final": 100
+    },
+    "query_id": "q-<raw _id>, valid native identifier <=80 ASCII chars",
+    "document_id": "d-<sha256 of UTF8 canonical JSON [exact title,ordered sentence list]>, valid native ID <=80",
+    "text_join": "join exact ordered source sentences with one ASCII space",
+    "corpus": "all contexts of all selected questions independently of supporting labels; deduplicate exact title/sentence tuple, globally reject same title with differing tuple; never filter selected questions on outcomes",
+    "row_metadata": {},
+    "support_qrels": "all distinct supporting_facts titles in that query mapped to exact context docs, strict valid sentence integer/coordinate, grade 1, at least one; never filter missing or invalid, stop",
+    "sidecar": "per selected corpus doc_id, original title, canonical percent-encoded English Wikipedia article URL, source dump date, revision unknown; no query ID/mapping/label; source_receipt SHA binds sidecar SHA",
+    "private": "final qids/questions/qrels and selection mapping only in private study files; source raw and internal report outside Git; shared corpus necessarily contains final-candidate documents",
+    "bounds": "native existing staged corpus<=10000 rows, all development assets<=11800000 bytes, license<=65536 bytes, source packet/result and private holdout existing limits; cap violation stops",
+    "failure": "malformed input, any duplicate qid, selected global title conflict, missing/invalid support coordinates, hash collision, incomplete source, cap violation or attribution sidecar failure stops and preserves evidence; no skip, seed change or score-based reselection"
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "unicode": "15.0.0",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "sklearn": "1.8.0",
+    "threads": 1,
+    "source_pin": "clean exact published commit containing protocol and driver; preserve source core identity; no mutable old pin",
+    "isolation": "trusted local, no OS/sealed claim"
+  },
+  "selection": {
+    "question": "Does fixed validation support-document retrieval show TFIDF vs BM25 recall improvement without MRR loss and with positive recall delta after each single-query removal?",
+    "comparisons": [
+      {
+        "metric": "recall@20",
+        "operator": "gt",
+        "threshold": 0
+      },
+      {
+        "metric": "mrr@10",
+        "operator": "gte",
+        "threshold": 0
+      }
+    ],
+    "leave_one_out": {
+      "metric": "recall@20",
+      "operator": "gt",
+      "threshold": 0
+    },
+    "operators": "strict original saved values, no epsilon rounding for predicate",
+    "scientific_meaning": "annotated supporting documents only; incomplete annotations do not imply non-relevance; not answer correctness or multi-hop reasoning",
+    "rationale": "Chosen before Hotpot full JSON parsing or scoring but informed by previously observed S060 sensitivity; not blind or unbiased discovery"
+  },
+  "budget": {
+    "native_tool_limit": 3,
+    "model_limit": 0,
+    "fit_limit": 0,
+    "evidence_action_limit": 0,
+    "research_concurrency": 1,
+    "maximum_wall_seconds": 1800,
+    "lineage": "s065-hotpot-support-v1 independent new topic; old case and global protected budgets unchanged",
+    "unknown_cost_or_token": "unknown"
+  },
+  "ids": {
+    "plan": "s065-plan",
+    "evidence_cap": "s065-zero-evidence",
+    "holdout": "s065-holdout",
+    "hypothesis": "s065-hypothesis",
+    "primary": "s065-primary",
+    "conditional": "s065-conditional",
+    "import": "s065-import",
+    "select": "s065-select"
+  },
+  "policy": {
+    "kind": "registered_feedback",
+    "registration_request_id": "s065-hypothesis",
+    "condition_met": "tfidf_cosine",
+    "condition_not_met": "bm25",
+    "unknown": "stop",
+    "both_known_branches": "research.relevance-validation-saved-audit",
+    "unknown_or_wait": "no freeze/final",
+    "not_met_final": "BM25 single arm, selected-vs-baseline zero is structural and does not measure TFIDF on final"
+  },
+  "report": {
+    "native_report": "internal only; input.json/report.json include development source packet and may contain raw text/base64",
+    "public": "only independently reviewed allowlist of aggregate metrics, identities, counts, attribution, budget and limits; no passages, queries, query IDs/hashes, qrels, per-query rows, private packets or report input",
+    "claims": "no generalization, significance, causation, model research, QA, multi-hop or sealed inference"
+  },
+  "execution": {
+    "publication": "protocol and driver/test source committed and independently reviewed before parsing original JSON; prepare-only creates no research project or native action",
+    "claim": "atomic exclusive cooperative study claim in shared source-pins/.study-claims; preserve claim and original workspace permanently; do not imply OS/global synchronization",
+    "durability": "write original exact bodies, input/source/code/plan/owner, cumulative budget and absolute deadline before dispatch; no overwrite or reselection",
+    "resume": "same original request IDs, same source-pinned workspace and original absolute deadline; unknown/partial/missing DB/marker fails closed without new dispatch, new IDs, project or directory",
+    "stages": [
+      "prepare fixed inputs",
+      "project/plan/zero evidence allowance",
+      "v2 holdout policy",
+      "v3 hypothesis with both known branches audit",
+      "primary",
+      "S052 conditional audit/freeze/final/report",
+      "independent audit and same-ID readonly replay"
+    ],
+    "resource_or_schema_failure": "stop and preserve evidence; do not adjust cohort, budget or thresholds after results"
+  }
+}

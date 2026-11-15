@@ -1,0 +1,144 @@
+{
+  "schema_version": "s065-public-source-audit-v1",
+  "status": "protocol_and_driver_fixed_independently_reviewed_not_published_no_research",
+  "hotpot": {
+    "url": "https://huggingface.co/datasets/RAGLAB/data/resolve/83ec19575bcf252a53a82f68eda4a8921924ca45/eval_datasets/HotPotQA/hotpot_dev_distractor_v1.json",
+    "bytes": 46320117,
+    "sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+    "matches_historical_dataset_infos": true,
+    "body_parsed": false,
+    "source_ownership": "third-party redistribution",
+    "final_path": "/workspace/reference-exploration-20261115/hotpotqa/hotpot-dev-distractor-v1-raglab-original-bytes.json",
+    "checked_after_move": {
+      "bytes": 46320117,
+      "sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea"
+    },
+    "note": "Separate public dataset-server schema probe parsed one arbitrary row in memory and emitted only fields/types; this saved file never parsed."
+  },
+  "hotpot_author_readme_commit": "3635853403a8735609ee997664e1528f4480762a",
+  "hotpot_author_dataset_license": "CC BY-SA 4.0",
+  "wikipedia_dump": "English Wikipedia 2017-10-01; source documentation describes original wiki-derived file separately as CC BY-SA 3.0",
+  "article_revision_and_individual_contributors": "unknown",
+  "boolq_audit": {
+    "author": {
+      "dev_rows": 3270,
+      "git_commit": "90af34107399cc7a446b373dc4ee35b8001da7c2",
+      "license": "CC BY-SA 3.0",
+      "readme_url": "https://raw.githubusercontent.com/google-research-datasets/boolean-questions/90af34107399cc7a446b373dc4ee35b8001da7c2/README.md",
+      "source_text": "BoolQ is released under the Creative Commons Share-Alike 3.0 license.",
+      "test_rows": 3245,
+      "train_rows": 9427
+    },
+    "boundary": "Read train/val and original dev only; no test content, ranking, scoring, fitting, model, research action or holdout registration; publicly exposed labels and shared corpus are not blind.",
+    "failures": [
+      "Author original GCS dev/train and Storage JSON API returned HTTP 403.",
+      "A guessed facebookresearch/SuperGLUE repository returned 404.",
+      "Initial conclusion that SuperGLUE removed title was incorrect: it prepends title + space-hyphen-hyphen-space to each passage; plain raw passage comparison gave zero exact matches."
+    ],
+    "files": {
+      "BoolQ.zip": {
+        "bytes": 4118001,
+        "sha256": "853fbe7922f70c59629f06a39e8d9ca440c3d740e760fd3b87a5ddf3dcba2436"
+      },
+      "author-README.md": {
+        "bytes": 2675,
+        "sha256": "0afe70d7cdbb644637592212f0cb15339389910bf00f35764ec3c545257aa663"
+      },
+      "google-mirror-card.md": {
+        "bytes": 6570,
+        "sha256": "07447668f46c7c1e62e24b650ea2a73f1ab34f2b3759b1587c7b7a81b4bf1cf4"
+      },
+      "hugo-boolq-loader.py": {
+        "bytes": 3427,
+        "sha256": "bbaa1be66614186b63ddbfdc967a6458df45cd402484cbd766e41c4307102f71"
+      },
+      "hugo-validation.parquet": {
+        "bytes": 1316932,
+        "sha256": "92fed42e9b0663d1507d16621fd9a20445ab3483e9485a353537a848771ac8a9"
+      },
+      "original-dev-mirror.jsonl": {
+        "bytes": 2238726,
+        "sha256": "ebc29ea3808c5c611672384b3de56e83349fe38fc1fe876fd29b674d81d0a80a"
+      },
+      "tfds-checksums.tsv": {
+        "bytes": 264,
+        "sha256": "0700beade320d1086dd660ff80db6aca7c4f7cfbca8717dad692bf89793f2711"
+      }
+    },
+    "hugo_mirror": {
+      "declared_fields": [
+        "question",
+        "answer",
+        "passage",
+        "title"
+      ],
+      "loader_commit": "0d2912ce5e9fb7af489cf204d714cec64f1e84eb",
+      "loader_url": "https://huggingface.co/datasets/hugo/boolq/raw/0d2912ce5e9fb7af489cf204d714cec64f1e84eb/boolq.py",
+      "parquet_not_decoded_or_equated_to_official_raw": true,
+      "parquet_revision": "02b442a6262e639409faa5bd6605a121b2c37c67",
+      "parquet_url": "https://huggingface.co/datasets/hugo/boolq/resolve/02b442a6262e639409faa5bd6605a121b2c37c67/default/validation/0000.parquet"
+    },
+    "original_dev_mirror": {
+      "git_commit": "65cad7c96c62f80b37394434fc4bf5a6148ccafc",
+      "matches_official_tfds_source_sha256": "ebc29ea3808c5c611672384b3de56e83349fe38fc1fe876fd29b674d81d0a80a",
+      "mirror_is_not_author": true,
+      "nonempty_titles": 3270,
+      "rows": 3270,
+      "unique_passages": 2938,
+      "unique_titles": 2651,
+      "url": "https://raw.githubusercontent.com/svinkapeppa/boolq/65cad7c96c62f80b37394434fc4bf5a6148ccafc/dev.jsonl"
+    },
+    "retrieved_utc_date": "2026-11-15",
+    "schema_version": "boolq-source-audit-v1",
+    "source_manifest_path": "/workspace/reference-exploration-20261115/boolq/fixed-input-manifest.json",
+    "source_manifest_sha256": "060f4b79eff5b7f19a6b520b58b47a8630919900b741f7c5274c66d8679cf198",
+    "status": "source_preparation_only_attribution_review_pending",
+    "superglue": {
+      "test_member_central_metadata_only": {
+        "bytes": 2193238,
+        "contents_read": false
+      },
+      "train_member": {
+        "bytes": 6573302,
+        "rows": 9427,
+        "sha256": "5a0cc1d6cb971a7a177b74bde27b8355de4b0f0e4d86d0a8435ec92cfeb63ba6"
+      },
+      "train_val_overlap": {
+        "passage_strings": 720
+      },
+      "url": "https://dl.fbaipublicfiles.com/glue/superglue/data/v2/BoolQ.zip?versionId=C6rdcLsPo3TKCuCndgxm6Yod2JWaPpB5",
+      "val_mapping_to_original": {
+        "questions_matched": 3270,
+        "relevance_from_answer": false,
+        "title_separator_passage_matched": 3270,
+        "yes_no_labels_matched_for_source_integrity_only": 3270
+      },
+      "val_member": {
+        "bytes": 2254565,
+        "rows": 3270,
+        "sha256": "0c86a5045886e5795fe9052003873f7d94b88ed3028a33007c51d99e44fd66d9"
+      },
+      "version_id": "C6rdcLsPo3TKCuCndgxm6Yod2JWaPpB5"
+    },
+    "tensorflow_checksums": {
+      "commit": "6db08b4249e6e5cc7a3f7b072efa59044c704a38",
+      "original_dev_sha256": "ebc29ea3808c5c611672384b3de56e83349fe38fc1fe876fd29b674d81d0a80a",
+      "original_train_downloaded": false,
+      "original_train_sha256": "cc7a79d44479867e8323a7b0c5c1d82edf516ca34912201f9384c3a3d098d8db",
+      "url": "https://raw.githubusercontent.com/tensorflow/datasets/6db08b4249e6e5cc7a3f7b072efa59044c704a38/tensorflow_datasets/datasets/bool_q/checksums.tsv"
+    }
+  },
+  "formal_protocol": {
+    "path": "docs/execution/g5-local/hotpot-support-protocol-v1.json",
+    "sha256": "3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef",
+    "original_hotpot_source_parsed": false,
+    "one_public_viewer_sample_previously_parsed_for_schema_only": true
+  },
+  "old_disk_history": "unknown",
+  "research_actions": 0,
+  "models": 0,
+  "fits": 0,
+  "development_cost": "unknown",
+  "boundary": "No automatic attribution compliance determination; source/report texts stay local, public report only reviewed aggregate. BoolQ labels inspected for mirror integrity, not used as relevance. Hotpot original bytes have not been parsed, scored or selected.",
+  "driver_verification": "docs/execution/g5-local/hotpot-driver-verification.json"
+}

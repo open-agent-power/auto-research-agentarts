@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": null,
-  "status": "S062_S063_published_S064_verified_pending_publication",
+  "status": "S062_S063_S064_published_S065_driver_verified_pending_publication",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -12,7 +12,9 @@
     "47 related and5 independent probes; two synthetic HTTP runs, six exact fresh-process replays; isolation confirms LOO alone causes wait",
     "Original S04636/S05017/S05447 files unchanged; original budgets and pins preserved",
     "S063 opt-in preregistered feedback selection frozen in original holdout; 11 synthetic,92 related and independent review passed; 2 synthetic cases retained; old100 files and v1 output unchanged",
-    "S064 versioned v2 feedback-selected experience through native Memory and target plan/report;55 author checks,3 independent probes and2 independent target subcases; two original synthetic producers/cases read-only captured with original file/state/budget stable"
+    "S064 versioned v2 feedback-selected experience through native Memory and target plan/report;55 author checks,3 independent probes and2 independent target subcases; two original synthetic producers/cases read-only captured with original file/state/budget stable",
+    "S065 fixed Hotpot original historical-byte-matching source and prospective selection/protocol recorded; full original source not parsed, no cohort/project or research",
+    "BoolQ mirror byte matching and SuperGLUE title-prefix mapping corrected after initial false mismatch; 720 train/val passage overlap preserved"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -30,16 +32,17 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Publish S064 and assess a truly new licensed CPU retrieval research task, separate from existing exhausted cases; source/rights/protocol/budget first, no paid model.",
+  "next": "Publish exact S065 driver/protocol and create a clean source pin; then one original prepare using exclusive claim, preserving any failure and never resetting budget. On success run registered study under3 tools/0 model/fit and independent review.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
   "code_commit": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
-  "last_checkpoint": "2026-11-15T11:46:26.425096+08:00",
+  "last_checkpoint": "2026-11-15T12:29:11.980535+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/8090aa7",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
-    "S063": "a7f6284cd648e875f2fa309219cfd29e5242706e"
+    "S063": "a7f6284cd648e875f2fa309219cfd29e5242706e",
+    "S064": "5e397b2693f2385f26e203af12e7f3f02c6d2507"
   },
   "S063_source_pin": "/workspace/development-continuation-20261114/source-pins/a7f6284",
   "S064": {
@@ -48,6 +51,19 @@
     "original_real_files_unchanged": 100,
     "scientific_actions_models_fits": 0,
     "independent_assessment": "runs/s064-review/independent-assessment.md",
-    "evidence": "docs/execution/g5-local/feedback-experience-verification.json"
+    "evidence": "docs/execution/g5-local/feedback-experience-verification.json",
+    "source_pin": "/workspace/development-continuation-20261114/source-pins/5e397b2"
+  },
+  "S065": {
+    "source_sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+    "source_bytes": 46320117,
+    "protocol_sha256": "3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef",
+    "status": "driver_verified_pending_publication_no_true_study",
+    "one_public_schema_sample_observed": true,
+    "full_original_json_parsed": false,
+    "evidence": "docs/execution/g5-local/new-retrieval-source-audit.json",
+    "driver_freeze_sha256": "a66dc739740d3ebc1c053b3ae4b8e56c0038d254079c66fa5aaec2c89bc0557f",
+    "author_related_tests": 48,
+    "independent_tests": 7
   }
 }

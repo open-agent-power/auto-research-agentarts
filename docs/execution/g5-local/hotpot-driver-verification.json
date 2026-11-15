@@ -1,0 +1,63 @@
+{
+  "schema_version": "s065-hotpot-driver-verification-v1",
+  "status": "fixed_verified_not_published_not_prepared",
+  "source_freeze_sha256": "a66dc739740d3ebc1c053b3ae4b8e56c0038d254079c66fa5aaec2c89bc0557f",
+  "core_identity": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+  "source_count": 191,
+  "driver_protocol_helper_test": {
+    "docs/execution/g5-local/hotpot-support-protocol-v1.json": {
+      "bytes": 8224,
+      "sha256": "3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef"
+    },
+    "scripts/run_hotpot_support_study.py": {
+      "bytes": 54015,
+      "sha256": "17b5330e4567b9f75016c7a258955269622d97deb8ee4e843c7e47bdb9ef4b69"
+    },
+    "scripts/run_squad_paragraph_study.py": {
+      "bytes": 35185,
+      "sha256": "5de4bc6c998c0ba745c745537893c6dea10de03cda8c68aab2a129be95992619"
+    },
+    "tests/test_hotpot_support_study.py": {
+      "bytes": 17855,
+      "sha256": "833146dd7d8d206fccaf58867d1a7268f0a4b1d81c398753d38ed79d69baff8f"
+    }
+  },
+  "author_related_tests": 48,
+  "author_s065_tests": 11,
+  "independent_tests": 7,
+  "independent_assessment": {
+    "path": "runs/s065-review/independent-assessment.md",
+    "sha256": "007c7dbfdcfd25ede1ff7e5b85f82a696f40a3e345473e1360a8970aa33884e5"
+  },
+  "source_sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+  "source_bytes": 46320117,
+  "full_hotpot_json_parsed": false,
+  "actual_project_or_native_action_created": false,
+  "global_local_claim_observed_absent": true,
+  "scientific_model_calls": 0,
+  "scientific_fits": 0,
+  "development_cost": "unknown",
+  "development_tokens": "unknown",
+  "scope": [
+    "Author synthetic met/notmet execute3 tools and terminal replay; unknown waiting1 tool, no final; new process replay independently performed by author, reviewer inspected receipts only",
+    "Independent 7 synthetic tests verify origin/claim, source and sidecar tamper, grouped IDs/multiqrel, two branches, unknown, pending and readonly terminal replay",
+    "Before protocol one public dataset viewer record entered process for schema only; full original JSON not parsed",
+    "Future prepare and verify_prepared necessarily parse public original including final candidate questions/labels, and read private selection/holdout; no blindness or no-final-byte claim",
+    "Private aggregate synthetic final qid/text/hash/base64 tested against outputs only as bounded canary, not universal leak proof; native reports internal only",
+    "Exact episode uses new genuine Hotpot source/independent native3-tool budget, never old case reset; research output not yet obtained",
+    "Source attribution author CC BY-SA4 and Wikipedia 2017 dump noted; individual revision/contributor unknown, no claim complete rights audit"
+  ],
+  "failures": [
+    "Initial synthetic expected met actually notmet; engineering fixture corrected, original log retained",
+    "Early origin target check and source/query/sidecar binding gaps identified in WIP and fixed before freeze",
+    "Reviewer was previously sent message while completed and not restarted; root corrected by followup; independent fixed-version review then actually ran"
+  ],
+  "evidence": [
+    "runs/s065-verification/driver-regression.log",
+    "runs/s065-verification/independent-replay.json",
+    "runs/s065-verification/unknown-wait.json",
+    "runs/s065-review/independent-assessment.md",
+    "runs/s065-review/hotpot-source-receipt.json"
+  ],
+  "recorded_at": "2026-11-15T12:29:11.980535+08:00"
+}

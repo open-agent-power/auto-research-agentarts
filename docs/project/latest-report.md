@@ -7,3 +7,9 @@ S062代码已推main `8090aa7191b3cff8132edd6dcff7e9309ba90e62`，源码pin /wor
 S063代码已推 `a7f6284cd648e875f2fa309219cfd29e5242706e`，191源码+专项pin /workspace/development-continuation-20261114/source-pins/a7f6284 与freeze同。事前feedback规则现在可控制final选臂；11新专项/92相关和独审通过，两合成案例分别选TF-IDF/BM25并原ID恢复，0新科研/模型/fit。持续S064检查v2经验如何进入Memory；未完成不冒认。检查点 2026-11-15T11:30:29.238379+08:00。
 
 S064 fixed独审通过：反馈选臂v2结果可进入原Memory/目标计划并显示真实条件与负结果；55相关/独审3+两个目标子例，两已完成合成源只读capture，原100文件保持。离线不可独立证明原审计及final聚合，必须回源；未新增科研/模型/fit。检查点 2026-11-15T11:46:26.425096+08:00，待发布。
+
+S064代码已推main `5e397b2693f2385f26e203af12e7f3f02c6d2507`；源码pin /workspace/development-continuation-20261114/source-pins/5e397b2 的191源码+2测试与freeze逐项一致。继续只读寻找新研究任务及许可；尚无新研究执行。检查点 2026-11-15T11:46:54.330032+08:00。
+
+S065新真实Hotpot支持文档检索正在准备，固定原字节46,320,117B/SHA4e9ecb5c…与历史作者元数据一致，正式方案SHA3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef；完整原JSON尚未解析、未建项目/实验。BoolQ原文标题前缀映射初判已纠正并记录。driver/独审通过并发布前不解析源。检查点2026-11-15T12:00:31.201661+08:00。
+
+S065固定driver/protocol现通过作者48相关、独审7与合成异PID/unknown验证，尚未发布/解析真实源。固定source195项SHAa66dc739740d3ebc1c053b3ae4b8e56c0038d254079c66fa5aaec2c89bc0557f。下步发布后按唯一claim prepare；检查点2026-11-15T12:29:11.980535+08:00。
