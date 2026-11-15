@@ -19,6 +19,9 @@ def require(condition, code, message):
         raise ResearchError(code, message)
 
 
+_UNSET_SELECTION_POLICY = object()
+
+
 def _source_metadata(receipt):
     return [{key: source[key] for key in ("id", "sha256", "media_type")} for source in receipt["sources"]]
 
@@ -343,10 +346,11 @@ class ResearchProject:
         return register(self, request_id=request_id, expected_state_version=expected_state_version,
                         hypothesis=hypothesis)
 
-    def register_holdout(self, *, request_id, expected_state_version, holdout):
+    def register_holdout(self, *, request_id, expected_state_version, holdout, selection_policy=_UNSET_SELECTION_POLICY):
         from .retrieval_holdout import register_holdout
+        options = {} if selection_policy is _UNSET_SELECTION_POLICY else {"selection_policy": selection_policy}
         return register_holdout(self, request_id=request_id, expected_state_version=expected_state_version,
-                                holdout=holdout)
+                                holdout=holdout, **options)
 
     def freeze_retrieval_strategy(self, *, request_id, expected_state_version, primary_action_id):
         from .retrieval_holdout import freeze_strategy

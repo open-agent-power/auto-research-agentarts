@@ -222,6 +222,9 @@ def derive_staged_observation(workspace, primary_action_id):
         _require(metadata is not None and metadata["frozen_evaluation_strategy"] is not None,
                  "A preregistered holdout and frozen strategy are required.", "ARTIFACT_NOT_AVAILABLE")
         reg, freeze = metadata["private_evaluation"], metadata["frozen_evaluation_strategy"]
+        _require(reg["schema_version"] == "retrieval-holdout-registration-v1"
+                 and freeze["schema_version"] == "retrieval-holdout-freeze-v1",
+                 "This experience schema does not support preregistered-feedback selection.", "METHOD_NOT_SUPPORTED")
         source_sha, source, parsed = _dev_source(project, before)
         actions = []
         for method in (staged.TOOL_ID, staged.AUDIT_TOOL_ID, holdout.FINAL_TOOL_ID):

@@ -1,7 +1,9 @@
 # 当前自主研究开发
 Status: resumable
 
-S062已完成固定验证、待最终提交：staged事前双指标可选单题留一条件，未知整体等待，旧v1/v2及原freeze不变；47相关、5独审，两组实际合成HTTP及异PID原body重放通过，隔离对照中两mean通过但LOO失败正确wait；100原文件未改。见[SPRINT-062](../execution/SPRINT-062.md)。
+S063已完成固定验证，待推送：新holdout显式事前feedback映射实际控制原freeze选臂，unknown/wait与错误audit不得绕过；专项11/相关92及独审通过，两个合成case正确TFIDF/BM25并原ID新进程恢复，原100文件与v1反馈字节保持。v2经验捕获明确拒绝；无新模型/真实研究收益。[S063](../execution/SPRINT-063.md)。
+
+S062已完成固定验证并推送8090aa7191b3cff8132edd6dcff7e9309ba90e62：staged事前双指标可选单题留一条件，未知整体等待，旧v1/v2及原freeze不变；47相关、5独审，两组实际合成HTTP及异PID原body重放通过，隔离对照中两mean通过但LOO失败正确wait；100原文件未改。见[SPRINT-062](../execution/SPRINT-062.md)。
 
 本轮S061已完成独立验证并推送777f92acaf08ee0c695d94cfd97d70706b308d71：显式plan材料staged_validation_stability供原validation双指标胜负平与单题留一聚合；42相关/5独审、两原案只读对照S060一致，旧freeze/预算和CODE_CHANGED保持。无新模型或科研行动；精确scope见[SPRINT-061](../execution/SPRINT-061.md)。
 

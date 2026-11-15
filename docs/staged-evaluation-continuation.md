@@ -48,3 +48,10 @@ S046真实研究固定在4a159a9 source pin并已耗尽3工具；S047新源码�
 本轮实现/验收完成状态以 [current](project/current.md) 与 [latest-report](project/latest-report.json) 为准；未完成前不据本接口说明认领完成。
 
 S059可选registration-v2把两个事前validation条件作为一个整体outcome交给本显式路径；失败/未知分支按原登记等待或审计，未知必等待。新门不改变本路径后续Recall@20冻结算法，不绕过原source/父子/预算门。详见[双指标合同](hypothesis-feedback.md#显式双指标联合条件s059)。
+
+
+## 事前登记的反馈选臂（S063）
+
+新建staged实验可在holdout登记时显式设置 `selection_policy` 为 `{"kind":"registered_feedback","registration_request_id":"事先约定的登记ID","condition_met":"tfidf_cosine","condition_not_met":"bm25","unknown":"stop"}`。这是固定两臂映射；随后在primary之前完成对应hypothesis登记和分支。仅真实反馈所选分支为同家audit且该原audit完成、原父子和事前上下文全部匹配时才能冻结；unknown、wait、错误ID或手工无关audit均拒绝。S052六字段须引用同一登记，旧五字段不能绕过此v2。最终方法由冻结映射选定，Recall@20仍记录为观察值。显式null拒绝，省略policy则旧v1原行为与wire不变。
+
+原v1 experience capture尚不支持v2并明确拒绝；原报告可按v2渲染。该功能不追认旧case的事前登记，不改变旧预算，不证明科学收益或盲测。见[S063](execution/SPRINT-063.md)。

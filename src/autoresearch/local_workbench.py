@@ -542,8 +542,13 @@ class LocalWorkbench:
             return response
 
     def register_holdout(self, body):
-        from .retrieval_holdout import MAX_HOLDOUT_BYTES
-        digest = _body(body, ("request_id", "project_id", "expected_state_version", "holdout_base64"))
+        from .retrieval_holdout import MAX_HOLDOUT_BYTES, _feedback_policy
+        if type(body) is dict and "selection_policy" in body:
+            _feedback_policy(body["selection_policy"])
+            _require(body["selection_policy"]["registration_request_id"] != body.get("request_id"),
+                     "INVALID_REQUEST", "Policy and holdout request IDs must differ.")
+        fields = ("request_id", "project_id", "expected_state_version", "holdout_base64")
+        digest = _body(body, (*fields, "selection_policy") if type(body) is dict and "selection_policy" in body else fields)
         holdout = _decode(body["holdout_base64"], MAX_HOLDOUT_BYTES)
         return self._retrieval_evaluation_command(body, digest, "register_holdout", holdout=holdout)
 
@@ -568,7 +573,8 @@ class LocalWorkbench:
                              and old.get("intent") == {"project_id": body["project_id"], "request_sha256": digest},
                              "EVIDENCE_CHANGED", "The original manager request binding changed.")
             if command == "register_holdout":
-                value = project.register_holdout(request_id=body["request_id"], expected_state_version=body["expected_state_version"], holdout=holdout)
+                options = {"selection_policy": body["selection_policy"]} if "selection_policy" in body else {}
+                value = project.register_holdout(request_id=body["request_id"], expected_state_version=body["expected_state_version"], holdout=holdout, **options)
                 result_key = "private_evaluation"
             else:
                 value = project.freeze_retrieval_strategy(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
@@ -1671,6 +1677,12 @@ class LocalWorkbench:
                 self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
                 if old is None:
                     state = project.status()
+                    private = state.get("private_evaluation")
+                    if type(private) is dict and private.get("schema_version") == "retrieval-holdout-registration-v2":
+                        from .retrieval_holdout import validate_metadata
+                        validated = validate_metadata(state)
+                        _require(conditional and body["registration_request_id"] == validated["private_evaluation"]["policy"]["registration_request_id"],
+                                 "CONDITION_NOT_SATISFIED", "This holdout requires its original conditional continuation.")
                     if conditional:
                         _require(state["state_version"] == body["expected_state_version"], "STALE_STATE", "Project state changed.")
                         _require(state["code_identity"] == project_code_identity(), "CODE_CHANGED", "Use the original project implementation.")

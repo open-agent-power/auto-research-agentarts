@@ -1,5 +1,7 @@
 # Master Execution Pack v2 · 云端执行
 
+[S063](SPRINT-063.md)显式事前feedback选臂接入原freeze/final，两个独立合成分支、同ID恢复与独审通过；原v1旧案例与预算不变。
+
 [S062](SPRINT-062.md)可在staged事前双指标之外显式登记单题留一条件；47相关/5独审，两组实际合成HTTP及跨进程重放通过，原研究/冻结规则不变。
 
 [S060](SPRINT-060.md)真实保存validation全400对/400留一均值及独算完成；S054 R20提升仅1题，移除归零，MRR仍有退步且单题影响可反号，不宣称普遍收益。原100文件/科研额度/原严格freeze保持。

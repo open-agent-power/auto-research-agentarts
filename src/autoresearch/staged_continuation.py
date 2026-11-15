@@ -28,6 +28,11 @@ def conditional_policy(state, registration_id, primary_action_id, context):
     from . import feedback_policy, hypothesis_feedback
     identifier(registration_id, "registration_request_id")
     identifier(primary_action_id, "primary_action_id")
+    private = state.get("private_evaluation")
+    if type(private) is dict and private.get("schema_version") == "retrieval-holdout-registration-v2":
+        checked = retrieval_holdout.validate_metadata(state)
+        _require(checked is not None and checked["private_evaluation"]["policy"]["registration_request_id"] == registration_id,
+                 "EVIDENCE_CHANGED", "Conditional continuation must use the holdout's original feedback registration.")
     registrations = [item for item in state.get("hypothesis_registrations", []) if item.get("request_id") == registration_id]
     _require(len(registrations) == 1, "EVIDENCE_CHANGED", "One original preregistration is required.")
     registration = registrations[0]
@@ -283,6 +288,8 @@ def _inspect(project, state, primary_action_id):
         freeze_projection = {"request_id": frozen["request_id"], "record_sha256": frozen["record_sha256"],
                              "selected_method": frozen["selected_method"], "validation_delta_recall20": frozen["validation_delta_recall20"],
                              "state_version_before": freeze_version}
+        if frozen["schema_version"] == "retrieval-holdout-freeze-v2":
+            freeze_projection["feedback_binding"] = copy.deepcopy(frozen["feedback_binding"])
         audit_parent = parents["audit"]
         _require(stages["audit"] is not None and stages["audit"]["status"] == "completed" and audit_parent is not None
                  and type(audit_parent.get("state_version_after")) is int and audit_parent["state_version_after"] <= freeze_version,

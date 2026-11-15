@@ -1,0 +1,9 @@
+# S063：按事前反馈选择最终评价方法
+
+已实现新的显式holdout注册v2；先冻结selection_policy和未来原hypothesis ID，再在primary之前登记该hypothesis及分支。真实原结果已知且原分支明确授权审计、该登记生成的原audit完成并可核父子/SQL/工件/封存context，低层freeze才按事前映射 `condition_met→tfidf_cosine`、`condition_not_met→bm25` 固定方法；unknown或wait拒绝。直接freeze与旧五字段续作也不能绕过；原holdout/primary/audit时序、完整评价投影及原query_count绑定。旧v1缺省仍原严格Recall@20规则；v2 experience当前明确受控拒绝，不伪装v1。
+
+固定191源+1test清单SHA0745bf8410e7f66fb38edda474fe18ed29128cf245459f805382a654d9b89b95、core670805da6b2140bc448bd11bb3ed69638f64e4d0ee720cf37c400ce63a71602e。作者新专项11、相关92通过；独审只读两组保存合成案例：R20=0但登记feedback满足→TFIDF、final两臂2排名/2评分；not_met且原分支授权audit→BM25，同臂1排名/1评分、逐题差0；各3科研工具为独立工程fixture预算、0模型/fit。前者真实HTTP、后者manager新进程原body重放，独审只核回执。报告4文件manifest及合成canary范围核验；独审对public-only副本篡改primary/audit样本数并重封均EVIDENCE_CHANGED。
+
+初版原freeze残留v1硬编码、报告policy对象拼串失败均修并保留日志；独审随后发现历史context不绑定完整投影，初版192文件/两case原件保存，修复后新case重新核验。root初次存初版时两次误读manifest格式导致快照准备失败、未改源，失败记ignored。原S04636/S05017/S05447共100文件哈希相同，原S054 v1反馈/notice/state与旧pin逐字节相同。全case hash在guard外读取private命名字节；独审为核重放读取包含合成holdout base64的回执及合成final，不称所有private零I/O。
+
+这是工程验证，不证明科学收益、盲测、模型自主研究或OS隔离；不重开旧研究额度。[精确证据](g5-local/feedback-selected-holdout-verification.json)。

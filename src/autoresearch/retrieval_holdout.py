@@ -37,6 +37,17 @@ MAX_HOLDOUT_BYTES = 2 * 1024 * 1024
 POLICY = "validation-recall20-tfidf-minus-bm25-gt-zero-v1"
 PRIVATE_DIR = "private_evaluation"
 PRIVATE_FILE = "holdout.json"
+FEEDBACK_POLICY_KIND = "registered_feedback"
+_UNSET_POLICY = object()
+
+
+def _feedback_policy(value):
+    require(type(value) is dict and set(value) == {"kind", "registration_request_id", "condition_met", "condition_not_met", "unknown"}
+            and value["kind"] == FEEDBACK_POLICY_KIND and value["condition_met"] == "tfidf_cosine"
+            and value["condition_not_met"] == "bm25" and value["unknown"] == "stop",
+            "INVALID_REQUEST", "Use the fixed preregistered-feedback selection policy.")
+    identifier(value["registration_request_id"], "registration_request_id")
+    return copy.deepcopy(value)
 
 
 def code_identity():
@@ -106,7 +117,7 @@ def validate_metadata(state):
                           "source_snapshot_sha256", "plan_sha256", "plan_version", "project_code_identity", "policy",
                           "scientific_validation", "record_sha256"}
         require(type(private) is dict and set(private) == private_fields
-                and private["schema_version"] == "retrieval-holdout-registration-v1"
+                and private["schema_version"] in ("retrieval-holdout-registration-v1", "retrieval-holdout-registration-v2")
                 and all(ident(private[k]) for k in ("request_id", "project_id", "run_id"))
                 and all(digest(private[k]) for k in ("request_sha256", "sha256", "corpus_sha256", "source_sha256",
                         "source_snapshot_sha256", "plan_sha256", "project_code_identity", "record_sha256"))
@@ -114,12 +125,17 @@ def validate_metadata(state):
                 and bounded_int(private["bytes"], 1, MAX_HOLDOUT_BYTES)
                 and bounded_int(private["query_count"], 1, relevance.LIMITS["max_queries"])
                 and bounded_int(private["plan_version"], 1, 2**63 - 1)
-                and type(private["policy"]) is str and private["policy"] == POLICY
+                and ((private["schema_version"] == "retrieval-holdout-registration-v1" and type(private["policy"]) is str and private["policy"] == POLICY)
+                     or (private["schema_version"] == "retrieval-holdout-registration-v2" and canonical(_feedback_policy(private["policy"])) == canonical(private["policy"])))
                 and private["scientific_validation"] is False,
                 "EVIDENCE_CHANGED", "Holdout registration schema or values changed.")
         expected_request = {"request_id": private["request_id"], "expected_state_version": private["state_version_before"],
                             "holdout_sha256": private["sha256"], "holdout_bytes": private["bytes"]}
-        require(type(private["request"]) is dict and private["request"] == expected_request
+        if private["schema_version"] == "retrieval-holdout-registration-v2":
+            require(private["policy"]["registration_request_id"] != private["request_id"],
+                    "EVIDENCE_CHANGED", "Holdout and future feedback registration IDs collide.")
+            expected_request["selection_policy"] = copy.deepcopy(private["policy"])
+        require(type(private["request"]) is dict and canonical(private["request"]) == canonical(expected_request)
                 and type(private["request"]["expected_state_version"]) is int
                 and type(private["request"]["holdout_bytes"]) is int
                 and private["request_sha256"] == fingerprint(expected_request)
@@ -147,18 +163,31 @@ def validate_metadata(state):
                          "holdout_record_sha256", "source_snapshot_sha256", "plan_sha256", "project_code_identity",
                          "primary_action_id", "primary_result_sha256", "validation_delta_recall20", "policy",
                          "selected_method", "scientific_validation", "record_sha256"}
+        if private["schema_version"] == "retrieval-holdout-registration-v2":
+            freeze_fields.add("feedback_binding")
         require(type(frozen) is dict and set(frozen) == freeze_fields
-                and frozen["schema_version"] == "retrieval-holdout-freeze-v1"
+                and frozen["schema_version"] == ("retrieval-holdout-freeze-v2" if private["schema_version"] == "retrieval-holdout-registration-v2" else "retrieval-holdout-freeze-v1")
                 and all(ident(frozen[k]) for k in ("request_id", "project_id", "run_id", "primary_action_id"))
                 and all(digest(frozen[k]) for k in ("request_sha256", "holdout_record_sha256", "source_snapshot_sha256",
                         "plan_sha256", "project_code_identity", "primary_result_sha256", "record_sha256"))
                 and type(frozen["validation_delta_recall20"]) in (int, float)
                 and math.isfinite(frozen["validation_delta_recall20"]) and -1 <= frozen["validation_delta_recall20"] <= 1
-                and type(frozen["policy"]) is str and frozen["policy"] == POLICY
+                and canonical(frozen["policy"]) == canonical(private["policy"])
                 and type(frozen["selected_method"]) is str
-                and frozen["selected_method"] == ("tfidf_cosine" if frozen["validation_delta_recall20"] > 0 else "bm25")
+                and (private["schema_version"] == "retrieval-holdout-registration-v2"
+                     or frozen["selected_method"] == ("tfidf_cosine" if frozen["validation_delta_recall20"] > 0 else "bm25"))
                 and frozen["scientific_validation"] is False,
                 "EVIDENCE_CHANGED", "Frozen strategy schema or values changed.")
+        if private["schema_version"] == "retrieval-holdout-registration-v2":
+            binding = frozen["feedback_binding"]
+            require(type(binding) is dict and set(binding) == {"registration_request_id", "registration_sha256", "outcome",
+                    "audit_action_id", "audit_result_sha256", "audit_parent_request_id"}
+                    and binding["registration_request_id"] == private["policy"]["registration_request_id"]
+                    and all(ident(binding[k]) for k in ("registration_request_id", "audit_action_id", "audit_parent_request_id"))
+                    and all(digest(binding[k]) for k in ("registration_sha256", "audit_result_sha256"))
+                    and binding["outcome"] in ("condition_met", "condition_not_met")
+                    and frozen["selected_method"] == private["policy"][binding["outcome"]],
+                    "EVIDENCE_CHANGED", "Frozen preregistered feedback binding differs.")
         request = frozen["request"]
         require(type(request) is dict and set(request) == {"request_id", "expected_state_version", "primary_action_id"}
                 and request["request_id"] == frozen["request_id"] and request["primary_action_id"] == frozen["primary_action_id"]
@@ -198,16 +227,21 @@ def _verified_private(project, state):
     return record, raw
 
 
-def register_holdout(project, *, request_id, expected_state_version, holdout):
+def register_holdout(project, *, request_id, expected_state_version, holdout, selection_policy=_UNSET_POLICY):
     """Persist one private packet before any primary action exists."""
     identifier(request_id)
     require(type(expected_state_version) is int and expected_state_version >= 0,
             "INVALID_REQUEST", "A current exact state version is required.")
     require(type(holdout) is bytes and 0 < len(holdout) <= MAX_HOLDOUT_BYTES,
             "INVALID_REQUEST", "Use bounded holdout JSON bytes.")
+    policy = _feedback_policy(selection_policy) if selection_policy is not _UNSET_POLICY else POLICY
+    if selection_policy is not _UNSET_POLICY:
+        require(policy["registration_request_id"] != request_id, "INVALID_REQUEST", "Policy and holdout request IDs must differ.")
     digest = hashlib.sha256(holdout).hexdigest()
     request = {"request_id": request_id, "expected_state_version": expected_state_version,
                "holdout_sha256": digest, "holdout_bytes": len(holdout)}
+    if selection_policy is not _UNSET_POLICY:
+        request["selection_policy"] = copy.deepcopy(policy)
     with project._writer(), project._connect() as con:
         state = project._project(con)
         old = state.get("private_evaluation")
@@ -220,6 +254,10 @@ def register_holdout(project, *, request_id, expected_state_version, holdout):
             return copy.deepcopy(old)
         require(project._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "Request ID belongs to an action.")
         project._require_unclaimed(state, request_id)
+        if selection_policy is not _UNSET_POLICY:
+            project._require_unclaimed(state, policy["registration_request_id"])
+            require(project._action(con, policy["registration_request_id"]) is None,
+                    "IDEMPOTENCY_CONFLICT", "The future registration ID is already claimed.")
         current = project.status()
         project._require_fresh(state, current, expected_state_version)
         _host_ready(project, state)
@@ -234,14 +272,14 @@ def register_holdout(project, *, request_id, expected_state_version, holdout):
         require(directory.is_dir(), "EVIDENCE_CHANGED", "Private evaluation directory is unavailable.")
         os.chmod(directory, 0o700)
         write_bytes_once(_path(project), holdout)
-        record = {"schema_version": "retrieval-holdout-registration-v1", "request_id": request_id,
+        record = {"schema_version": "retrieval-holdout-registration-v2" if selection_policy is not _UNSET_POLICY else "retrieval-holdout-registration-v1", "request_id": request_id,
                   "request_sha256": fingerprint(request), "request": request, "project_id": state["id"],
                   "run_id": state["run_id"], "state_version_before": expected_state_version,
                   "sha256": digest, "bytes": len(holdout), "query_count": len(queries),
                   "corpus_sha256": payload["assets"]["corpus"]["sha256"],
                   "source_sha256": state["registration"]["source_sha256"], "source_snapshot_sha256": state["source_snapshot_sha256"],
                   "plan_sha256": fingerprint(plans[-1]), "plan_version": plans[-1]["version"],
-                  "project_code_identity": state["code_identity"], "policy": POLICY,
+                  "project_code_identity": state["code_identity"], "policy": policy,
                   "scientific_validation": False}
         record["record_sha256"] = fingerprint(record)
         state["private_evaluation"] = record
@@ -305,6 +343,74 @@ def _original(project, state, action_id):
     return action, original, result
 
 
+def _registered_feedback_binding(project, state, holdout, primary, original):
+    """Verify a pre-primary registration and its original policy-selected audit."""
+    from . import hypothesis_feedback, staged_continuation, staged_project_experience, staged_relevance_adapter as staged
+    policy = _feedback_policy(holdout["policy"])
+    matching = [item for item in state.get("hypothesis_registrations", []) if item.get("request_id") == policy["registration_request_id"]]
+    require(len(matching) == 1, "CONDITION_NOT_SATISFIED", "The preregistered selection feedback is unavailable.")
+    registration = matching[0]
+    hypothesis_feedback._check_record(registration)
+    require(registration["project_id"] == state["id"] and registration["run_id"] == state["run_id"]
+            and registration["source_sha256"] == holdout["source_sha256"]
+            and registration["source_snapshot_sha256"] == holdout["source_snapshot_sha256"]
+            and registration["project_code_identity"] == holdout["project_code_identity"]
+            and registration["plan_sha256"] == holdout["plan_sha256"] and registration["plan_version"] == holdout["plan_version"]
+            and registration["scope_sha256"] == fingerprint(state["source_scope"])
+            and registration["candidate"]["method_id"] == PRIMARY_TOOL_ID
+            and type(registration["state_version_before"]) is int
+            and registration["state_version_before"] > holdout["state_version_before"]
+            and "branches" in registration,
+            "EVIDENCE_CHANGED", "Original feedback registration or its pre-primary source binding differs.")
+    parents = [item for item in state.get("controller_requests", []) if item.get("request_id") == registration["controller_request_id"]]
+    require(len(parents) == 1 and type(parents[0].get("state_version_before")) is int
+            and parents[0]["state_version_before"] > registration["state_version_before"],
+            "EVIDENCE_CHANGED", "Primary parent does not follow the original registration.")
+    initial = parents[0].get("selection_context", {})
+    expected_evaluation = {"schema_version": "staged-evaluation-context-v2", "holdout_sha256": holdout["sha256"],
+                           "query_count": holdout["query_count"], "policy": copy.deepcopy(policy),
+                           "freeze": None, "final": None, "scientific_validation": False,
+                           "limitations": PUBLIC_LIMITATIONS}
+    original_items = [item for item in initial.get("hypothesis_feedback", {}).get("items", [])
+                      if item.get("request_id") == registration["request_id"]]
+    require(len(original_items) == 1 and original_items[0].get("registration_sha256") == registration["registration_sha256"]
+            and original_items[0].get("controller_request_id") == registration["controller_request_id"]
+            and canonical(original_items[0].get("condition")) == canonical(registration["condition"])
+            and canonical(original_items[0].get("candidate")) == canonical(registration["candidate"])
+            and canonical(original_items[0].get("branches")) == canonical(registration["branches"])
+            and original_items[0].get("outcome") == "unknown"
+            and original_items[0].get("unknown_reason") == "controller_not_started"
+            and canonical(initial.get("staged_evaluation")) == canonical(expected_evaluation),
+            "EVIDENCE_CHANGED", "Primary context did not contain the original predeclared policy and feedback registration.")
+    view = hypothesis_feedback.feedback_context(project, state)
+    items = [item for item in view["items"] if item["request_id"] == registration["request_id"]]
+    require(len(items) == 1 and items[0]["outcome"] in ("condition_met", "condition_not_met")
+            and items[0]["action_id"] == primary["id"] and items[0]["result_sha256"] == primary["result_sha256"],
+            "CONDITION_NOT_SATISFIED", "Original feedback is unknown or does not bind this primary.")
+    outcome = items[0]["outcome"]
+    require(registration["branches"][outcome] == {"kind": "method", "method_id": staged.AUDIT_TOOL_ID},
+            "CONDITION_NOT_SATISFIED", "The original branch does not authorize an audit and freeze.")
+    audits = [action for action in state["actions"] if action.get("command") == staged.AUDIT_TOOL_ID]
+    require(len(audits) == 1 and audits[0].get("status") == "completed", "CONDITION_NOT_SATISFIED", "The original policy audit is unavailable.")
+    predecessor = {"based_on_action_id": primary["id"], "based_on_result_sha256": primary["result_sha256"]}
+    audit = staged_continuation._action_row(project, state, audits[0], staged.AUDIT_TOOL_ID, predecessor)
+    parent = staged_continuation._parent(state, audit, staged.AUDIT_TOOL_ID, predecessor)
+    require(canonical(parent["selection_context"].get("staged_evaluation")) == canonical(expected_evaluation)
+            and type(parents[0].get("state_version_after")) is int
+            and type(parent.get("state_version_before")) is int
+            and parents[0]["state_version_after"] <= parent["state_version_before"],
+            "EVIDENCE_CHANGED", "Policy audit must follow the original primary completion.")
+    tool = staged_continuation._envelope(project, state, audit)
+    staged_project_experience._check_audit(tool, original, predecessor)
+    saved = staged_continuation.conditional_policy(state, registration["request_id"], primary["id"], parent["selection_context"])
+    require(saved["decision"] == "audit" and canonical(saved["feedback"]) == canonical(items[0])
+            and canonical(saved["proposal"]) == canonical(parent["request"]["proposal"]),
+            "EVIDENCE_CHANGED", "The completed audit was not the original preregistered feedback branch.")
+    return {"registration_request_id": registration["request_id"], "registration_sha256": registration["registration_sha256"],
+            "outcome": outcome, "audit_action_id": audit["id"], "audit_result_sha256": audit["result_sha256"],
+            "audit_parent_request_id": parent["request_id"]}
+
+
 def freeze_strategy(project, *, request_id, expected_state_version, primary_action_id):
     """Freeze the predetermined strategy based only on saved validation data."""
     identifier(request_id)
@@ -337,19 +443,24 @@ def freeze_strategy(project, *, request_id, expected_state_version, primary_acti
                 "EVIDENCE_CHANGED", "Plan, source or code differs from preregistration.")
         require(not any(a["command"] == FINAL_TOOL_ID for a in current["actions"]),
                 "CONDITION_NOT_SATISFIED", "Final evaluation has already been attempted.")
-        action, _, result = _original(project, state, primary_action_id)
+        action, original, result = _original(project, state, primary_action_id)
         summary, _, _ = staged._paired(result["per_query_metrics"])
         require(canonical(summary) == canonical(result["paired_summary"]), "EVIDENCE_CHANGED", "Saved validation arithmetic differs.")
         delta = summary["splits"]["validation"]["paired_candidate_minus_baseline"]["recall@20"]["mean"]
         require(type(delta) in (int, float) and math.isfinite(delta) and -1 <= delta <= 1,
                 "INVALID_RESULT", "Saved validation delta is invalid.")
-        record = {"schema_version": "retrieval-holdout-freeze-v1", "request_id": request_id,
+        feedback_binding = (_registered_feedback_binding(project, current, holdout, action, original)
+                            if holdout["schema_version"] == "retrieval-holdout-registration-v2" else None)
+        record = {"schema_version": "retrieval-holdout-freeze-v2" if feedback_binding is not None else "retrieval-holdout-freeze-v1", "request_id": request_id,
                   "request": request, "request_sha256": fingerprint(request), "project_id": state["id"], "run_id": state["run_id"],
                   "holdout_record_sha256": holdout["record_sha256"], "source_snapshot_sha256": state["source_snapshot_sha256"],
                   "plan_sha256": holdout["plan_sha256"], "project_code_identity": state["code_identity"],
                   "primary_action_id": action["id"], "primary_result_sha256": action["result_sha256"],
-                  "validation_delta_recall20": delta, "policy": POLICY,
-                  "selected_method": "tfidf_cosine" if delta > 0 else "bm25", "scientific_validation": False}
+                  "validation_delta_recall20": delta, "policy": copy.deepcopy(holdout["policy"]),
+                  "selected_method": (holdout["policy"][feedback_binding["outcome"]] if feedback_binding is not None
+                                      else "tfidf_cosine" if delta > 0 else "bm25"), "scientific_validation": False}
+        if feedback_binding is not None:
+            record["feedback_binding"] = feedback_binding
         record["record_sha256"] = fingerprint(record)
         state["frozen_evaluation_strategy"] = record
         state["state_version"] += 1
@@ -369,7 +480,7 @@ def _check_frozen(project, state, frozen):
             and frozen.get("project_code_identity") == state["code_identity"]
             and frozen.get("plan_sha256") == holdout["plan_sha256"]
             and state.get("plan_revisions") and fingerprint(state["plan_revisions"][-1]) == frozen["plan_sha256"]
-            and frozen.get("policy") == POLICY
+            and canonical(frozen.get("policy")) == canonical(holdout["policy"])
             and frozen.get("scientific_validation") is False,
             "EVIDENCE_CHANGED", "Frozen strategy or its source/plan binding changed.")
     action, original, result = _original(project, state, frozen["primary_action_id"])
@@ -377,9 +488,19 @@ def _check_frozen(project, state, frozen):
     summary, _, _ = staged._paired(result["per_query_metrics"])
     delta = summary["splits"]["validation"]["paired_candidate_minus_baseline"]["recall@20"]["mean"]
     require(canonical(summary) == canonical(result["paired_summary"]) and delta == frozen["validation_delta_recall20"]
-            and frozen["selected_method"] == ("tfidf_cosine" if delta > 0 else "bm25")
             and action["result_sha256"] == frozen["primary_result_sha256"],
             "EVIDENCE_CHANGED", "Frozen strategy disagrees with the original saved validation result.")
+    if holdout["schema_version"] == "retrieval-holdout-registration-v2":
+        binding = _registered_feedback_binding(project, state, holdout, action, original)
+        audit_parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == binding["audit_parent_request_id"]]
+        require(len(audit_parents) == 1 and type(audit_parents[0].get("state_version_after")) is int
+                and audit_parents[0]["state_version_after"] <= frozen["request"]["expected_state_version"]
+                and canonical(binding) == canonical(frozen["feedback_binding"])
+                and frozen["selected_method"] == holdout["policy"][binding["outcome"]],
+                "EVIDENCE_CHANGED", "Frozen preregistered selection differs from its original audit.")
+    else:
+        require(frozen["selected_method"] == ("tfidf_cosine" if delta > 0 else "bm25"),
+                "EVIDENCE_CHANGED", "Frozen validation selection differs.")
     return holdout, original
 
 
@@ -387,24 +508,47 @@ PUBLIC_LIMITATIONS = "Procedural same-user separation; not a blind or scientific
 
 
 def validate_public_evaluation_context(value):
-    """Validate the exact metadata-only projection accepted by selection contexts."""
+    """Validate bounded public metadata; never read the private holdout."""
     digest = lambda x: type(x) is str and re.fullmatch(r"[0-9a-f]{64}", x) is not None
+    ident = lambda x: type(x) is str and re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", x) is not None
     try:
         require(type(value) is dict and set(value) == {"schema_version", "holdout_sha256", "query_count", "policy", "freeze", "final", "scientific_validation", "limitations"}
-                and value["schema_version"] == "staged-evaluation-context-v1" and digest(value["holdout_sha256"])
+                and value["schema_version"] in ("staged-evaluation-context-v1", "staged-evaluation-context-v2") and digest(value["holdout_sha256"])
                 and type(value["query_count"]) is int and 1 <= value["query_count"] <= relevance.LIMITS["max_queries"]
-                and value["policy"] == POLICY and value["scientific_validation"] is False
-                and value["limitations"] == PUBLIC_LIMITATIONS, "INVALID_SELECTION_CONTEXT", "Invalid evaluation metadata.")
+                and value["scientific_validation"] is False and value["limitations"] == PUBLIC_LIMITATIONS,
+                "INVALID_SELECTION_CONTEXT", "Invalid evaluation metadata.")
+        v2 = value["schema_version"] == "staged-evaluation-context-v2"
+        if v2:
+            try:
+                valid_policy = canonical(_feedback_policy(value["policy"])) == canonical(value["policy"])
+            except ResearchError:
+                valid_policy = False
+            require(valid_policy, "INVALID_SELECTION_CONTEXT", "Invalid preregistered feedback policy.")
+        else:
+            require(type(value["policy"]) is str and value["policy"] == POLICY, "INVALID_SELECTION_CONTEXT", "Invalid fixed validation policy.")
         frozen = value["freeze"]
         if frozen is not None:
-            require(type(frozen) is dict and set(frozen) == {"selected_method", "validation_delta_recall20", "primary_action_id", "primary_result_sha256", "freeze_sha256"}
+            fields = {"selected_method", "validation_delta_recall20", "primary_action_id", "primary_result_sha256", "freeze_sha256"}
+            if v2:
+                fields.add("feedback_binding")
+            require(type(frozen) is dict and set(frozen) == fields
                     and frozen["selected_method"] in ("bm25", "tfidf_cosine")
                     and type(frozen["validation_delta_recall20"]) in (int, float) and math.isfinite(frozen["validation_delta_recall20"])
                     and -1 <= frozen["validation_delta_recall20"] <= 1
-                    and frozen["selected_method"] == ("tfidf_cosine" if frozen["validation_delta_recall20"] > 0 else "bm25")
+                    and (v2 or frozen["selected_method"] == ("tfidf_cosine" if frozen["validation_delta_recall20"] > 0 else "bm25"))
                     and type(frozen["primary_action_id"]) is str and 0 < len(frozen["primary_action_id"]) <= 160
                     and digest(frozen["primary_result_sha256"]) and digest(frozen["freeze_sha256"]),
                     "INVALID_SELECTION_CONTEXT", "Invalid frozen evaluation metadata.")
+            if v2:
+                binding = frozen["feedback_binding"]
+                require(type(binding) is dict and set(binding) == {"registration_request_id", "registration_sha256", "outcome",
+                        "audit_action_id", "audit_result_sha256", "audit_parent_request_id"}
+                        and binding["registration_request_id"] == value["policy"]["registration_request_id"]
+                        and all(ident(binding[k]) for k in ("registration_request_id", "audit_action_id", "audit_parent_request_id"))
+                        and all(digest(binding[k]) for k in ("registration_sha256", "audit_result_sha256"))
+                        and binding["outcome"] in ("condition_met", "condition_not_met")
+                        and frozen["selected_method"] == value["policy"][binding["outcome"]],
+                        "INVALID_SELECTION_CONTEXT", "Invalid frozen feedback binding.")
         final = value["final"]
         if final is not None:
             require(frozen is not None and type(final) is dict and set(final) == {"status", "action_id", "result_sha256"}
@@ -428,10 +572,11 @@ def public_evaluation_context(state):
         registered = checked["private_evaluation"]
         require(registered["project_id"] == state["id"] and registered["run_id"] == state["run_id"]
                 and registered["source_snapshot_sha256"] == state["source_snapshot_sha256"]
-                and registered["project_code_identity"] == state["code_identity"] and registered["policy"] == POLICY,
+                and registered["project_code_identity"] == state["code_identity"],
                 "EVIDENCE_CHANGED", "Private registration identity changed.")
-        value = {"schema_version": "staged-evaluation-context-v1", "holdout_sha256": registered["sha256"],
-                 "query_count": registered["query_count"], "policy": POLICY, "freeze": None, "final": None,
+        v2 = registered["schema_version"] == "retrieval-holdout-registration-v2"
+        value = {"schema_version": "staged-evaluation-context-v2" if v2 else "staged-evaluation-context-v1", "holdout_sha256": registered["sha256"],
+                 "query_count": registered["query_count"], "policy": copy.deepcopy(registered["policy"]), "freeze": None, "final": None,
                  "scientific_validation": False, "limitations": PUBLIC_LIMITATIONS}
         frozen = state.get("frozen_evaluation_strategy")
         if frozen is not None:
@@ -439,10 +584,12 @@ def public_evaluation_context(state):
                     and frozen["holdout_record_sha256"] == registered["record_sha256"]
                     and frozen["project_id"] == state["id"] and frozen["run_id"] == state["run_id"]
                     and frozen["source_snapshot_sha256"] == state["source_snapshot_sha256"]
-                    and frozen["project_code_identity"] == state["code_identity"] and frozen["policy"] == POLICY,
+                    and frozen["project_code_identity"] == state["code_identity"] and canonical(frozen["policy"]) == canonical(registered["policy"]),
                     "EVIDENCE_CHANGED", "Frozen evaluation identity changed.")
             value["freeze"] = {key: copy.deepcopy(frozen[key]) for key in ("selected_method", "validation_delta_recall20", "primary_action_id", "primary_result_sha256")}
             value["freeze"]["freeze_sha256"] = frozen["record_sha256"]
+            if v2:
+                value["freeze"]["feedback_binding"] = copy.deepcopy(frozen["feedback_binding"])
         actions = [a for a in state["actions"] if a["command"] == FINAL_TOOL_ID]
         require(len(actions) <= 1, "EVIDENCE_CHANGED", "Multiple final actions violate the fixed protocol.")
         if actions:

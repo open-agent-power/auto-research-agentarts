@@ -283,7 +283,10 @@ def collect_report(workspace) -> dict:
                 "state_version_before", "sha256", "bytes", "query_count", "corpus_sha256", "source_sha256",
                 "source_snapshot_sha256", "plan_sha256", "plan_version", "project_code_identity", "policy",
                 "scientific_validation", "record_sha256"}, "EVIDENCE_CHANGED", "Private evaluation metadata fields changed.")
-            _require(set(private["request"]) == {"request_id", "expected_state_version", "holdout_sha256", "holdout_bytes"},
+            request_fields = {"request_id", "expected_state_version", "holdout_sha256", "holdout_bytes"}
+            if private["schema_version"] == "retrieval-holdout-registration-v2":
+                request_fields.add("selection_policy")
+            _require(set(private["request"]) == request_fields,
                      "EVIDENCE_CHANGED", "Private registration request fields changed.")
             _require(private["record_sha256"] == fingerprint({k: v for k, v in private.items() if k != "record_sha256"})
                      and private["project_id"] == before["id"] and private["run_id"] == before["run_id"]
@@ -292,10 +295,13 @@ def collect_report(workspace) -> dict:
             if any(action["command"] == retrieval_holdout.FINAL_TOOL_ID and action["status"] == "completed" for action in before["actions"]):
                 retrieval_holdout.verify_holdout(project, before)
         if frozen is not None:
-            _require(set(frozen) == {"schema_version", "request_id", "request", "request_sha256", "project_id", "run_id",
+            freeze_fields = {"schema_version", "request_id", "request", "request_sha256", "project_id", "run_id",
                 "holdout_record_sha256", "source_snapshot_sha256", "plan_sha256", "project_code_identity",
                 "primary_action_id", "primary_result_sha256", "validation_delta_recall20", "policy", "selected_method",
                 "scientific_validation", "record_sha256"}
+            if frozen["schema_version"] == "retrieval-holdout-freeze-v2":
+                freeze_fields.add("feedback_binding")
+            _require(set(frozen) == freeze_fields
                 and set(frozen["request"]) == {"request_id", "expected_state_version", "primary_action_id"},
                 "EVIDENCE_CHANGED", "Frozen evaluation metadata fields changed.")
             retrieval_holdout._check_frozen(project, before, frozen)

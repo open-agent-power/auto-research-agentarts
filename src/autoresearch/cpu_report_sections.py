@@ -161,8 +161,16 @@ def sections(report):
         if private is not None:
             paragraphs.append("登记的留出包 SHA-256：" + private["sha256"] + "；查询数：" + str(private["query_count"]) + "。")
         if frozen is not None:
-            paragraphs.append("固定规则：" + frozen["policy"] + "；validation Recall@20 差值："
-                              + _number(frozen["validation_delta_recall20"]) + "；冻结方法：" + frozen["selected_method"] + "。")
+            if frozen["schema_version"] == "retrieval-holdout-freeze-v2":
+                binding = frozen["feedback_binding"]
+                paragraphs.append("事前登记反馈规则：" + frozen["policy"]["kind"] + "；登记ID："
+                                  + binding["registration_request_id"] + "；登记 SHA-256：" + binding["registration_sha256"]
+                                  + "；原反馈结果：" + binding["outcome"] + "；冻结方法：" + frozen["selected_method"] + "。")
+                paragraphs.append("validation Recall@20 差值（保存观察，不作为此策略的独立选臂规则）："
+                                  + _number(frozen["validation_delta_recall20"]) + "。")
+            else:
+                paragraphs.append("固定规则：" + frozen["policy"] + "；validation Recall@20 差值："
+                                  + _number(frozen["validation_delta_recall20"]) + "；冻结方法：" + frozen["selected_method"] + "。")
         result.append({"title": "留出集登记与冻结策略", "paragraphs": paragraphs, "headers": [], "rows": []})
         for entry in report["action_results"]:
             if entry["status"] == "completed" and entry["command"] == "research.relevance-final-evaluation" and entry.get("tool_result"):
