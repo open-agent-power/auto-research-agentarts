@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S079检索候选元数据筛选未找到可直接准入项；PubMedQA许可未核且搜索返回公开示例，QASPER许可检索亦意外返回公开test示例，现已停止查看样本，不可称完全未曝/盲测；bioCADDIE规模和qrels权利未核。无新数据下载/项目/排序/模型。[审计](retrieval-candidate-audit-20261115.md)。
+
 S078已完成并独审Bike方案的隔离合成预演：两个合成Project各2/2工具、0 model/fit/evidence，可计算与constant_predictor/unknown、原观察→人工plan v2→关联、作者原ID新进程重放，独审复算并核回执但未自行重放；未下载真实Bike/创建真实项目，真实表格新范围仍待用户决定。[SPRINT-078](../execution/SPRINT-078.md)。
 
 S077新表格Project可显式保存操作者描述性研究用途，已独审推送 `3ba33b62a0d8456fb0d04765285e11d0b7e1195c`；默认旧wire/旧pin不变，仅Python创建支持，非授权/领域验证/新研究。原S065只读status字节同与3/3预算保持，pin193项匹配。[SPRINT-077](../execution/SPRINT-077.md)。

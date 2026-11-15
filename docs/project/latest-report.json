@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Await specific Bike authorization; continue other authorized read-only/reference work. If approved, freeze source identity/protocol/claim and validate before any research tool.",
+  "next": "Await Bike scope decision; continue permitted provenance/data screening without inspecting future final labels.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T16:54:56.964445+08:00",
+  "checkpoint_time": "2026-11-15T17:00:13.470522+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -498,5 +498,16 @@
     "real_bike_downloaded": false,
     "real_bike_project_created": false,
     "scientific_gain": "unknown"
+  },
+  "S079": {
+    "status": "metadata_only_no_ready_candidate",
+    "audit": "docs/project/retrieval-candidate-audit-20261115.md",
+    "exposure": "QASPER published test examples and PubMedQA published example fragments surfaced unexpectedly; no example content copied; not fully unexposed or blind",
+    "candidate_data_downloaded": false,
+    "new_project_created": false,
+    "new_ranking_scoring": 0,
+    "new_models": 0,
+    "limits": "PubMedQA source rights unknown; bioCADDIE corpus exceeds cap and qrels rights unknown",
+    "development_cost": "unknown"
   }
 }
