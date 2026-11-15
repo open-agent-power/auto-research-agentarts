@@ -22,13 +22,18 @@ from autoresearch.research_project import ResearchProject
 
 
 class FeedbackSelectedHoldoutTests(unittest.TestCase):
-    def fixture(self, *, threshold=0, register_prediction=True, execute=True, register_holdout=True, audit_notmet=False):
+    def fixture(self, *, threshold=0, register_prediction=True, execute=True, register_holdout=True, audit_notmet=False, hypothesis_mode='joint', negative=False):
         helper=fixtures.StagedDevelopmentTests();helper.setUp();self.addCleanup(helper.doCleanups)
         rng=random.Random(108); words=['amber','blue','cyan','denim','ecru']
         docs=[{'_id':str(i),'title':'','text':' '.join(w for w in words for _ in range(rng.randint(0,5))),'metadata':{}} for i in range(40)]
         queries=[{'_id':'qd','text':'amber','metadata':{}},{'_id':'qv','text':'amber blue cyan','metadata':{}}]
+        if hypothesis_mode == 'loo':
+            queries += [{'_id':qid,'text':'amber blue cyan','metadata':{}} for qid in ('qv2','qv3')]
+            helper.spec['query_splits']['validation']=['qv','qv2','qv3']
         (helper.root/'corpus.jsonl').write_text(fixtures._rows(docs));(helper.root/'queries.jsonl').write_text(fixtures._rows(queries))
-        (helper.root/'qrels.tsv').write_text('query-id\tcorpus-id\tscore\nqd\t1\t1\nqv\t1\t1\n');helper.write_spec()
+        qrels='query-id\tcorpus-id\tscore\nqd\t1\t1\nqv\t'+('36' if negative else '1')+'\t1\n'
+        if hypothesis_mode == 'loo':qrels+='qv2\t1\t1\nqv3\t1\t1\n'
+        (helper.root/'qrels.tsv').write_text(qrels);helper.write_spec()
         packet=helper.capture();case_root=os.environ.get('S063_CASE_ROOT')
         if case_root:
             root=Path(case_root);root.mkdir(parents=True,exist_ok=False)
@@ -55,6 +60,10 @@ class FeedbackSelectedHoldoutTests(unittest.TestCase):
            'conditions':[{'metric':'recall@20','operator':'gte','threshold':0},{'metric':'mrr@10','operator':'gt','threshold':threshold}],
            'branches':{'condition_met':{'kind':'method','method_id':staged.AUDIT_TOOL_ID},
                        'condition_not_met':({'kind':'method','method_id':staged.AUDIT_TOOL_ID} if audit_notmet else {'kind':'wait'})}}
+        if hypothesis_mode == 'scalar':
+            prediction.pop('conditions');prediction.update(metric='recall@20',operator='gte',threshold=0)
+        elif hypothesis_mode == 'loo':
+            prediction['leave_one_out']={'metric':'recall@20','operator':'gte','threshold':0}
         record=None
         if register_prediction:record=project.register_hypothesis(request_id='prediction',expected_state_version=ctx['state_version'],hypothesis=prediction)
         if execute:
@@ -88,8 +97,8 @@ class FeedbackSelectedHoldoutTests(unittest.TestCase):
         self.assertEqual((after['budget']['new_fits'],after['budget']['new_model_requests']),(0,0))
         self.assertEqual(LocalWorkbench(manager.root).continue_staged(request),result)
         self.assertEqual(project.status(),after)
-        with self.assertRaises(ResearchError) as error:staged_project_experience.derive_staged_observation(project.root,state['actions'][0]['id'])
-        self.assertEqual(error.exception.code,'METHOD_NOT_SUPPORTED')
+        self.assertEqual(staged_project_experience.derive_staged_observation(project.root,state['actions'][0]['id'])['scope']['protocol'],
+                         staged_project_experience.PROTOCOL_V2)
 
     def test_wait_branch_refuses_lowlevel_freeze_and_s052_waits(self):
         manager,project,_,_,_=self.fixture(threshold=1);state=project.status();primary=state['actions'][0]['id']

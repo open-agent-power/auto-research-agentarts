@@ -1,6 +1,6 @@
 {
   "schema_version": "s063-feedback-selected-holdout-verification-v1",
-  "status": "fixed_verified_pending_publication",
+  "status": "fixed_verified_published",
   "base_commit": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
   "source_freeze_sha256": "0745bf8410e7f66fb38edda474fe18ed29128cf245459f805382a654d9b89b95",
   "project_core_identity": "670805da6b2140bc448bd11bb3ed69638f64e4d0ee720cf37c400ce63a71602e",
@@ -852,5 +852,6 @@
     "runs/s063-review/parent-projection.json",
     "runs/s063-review/persistent-independent.json"
   ],
-  "recorded_at": "2026-11-15T11:29:45.823695+08:00"
+  "recorded_at": "2026-11-15T11:29:45.823695+08:00",
+  "code_commit": "a7f6284cd648e875f2fa309219cfd29e5242706e"
 }

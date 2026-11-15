@@ -19,6 +19,8 @@ from . import project_selection
 
 SCHEMA = "staged-retrieval-experience-bundle-v1"
 PROTOCOL = "staged-retrieval-saved-binding-v1"
+SCHEMA_V2 = "staged-retrieval-experience-bundle-v2"
+PROTOCOL_V2 = "staged-retrieval-feedback-binding-v2"
 MAX_BUNDLE_BYTES = 4 * 1024 * 1024
 NOTICE = ("Historical analogy only. Final aggregate was checked against the original at capture; "
           "offline_final_binding_unverifiable_without_origin. Self-contained hashes are not signatures. "
@@ -137,11 +139,13 @@ def _parent(state, action, registration, freeze):
         expected_freeze = {key: copy.deepcopy(freeze[key]) for key in
                            ("selected_method", "validation_delta_recall20", "primary_action_id", "primary_result_sha256")}
         expected_freeze["freeze_sha256"] = freeze["record_sha256"]
-    expected_evaluation = {"schema_version": "staged-evaluation-context-v1", "holdout_sha256": registration["sha256"],
+        if registration["schema_version"] == "retrieval-holdout-registration-v2":
+            expected_freeze["feedback_binding"] = copy.deepcopy(freeze["feedback_binding"])
+    expected_evaluation = {"schema_version": ("staged-evaluation-context-v2" if registration["schema_version"] == "retrieval-holdout-registration-v2" else "staged-evaluation-context-v1"), "holdout_sha256": registration["sha256"],
                            "query_count": registration["query_count"], "policy": registration["policy"],
                            "freeze": expected_freeze, "final": None, "scientific_validation": False,
                            "limitations": holdout.PUBLIC_LIMITATIONS}
-    _require(ctx.get("staged_evaluation") == expected_evaluation,
+    _require(canonical(ctx.get("staged_evaluation")) == canonical(expected_evaluation),
              "Saved controller context differs from preregistered holdout or frozen strategy.", "EVIDENCE_CHANGED")
     return {"request_id": parent["request_id"], "request_sha256": parent["request_sha256"],
             "decision_sha256": parent["decision_sha256"], "context_sha256": ctx["context_sha256"],
@@ -207,6 +211,64 @@ def _final_projection(tool, metadata, frozen, params, source_snapshot):
             "verification": "source_verified_at_capture; offline_final_binding_unverifiable_without_origin"}
 
 
+def _feedback_history(project, state, reg, freeze, primary, audit, parents):
+    """Verify original producer-bound feedback without imposing today's controller pin."""
+    from . import feedback_policy, hypothesis_feedback
+    policy = reg["policy"]
+    records = [r for r in state.get("hypothesis_registrations", []) if r.get("request_id") == policy["registration_request_id"]]
+    _require(len(records) == 1, "Original preregistered feedback is missing or ambiguous.", "EVIDENCE_CHANGED")
+    registered = records[0]
+    hypothesis_feedback._check_record(registered)
+    primary_parent = next(p for p in state["controller_requests"] if p["request_id"] == parents[0]["request_id"])
+    audit_parent = next(p for p in state["controller_requests"] if p["request_id"] == parents[1]["request_id"])
+    _require(registered["project_id"] == state["id"] and registered["run_id"] == state["run_id"]
+             and registered["source_sha256"] == reg["source_sha256"]
+             and registered["source_snapshot_sha256"] == reg["source_snapshot_sha256"]
+             and registered["project_code_identity"] == reg["project_code_identity"]
+             and registered["plan_sha256"] == reg["plan_sha256"] and registered["plan_version"] == reg["plan_version"]
+             and registered["scope_sha256"] == fingerprint(state["source_scope"])
+             and registered["candidate"]["method_id"] == staged.TOOL_ID
+             and reg["state_version_before"] < registered["state_version_before"] < parents[0]["state_version_before"]
+             and registered["controller_request_id"] == parents[0]["request_id"]
+             and all(p["controller_code_identity"] == registered["controller_code_identity"] for p in parents)
+             and state.get("plan_revisions") and fingerprint(state["plan_revisions"][-1]) == reg["plan_sha256"],
+             "Original preregistration source, producer, plan or order differs.", "EVIDENCE_CHANGED")
+    initial = [item for item in primary_parent["selection_context"].get("hypothesis_feedback", {}).get("items", [])
+               if item.get("request_id") == registered["request_id"]]
+    _require(len(initial) == 1 and initial[0].get("outcome") == "unknown"
+             and initial[0].get("unknown_reason") == "controller_not_started"
+             and initial[0].get("controller_request_id") == registered["controller_request_id"]
+             and initial[0].get("registration_sha256") == registered["registration_sha256"]
+             and canonical(initial[0].get("candidate")) == canonical(registered["candidate"])
+             and canonical(initial[0].get("condition")) == canonical(registered["condition"])
+             and canonical(initial[0].get("branches")) == canonical(registered.get("branches")),
+             "Primary context did not contain the original predeclared feedback.", "EVIDENCE_CHANGED")
+    view = hypothesis_feedback.feedback_context(project, state)
+    items = [item for item in view["items"] if item["request_id"] == registered["request_id"]]
+    _require(len(items) == 1 and items[0]["outcome"] in ("condition_met", "condition_not_met")
+             and items[0]["action_id"] == primary["id"] and items[0]["result_sha256"] == primary["result_sha256"]
+             and registered["branches"][items[0]["outcome"]] == {"kind": "method", "method_id": staged.AUDIT_TOOL_ID},
+             "The original known feedback did not authorize this audit.", "EVIDENCE_CHANGED")
+    proposal = feedback_policy.select_from_feedback(audit_parent["selection_context"], registration=registered,
+                  provider={"kind": "operator_assistant", "label": "preregistered-feedback-policy-v1"})
+    proposal["rationale"] = ("Preregistration " + registered["request_id"] + " sha256:"
+                             + registered["registration_sha256"] + ". " + proposal["rationale"])
+    audit_items = [item for item in audit_parent["selection_context"].get("hypothesis_feedback", {}).get("items", [])
+                   if item.get("request_id") == registered["request_id"]]
+    binding = {"registration_request_id": registered["request_id"], "registration_sha256": registered["registration_sha256"],
+               "outcome": items[0]["outcome"], "audit_action_id": audit["id"],
+               "audit_result_sha256": audit["result_sha256"], "audit_parent_request_id": parents[1]["request_id"]}
+    _require(len(audit_items) == 1 and canonical(audit_items[0]) == canonical(items[0])
+             and canonical(proposal) == canonical(audit_parent["request"]["proposal"])
+             and proposal["choice"]["kind"] == "execute"
+             and canonical(binding) == canonical(freeze["feedback_binding"])
+             and freeze["selected_method"] == policy[items[0]["outcome"]],
+             "The original audit is not the preregistered feedback decision.", "EVIDENCE_CHANGED")
+    return {"registration": copy.deepcopy(registered), "feedback": copy.deepcopy(items[0]),
+            "audit_proposal": copy.deepcopy(proposal),
+            "verification": "source_context_verified_at_capture; offline_policy_binding_unverifiable_without_origin"}
+
+
 def derive_staged_observation(workspace, primary_action_id):
     """Capture only completed original native actions; perform no research dispatch."""
     try:
@@ -222,9 +284,7 @@ def derive_staged_observation(workspace, primary_action_id):
         _require(metadata is not None and metadata["frozen_evaluation_strategy"] is not None,
                  "A preregistered holdout and frozen strategy are required.", "ARTIFACT_NOT_AVAILABLE")
         reg, freeze = metadata["private_evaluation"], metadata["frozen_evaluation_strategy"]
-        _require(reg["schema_version"] == "retrieval-holdout-registration-v1"
-                 and freeze["schema_version"] == "retrieval-holdout-freeze-v1",
-                 "This experience schema does not support preregistered-feedback selection.", "METHOD_NOT_SUPPORTED")
+        v2 = reg["schema_version"] == "retrieval-holdout-registration-v2"
         source_sha, source, parsed = _dev_source(project, before)
         actions = []
         for method in (staged.TOOL_ID, staged.AUDIT_TOOL_ID, holdout.FINAL_TOOL_ID):
@@ -262,8 +322,14 @@ def derive_staged_observation(workspace, primary_action_id):
                      "Saved development labels differ from the source.", "EVIDENCE_CHANGED")
         params = {"based_on_action_id": primary["id"], "based_on_result_sha256": primary["result_sha256"]}
         paired, _, adverse = _check_audit(second, first, params)
-        _, expected = holdout._check_frozen(project, before, freeze)
-        _require(canonical(expected) == canonical(first), "Frozen result differs from original primary.", "EVIDENCE_CHANGED")
+        if v2:
+            feedback_history = _feedback_history(project, before, reg, freeze, primary, audit, parents)
+            delta = paired["splits"]["validation"]["paired_candidate_minus_baseline"]["recall@20"]["mean"]
+            _require(type(delta) in (int, float) and math.isfinite(delta) and delta == freeze["validation_delta_recall20"],
+                     "Frozen observed recall differs from original primary.", "EVIDENCE_CHANGED")
+        else:
+            _, expected = holdout._check_frozen(project, before, freeze)
+            _require(canonical(expected) == canonical(first), "Frozen result differs from original primary.", "EVIDENCE_CHANGED")
         final_projection = _final_projection(third, reg, freeze, params, before["source_snapshot_sha256"])
         origin = {"project_id": before["id"], "run_id": before["run_id"], "state_version": before["state_version"],
                   "snapshot_ref": before["snapshot_ref"], "source_snapshot_sha256": before["source_snapshot_sha256"],
@@ -277,12 +343,14 @@ def derive_staged_observation(workspace, primary_action_id):
                       "parent_bindings": {k: p for k, p in zip(("primary", "audit", "final"), parents)},
                       "holdout_registration": reg, "freeze": freeze,
                       "final_ref": {"action_id": final["id"], "request_id": final["request_id"], "result_sha256": final["result_sha256"]}}
+        if v2:
+            provenance["feedback_history"] = feedback_history
         scope = {"source_manifest_sha256": before["source_snapshot_sha256"],
                  "inputs_sha256": fingerprint({"primary": primary["result_sha256"], "audit": audit["result_sha256"],
                                                 "final": final["result_sha256"], "source": fingerprint(source),
                                                 "freeze": freeze["record_sha256"]}),
                  "analysis_code_sha256": fingerprint({"implementation_sha256": implementation, "runtime_code_identity": initial_code}),
-                 "protocol": PROTOCOL}
+                 "protocol": PROTOCOL_V2 if v2 else PROTOCOL}
         payload = {"method_id": staged.TOOL_ID, "evaluation_ref": EVALUATION,
                    "source_scope": before["source_scope"], "comparison": saved["comparison"],
                    "paired_summary": paired, "adverse_queries": len(adverse),
@@ -300,9 +368,10 @@ def derive_staged_observation(workspace, primary_action_id):
         _require(project.status() == before and runtime_code_identity() == initial_code
                  and hashlib.sha256(Path(__file__).read_bytes()).hexdigest() == implementation,
                  "Project or capture implementation changed.", "STALE_STATE")
-        return {"scope": scope, "entries": [entry], "validation": {"protocol": PROTOCOL,
+        return {"scope": scope, "entries": [entry], "validation": {"protocol": PROTOCOL_V2 if v2 else PROTOCOL,
                 "source_packet_checked_at_capture": True, "final_aggregate_verified_at_capture": True,
-                "offline_final_binding_unverifiable_without_origin": True, "scientific_validation": False}}
+                "offline_final_binding_unverifiable_without_origin": True, "scientific_validation": False,
+                **({"offline_policy_binding_unverifiable_without_origin": True} if v2 else {})}}
     except ResearchError:
         raise
     except (KeyError, TypeError, ValueError, AttributeError, IndexError, UnicodeError, OverflowError, RecursionError, OSError):
@@ -338,6 +407,81 @@ def _check_final_projection(value, frozen, reg):
                  "Single-arm baseline cannot imply a separate final comparison.")
 
 
+def _validate_feedback_history(history, reg, freeze, primary, audit, parents, saved, paired, origin):
+    from . import hypothesis_feedback, staged_feedback_reader
+    _require(type(history) is dict and set(history) == {"registration", "feedback", "audit_proposal", "verification"}
+             and history["verification"] == "source_context_verified_at_capture; offline_policy_binding_unverifiable_without_origin",
+             "Invalid feedback history or offline limitation.")
+    registration, item, proposal = history["registration"], history["feedback"], history["audit_proposal"]
+    hypothesis_feedback._check_record(registration)
+    condition = registration["condition"]
+    primary_candidate = {"method_id": primary["command"], "parameters": primary["method_instance"]["parameters"],
+                         "evaluation_ref": primary["method_instance"]["evaluation_ref"]}
+    version = ("hypothesis-feedback-context-v3" if "leave_one_out" in condition else
+               "hypothesis-feedback-context-v2" if "all" in condition else "hypothesis-feedback-context-v1")
+    hypothesis_feedback.validate_context({"schema_version": version, "items": [item], "scientific_validation": False,
+                                          "test_notice": hypothesis_feedback.STAGED_NOTICE})
+    _require(registration["request_id"] == reg["policy"]["registration_request_id"]
+             and registration["request_id"] != reg["request_id"]
+             and registration["project_id"] == origin["project_id"] and registration["run_id"] == origin["run_id"]
+             and registration["source_sha256"] == reg["source_sha256"]
+             and registration["source_snapshot_sha256"] == reg["source_snapshot_sha256"]
+             and registration["project_code_identity"] == reg["project_code_identity"]
+             and registration["plan_sha256"] == reg["plan_sha256"] and registration["plan_version"] == reg["plan_version"]
+             and registration["scope_sha256"] == fingerprint(saved["scope"])
+             and registration["protocol_sha256"] == fingerprint(staged.COMPARISON)
+             and registration["candidate"]["method_id"] == staged.TOOL_ID
+             and canonical(registration["candidate"]) == canonical({"id": "choice-" + fingerprint(primary_candidate)[:32], **primary_candidate})
+             and registration["controller_request_id"] == parents["primary"]["request_id"]
+             and reg["state_version_before"] < registration["state_version_before"] < parents["primary"]["state_version_before"]
+             and all(p["controller_code_identity"] == registration["controller_code_identity"] for p in parents.values())
+             and item["request_id"] == registration["request_id"]
+             and item["controller_request_id"] == registration["controller_request_id"]
+             and item["registration_sha256"] == registration["registration_sha256"]
+             and canonical(item["candidate"]) == canonical(registration["candidate"])
+             and canonical(item["condition"]) == canonical(condition)
+             and canonical(item.get("branches")) == canonical(registration.get("branches"))
+             and item["outcome"] in ("condition_met", "condition_not_met")
+             and item["action_id"] == primary["id"] and item["result_sha256"] == primary["result_sha256"]
+             and registration["branches"][item["outcome"]] == {"kind": "method", "method_id": staged.AUDIT_TOOL_ID},
+             "Saved feedback registration, source or outcome differs.")
+    metrics = paired["splits"]["validation"]["paired_candidate_minus_baseline"]
+    if "all" in condition:
+        means = [metrics[c["metric"]]["mean"] for c in condition["all"]]
+        value = means
+        if "leave_one_out" in condition:
+            metric = condition["leave_one_out"]["metric"]
+            rows = {(r["query_id"], r["method"]): r for r in saved["per_query_metrics"] if r["split"] == "validation"}
+            qids = sorted({key[0] for key in rows})
+            _require(len(qids) >= 2, "Insufficient original validation queries for leave-one-out.")
+            deltas = [rows[qid, "tfidf_cosine"]["metrics"][metric] - rows[qid, "bm25"]["metrics"][metric] for qid in qids]
+            loo = staged_feedback_reader._stability_aggregate(deltas, metrics[metric])["leave_one_out"]
+            value = {"means": means, "leave_one_out": {"minimum": loo["minimum"], "maximum": loo["maximum"], "queries": len(qids)}}
+    else:
+        value = metrics[condition["metric"]]["mean"]
+    _require(canonical(value) == canonical(item["value"]), "Feedback values differ from saved validation arithmetic.")
+    binding = {"registration_request_id": registration["request_id"], "registration_sha256": registration["registration_sha256"],
+               "outcome": item["outcome"], "audit_action_id": audit["id"], "audit_result_sha256": audit["result_sha256"],
+               "audit_parent_request_id": parents["audit"]["request_id"]}
+    rationale = ("Preregistration " + registration["request_id"] + " sha256:" + registration["registration_sha256"]
+                 + ". Frozen " + item["outcome"] + " branch selects the eligible audit of the registered saved result.")
+    audit_candidate = {"method_id": staged.AUDIT_TOOL_ID, "parameters": {"based_on_action_id": primary["id"],
+                       "based_on_result_sha256": primary["result_sha256"]}, "evaluation_ref": audit["evaluation_ref"]}
+    _require(canonical(freeze["feedback_binding"]) == canonical(binding)
+             and freeze["selected_method"] == reg["policy"][item["outcome"]]
+             and type(proposal) is dict and set(proposal) == {"schema_version", "context_sha256", "provider", "choice", "rationale", "evidence_citation_ids"}
+             and proposal["schema_version"] == "project-selection-proposal-v1"
+             and proposal["context_sha256"] == parents["audit"]["context_sha256"]
+             and proposal["provider"] == {"kind": "operator_assistant", "label": "preregistered-feedback-policy-v1"}
+             and type(proposal["choice"]) is dict and set(proposal["choice"]) == {"kind", "candidate_id"}
+             and proposal["choice"]["kind"] == "execute"
+             and proposal["choice"]["candidate_id"] == "choice-" + fingerprint(audit_candidate)[:32]
+             and proposal["rationale"] == rationale and proposal["evidence_citation_ids"] == []
+             and parents["audit"]["request_sha256"] == fingerprint({"project_id": origin["project_id"], "command": "controller.advance_selection",
+                 "need": "next_check", "expected_state_version": parents["audit"]["state_version_before"], "proposal": proposal}),
+             "Saved feedback audit or selected method differs.")
+
+
 def _validate_record(record):
     import base64
     _require(type(record) is dict and set(record) == {"schema_version", "id", "kind", "scope", "review_status", "numerical_recomputation", "payload", "provenance"}
@@ -345,9 +489,13 @@ def _validate_record(record):
              and record["review_status"] == "derived_not_scientifically_reviewed" and record["numerical_recomputation"] is False,
              "Invalid staged memory record.")
     scope = validate_scope(record["scope"])
-    _require(scope["protocol"] == PROTOCOL and observation_id(record) == record["id"], "Staged record identity differs.")
+    _require(scope["protocol"] in (PROTOCOL, PROTOCOL_V2) and observation_id(record) == record["id"], "Staged record identity differs.")
+    v2 = scope["protocol"] == PROTOCOL_V2
     p = record["provenance"]
-    _require(type(p) is dict and set(p) == {"action_id", "source_record_sha256", "origin", "source", "actions", "artifacts", "artifact_file_sha256", "parent_bindings", "holdout_registration", "freeze", "final_ref"}
+    provenance_fields = {"action_id", "source_record_sha256", "origin", "source", "actions", "artifacts", "artifact_file_sha256", "parent_bindings", "holdout_registration", "freeze", "final_ref"}
+    if v2:
+        provenance_fields.add("feedback_history")
+    _require(type(p) is dict and set(p) == provenance_fields
              and _hash(p["source_record_sha256"]), "Invalid staged provenance.")
     origin, source, payload = p["origin"], p["source"], record["payload"]
     _require(type(origin) is dict and set(origin) == {"project_id", "run_id", "state_version", "snapshot_ref", "source_snapshot_sha256", "source_file_sha256", "registered_project_code_identity", "producer_code_identity", "capture_runtime_code_identity", "capture_implementation_sha256"}
@@ -415,21 +563,27 @@ def _validate_record(record):
     reg, freeze = p["holdout_registration"], p["freeze"]
     reg_fields = {"schema_version", "request_id", "request_sha256", "request", "project_id", "run_id", "state_version_before", "sha256", "bytes", "query_count", "corpus_sha256", "source_sha256", "source_snapshot_sha256", "plan_sha256", "plan_version", "project_code_identity", "policy", "scientific_validation", "record_sha256"}
     freeze_fields = {"schema_version", "request_id", "request", "request_sha256", "project_id", "run_id", "holdout_record_sha256", "source_snapshot_sha256", "plan_sha256", "project_code_identity", "primary_action_id", "primary_result_sha256", "validation_delta_recall20", "policy", "selected_method", "scientific_validation", "record_sha256"}
-    _require(type(reg) is dict and set(reg) == reg_fields and reg["schema_version"] == "retrieval-holdout-registration-v1"
-             and type(freeze) is dict and set(freeze) == freeze_fields and freeze["schema_version"] == "retrieval-holdout-freeze-v1"
+    if v2:
+        freeze_fields.add("feedback_binding")
+    _require(type(reg) is dict and set(reg) == reg_fields and reg["schema_version"] == ("retrieval-holdout-registration-v2" if v2 else "retrieval-holdout-registration-v1")
+             and type(freeze) is dict and set(freeze) == freeze_fields and freeze["schema_version"] == ("retrieval-holdout-freeze-v2" if v2 else "retrieval-holdout-freeze-v1")
              and all(_hash(reg[k]) for k in ("request_sha256", "sha256", "corpus_sha256", "source_sha256", "source_snapshot_sha256", "plan_sha256", "project_code_identity", "record_sha256"))
              and all(_hash(freeze[k]) for k in ("request_sha256", "holdout_record_sha256", "source_snapshot_sha256", "plan_sha256", "project_code_identity", "primary_result_sha256", "record_sha256"))
              and type(reg["state_version_before"]) is int and 0 <= reg["state_version_before"] < origin["state_version"]
              and type(reg["bytes"]) is int and 0 < reg["bytes"] <= holdout.MAX_HOLDOUT_BYTES
              and type(reg["query_count"]) is int and 1 <= reg["query_count"] <= staged.LIMITS["max_queries"]
              and type(reg["plan_version"]) is int and 1 <= reg["plan_version"] <= origin["state_version"]
-             and reg["policy"] == freeze["policy"] == holdout.POLICY
+             and canonical(reg["policy"]) == canonical(freeze["policy"])
+             and (canonical(holdout._feedback_policy(reg["policy"])) == canonical(reg["policy"]) if v2 else reg["policy"] == holdout.POLICY)
              and reg["scientific_validation"] is False and freeze["scientific_validation"] is False,
              "Invalid holdout or frozen metadata schema.")
     for item in (reg, freeze):
         identifier(item["request_id"])
     identifier(freeze["primary_action_id"], "primary_action_id")
-    _require(type(reg["request"]) is dict and reg["request"] == {"request_id": reg["request_id"], "expected_state_version": reg["state_version_before"], "holdout_sha256": reg["sha256"], "holdout_bytes": reg["bytes"]}
+    expected_registration_request = {"request_id": reg["request_id"], "expected_state_version": reg["state_version_before"], "holdout_sha256": reg["sha256"], "holdout_bytes": reg["bytes"]}
+    if v2:
+        expected_registration_request["selection_policy"] = reg["policy"]
+    _require(type(reg["request"]) is dict and canonical(reg["request"]) == canonical(expected_registration_request)
              and type(reg["request"]["expected_state_version"]) is int and type(reg["request"]["holdout_bytes"]) is int
              and reg["request_sha256"] == fingerprint(reg["request"])
              and type(freeze["request"]) is dict and set(freeze["request"]) == {"request_id", "expected_state_version", "primary_action_id"}
@@ -448,13 +602,14 @@ def _validate_record(record):
              and freeze.get("holdout_record_sha256") == reg["record_sha256"] and freeze.get("project_id") == origin["project_id"]
              and freeze.get("run_id") == origin["run_id"] and freeze.get("source_snapshot_sha256") == origin["source_snapshot_sha256"]
              and freeze.get("project_code_identity") == origin["registered_project_code_identity"]
-             and freeze.get("plan_sha256") == reg.get("plan_sha256") and freeze.get("policy") == holdout.POLICY
+             and freeze.get("plan_sha256") == reg.get("plan_sha256") and canonical(freeze.get("policy")) == canonical(reg["policy"])
              and freeze.get("primary_action_id") == primary["id"] and freeze.get("primary_result_sha256") == primary["result_sha256"],
              "Holdout or frozen registration binding differs.")
     delta = paired["splits"]["validation"]["paired_candidate_minus_baseline"]["recall@20"]["mean"]
     _require(type(delta) in (int, float) and math.isfinite(delta)
+             and (not v2 or (type(freeze["validation_delta_recall20"]) in (int, float) and math.isfinite(freeze["validation_delta_recall20"])))
              and freeze["validation_delta_recall20"] == delta
-             and freeze["selected_method"] == ("tfidf_cosine" if delta > 0 else "bm25"), "Frozen validation selection differs.")
+             and (v2 or freeze["selected_method"] == ("tfidf_cosine" if delta > 0 else "bm25")), "Frozen validation selection differs.")
     _check_final_projection(payload["final"], freeze, reg)
     final_ref = p["final_ref"]
     _require(final_ref == {"action_id": final["id"], "request_id": final["request_id"], "result_sha256": final["result_sha256"]}, "Final action reference differs.")
@@ -478,6 +633,8 @@ def _validate_record(record):
              and parents["primary"]["state_version_after"] <= parents["audit"]["state_version_before"]
              and parents["audit"]["state_version_after"] <= freeze["request"]["expected_state_version"]
              and freeze["request"]["expected_state_version"] < parents["final"]["state_version_before"], "Stage order differs.")
+    if v2:
+        _validate_feedback_history(p["feedback_history"], reg, freeze, primary, audit, parents, saved, paired, origin)
     _require(scope["source_manifest_sha256"] == origin["source_snapshot_sha256"]
              and scope["inputs_sha256"] == fingerprint({"primary": primary["result_sha256"], "audit": audit["result_sha256"],
                  "final": final["result_sha256"], "source": fingerprint(source), "freeze": freeze["record_sha256"]})
@@ -490,12 +647,14 @@ def _validate_record(record):
 def validate_bundle(bundle):
     try:
         _require(type(bundle) is dict and set(bundle) == {"schema_version", "id", "version", "record", "method_card", "limitations", "source_inclusion_status", "scientific_validation"}
-                 and bundle["schema_version"] == SCHEMA and bundle["source_inclusion_status"] == "active_at_export"
+                 and bundle["schema_version"] in (SCHEMA, SCHEMA_V2) and bundle["source_inclusion_status"] == "active_at_export"
                  and bundle["scientific_validation"] is False and type(bundle["version"]) is int and 1 <= bundle["version"] <= 2**31 - 1,
                  "Invalid staged case bundle.")
         identifier(bundle["id"], "case_id")
         _require(len(canonical(bundle).encode("utf-8")) <= MAX_BUNDLE_BYTES, "Staged case bundle exceeds 4 MiB.", "BUNDLE_TOO_LARGE")
         record = _validate_record(bundle["record"])
+        _require((bundle["schema_version"] == SCHEMA_V2) == (record["scope"]["protocol"] == PROTOCOL_V2),
+                 "Bundle version differs from its saved feedback protocol.")
         card = research_recipe.validate_method_card(bundle["method_card"])
         _require(card["scope_match"] == {"domain": "retrieval", "contract": staged.CONTRACT}
                  and card["method_refs"] == [{"method_id": staged.TOOL_ID, "evaluation_ref": EVALUATION}], "Method card must match the staged source.")
@@ -529,6 +688,19 @@ def summary(bundle):
                  "final": payload["final"], "verification": payload["verification"]},
              "limitations": [*payload["origin_limitations"], *bundle["limitations"], NOTICE],
              "transfer_scope": "analogy_not_current_evidence", "scientific_validation": False}
+    if bundle["schema_version"] == SCHEMA_V2:
+        history = p["feedback_history"]
+        value["observation"]["preregistered_feedback"] = {
+            "registration_schema_version": history["registration"]["schema_version"],
+            "registration_request_id": history["registration"]["request_id"],
+            "registration_sha256": history["registration"]["registration_sha256"],
+            "condition": copy.deepcopy(history["registration"]["condition"]),
+            "value": copy.deepcopy(history["feedback"]["value"]), "outcome": history["feedback"]["outcome"],
+            "audit_parent_request_id": p["parent_bindings"]["audit"]["request_id"],
+            "audit_parent_request_sha256": p["parent_bindings"]["audit"]["request_sha256"],
+            "policy": copy.deepcopy(p["holdout_registration"]["policy"]),
+            "verification": history["verification"]}
+        value["limitations"].append("offline_policy_binding_unverifiable_without_origin; the original audit context is not included.")
     _require(len(canonical(value).encode("utf-8")) <= 64 * 1024, "Staged case summary exceeds 64 KiB.", "SUMMARY_TOO_LARGE")
     return value
 
@@ -545,5 +717,5 @@ class StagedExperienceMemory(ResearchMemory):
             record = self._verify(con, row)
             _require(record["scope"] == scope, "Export requires exact source scope.", "INVALID_SCOPE")
             _require(row["status"] == "active", "Retired evidence cannot be exported.", "EXPERIENCE_RETIRED")
-            return validate_bundle({"schema_version": SCHEMA, "id": case_id, "version": version, "record": record,
+            return validate_bundle({"schema_version": SCHEMA_V2 if record["scope"]["protocol"] == PROTOCOL_V2 else SCHEMA, "id": case_id, "version": version, "record": record,
                     "method_card": method_card, "limitations": limitations, "source_inclusion_status": "active_at_export", "scientific_validation": False})

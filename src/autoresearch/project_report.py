@@ -65,6 +65,9 @@ def _experience_rows(report):
             observation = ("原验证 Recall@20 候选减基线 " + _number(delta)
                            + "；原最终选择 " + final["selected_method"] + "，Recall@20 "
                            + _number(final["summary"]["selected"]["recall@20"]))
+            if "preregistered_feedback" in saved:
+                feedback = saved["preregistered_feedback"]
+                observation += "；原事前反馈判定 " + feedback["outcome"] + "（条件与映射见下文）。"
             if final["comparison_status"] == "selected_equals_baseline_single_computation":
                 observation += "；最终为基线单臂一次计算，零差不表示最终TF-IDF打平。"
             else:
@@ -102,6 +105,15 @@ def _experience_rows(report):
                      "用于后续参考" if case["inclusion_status"] == "active" else "已从后续参考撤回", source,
                      observation])
     return rows
+
+
+def _experience_feedback_lines(case):
+    feedback = case["observation"].get("preregistered_feedback")
+    if feedback is None:
+        return []
+    return ["原事前反馈条件：" + canonical(feedback["condition"]),
+            "原反馈值：" + canonical(feedback["value"]) + "；原判定：" + feedback["outcome"] + "。",
+            "原固定选择映射：" + canonical(feedback["policy"]) + "。原策略离线绑定须回查源项目。"]
 
 
 def _experience_comparison_lines(case):
@@ -1222,6 +1234,7 @@ def _markdown(report):
                       _markdown_table(["案例", "当前资格", "原项目与目标", "原条件下的数值观察"], _experience_rows(report)), ""])
         for case in report["experience_cases"]:
             lines.extend(["### " + case["case_id"], "", case["method_card"]["question"], "",
+                          *[line + "\n" for line in _experience_feedback_lines(case)],
                           *[line + "\n" for line in _experience_comparison_lines(case)],
                           *["- " + item for item in case["limitations"]], ""])
     incomplete = [entry for entry in report["action_results"] if entry["status"] != "completed"]
@@ -1480,6 +1493,8 @@ def _pdf(report):
               [[row[0] + " / " + row[1], row[2], row[3]] for row in _experience_rows(report)], [.24, .35, .41])
         for case in report["experience_cases"]:
             story.append(p(case["method_card"]["question"], small))
+            for line in _experience_feedback_lines(case):
+                story.append(p(line, small, 2000))
             for line in _experience_comparison_lines(case):
                 story.append(p(line, small))
             for limit in case["limitations"]:

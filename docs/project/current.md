@@ -1,7 +1,9 @@
 # 当前自主研究开发
 Status: resumable
 
-S063已完成固定验证，待推送：新holdout显式事前feedback映射实际控制原freeze选臂，unknown/wait与错误audit不得绕过；专项11/相关92及独审通过，两个合成case正确TFIDF/BM25并原ID新进程恢复，原100文件与v1反馈字节保持。v2经验捕获明确拒绝；无新模型/真实研究收益。[S063](../execution/SPRINT-063.md)。
+S064经验v2已完成独立验证待发布：原事前登记/反馈/audit/freeze/final聚合沿现有Memory绑定目标Project/计划，保留负结果；55相关/独审3+两个目标子例通过，合成原件源状态预算保持，原100文件保持，offline必须回源核原策略及最终聚合。未调用模型/新科研，见[SPRINT-064](../execution/SPRINT-064.md)。
+
+S063已完成固定验证并推送a7f6284cd648e875f2fa309219cfd29e5242706e：新holdout显式事前feedback映射实际控制原freeze选臂，unknown/wait与错误audit不得绕过；专项11/相关92及独审通过，两个合成case正确TFIDF/BM25并原ID新进程恢复，原100文件与v1反馈字节保持。v2经验捕获明确拒绝；无新模型/真实研究收益。[S063](../execution/SPRINT-063.md)。
 
 S062已完成固定验证并推送8090aa7191b3cff8132edd6dcff7e9309ba90e62：staged事前双指标可选单题留一条件，未知整体等待，旧v1/v2及原freeze不变；47相关、5独审，两组实际合成HTTP及异PID原body重放通过，隔离对照中两mean通过但LOO失败正确wait；100原文件未改。见[SPRINT-062](../execution/SPRINT-062.md)。
 
@@ -28,3 +30,5 @@ AAW02e72e3e411bec53db2288651df01afb27d8904d/v0.3.1远端仍同、7安装文件�
 下一优先真实模型反馈选择/计划修订，须S050已有申请明确批准；继续独立零模型工作不改旧fullbudget、协议或最终集。附件需新凭据证据后官方上传+下载核SHA。下次计划2026-11-15 10:47:27+08，平台完成/投递unknown。受信local，不声称OS/sealed/RSI完整Gates。
 
 本轮源码pin `/workspace/development-continuation-20261114/source-pins/4e17a63` 为clean detached 4e17a63af164cd8d0cb49a1e5a3feae458df459d，191源与原reader freeze相同；数据仍在原case路径，源pin不等于整套环境已可移植恢复。
+
+本轮S063源码pin `/workspace/development-continuation-20261114/source-pins/a7f6284` 含191源码+1专项，与fixed freeze逐项同；继续S064评估v2结果能否版本化保存在原Memory并绑定下个计划，当前尚未通过。

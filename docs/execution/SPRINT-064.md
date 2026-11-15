@@ -1,0 +1,9 @@
+# S064：把事前反馈选臂结果接入经验与后续计划
+
+已新增 `staged-retrieval-experience-bundle-v2`／`staged-retrieval-feedback-binding-v2`，复用原Memory、dispatcher和目标项目绑定；旧v1不变。源端只读核原hypothesis registration/真实feedback、primary及audit原context/proposal、freeze、final和原SQL/工件；保留原条件v1/v2/v3、反馈值/outcome与事前选臂mapping，最终只导出aggregate，不含final查询、逐题行或query hash。报告v2完整展示真实触发条件/结果/规则，不只展示Recall；旧v1报告不变。离线包没有原审计context，必须标明offline_policy_binding_unverifiable_without_origin，原策略/最终汇总的来源需回查，不把自hash称签名。
+
+新路径原producer controller identity与当前reader分开核验；模拟当前controller漂移仍可只读capture，执行路径原CODE_CHANGED门不放宽。作者55相关回归、独立3探针及两个目标项目子例通过。两个已完成S063合成原件各只读capture一次，met→TFIDF、notmet→BM25单臂；Memory重复导入新增0，目标Project同ID导入、Controller/计划/Markdown/PDF可见原条件且预算不变。
+
+固定191源+2test manifest SHA ee64cd443857b1aff03429cb2f8cfb62ef54c7f2d94cbac19bcb057134e1bae4/core ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572；原S046/S050/S054共100文件字节保持。源捕获读取了合成final行动工件来核聚合，捕获时private路径/重新排名/评分/fit/派发被拦；完整性hash在guard外读取合成private字节。包的final隐私只按当前合成canary/已知query hash验证，不声称任意信息泄漏不可能。无新科研/模型/fit或科研收益、OS/盲测声明。
+
+初次报告表格截断条件与outcome已修并保留失败；独审初装不存在rank哨兵在导入前失败，改retrieve后通过，原日志保留。[精确证据](g5-local/feedback-experience-verification.json)。

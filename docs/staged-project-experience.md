@@ -26,3 +26,8 @@ case保存指标来自原项目。验证TFIDF较BM25低.01、final选中BM25时�
 源端捕获核完整final原工件，便携包只含最终聚合及SHA引用。离线校验可核schema/保存开发算术/绑定自洽，无法单凭自带hash证明被省略原件的最终聚合；`offline_final_binding_unverifiable_without_origin`明确保留。包没有原项目总预算的独立证明；原预算由原账本及执行回执核验。
 
 相同用户的程序性分离不代表OS/盲测。任何后来接触历史案例与重叠任务均须披露已曝光范围。未知来源、failed/unknown或不完整阶段拒绝完整案例导出。源记忆与目标已导入快照分别维护active/retired，后续版本不隐式提升旧科学状态。
+
+
+## 事前反馈选臂的经验（S064）
+
+新holdout registered_feedback v2结果使用独立 `staged-retrieval-experience-bundle-v2` 与 `staged-retrieval-feedback-binding-v2`；源端回查原事前条件、实际反馈、对应审计、冻结和最终行动后捕获，再通过现有Memory和项目绑定显式供计划。原final只进聚合与来源哈希，不含逐题/查询ID/查询哈希；它的来源以及原审计context的前瞻归属在离线包中不可独立证明，必须回查原producer，自hash不是签名。原条件和实际outcome、映射进入v2摘要及报告，不以Recall20观察值冒充选择原因。历史v1保持，旧研究不迁移/重跑，current controller漂移可只读核原producer但不授权执行。见[S064](execution/SPRINT-064.md)。
