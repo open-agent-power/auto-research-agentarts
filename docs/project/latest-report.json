@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T06:46:31+08:00",
-  "status": "research_candidates_and_conditional_protocol_reviewed",
+  "end_time": "2026-11-16T06:58:15+08:00",
+  "status": "S126_staged_purpose_verified_next_synthetic_preparation_review",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -59,7 +59,8 @@
     "S123 workbench HTTP/UI successor preview independently validated with synthetic browser/HTTP and prior manager pin",
     "S124 Python resume-only for new manager pin, independently tested synthetic transaction windows and prior pin",
     "S125 workbench successor plan save and original-ID resume, independently verified synthetic HTTP/browser with pending scans and cooperative tab locks",
-    "Metadata-only UCI 501 candidate review and NFCorpus sample exposure recorded; Wikinews conditional protocol independently reviewed, not authorized or executable"
+    "Metadata-only UCI 501 candidate review and NFCorpus sample exposure recorded; Wikinews conditional protocol independently reviewed, not authorized or executable",
+    "S126 opt-in staged research-purpose declaration, synthetic old/new 14/14 and pinned-source cross-process verification"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -993,5 +994,12 @@
     "candidate_audit_commit": "860290a",
     "scope": "metadata only; Wikinews protocol is conditional and unapproved, no downloaded content/real project/model",
     "limits": "source over 40MiB, licensing and provenance, parser and purpose semantics, actual SHA and synthetic rehearsal unresolved; NFCorpus one document preview accidentally exposed"
+  },
+  "S126": {
+    "commit": "f6a3c7b1152475bb92924cf0cb3989eb053ba0d4",
+    "source_head": "c9726b02d779a2dfa14f073605d96da2dda4b063",
+    "manifest_sha256": "7eb9d035c4706b7f3f07efb7fdde13c3bebf16cf1056f483fc3fb59d03cb666f",
+    "verification": "author and independent 14/14 synthetic; old pin/new code cross-process protection; coordinated tamper can evade same-ledger consistency",
+    "limits": "operator declaration not license/authorization; status scope is shape only; default evidence budget 8; old pins not migrated; no real research"
   }
 }
