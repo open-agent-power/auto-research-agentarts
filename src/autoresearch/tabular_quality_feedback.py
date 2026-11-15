@@ -113,7 +113,7 @@ def _checked_collection(records):
 
 def _manager_claim(con, kind, request_id, intent_sha256, core_sha256, *, create=False):
     """Store/check cooperative ownership in the same transaction as core acceptance."""
-    require(kind in ("registration", "policy", "plan", "hypothesis_registration", "staged_primary_parent", "staged_primary_child") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
+    require(kind in ("registration", "policy", "plan", "hypothesis_registration", "staged_primary_parent", "staged_primary_child", "staged_feedback_parent", "staged_feedback_child") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
             and type(core_sha256) is str and _HASH.fullmatch(core_sha256),
             "EVIDENCE_CHANGED", "Invalid manager ownership identity.")
     identifier(request_id)

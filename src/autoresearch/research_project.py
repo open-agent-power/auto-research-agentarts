@@ -45,8 +45,37 @@ def _staged_primary_child_claim_sha(parent, child_request_sha256):
                         "child_request_sha256": child_request_sha256})
 
 
+def _staged_feedback_parent_claim_sha(parent):
+    """Bind a frozen policy decision without including mutable execution state."""
+    meta = parent.get("staged_feedback_policy") if type(parent) is dict else None
+    fields = {"schema_version", "registration_request_id", "registration_sha256", "primary_action_id", "primary_result_sha256",
+              "primary_manager_intent_sha256", "manager_intent_sha256", "controller_request_id", "child_request_id",
+              "context_sha256", "proposal_sha256", "feedback_sha256", "decision", "record_sha256"}
+    context = parent.get("selection_context", {}) if type(parent) is dict else {}
+    items = [item for item in context.get("hypothesis_feedback", {}).get("items", [])
+             if type(item) is dict and type(meta) is dict and item.get("request_id") == meta.get("registration_request_id")]
+    require(type(meta) is dict and set(meta) == fields and meta["schema_version"] == "staged-feedback-policy-binding-v1"
+            and meta["record_sha256"] == fingerprint({k:v for k,v in meta.items() if k != "record_sha256"})
+            and meta["controller_request_id"] == parent.get("request_id") and meta["child_request_id"] == parent.get("child_request_id")
+            and meta["decision"] in ("wait", "audit") and len(items) == 1 and meta["feedback_sha256"] == fingerprint(items[0])
+            and meta["context_sha256"] == context.get("context_sha256")
+            and meta["proposal_sha256"] == fingerprint(parent.get("request", {}).get("proposal"))
+            and parent.get("request_sha256") == fingerprint(parent.get("request"))
+            and parent.get("decision_sha256") == fingerprint(parent.get("decision")),
+            "EVIDENCE_CHANGED", "The staged feedback parent binding changed.")
+    return fingerprint({"request_sha256":parent["request_sha256"], "binding_sha256":meta["record_sha256"],
+                        "decision_sha256":parent["decision_sha256"], "snapshot_ref_before":parent["snapshot_ref_before"],
+                        "state_version_before":parent["state_version_before"], "dispatch_state_version":parent["dispatch_state_version"]})
+
+
+def _staged_feedback_child_claim_sha(parent, child_request_sha256):
+    return fingerprint({"parent_claim_sha256":_staged_feedback_parent_claim_sha(parent),
+                        "parent_request_id":parent["request_id"], "child_request_id":parent["child_request_id"],
+                        "child_request_sha256":child_request_sha256})
+
+
 def _require_no_pending_staged_primary(project):
-    require(not any(type(parent) is dict and "staged_primary" in parent
+    require(not any(type(parent) is dict and ("staged_primary" in parent or "staged_feedback_policy" in parent)
                     and parent.get("status") in ("prepared", "running", "unknown")
                     for parent in project.get("controller_requests", [])),
             "OPERATION_INCOMPLETE", "Inspect the original staged primary before a source operation.")
@@ -725,28 +754,33 @@ class ResearchProject:
                 "EVIDENCE_CHANGED", "The generated prediction result has a different source.")
         return {**reference, "analysis": analysis}
 
-    def step(self, *, request_id, dimension=None, expected_state_version=None, method_id=None, parameters=None, _staged_primary=None):
+    def step(self, *, request_id, dimension=None, expected_state_version=None, method_id=None, parameters=None, _staged_primary=None, _staged_feedback=None):
         identifier(request_id)
+        require(_staged_primary is None or _staged_feedback is None, "INVALID_REQUEST", "Use one original staged binding.")
+        strict = _staged_primary if _staged_primary is not None else _staged_feedback
+        strict_kind = "staged_primary" if _staged_primary is not None else "staged_feedback_policy"
         with self._writer():
             with self._connect() as con:
                 project = self._project(con)
-                marked = [p for p in project.get("controller_requests", []) if type(p) is dict and "staged_primary" in p]
+                marked = [p for p in project.get("controller_requests", []) if type(p) is dict
+                          and ("staged_primary" in p or "staged_feedback_policy" in p)]
                 pending = [p for p in marked if p.get("status") in ("prepared", "running", "unknown")]
                 linked = [p for p in marked if p.get("child_request_id") == request_id]
-                if _staged_primary is None:
+                if strict is None:
                     require(not pending and not linked, "OPERATION_INCOMPLETE",
                             "Inspect the original staged primary; ordinary step cannot dispatch or recover it.")
                 else:
-                    require(type(_staged_primary) is dict and set(_staged_primary) == {"parent_request_id", "intent_sha256"}
+                    require(type(strict) is dict and set(strict) == {"parent_request_id", "intent_sha256"}
                             and len(pending) == 1 and len(linked) == 1 and pending[0] == linked[0]
-                            and pending[0].get("request_id") == _staged_primary["parent_request_id"]
+                            and pending[0].get("request_id") == strict["parent_request_id"]
                             and pending[0].get("status") == "prepared"
-                            and pending[0]["staged_primary"].get("manager_intent_sha256") == _staged_primary["intent_sha256"]
+                            and strict_kind in pending[0] and pending[0][strict_kind].get("manager_intent_sha256") == strict["intent_sha256"]
                             and expected_state_version == pending[0].get("dispatch_state_version"),
                             "OPERATION_INCOMPLETE", "Use the uniquely bound first staged child; do not recover or replace it.")
                     from .tabular_quality_feedback import _manager_claim
-                    _manager_claim(con, "staged_primary_parent", pending[0]["request_id"], _staged_primary["intent_sha256"],
-                                   _staged_primary_parent_claim_sha(pending[0]))
+                    _manager_claim(con, "staged_primary_parent" if _staged_primary is not None else "staged_feedback_parent",
+                                   pending[0]["request_id"], strict["intent_sha256"],
+                                   _staged_primary_parent_claim_sha(pending[0]) if _staged_primary is not None else _staged_feedback_parent_claim_sha(pending[0]))
                     require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
                             and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
                             "OPERATION_INCOMPLETE", "The original staged child already exists or is claimed; do not recover it.")
@@ -756,6 +790,11 @@ class ResearchProject:
                     require(method_id == "research.relevance-validation-pair" and method_id == primary_id
                             and dimension is None and (parameters is None or parameters == {}),
                             "EVIDENCE_CHANGED", "The staged child must use its registered primary method.")
+                if _staged_feedback is not None:
+                    meta = pending[0]["staged_feedback_policy"]
+                    require(method_id == "research.relevance-validation-saved-audit" and dimension is None
+                            and parameters == {"based_on_action_id":meta["primary_action_id"], "based_on_result_sha256":meta["primary_result_sha256"]}
+                            and meta["decision"] == "audit", "EVIDENCE_CHANGED", "Use only the original saved primary audit.")
                 followup = method_id in registry.followup_ids(primary_id)
                 require(method_id == primary_id or followup, "METHOD_NOT_SUPPORTED", "This method is not supported by the registered input.")
                 primary = registry.get_analysis(method_id)
@@ -822,7 +861,7 @@ class ResearchProject:
                     "EXECUTION_UNKNOWN", "Recover the existing execution; do not submit another action.")
             prior = next((a for a in current["actions"] if a["request_sha256"] == digest and a["status"] == "completed"), None)
             if prior:
-                require(_staged_primary is None, "OPERATION_INCOMPLETE", "A staged primary cannot reuse an earlier action.")
+                require(strict is None, "OPERATION_INCOMPLETE", "A staged operation cannot reuse an earlier action.")
                 with self._connect() as con:
                     con.execute("INSERT INTO replays VALUES(?,?)", (request_id, prior["request_id"]))
                 return dict(self._recover(prior), reused=True)
@@ -840,7 +879,21 @@ class ResearchProject:
                         and predecessor["result_sha256"] == parameters["based_on_result_sha256"]
                         and predecessor["method_instance"]["evaluation_ref"] == registry.evaluation_ref(predecessor_method),
                         "EVIDENCE_CHANGED", "The follow-up predecessor identity differs.")
-                self._recover(predecessor)
+                if _staged_feedback is not None:
+                    from .staged_feedback_reader import _checked_primary
+                    from .tabular_quality_feedback import _manager_claim
+                    origin = [p for p in project.get("controller_requests", []) if p.get("child_request_id") == predecessor["request_id"] and "staged_primary" in p]
+                    require(len(origin) == 1 and origin[0].get("status") == "completed", "EVIDENCE_CHANGED", "The original claimed primary is unavailable.")
+                    with self._connect(readonly=True) as claim_con:
+                        _manager_claim(claim_con, "staged_primary_parent", origin[0]["request_id"], meta["primary_manager_intent_sha256"], _staged_primary_parent_claim_sha(origin[0]))
+                        _manager_claim(claim_con, "staged_primary_child", predecessor["request_id"], meta["primary_manager_intent_sha256"], _staged_primary_child_claim_sha(origin[0], predecessor["request_sha256"]))
+                    checked_origin = _checked_primary(self, current, predecessor)
+                    from . import staged_project_experience as staged_saved
+                    primary_envelope, primary_raw_sha = staged_saved._read(self, predecessor)
+                    require(primary_raw_sha == checked_origin["artifact_sha"] == hashlib.sha256(canonical(primary_envelope).encode("utf-8")).hexdigest(),
+                            "EVIDENCE_CHANGED", "The original primary artifact bytes changed.")
+                else:
+                    self._recover(predecessor)
                 saved_envelope = json.loads(self._artifact(predecessor).read_bytes())
                 require(saved_envelope.get("sha256") == predecessor["result_sha256"]
                         == fingerprint({key: value for key, value in saved_envelope.items() if key != "sha256"})
@@ -913,7 +966,7 @@ class ResearchProject:
                 action["method_instance"]["input_bindings"]["generated_prediction_ref"] = reference
             if method_id in registry.RIDGE:
                 action.update(fit_reservation=fit_reservation, fit_events=[])
-            if _staged_primary is not None:
+            if strict is not None:
                 from .local_workbench import _check_staged_runtime
                 from .project_controller import code_identity as controller_code_identity
                 _check_staged_runtime()
@@ -921,15 +974,27 @@ class ResearchProject:
                         and pending[0]["controller_code_identity"] == controller_code_identity()
                         and self._source(project) == payload,
                         "EVIDENCE_CHANGED", "The staged source or code changed before child acceptance.")
+            if _staged_feedback is not None:
+                final_origin = _checked_primary(self, current, predecessor)
+                final_envelope, final_sha = staged_saved._read(self, predecessor)
+                require(final_sha == primary_raw_sha == final_origin["artifact_sha"]
+                        and canonical(final_envelope) == canonical(primary_envelope)
+                        and self.status()["snapshot_ref"] == current["snapshot_ref"],
+                        "EVIDENCE_CHANGED", "The original primary changed before audit acceptance.")
+                with self._connect(readonly=True) as claim_con:
+                    _manager_claim(claim_con, "staged_primary_parent", origin[0]["request_id"], meta["primary_manager_intent_sha256"], _staged_primary_parent_claim_sha(origin[0]))
+                    _manager_claim(claim_con, "staged_primary_child", predecessor["request_id"], meta["primary_manager_intent_sha256"], _staged_primary_child_claim_sha(origin[0], predecessor["request_sha256"]))
+                _check_staged_runtime()
             with self._connect() as con:
                 con.execute("INSERT INTO actions VALUES(?,?,?)", (request_id, digest, canonical(action)))
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
-                if _staged_primary is not None:
+                if strict is not None:
                     from .tabular_quality_feedback import _manager_claim
-                    _manager_claim(con, "staged_primary_child", request_id, _staged_primary["intent_sha256"],
-                                   _staged_primary_child_claim_sha(pending[0], digest), create=True)
-            if _staged_primary is not None:
+                    _manager_claim(con, "staged_primary_child" if _staged_primary is not None else "staged_feedback_child",
+                                   request_id, strict["intent_sha256"],
+                                   _staged_primary_child_claim_sha(pending[0], digest) if _staged_primary is not None else _staged_feedback_child_claim_sha(pending[0], digest), create=True)
+            if strict is not None:
                 # If the closure drifts after acceptance, preserve the running
                 # action/claim for inspection; never enter the adapter or retry.
                 _check_staged_runtime()
@@ -937,6 +1002,18 @@ class ResearchProject:
                         and pending[0]["controller_code_identity"] == controller_code_identity()
                         and self._source(project) == payload,
                         "EVIDENCE_CHANGED", "The staged source or code changed after child acceptance.")
+            if _staged_feedback is not None:
+                accepted = self.status()
+                post_origin = _checked_primary(self, accepted, predecessor)
+                post_envelope, post_sha = staged_saved._read(self, predecessor)
+                require(post_sha == primary_raw_sha == post_origin["artifact_sha"]
+                        and canonical(post_envelope) == canonical(primary_envelope),
+                        "EVIDENCE_CHANGED", "The original primary changed after audit acceptance; inspect the accepted child.")
+                with self._connect(readonly=True) as claim_con:
+                    _manager_claim(claim_con, "staged_primary_parent", origin[0]["request_id"], meta["primary_manager_intent_sha256"], _staged_primary_parent_claim_sha(origin[0]))
+                    _manager_claim(claim_con, "staged_primary_child", predecessor["request_id"], meta["primary_manager_intent_sha256"], _staged_primary_child_claim_sha(origin[0], predecessor["request_sha256"]))
+                    _manager_claim(claim_con, "staged_feedback_child", request_id, strict["intent_sha256"], _staged_feedback_child_claim_sha(pending[0], digest))
+                _check_staged_runtime()
             try:
                 if method_id in registry.STAGED_FINALS:
                     result = primary.execute_project(self.root, original, parameters)
@@ -968,7 +1045,7 @@ class ResearchProject:
             with self._connect() as con:
                 action = self._action(con, request_id)
                 project = self._project(con)
-                require(action is None or not any(type(parent) is dict and "staged_primary" in parent
+                require(action is None or not any(type(parent) is dict and ("staged_primary" in parent or "staged_feedback_policy" in parent)
                         and parent.get("child_request_id") == action.get("request_id")
                         for parent in project.get("controller_requests", [])),
                         "OPERATION_INCOMPLETE", "The staged child cannot be recovered through ordinary resume.")

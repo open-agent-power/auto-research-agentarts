@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S115 已认证completed primary的已知双指标反馈可走严格后端wait或原登记audit，unknown/缺凭据停查；独审52+51合成及3项事务负例通过，S115多进程竞争/UI尚未验证或接入。[SPRINT-115](../execution/SPRINT-115.md)。
+
 S114 页面可显式按事前登记的原future ID执行staged primary，明确最多1工具和dev/validation排名评分；原body保留、resume-only核claim，独立浏览器/回归通过。反馈分支UI仍未接，旧pin不迁移。[SPRINT-114](../execution/SPRINT-114.md)。
 
 S113 独立真实多进程验证staged primary七个SIGKILL窗口及旧Controller抢先，八场与claim独审通过；仅合成/选定切点，未证断电或恶意隔离，UI仍未接。[SPRINT-113](../execution/SPRINT-113.md)。
