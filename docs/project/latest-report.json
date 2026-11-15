@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T03:47:26+08:00",
-  "status": "S117_feedback_ui_verified_integrated_staged_workflow_in_progress",
+  "end_time": "2026-11-16T03:59:55+08:00",
+  "status": "S118_integrated_synthetic_workflow_verified_research_capability_review_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -50,7 +50,8 @@
     "S114 UI explicitly executes registered future Controller ID with preserved body and resume-only; synthetic browser and 29+43 independent backend tests",
     "S115 strict staged feedback backend for fully authenticated completed primary and known outcomes; independently verified 52+51 synthetic tests",
     "S116 independent 10 synthetic real SIGKILL transaction windows, 2 actual old-entry multiprocess races, 4 asymmetric branch cases and claims verified",
-    "S117 workbench explicitly handles authenticated known staged feedback with original-ID resume-only; independent synthetic UI and backend validation"
+    "S117 workbench explicitly handles authenticated known staged feedback with original-ID resume-only; independent synthetic UI and backend validation",
+    "S118 independent Chromium/HTTP full workflows in two isolated synthetic Projects: public posthoc experience→manual plan ref→preregistration→original-ID primary→known feedback→report/replay"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -82,7 +83,8 @@
     "S113 author fixed2 timed out on repeated trace barrier after seven windows; fixed3 expected wrong error EVIDENCE_CHANGED and failed; later separate run plus independent eight-scenario run passed.",
     "S114 test harness initially timed out selecting hidden project switch; corrected using programmatic hidden control; did not prove visible user interaction.",
     "S115 initial synthetic audit completed but terminal inspector used parameters instead of original action and returned EVIDENCE_CHANGED; corrected and retained initial logs.",
-    "S117 feedback UI originally did not block nonempty/missing context.blockers; fixed and independently verified. Independent unknown test initially waited outdated text, retained and reran."
+    "S117 feedback UI originally did not block nonempty/missing context.blockers; fixed and independently verified. Independent unknown test initially waited outdated text, retained and reran.",
+    "S118 isolated fixture path/hidden locator and verifier actions assumption failed initially; logs retained and continued original manager/IDs where accepted."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -91,12 +93,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Verify full same-project synthetic UI chain: experience import, explicit plan refs, preregistration, original-ID primary, known feedback and report.",
+  "next": "Read-only assess existing real research/model authorization and feasible scientific work; no new paid/model/API budget.",
   "next_planned_trigger": "2026-11-16T04:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "c74f8d14afe932536915ede1d06200a197ed6b4b",
-  "last_checkpoint": "2026-11-16T03:47:26+08:00",
+  "code_commit": "68972e4937a98d7f957150a90d6e085159add681",
+  "last_checkpoint": "2026-11-16T03:59:55+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -914,5 +916,16 @@
     "projection_tests": 2,
     "scope": "actual synthetic Chromium wait/audit/budget-wait and recovery; unknown/blockers/9 pending mocked; unknown stops, no true study/model",
     "manifest_sha256": "976246cd573bf3b32da2c32c65a15e97144b1bc51bf97073b64bd6255fff8ae8"
+  },
+  "S118": {
+    "commit": "68972e4937a98d7f957150a90d6e085159add681",
+    "source_head": "6536cdf219e8f66a9ad50315eda7ca3b224ac6d7",
+    "wait_project": "project-92e04b930694406cba7cafd4c9435537",
+    "wait_tool_budget": "1/2",
+    "audit_project": "project-3997de7402e04e96b32d89d06ba7d483",
+    "audit_tool_budget": "2/2",
+    "browser_log_sha256": "703393e90fdaed42be9ca2cba0cd74d648f295da3a5081fbfe7ae107a58d4167",
+    "verification_sha256": "4ce120b274baaf92ec7434c77210a56d040001cdb2834862d63cda79f637ba69",
+    "limits": "synthetic human-selected thresholds and [0,0], no model understanding or real scientific gain; backend network/fit/rank no independent sentinels"
   }
 }
