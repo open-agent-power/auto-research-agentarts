@@ -1,0 +1,253 @@
+{
+  "schema_version": "saved-validation-stability-results-v1",
+  "status": "actual_saved_data_verified",
+  "analysis_commit_before_execution": "4e17a63af164cd8d0cb49a1e5a3feae458df459d",
+  "reader_commit": "030af51c4ff06813d08a5f75610dea9f6573ad26",
+  "reader_core": "a05f668cb8de230b134ab4e0394c17297b7aa5cd026c378172bce2001325b4b5",
+  "analysis_protocol_test_sha256": {
+    "scripts/audit_saved_validation_stability.py": "dd5c2a9aac654322ffe5e1c4473426f3b379647c9318825c9ccc8cae7fa26239",
+    "docs/execution/g5-local/saved-validation-stability-protocol-v1.json": "b1c9b193807629053e73d5a98621689196daf25bc138a2217bc94382caec3d4b",
+    "tests/test_saved_validation_stability_audit.py": "db865b6a4f9dbda0388250e459068b442ba35dafc2255179831dd92c93ececfe"
+  },
+  "raw_per_query_evidence": {
+    "path": "runs/s060-verification/original-validation-audit.json",
+    "sha256": "9c4d2d8bc1297856b89317e4f279cca030f756e3e5e1635ab3d98bece06e7d38",
+    "committed": false,
+    "contains_validation_query_ids_and_original_scores": true,
+    "hashes_are_identifiers_not_anonymity": true
+  },
+  "cases": [
+    {
+      "label": "S046",
+      "project_id": "project-7858ce02138a48e3bdeac39c26f7be06",
+      "run_id": "run-fca64a904db14a928d9b21defb7ccaab",
+      "producer_core": "6a5c9e47a19ceebe883930a51d9524788374245e9fd8d774a4e88af2db20c0ab",
+      "source_snapshot_sha256": "f7b9c00a52243ed9f08de48c4311bb0036a5bc8eda4696ef4c17978efae613e3",
+      "primary_action_id": "action-ef9810de9ce10da4eb378b94c5bd563b",
+      "primary_result_sha256": "a7a0f4cf741671ca0cce3a64a7d83da33b50e931c91d4e60a44532d1f4d0a78d",
+      "checked_primary_calls": 1,
+      "unchanged_files": 36,
+      "source_inventory_sha256": "6f222edd96889431c5e3554c15139bed1692a92dfcd4e2a051ffca90c9b20101",
+      "state_sha256": "3979f08a03b2d87b93ccecde000971339626997f2fbf9883722722ba550705d7",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "existing_cash_cap_cny": 5,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "s046-squad-paragraph-retrieval-v1",
+        "local_tool_call_limit": 3,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "local_tool_calls_used": 3,
+        "local_tool_calls_reserved": 0,
+        "local_tool_dispatches": 3,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0,
+        "fit_limit": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "preprocessing_fits": 0,
+        "fits_completed": 0,
+        "ridge_fits_completed": 0,
+        "preprocessing_fits_completed": 0
+      },
+      "metrics": {
+        "recall@20": {
+          "queries": 100,
+          "direction": "tfidf_cosine_minus_bm25",
+          "epsilon": 1e-12,
+          "saved_mean": -0.01,
+          "checked_fsum_mean": -0.01,
+          "wins": 0,
+          "losses": 1,
+          "ties": 99,
+          "leave_one_out_min": -0.010101010101010102,
+          "leave_one_out_max": 0.0,
+          "leave_one_out_sign_counts": {
+            "positive": 0,
+            "negative": 99,
+            "near_zero": 1
+          },
+          "original_mean_sign_under_epsilon": -1,
+          "leave_one_out_near_zero_count": 1,
+          "leave_one_out_opposite_sign_count": 0,
+          "near_zero_and_opposite_counts_applicable": true,
+          "min_excluded_query_count": 99,
+          "max_excluded_query_count": 1
+        },
+        "mrr@10": {
+          "queries": 100,
+          "direction": "tfidf_cosine_minus_bm25",
+          "epsilon": 1e-12,
+          "saved_mean": -0.035555555555555556,
+          "checked_fsum_mean": -0.035555555555555556,
+          "wins": 1,
+          "losses": 12,
+          "ties": 87,
+          "leave_one_out_min": -0.04264870931537598,
+          "leave_one_out_max": -0.029180695847362513,
+          "leave_one_out_sign_counts": {
+            "positive": 0,
+            "negative": 100,
+            "near_zero": 0
+          },
+          "original_mean_sign_under_epsilon": -1,
+          "leave_one_out_near_zero_count": 0,
+          "leave_one_out_opposite_sign_count": 0,
+          "near_zero_and_opposite_counts_applicable": true,
+          "min_excluded_query_count": 1,
+          "max_excluded_query_count": 1
+        }
+      }
+    },
+    {
+      "label": "S054",
+      "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
+      "run_id": "run-7f74b125d1ad443e96bbf0f81f0165d9",
+      "producer_core": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
+      "source_snapshot_sha256": "73f2d1a934cef56e096c3ef26770aabe56c2c9aa736616111084854c773697b9",
+      "primary_action_id": "action-deccc0ee9c830ae6a75dfd029494b218",
+      "primary_result_sha256": "1b806e348fedb6f0fafe00a514d8b299e61b2b379b42aea2284722446720a3f4",
+      "checked_primary_calls": 1,
+      "unchanged_files": 47,
+      "source_inventory_sha256": "eb524d1fd43474184c0f31c275db88f472675d6bb90170ea4df588b79399c1f0",
+      "state_sha256": "b43a3e037d9ac723af03294fb21f4b1ef9a0573116518a001d576dbb75f74b79",
+      "budget": {
+        "cash_settlement": "unknown",
+        "evidence_read_limit": 0,
+        "existing_cash_cap_cny": 5,
+        "historical_request_counts": null,
+        "historical_spend_cny": null,
+        "historical_unknowns_resolved": false,
+        "lineage_ref": "s054-squad-train-conditional-v1",
+        "local_tool_call_limit": 3,
+        "model_requests_allowed": 0,
+        "model_requests_reserved": 0,
+        "new_fits": 0,
+        "new_model_requests": 0,
+        "local_tool_calls_used": 3,
+        "local_tool_calls_reserved": 0,
+        "local_tool_dispatches": 3,
+        "evidence_reads_used": 0,
+        "evidence_reads_reserved": 0,
+        "fit_limit": 0,
+        "fit_attempts_used": 0,
+        "fits_reserved": 0,
+        "preprocessing_fits": 0,
+        "fits_completed": 0,
+        "ridge_fits_completed": 0,
+        "preprocessing_fits_completed": 0
+      },
+      "metrics": {
+        "recall@20": {
+          "queries": 100,
+          "direction": "tfidf_cosine_minus_bm25",
+          "epsilon": 1e-12,
+          "saved_mean": 0.01,
+          "checked_fsum_mean": 0.01,
+          "wins": 1,
+          "losses": 0,
+          "ties": 99,
+          "leave_one_out_min": 0.0,
+          "leave_one_out_max": 0.010101010101010102,
+          "leave_one_out_sign_counts": {
+            "positive": 99,
+            "negative": 0,
+            "near_zero": 1
+          },
+          "original_mean_sign_under_epsilon": 1,
+          "leave_one_out_near_zero_count": 1,
+          "leave_one_out_opposite_sign_count": 0,
+          "near_zero_and_opposite_counts_applicable": true,
+          "min_excluded_query_count": 1,
+          "max_excluded_query_count": 99
+        },
+        "mrr@10": {
+          "queries": 100,
+          "direction": "tfidf_cosine_minus_bm25",
+          "epsilon": 1e-12,
+          "saved_mean": -0.006904761904761905,
+          "checked_fsum_mean": -0.006904761904761905,
+          "wins": 7,
+          "losses": 10,
+          "ties": 83,
+          "leave_one_out_min": -0.01370851370851371,
+          "leave_one_out_max": 0.0016835016835016839,
+          "leave_one_out_sign_counts": {
+            "positive": 1,
+            "negative": 99,
+            "near_zero": 0
+          },
+          "original_mean_sign_under_epsilon": -1,
+          "leave_one_out_near_zero_count": 0,
+          "leave_one_out_opposite_sign_count": 1,
+          "near_zero_and_opposite_counts_applicable": true,
+          "min_excluded_query_count": 1,
+          "max_excluded_query_count": 1
+        }
+      }
+    }
+  ],
+  "counts": {
+    "cases": 2,
+    "paired_differences": 400,
+    "leave_one_out_means": 400,
+    "new_research_actions": 0,
+    "new_models": 0,
+    "new_fits": 0,
+    "new_index_rank_score_calls": 0,
+    "development_tokens": "unknown",
+    "development_cost": "unknown"
+  },
+  "arithmetic_boundary_checks": 3,
+  "independent": {
+    "assessment": "runs/s060-review/independent-assessment.md",
+    "assessment_sha256": "3c3431b38398ffe93c1020310be00df8d98c78ecfb09efb6588e6d50a454bd40",
+    "pairs_checked": 400,
+    "leave_one_out_checked": 400,
+    "binding_check": "original source query set, primary/action/SQL/result, summary means/wins/losses/ties",
+    "result": "runs/s060-review/independent-check-v2.json",
+    "independent_verifier_sha256": "07a239c73c0adf75367b15631eba69bb74924af8999312871191bd54604b6cf6"
+  },
+  "all_original_cases_unchanged": {
+    "S046": 36,
+    "S050": 17,
+    "S054": 47
+  },
+  "runtime": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "optimization": 0,
+    "dont_write_bytecode": true
+  },
+  "scope": "Retrospective descriptive audit of saved validation metrics only; not new experiment, preregistered scientific confirmation or blind evaluation",
+  "limitations": [
+    "Historical outcomes already exposed; plan is frozen before this supplemental calculation but is not prospective research registration",
+    "Query independence, representative sampling and target population not established; no p values, confidence intervals or significance claim",
+    "Leave-one-out is a single-query influence description, not multiple-query robustness",
+    "Same public dataset, different corpus/cohort/split selection; no controlled cross-cohort or cross-dataset causal comparison",
+    "epsilon only descriptive count convention; original strict mathematical preregistration/freeze untouched"
+  ],
+  "private_guard_scope": "During analysis block final/Host/private paths and non-primary artifacts, rank/score/index/fit/model/dispatch/writes/recovery. Native checked reader verifies public dev+validation, output selects validation only. Whole-case hashes outside guards include private-marked bytes without semantic reading.",
+  "interpretation": [
+    "S054 validation Recall20 gain is1 improved pair/99ties; removing that pair yieldszero, no broad improvement claim",
+    "S054 validation MRR has7wins/10losses/83ties; removal of one pair changes mean direction; influence sensitivity does not establish significance",
+    "S046 validation Recall20 loss likewise1pair; MRR remainsnegative for every single-query exclusion, not a population inference"
+  ],
+  "failed_or_negative_results": [
+    "S054 positive coverage is fragile to one query; MRR decline and one-query sign reversal retained",
+    "S046 negative results and original strict freeze unchanged",
+    "Independent static filename guess was wrong then corrected; both actual independent calculations exit0, stderr empty; not a product failure"
+  ],
+  "new_approvals_or_budget_expansion": false,
+  "source_pin": {
+    "path": "/workspace/development-continuation-20261114/source-pins/4e17a63",
+    "commit": "4e17a63af164cd8d0cb49a1e5a3feae458df459d",
+    "clean": true,
+    "source191_matches_reader_freeze": true,
+    "scope": "Source only; original case data and runtime remain at their original sibling locations. No claim of portable full-environment restoration."
+  }
+}

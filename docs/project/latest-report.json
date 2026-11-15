@@ -1,249 +1,127 @@
 {
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
-  "start_time": "2026-11-15T04:48:03+08:00",
-  "last_checkpoint": "2026-11-15T07:31:53.472374+08:00",
-  "end_time": "2026-11-15T07:31:53.472374+08:00",
-  "status": "S051_S058_completed_source_pushed_local_archive_verified_remote_upload_failed",
-  "confirmed_commit": "72b6eac8c217740ce648ea46256bf979e2e60c88",
+  "start_time": "2026-11-15T07:44:27+08:00",
+  "end_time": "2026-11-15T08:09:49.583394+08:00",
+  "last_checkpoint": "2026-11-15T08:09:49.583394+08:00",
+  "end_time_scope": "Final work/handoff checkpoint before ordinary commit/push and lease release; actual release receipt stored separately",
+  "status": "S059_S060_verified_published_code_final_handoff",
+  "repository": "/workspace/development-continuation-20261114/auto-research-agentarts",
+  "origin": "https://github.com/open-agent-power/auto-research-agentarts.git",
+  "confirmed_commit": "4e17a63af164cd8d0cb49a1e5a3feae458df459d",
+  "verified_commits": {
+    "S059_product_and_contract": "030af51c4ff06813d08a5f75610dea9f6573ad26",
+    "S060_analysis_code_and_frozen_protocol_before_execution": "4e17a63af164cd8d0cb49a1e5a3feae458df459d"
+  },
+  "workflow": {
+    "remote_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
+    "version": "0.3.1",
+    "remote_head_rechecked": true,
+    "installed_seven_files_hash_rechecked": true,
+    "dev_system": "archived_disabled",
+    "methods": [
+      "project router/backend/interfaces/evaluation",
+      "native saved IR metrics, SQLite parent/child/source binding",
+      "fixed two-predicate conjunction, no arbitrary expression",
+      "paired all-query counts and leave-one-out influence, no p/CI inference"
+    ],
+    "team": "root and reused engineering/capability_review; implementation and independent review separated; no new agents"
+  },
   "completed": [
-    "AAW remote fetched 02e72e3/v0.3.1 all7 installed files match",
-    "S051 saved staged hypothesis feedback and S052 explicit conditional continuation pushed main",
-    "S054 real TRAIN2200/100-100-100: validation .98→.99, final .97→.98; MRR/nDCG losses retained, no overall promotion",
-    "S054 3/3 tools/2index/600rank/600score/0model/fit/evidence; original47 files/summary/budget/IDs identical after new-process original-pin resume; independent original chain/arithmetic/report verified",
-    "S055 native Memory capture632278B, source unchanged, idempotent0new entries",
-    "S056 saved query GET interfaces pushed main after75related/5independent and actualS054 readonlyGET",
-    "S057 bounded v3 staged plan materials published main72b6eac8c217740ce648ea46256bf979e2e60c88:59 related/5 new independent; actual original S054 readonly context28513 bytes;47files/state/budget unchanged and CODE_CHANGED execution block preserved",
-    "S058 v2 archive27816933B SHA1c1df555... independently verified123members; original100+claim+Memory18 unchanged; limited credential scan no hit",
-    "S054 completed original-pin readonly resume after original1800-second deadline returned0,47files/summary/budget/IDs identical; no deadline reset or research execution",
-    "S058 one fresh official upload failed HTTP401; release445432218 readback draft=true/assets0, failure retained; no remote delivery or download roundtrip"
+    "S059 new staged-only preregistered two-metric AND uses single original primary checked summary, all-or-nothing unknown, original scalar v1/wire preserved",
+    "S059 49 related final and6 independent pure mechanism probes passed;3 actual synthetic HTTP paths and independent original bindings checked;3 exact new-process original-body replays preserved response/state/budget/public files",
+    "Actual original S054 scalar feedback/notice/state/budget old72b versus newreader byte-identical; no retrospective hypothesis registration",
+    "S060 retrospective analysis script/protocol committed and pushed before computation; actual saved validation200 queries across2metrics ->400 pairs/400 leave-one-out means; independent original source/SQL/summary and every value checked",
+    "S054 validation R20 gain1win0loss99ties, omitting1query yieldszero; MRR7wins10losses83ties and one query removal changes mean sign",
+    "S046 validation R20 loss0wins1loss99ties, omitting1query yieldszero; MRR1win12losses87ties remainsnegative in each single-query exclusion",
+    "Original S04636/S05017/S05447 files equal original inventories, scientific budgets/sourcepins unchanged;100 protected files",
+    "AAW remote still02e72e3, all7 installed file hashes rechecked; no restoration of old cloud history"
   ],
   "not_completed": [
-    "S058 remote archive delivery failed HTTP401, root cause unknown despite normal repository API/Git push; no blind retry",
-    "S050 one new model-call question remains pending genuine user reply, no approval/launch/Host model executed",
-    "Full autonomous model-driven research, original lost history and full Gate acceptance not established"
+    "S050 new single model call remains unapproved/no launch; previous S035 exhausted approval not reused",
+    "Autonomous model-driven iterative research benefit not demonstrated by these engineering/descriptive increments",
+    "Prior S058 archive upload401 still unresolved; no new evidence and no retry this round, no remote delivery",
+    "Original cloud disk/history/reference8 remain unavailable, global original executor unknown; not fullGates/OS/sealed/RSI"
   ],
+  "verification": {
+    "S059_root_related": 49,
+    "S059_independent_pure": 6,
+    "S059_actual_synthetic_HTTP_cases": 3,
+    "S059_exact_fresh_process_replays": 3,
+    "S059_core": "a05f668cb8de230b134ab4e0394c17297b7aa5cd026c378172bce2001325b4b5",
+    "S059_fixed_source_freeze_sha256": "4903d279ad6a31045de7b1ec4090cdd29cc67dbfa73c501e050d075d853c98dd",
+    "S059_original_v1_bytes_identical": true,
+    "S060_arithmetic_boundaries": 3,
+    "S060_original_pairs_independently_verified": 400,
+    "S060_original_LOO_independently_verified": 400,
+    "S060_output_sha256": "9c4d2d8bc1297856b89317e4f279cca030f756e3e5e1635ab3d98bece06e7d38",
+    "S060_python_optimization": 0,
+    "original_cases_unchanged": {
+      "S046": 36,
+      "S050": 17,
+      "S054": 47
+    },
+    "private_io_scope": "Analysis/feedback/wait/replay guards block private/final; synthetic audit final/report authorized private read. Full integrity hashes outside guards read private-marked bytes; no blanket zero-private-IO claim."
+  },
   "actual_research_results": {
-    "study_id": "s054-squad-train-conditional-v1",
-    "source_commit": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
-    "project_id": "project-e5200655762d4ae6abca80cfddcf1e3d",
-    "validation_recall20": {
-      "bm25": 0.98,
-      "tfidf": 0.99,
-      "delta": 0.01
-    },
-    "final_recall20": {
-      "bm25": 0.97,
-      "tfidf": 0.98,
-      "delta": 0.01
-    },
-    "final_mrr_delta": -0.020916666666666667,
-    "final_ndcg_delta": -0.011180093100839419,
-    "conditional_public_train_cohort_only": true,
-    "overall_research_benefit": "unknown",
-    "global_promotion": false
+    "scope": "New analysis of existing public saved validation, not a new experiment or new scientific benefit",
+    "results": "docs/execution/g5-local/saved-validation-stability-results.json",
+    "generalization": "unknown",
+    "global_promotion": false,
+    "old_final_metrics_or_decisions_changed": false
   },
   "research_usage": {
-    "new_research_actions": 3,
+    "new_native_research_projects": 0,
+    "new_native_research_actions": 0,
     "new_research_model_calls": 0,
     "new_research_fits": 0,
+    "new_research_index_ranking_scoring": 0,
+    "engineering_HTTP_native_tool_counts": [
+      3,
+      1,
+      0
+    ],
+    "engineering_dispatches_overall": "not separately metered",
+    "descriptive_saved_pairs": 400,
+    "descriptive_leave_one_out_means": 400,
     "development_tokens": "unknown",
     "development_cost": "unknown",
-    "old_cases_reset": false,
-    "new_research_evidence_actions": 0,
-    "scientific_ranking_calls": 600,
-    "scientific_scoring_calls": 600,
-    "index_builds": 2,
-    "tool_budget_used": 3,
-    "tool_budget_limit": 3,
-    "engineering_dispatch_count": "not separately metered"
+    "old_cases_reset": false
   },
-  "activity": {
-    "owner": "root-g5-continuation-20261115T0448",
-    "root": "final handoff while lease held; release on exit, actual receipt runs/s058-closing/lease-release.json",
-    "engineering": "completed, no assigned active work",
-    "capability_review": "completed, no assigned active work",
-    "old_disk_executor": "unknown",
-    "active_assigned_subagents": 0
-  },
-  "boundaries": [
-    "old research disk/reference checkout not available; history not reconstructed",
-    "S050 still pending user decision, no model/API scope expanded",
-    "trusted local only, not OS/sealed/scientific benefit claim"
+  "failures_this_round": [
+    "initial source v1 canonical check tightened old behavior; retained191-source snapshot, restored v1 original equality in final",
+    "initial root HTTP fixture source directory included workspace; existing product gate rejected before dispatch; initial runner/log/failed directory retained",
+    "S060 negative/sensitive results retained; no claim that an observed1pp gain is general improvement",
+    "Independent reviewer initially guessed wrong test filename for read-only lookup, corrected via manifest; both actual recomputations exit0/empty stderr, no invented computation failure"
   ],
-  "next": "Next trigger checks actual lease and source identity; resume only original completed study at f23 pin for readonly access. Prioritize model feedback loop only if the existing S050 one-call request receives explicit approval; pursue independent zero-model development without reopening exhausted cases. For archive delivery require new credential evidence before another official upload; local verify-only ZIP available.",
-  "user_decision_required": "Existing S050 one-call request still pending; earlier S035 three-call approval does not apply. No repeat routine approval or Worker request.",
+  "activity": {
+    "owner": "root-g5-continuation-20261115T0744",
+    "root": "Finalizing underlease; release after commit/push, actual receipt runs/s060-closing/lease-release.json",
+    "engineering": "completed, no active assigned work",
+    "capability_review": "completed independent acceptance, no active assigned work",
+    "active_assigned_subagents": 0,
+    "old_disk_executor": "unknown"
+  },
+  "next": "Prioritize real model-driven feedback selection when existing S050 one-call approval is explicitly received; otherwise select independent authorized zero-model work from current evidence, do not reset exhausted cases. Archive upload requires new credential evidence then official upload/download SHA verification. At next trigger recheck actual lease/origin/source/unchanged evidence.",
+  "user_decision_required": "Existing S050 new1-call request still pending, no repeated question or inferred approval; no repeated Worker request",
   "automation": {
     "id": "Automation_edb903b958e0819192a39990b23d9ab7",
-    "last_run_marker": "2026-11-14T20:47:50.809459+00:00",
-    "next_planned_trigger": "2026-11-15T07:47:27+08:00",
+    "last_run_marker": "2026-11-14T23:44:16.802212+00:00",
+    "next_planned_trigger": "2026-11-15T10:47:27+08:00",
     "completion": "unknown",
     "notification_delivery": "unknown"
   },
   "evidence": [
-    "runs/s051-exploration/staged-hypothesis-gap.md",
-    "runs/s051-review/acceptance-contract.md",
-    "runs/s051-verification/protected-before.json",
-    "runs/s051-verification/root-regression.log",
-    "runs/s051-review/independent-assessment.md",
-    "runs/s051-verification/original-read-verification.json",
-    "runs/s051-verification/http/result.json",
-    "runs/s051-verification/http/limits.json",
-    "runs/s052-exploration/next-contract.md",
-    "runs/s052-verification/source-freeze-fixed.json",
-    "runs/s052-verification/http-fixed/result.json",
-    "runs/s052-review/independent-assessment.md",
-    "docs/execution/g5-local/conditional-staged-verification.json",
-    "docs/execution/SPRINT-053.md",
-    "docs/execution/g5-local/squad-train-conditional-protocol-v1.json",
-    "runs/s054-review/preprotocol.md",
-    "runs/s054-review/source-assessment.md",
-    "docs/execution/g5-local/squad-train-conditional-results.json",
-    "docs/execution/g5-local/train-tradeoff-experience-verification.json",
-    "docs/execution/g5-local/staged-reader-verification.json",
-    "runs/s056-verification/handoff-write-failure.md",
-    "docs/execution/g5-local/staged-plan-material-verification.json",
-    "runs/s054-verification/real-expired-resume-verification.json",
-    "docs/execution/g6-local/continuation-case-handoff.json",
-    "runs/s058-upload/result.json"
+    "docs/execution/SPRINT-059.md",
+    "docs/execution/g5-local/conjunctive-validation-verification.json",
+    "runs/s059-review/independent-assessment.md",
+    "runs/s059-verification/http-fixed/result.json",
+    "docs/execution/SPRINT-060.md",
+    "docs/execution/g5-local/saved-validation-stability-protocol-v1.json",
+    "docs/execution/g5-local/saved-validation-stability-results.json",
+    "runs/s060-verification/original-validation-audit.json",
+    "runs/s060-review/independent-assessment.md",
+    "runs/s060-review/independent-check-v2.json"
   ],
-  "verification": {
-    "root_related": 60,
-    "independent": 4,
-    "source_freeze_sha256": "65969d7f332823198641f06add0f5b17e4d5fce201b12dbc925fb9cec6166ea2",
-    "core_identity": "c26292e780972ee40637ced8c6b5896eb73d4710a707723ced86162195c48cfa",
-    "synthetic_http_cases": 3,
-    "new_research_benefit_proven": false,
-    "private_io_scope": "server feedback/replay guarded; parent read synthetic private bytes for file hashing"
-  },
-  "verification_S052": {
-    "root_related_final": 54,
-    "independent_final": 9,
-    "source_freeze_sha256": "f8ee42fe9a56d045207d4cdff5b2dcadcbe85c8550dff0207c4547f05d0b26a0",
-    "core_identity": "300421cc466b459f3b86e74fd6ebecf800dc67f10fb9d7e160f9ad46a839f1e1",
-    "fixed_http_cases": 2,
-    "full_exact_response_equal_new_process": true,
-    "new_research_benefit_proven": false,
-    "real_bug_fixed": "Known wait wrong-primary receipt rejected before accept",
-    "private_io_scope": "wait private guards; authorized final/report may read original private fixture; private bytes excluded from HTTP inventory"
-  },
-  "failures_this_round": [
-    "S052 known wait wrong-primary receipt binding fixed before publish; original source/failed probes retained",
-    "S054 pre-release corrupt manager/deadline/summary risks fixed and exercised",
-    "S052 independent probe injection/assertion setup errors and S056 initial relative-path setup failure retained, distinguished from product defects",
-    "Handoff writer wrong manifest key KeyError corrected after7c source/evidence commit; original study files/budget unchanged",
-    "S057 initial canonical contract bool true accepted numeric1; independently reproduced then canonical type check fixed; initial source/probe preserved",
-    "S058 superseded v1 README source scope corrected in v2; initial probe/setup failures retained",
-    "S058 fresh official gh release upload returned HTTP401; readback assets0; remote not delivered"
-  ],
-  "verified_commits": {
-    "S051": "c32dc77bb06c1b18cec081edd77c26c2d20c49a9",
-    "S052": "6d536f3ee92a0d422bef8068613a2bb8caabe12b",
-    "S053": "c15e52ff98d1f861af50506e03151193307ae9c6",
-    "S054_driver_protocol": "f23de20fb2cfe0cb3ff04117cefc8a8f394186f4",
-    "S054_results_S055_S056": "7c60095450107b99d4755f1df741ba8264d65db5",
-    "S057": "72b6eac8c217740ce648ea46256bf979e2e60c88"
-  },
-  "workflow": {
-    "version": "0.3.1",
-    "remote_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
-    "installed_files_verified": 7,
-    "dev_system": "archived_disabled",
-    "team": "root plus reused engineering and capability_review; no new agents; implementation and independent review separated"
-  },
-  "verification_S057": {
-    "root_related_final": 59,
-    "independent_new_final": 5,
-    "source_freeze_sha256": "c8aad6c4e1b017db881a70f7f530c26735146cd1d1437e25a7f5fb2e371747f5",
-    "core_identity": "e05a7272f675625c6972e71ab3d2702f3c7adfc34cdd5cd3450d3b96bd64e7d5",
-    "real_saved_context_bytes": 28513,
-    "max_context_bytes": 65536,
-    "original_47_files_unchanged": true,
-    "model_called": false,
-    "old_execution_CODE_CHANGED_preserved": true
-  },
-  "archive": {
-    "schema_version": "s058-continuation-handoff-v1",
-    "scope": "Only currently available independent continuation cases and S055 memory, not original lost cloud history or runnable environment",
-    "status": "local_archive_verified_remote_upload_failed",
-    "archive": {
-      "path": "runs/s058-handoff/s058-continuation-evidence-v2.zip",
-      "bytes": 27816933,
-      "sha256": "1c1df555a0a6e3f96b0a73a9d2f8bd22efffe83b0b81b83479bea84412cfedd6",
-      "manifest_path": "runs/s058-handoff/manifest-v2.json",
-      "manifest_sha256": "561d5be901c9768996d12c5b5be89792ec4919222198328ac54cc70372f03e1b",
-      "members": 123,
-      "payload_members": 122,
-      "source_cases": {
-        "S046": 36,
-        "S050": 17,
-        "S054": 47
-      },
-      "permanent_claim": 1,
-      "S055_memory_files": 18,
-      "readme_license_verifier": 3,
-      "source_case_auxiliary_scripts_included": true,
-      "product_checkout_or_venv_credentials_lease_not_included": true
-    },
-    "local_verification": {
-      "all_crc_bytes_sha_paths_types_modes": true,
-      "extract_to_new_directory_only": true,
-      "original100_case_files_claim_memory18_unchanged": true,
-      "S046_S054_original_3_of_3_completed": true,
-      "S050_no_approval_launch_Host_model": true,
-      "no_native_canonical_restore_or_research_execution": true,
-      "security_engineering_probes": 5,
-      "independent_full_members": 123,
-      "limited_credential_pattern_scan_no_hits": true,
-      "original_data_public_SQuAD_CC_BY_SA4_and_synthetic_attribution_included": true,
-      "read_private_marked_public_derived_final_bytes": true
-    },
-    "independent_assessment": {
-      "path": "runs/s058-review/archive-independent-assessment.md",
-      "sha256": "0497574dbf05193d4ab05f1217ac39a18fcb31a06bc02f536a5fc18a116a123f",
-      "inspect_json_sha256": "c0ba01febe2f89dc29f449555937dc66e6d71c574283e8efe6efb177804c229a"
-    },
-    "remote": {
-      "repo": "open-agent-power/auto-research-agentarts",
-      "release_id": 445432218,
-      "tag": "engineering-feedback-c40c6ae-20261115",
-      "draft": true,
-      "one_official_attempt": {
-        "ended_at": "2026-11-15T07:11:56.265313+08:00",
-        "duration_seconds": 1.5689754486083984,
-        "returncode": 1,
-        "timed_out": false,
-        "upload_status": "failed_no_matching_asset_in_readback",
-        "download_roundtrip": "not_attempted",
-        "release_published": false,
-        "matching_asset_count": 0
-      },
-      "error": "HTTP401 Bad credentials at uploads.github.com; current repo API and Git push work; root cause unknown",
-      "release_assets_after": 0,
-      "archive_uploaded": false,
-      "download_roundtrip_verified": false,
-      "release_published": false,
-      "new_credentials_or_permission_bypass": false,
-      "no_further_retry_without_new_evidence": true
-    },
-    "receipt_sha256": {
-      "upload_attempt": "e3526aada9e1a2cef8c74394cd8885e69d1c8d434768cc82d573fed40ebbc78c",
-      "upload_result": "6b18c61f34e384a75ba5dab9b2a750f7d4b7b916efb3720f5a85bed3a3078d9e",
-      "upload_stderr": "b03da4a230599df6271cfe96dc80caa5c00a36e47cb0f4db0077940cb0f5587d",
-      "after": "87f3e13f92de01b33ecd6abf3113f7f5c8e095fc75767252c49e0c9efbbfcf1b"
-    },
-    "preserved_failures": [
-      "initial v1 README overstated source-code exclusion; v1 and manifest retained as superseded",
-      "initial archive fixture path setup failed and receipt wording corrected; raw originals retained",
-      "one current official upload401 failed, readbackassets0; no blind retry or alternate Gitblob storage"
-    ],
-    "usage": {
-      "new_research_projects": 0,
-      "new_research_actions": 0,
-      "new_research_models": 0,
-      "new_research_fits": 0,
-      "development_tokens": "unknown",
-      "development_cost": "unknown"
-    }
-  }
+  "source_pin": "/workspace/development-continuation-20261114/source-pins/4e17a63"
 }

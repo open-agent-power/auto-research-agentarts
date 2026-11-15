@@ -4,20 +4,19 @@
 
 ## 工作区与所有权
 
-源基线 `ea3d92e9ebb194262170a4cc56bb0cb838a97b04`，origin 为 `open-agent-power/auto-research-agentarts`。新 checkout 在 `/workspace/development-continuation-20261114/auto-research-agentarts`。原 `/workspace/auto-research-agentarts`、参考原盘、S041 v2合同和历史 runs 不可见；这是源码续作，绝非历史研究恢复。原全局执行者/lease 状态 unknown；仅此新工作树使用 `project_autonomy_guard.py`、当前独有 owner `root-evaluation-20261115T0042`（前owner已release）。修改、执行和提交前 heartbeat，结束 release。
+源基线 `ea3d92e9ebb194262170a4cc56bb0cb838a97b04`，origin 为 `open-agent-power/auto-research-agentarts`。新 checkout 在 `/workspace/development-continuation-20261114/auto-research-agentarts`。原 `/workspace/auto-research-agentarts`、参考原盘、S041 v2合同和历史 runs 不可见；这是源码续作，绝非历史研究恢复。原全局执行者/lease状态unknown；仅此新工作树使用project_autonomy_guard.py，本轮独有owner root-g5-continuation-20261115T0744，写/执行/提交前heartbeat，结束release。永久科研study claim与开发lease分离，不随release删除。
 
-宿主最多并发7人。本轮实际建立6人可复用池（含root），不为小目标再开新人；角色可调整，独审不由实现者兼任。同工作树按文件明确单writer，提示边界不是安全沙箱。
+宿主并发上限7，用户默认总池≤10。本轮只复用root与以下两位既有成员，没有新建代理。其他可见旧成员不等于正在执行，使用前先核可调用与实际状态；不为换模型重建成员。
 
-| 实际成员 | 本轮输出与文件范围 | 能力状态 |
+| 实际成员 | 本轮输出与文件范围 | 实际能力与边界 |
 |---|---|---|
-| root | 契约、Controller/HTTP/报告接线、集成测试、文档、提交 | 已读取新版工作流、项目router及相关索引；使用Git/本地执行工具 |
-| engineering · Terra/ultra | S047 staged_continuation只读helper及其测试（S042/045已交付） | 已读取工作流、router、相关索引；原生Project/reader复用 |
-| workbench_continuation · Terra/ultra | S047 LocalWorkbench固定阶段接续、HTTP和集成测试 | 已读取工作流、现有持久批次及接续合同；新增预览/导入/恢复 |
-| research_mechanisms · Terra/ultra | S048负结果经验复用设计；S042反馈策略/S045holdout已交付 | 已读取能力发现方法及上游实际代码；方法参考，不安装上游runtime |
-| runtime_evidence · Luna/max | S047独立真实HTTP/跨进程恢复证据，仅ignored runs | 已读取工作流、router、依赖合同；工具实际执行，不编辑产品 |
-| capability_review · Terra/ultra（复用） | S046真实原件独核完成；接续S047独审 | 已读取工作流及相关参考、项目代码；未实现被审产品 |
+| root | S059合同/HTTP与原ID重放、S060纯描述审计实现与实际运行、交接与提交 | AAW/router及backend/interfaces/evaluation，Python/SQLite/已有reader；无产品模型调用 |
+| engineering（复用） | S059四源与8专项；S060未看逐题数据的方法意见 | 原ResearchProject/Controller/S052、保存IR指标核验；不是S059独审人 |
+| capability_review（复用） | S059 6纯机制与3实际case只读独审；S060脚本/原结果独算 | 未参与被审实现，明确mock/实际数据/回执核验的范围；不重跑研究 |
 
-表格记录已经存在的成员及本轮职责，**不表示所有成员始终活跃**。实时状态以宿主agent列表为准，完成成员通过follow-up复用。
+继承成员继续优先复用；若确需新成员，优先Terra/ultra或Luna/max并服从宿主，不能把角色改名算独立审查。专业方法针对当前问题选择：S059同份保存结果的两指标AND；S060配对逐题胜负及leave-one-out影响，不假定独立样本、不算p/CI。相关执行者已读准确Skill路径和索引，采用显式指引fallback，非按人原生挂载/工具权限隔离。
+
+S059新门不改变旧scalar wire或S052固定Recall20 freeze，也不全局约束直接底层调用。S060是已有结果曝露后的描述审计、无原native项目/行动/额度变更；分析核public dev+validation、只输出validation。实际模型闭环仍受S050新增一次未批准请求阻塞，0模型/API不扩额。
 
 ## Skill与方法的真实状态
 

@@ -1,5 +1,7 @@
 # Master Execution Pack v2 · 云端执行
 
+[S060](SPRINT-060.md)真实保存validation全400对/400留一均值及独算完成；S054 R20提升仅1题，移除归零，MRR仍有退步且单题影响可反号，不宣称普遍收益。原100文件/科研额度/原严格freeze保持。
+
 [S059](SPRINT-059.md)新事前双指标AND已过固定49相关/6独审、3真实工程HTTP和异进程原ID重放；不改旧scalar/原研究/预算，freeze仍按R20。
 
 [S057](SPRINT-057.md)显式stage plan材料已发布72b6eac，59相关/5独审与真实只读v3通过；[S058](SPRINT-058.md)可用原件ZIP已独立核，一次当前官方上传HTTP401、draft assets0，远端未交付。原模型/预算/旧pin保持。
