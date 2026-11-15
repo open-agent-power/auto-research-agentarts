@@ -27,3 +27,7 @@ source3b01另增加“保存的计划与控制器记录”和“保存的报告�
 最新[S027安装物](execution/g6-local/stored-plan-report-release.json)对应source3b01，wheel1289743B/SHA3b12703b…，新venv `/workspace/work/g6-stored-plan-report-20261114/venv`。真实CLI与桌面/手机代表性smoke已验；完整源码矩阵、第三方依赖核查和原Gate范围分别记载。
 
 S030在原控制器记录下增加“核对原请求与身份”：仅全部原摘要相符时显示规范JSON语义body及两个用途摘要，不代表原HTTP字节或执行授权；页面不提交原请求。缺失/不一致分别显示状态。[真实原案与异常验收](execution/g5-local/saved-request-handoff-verification.json)。最新[S031安装物](execution/g6-local/saved-request-handoff-release.json)为source de20/wheel33287dd1…，含S028收据修复及本只读视图，旧包原样保留。
+
+当前源码的保存历史读取器还区分 manager `advance_feedback` 与核心 `controller.advance_selection` 的合法对应：两者命令名不同本身不是完整性错误。读取器核对核心请求摘要、manager 行与 intent 的请求摘要，并利用原假设登记、已完成的登记目标 Controller、封存 context 和保存的身份及时序，在当前 reader 可检查时复核反馈策略的 proposal。登记或必需字段缺失、原目标不可用、匹配登记或目标不唯一、当前代码身份不符或 proposal 无法复核，会按实际情况保留 `partial`、`unavailable` 或 `ambiguous`；明确的摘要或绑定冲突仍为 `integrity_error`。
+
+即使当前 reader 的语义核对匹配，该分支也只返回 `partial`、`semantic_match: current_reader_matched`、`producer_verified: false` 和 `body_disclosed: false`：磁盘代码身份不能证明原进程实际加载了什么。它不披露重建 body，也不构成恢复或执行授权；不得据此换 ID、重派或修改原项目。此说明仅针对当前源码，不表示上述旧安装物或旧 source pin 已获得该兼容能力。

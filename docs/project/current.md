@@ -15,6 +15,8 @@ S090 将相同未知父请求保护延伸到 Project 的新预算、来源、工
 
 S091 为普通活动 Workbench 增加按 Project/snapshot 查询 unknown Controller parent 的只读端点，返回有界原ID、身份差异与 partial/截断状态，不输出 body 或自动恢复；S092 已将该 GET 安全开放到受限只读宿主，在此查询中用 immutable SQLite、sidecar/文件身份核查；POST仍禁用。隔离合成和独审通过。[S091](../execution/SPRINT-091.md) · [S092](../execution/SPRINT-092.md)。
 
+S093 修正合法 manager `advance_feedback` 对应 core `controller.advance_selection` 在保存历史中被误报完整性错误：有限原登记候选与manager双摘要和原封存context/提案匹配时只标 partial/current-reader语义匹配、producer未验证，不披露body或授权恢复；明确冲突仍报完整性错误。合成及独审通过。[S093](../execution/SPRINT-093.md)。
+
 参考调研：本轮固定并只读审查 MIT 的 Meta Ax `fd8a67a524b063b2615815c638af2c94b034f476`；它允许行动完成但指标缺失，印证本项目应区分完成状态与反馈 unknown。转移/暂停顺序与本项目规则不同，不直接合入或覆盖原预算门；未运行 Ax。[源码对照](ax-transition-review-20261115.md)。
 
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。

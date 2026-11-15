@@ -1,5 +1,7 @@
 # 后端索引
 
+S093 已保存历史区分合法manager advance_feedback/core selection与明确篡改；仅已验证当前reader语义匹配，producer未验证时partial、不返回body或授权恢复。[Sprint](../../docs/execution/SPRINT-093.md)。
+
 S092 unknown parent 只读查询已开放至受限宿主；此查询对manager/Project使用immutable SQLite及sidecar/身份检查，不赋执行权限、不证明对抗性隔离。[Sprint](../../docs/execution/SPRINT-092.md)。
 
 S091 普通活动 Workbench 可按project/snapshot只读投影unknown controller parent ID；部分字段匹配不代表SQL/工件或恢复认证，历史损坏/截断显式标记。[合同](../../docs/local-workbench.md)。

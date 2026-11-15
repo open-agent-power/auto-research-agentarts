@@ -81,7 +81,7 @@ def _receipt(manager, request_id, command, project_id, *, expected_plan=None):
     return view
 
 
-def _request_handoff(controller, manager, project_id):
+def _request_handoff(controller, manager, project_id, *, project=None):
     """Prove a canonical semantic manager body from two saved request identities."""
     view = {'schema_version': 'stored-original-request-handoff-v1',
             'scope': 'canonical_semantic_body_only_not_execution_authorization', 'status': 'partial'}
@@ -112,6 +112,7 @@ def _request_handoff(controller, manager, project_id):
         intent_sha = intent.get('request_sha256')
         _need(all(type(value) is str and re.fullmatch(r'[a-f0-9]{64}', value) for value in (manager_sha, intent_sha)),
               'partial', 'The original manager digests are not recorded.')
+        _need(manager_sha == intent_sha, 'integrity_error', 'The original manager digests differ.')
         _need(request.get('need') == 'next_check' and type(request.get('expected_state_version')) is int
               and request['expected_state_version'] >= 0,
               'partial', 'The original need or expected version cannot be reconstructed without a default.')
@@ -127,6 +128,81 @@ def _request_handoff(controller, manager, project_id):
                   'partial', 'The saved recipe request cannot be reconstructed losslessly.')
             _need(decision.get('proposal') == request['proposal'], 'integrity_error', 'The saved recipe proposal differs from the controller request.')
             body = {**common, 'recipe': decision['recipe']}
+        elif command == 'advance_feedback' and request.get('command') == 'controller.advance_selection':
+            _need(set(request) == {'project_id', 'command', 'need', 'expected_state_version', 'proposal'}
+                  and type(request.get('proposal')) is dict, 'partial', 'The original feedback selection is incomplete.')
+            registrations = project.get('hypothesis_registrations') if type(project) is dict else None
+            _need(type(registrations) is list and len(registrations) <= 16, 'partial', 'The saved registration collection is unavailable or exceeds its bound.')
+            _need(all(type(r) is dict and type(r.get('request_id')) is str
+                      and re.fullmatch(r'[A-Za-z0-9_.:-]{1,80}', r['request_id']) for r in registrations),
+                  'partial', 'A saved registration identity is missing or malformed.')
+            matches = [r for r in registrations if fingerprint({**common, 'registration_request_id': r['request_id']}) == manager_sha]
+            _need(bool(matches), 'unavailable', 'No saved registration yields the original manager digest.')
+            _need(len(matches) == 1, 'ambiguous', 'More than one saved registration yields the original manager digest.')
+            registration = matches[0]
+            _need(all(k in registration for k in ('schema_version', 'request', 'request_sha256', 'registration_sha256',
+                      'candidate', 'condition', 'branches', 'controller_request_id', 'state_version_before',
+                      'plan_sha256', 'scientific_validation')) and type(registration['request']) is dict
+                  and type(registration['request'].get('hypothesis')) is dict and type(registration['candidate']) is dict,
+                  'partial', 'The original registration is incomplete.')
+            _need(registration['registration_sha256'] == fingerprint({k:v for k,v in registration.items() if k != 'registration_sha256'})
+                  and registration['request_sha256'] == fingerprint(registration['request']),
+                  'integrity_error', 'The saved registration digests differ.')
+            context = controller.get('selection_context')
+            parents = project.get('controller_requests')
+            _need(type(context) is dict and type(parents) is list, 'partial', 'The original sealed context or controller history is missing.')
+            _need(all(k in context for k in ('context_sha256', 'project_id', 'run_id', 'source_snapshot_sha256', 'project_code_identity', 'controller_code_identity'))
+                  and all(k in registration for k in ('project_id', 'run_id', 'source_snapshot_sha256', 'project_code_identity', 'controller_code_identity'))
+                  and type(project.get('run_id')) is str, 'partial', 'The original context or registration identities are incomplete.')
+            _need(context['context_sha256'] == fingerprint({k:v for k,v in context.items() if k != 'context_sha256'})
+                  and request['proposal'].get('context_sha256') == context['context_sha256']
+                  and context['project_id'] == registration['project_id'] == project_id
+                  and context['run_id'] == registration['run_id'] == project['run_id']
+                  and context['source_snapshot_sha256'] == registration['source_snapshot_sha256'] == producers[2]
+                  and context['project_code_identity'] == registration['project_code_identity'] == producers[0]
+                  and context['controller_code_identity'] == registration['controller_code_identity'] == producers[1],
+                  'integrity_error', 'The saved context, registration or producer identities differ.')
+            _need(all(type(p) is dict for p in parents), 'partial', 'The saved controller history is malformed.')
+            target_id = registration.get('controller_request_id')
+            _need(type(target_id) is str and bool(target_id), 'partial', 'The registered target identity is missing.')
+            targets = [p for p in parents if p.get('request_id') == target_id]
+            _need(bool(targets), 'unavailable', 'The original registered target controller is missing.')
+            _need(len(targets) == 1, 'ambiguous', 'The original registered target controller is not unique.')
+            target = targets[0]
+            _need(all(k in target for k in ('status', 'project_id', 'source_snapshot_sha256', 'code_identity',
+                      'controller_code_identity', 'request', 'request_sha256', 'decision', 'decision_sha256')),
+                  'partial', 'The original registered target controller is incomplete.')
+            sequence = (registration.get('state_version_before'), target.get('state_version_before'),
+                        target.get('state_version_after'), controller.get('state_version_before'), context.get('state_version'))
+            _need(all(type(v) is int and v >= 0 for v in sequence), 'partial', 'The original registration or controller ordering is incomplete.')
+            _need(sequence[0] < sequence[1] < sequence[2] <= sequence[3] == sequence[4] == common['expected_state_version'],
+                  'integrity_error', 'The saved registration and controller ordering differs.')
+            _need(target.get('status') == 'completed', 'unavailable', 'The original registered target controller is not completed.')
+            _need(target.get('project_id') == project_id
+                  and target.get('source_snapshot_sha256') == producers[2] and target.get('code_identity') == producers[0]
+                  and target.get('controller_code_identity') == producers[1]
+                  and type(target.get('request')) is dict and target.get('request_sha256') == fingerprint(target['request'])
+                  and type(target.get('decision')) is dict and target.get('decision_sha256') == fingerprint(target['decision']),
+                  'integrity_error', 'The original registered target controller binding differs.')
+            try:
+                from .research_project import code_identity as current_project_identity
+                from .project_controller import code_identity as current_controller_identity
+                same_producer = (current_project_identity() == producers[0]
+                                 and current_controller_identity() == producers[1])
+            except (OSError, ResearchError):
+                same_producer = False
+            _need(same_producer, 'partial', 'The original producer is unavailable to verify the saved feedback policy.')
+            try:
+                from .feedback_policy import select_from_feedback
+                proposal = select_from_feedback(context, registration=registration,
+                    provider={'kind': 'operator_assistant', 'label': 'preregistered-feedback-policy-v1'})
+                proposal['rationale'] = ('Preregistration ' + registration['request_id'] + ' sha256:'
+                                         + registration['registration_sha256'] + '. ' + proposal['rationale'])
+            except (ResearchError, KeyError, TypeError, ValueError, RecursionError):
+                raise _Failure('partial', 'The saved feedback could not be checked by the current reader.') from None
+            _need(canonical(proposal) == canonical(request['proposal']), 'partial',
+                  'The original feedback proposal could not be reproduced by the current reader.')
+            body = {**common, 'registration_request_id': registration['request_id']}
         elif request.get('command') in ('controller.advance_selection', 'controller.advance_recipe'):
             raise _Failure('integrity_error', 'The original manager and controller command identities differ.')
         else:
@@ -134,11 +210,19 @@ def _request_handoff(controller, manager, project_id):
         _need(fingerprint(body) == manager_sha == intent_sha,
               'integrity_error', 'The reconstructed request does not match both original manager digests.')
         view.update(status='available', original_request_id=request_id, manager_command=command,
-                    canonical_semantic_body=body, canonical_semantic_json=canonical(body),
                     manager_body_sha256=manager_sha, manager_intent_sha256=intent_sha,
                     controller_request_sha256=core_sha, project_producer_code_identity=producers[0],
                     controller_producer_code_identity=producers[1], source_snapshot_sha256=producers[2],
                     notice='Canonical semantic reconstruction only; original wire bytes and key order are not established. Not authorization to execute.')
+        if command == 'advance_feedback':
+            # Disk hashes do not prove which code the running interpreter loaded.
+            # A current-reader match is informative but cannot authenticate the
+            # original producer or authorize disclosure/recovery.
+            view.update(status='partial', scope='canonical_semantic_identity_only_not_execution_authorization',
+                        semantic_match='current_reader_matched', producer_verified=False, body_disclosed=False,
+                        notice='The current reader matches saved fields; the originally loaded producer is not verified. Not authorization to execute.')
+        else:
+            view.update(canonical_semantic_body=body, canonical_semantic_json=canonical(body))
         return view
     except _Failure as error:
         return {**view, 'status': error.status, 'reason': str(error)}
@@ -146,7 +230,7 @@ def _request_handoff(controller, manager, project_id):
         return {**view, 'status': 'unknown', 'reason': 'The original request could not be checked.'}
 
 
-def _controller(controller, actions, manager, project_id):
+def _controller(controller, actions, manager, project_id, *, project=None):
     request_id = controller.get('request_id')
     child = controller.get('child_request_id')
     matches = [a for a in actions if isinstance(child, str) and a['request_id'] == child]
@@ -157,11 +241,15 @@ def _controller(controller, actions, manager, project_id):
     next_action = decision.get('next_action') if type(decision) is dict else None
     original_command = (controller.get('request') or {}).get('command') if type(controller.get('request')) is dict else None
     manager_command = 'advance_recipe' if original_command == 'controller.advance_recipe' else 'advance'
+    if original_command == 'controller.advance_selection':
+        row = manager.execute('SELECT command FROM requests WHERE id=?', (request_id,)).fetchone()
+        if row is not None and row[0] == 'advance_feedback':
+            manager_command = 'advance_feedback'
     return {'request_id': request_id, 'status': controller.get('status'), 'child_request_id': child,
             'decision_next_action': next_action, 'child_binding_status': child_status,
             'matched_action': matches[0] if len(matches) == 1 else None,
             'manager_receipt': _receipt(manager, request_id, manager_command, project_id),
-            'request_handoff': _request_handoff(controller, manager, project_id)}
+            'request_handoff': _request_handoff(controller, manager, project_id, project=project)}
 
 
 def read_history(manager, project, actions):
@@ -194,10 +282,10 @@ def read_history(manager, project, actions):
             for parent in controllers:
                 context = parent.get('selection_context')
                 if type(context) is dict and context.get('research_plan') == plan:
-                    bindings.append(_controller(parent, actions, manager, project_id)); linked.add(parent['request_id'])
+                    bindings.append(_controller(parent, actions, manager, project_id, project=project)); linked.add(parent['request_id'])
             output.append({'revision': plan, 'manager_receipt': _receipt(manager, plan['request_id'], 'save_plan', project_id, expected_plan=plan),
                            'controllers': None if controllers_missing else bindings})
-        unmatched = [_controller(parent, actions, manager, project_id) for parent in controllers if parent['request_id'] not in linked]
+        unmatched = [_controller(parent, actions, manager, project_id, project=project) for parent in controllers if parent['request_id'] not in linked]
         result.update(plans=None if plans_missing else output, unmatched_controllers=None if controllers_missing else unmatched)
         if plans_missing or controllers_missing or unmatched or any(item['manager_receipt']['view_status'] != 'available' or any(
                 parent['manager_receipt']['view_status'] != 'available' or parent['child_binding_status'] in ('not_recorded', 'invalid', 'unavailable', 'ambiguous')
