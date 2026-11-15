@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T19:00:05+08:00",
-  "status": "S084_verified_plan_revision_in_progress",
+  "end_time": "2026-11-15T19:06:44+08:00",
+  "status": "S085_plan_reference_verified_policy_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -13,7 +13,8 @@
     "Bike original Project and manager SQLite SHA unchanged",
     "S083 opt-in native Controller quality feedback route independently reviewed, 17 synthetic policy tests; original nonterminal request not redispatched",
     "S083 explicit verified-quality Controller route completed and reviewed",
-    "S084 LocalWorkbench registration/feedback/advance and transaction-bound manager ownership completed and reviewed"
+    "S084 LocalWorkbench registration/feedback/advance and transaction-bound manager ownership completed and reviewed",
+    "S085 Project opt-in structured quality action reference and direct successor plan verified; old policy waits and Workbench rejects the new field"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -26,7 +27,8 @@
     "Independent test PYTHONPATH failure and concurrent source modifications invalidated two interim runs; frozen version rechecked",
     "S083 review found predecessor/child fingerprint, plan-drift wait replay, rejected-before-child and orphan replay gaps; fixed and retested",
     "Report fixture initially used items instead of records; fixed",
-    "S084 manager/core same-ID race, missing intent and nondistinct intent identified in review; transactional nonce-bound ownership and tests added"
+    "S084 manager/core same-ID race, missing intent and nondistinct intent identified in review; transactional nonce-bound ownership and tests added",
+    "S085 review identified source-code drift after evidence read; final identity recheck and injection added"
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -35,12 +37,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Implement explicit structured quality-action reference for post-feedback plan v2, preserving original preregistration and safe ID recovery; use synthetic projects only.",
+  "next": "Implement explicit Controller policy consuming latest structured quality plan v2, then integrate Workbench safely, preserving original budgets and pins.",
   "next_planned_trigger": "2026-11-15T19:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "bd4d23594b39099777b8f901b773131d4b9706df",
-  "last_checkpoint": "2026-11-15T19:00:05+08:00",
+  "code_commit": "860eac3ec1d077270546d05a57b587a59a35df37",
+  "last_checkpoint": "2026-11-15T19:06:44+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -588,5 +590,13 @@
     "independent_regression": 41,
     "real_research_actions": 0,
     "limitations": "Trusted local synthetic/mocked failures and lock competition, not actual power failure or hostile process isolation; read-only host GET unavailable, UI absent."
+  },
+  "S085": {
+    "code_commit": "860eac3ec1d077270546d05a57b587a59a35df37",
+    "author_related_tests": 64,
+    "independent_new_tests": 8,
+    "independent_legacy_tests": 21,
+    "real_research_actions": 0,
+    "limitations": "Project Python only; context validates shape, not original evidence; old Controller waits and Workbench rejects."
   }
 }
