@@ -3,17 +3,17 @@ Status: resumable
 
 S080 已完成获批的 Bike 2011 真实研究并独立复算：总体/编码0/编码1 Pearson r 为 0.771214/0.762433/0.779847，n 为 365/115/250，预先固定方向条件满足；两项工具 2/2、0 model/fit/native evidence，原计划等待。[结果和限制](../execution/g1-local/bike-2011-results.md)。这是操作者根据质量反馈修订计划的描述性链，不是模型自主或因果/跨年收益。唯一 claim、原 Project 与源码 pin `7926608e981eaf1fdfc94c0d125ae04b7f4423da` 必须保留，不重开额度。
 
-下一增量是[通用表格质量反馈设计](tabular-quality-feedback-design.md)：已独立审阅并澄清有界 flags 和未知/不满足区别；当前仅设计，尚未接入原生控制器或声明真实研究收益。旧检索策略及已完成 Bike 不改。
+下一增量是[通用表格质量反馈设计](tabular-quality-feedback-design.md)：已独立审阅，独立纯条件模块和15项合成测试已完成，支持有限白名单、矛盾/缺失优先 unknown；尚未接入登记、原工件认证或控制器，不声明自动决策或真实研究收益。旧检索策略及已完成 Bike 不改。[S081](../execution/SPRINT-081.md)。
 
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。
 
 S079检索候选元数据筛选未找到可直接准入项；PubMedQA许可未核且搜索返回公开示例，QASPER许可检索亦意外返回公开test示例，现已停止查看样本，不可称完全未曝/盲测；bioCADDIE规模和qrels权利未核。无新数据下载/项目/排序/模型。[审计](retrieval-candidate-audit-20261115.md)。
 
-S078已完成并独审Bike方案的隔离合成预演：两个合成Project各2/2工具、0 model/fit/evidence，可计算与constant_predictor/unknown、原观察→人工plan v2→关联、作者原ID新进程重放，独审复算并核回执但未自行重放；未下载真实Bike/创建真实项目，真实表格新范围仍待用户决定。[SPRINT-078](../execution/SPRINT-078.md)。
+S078当时完成并独审Bike方案的隔离合成预演：两个合成Project各2/2工具、0 model/fit/evidence，可计算与constant_predictor/unknown、原观察→人工plan v2→关联、作者原ID新进程重放，独审复算并核回执但未自行重放；该轮未下载真实Bike或创建真实项目。之后用户批准且 S080 已完成真实研究，见文首。[SPRINT-078](../execution/SPRINT-078.md)。
 
 S077新表格Project可显式保存操作者描述性研究用途，已独审推送 `3ba33b62a0d8456fb0d04765285e11d0b7e1195c`；默认旧wire/旧pin不变，仅Python创建支持，非授权/领域验证/新研究。原S065只读status字节同与3/3预算保持，pin193项匹配。[SPRINT-077](../execution/SPRINT-077.md)。
 
-S076真实表格候选[Bike 2011预案](bike-sharing-2011-study-proposal.md)已元数据/接口独审，拟2工具/0模型fit/0新增native evidence，描述温度与日租赁整体和原工作日分组关联，unknown优先；现有授权不自动覆盖该新表格项目，S077已补Python新建项目的显式用途声明，但不自动授权/执行该课题，Workbench直接创建不支持该选项。原ZIP/目标值/Project均未取得或运行，不声称已授权/预注册/科研收益。
+S076真实表格候选[Bike 2011预案](bike-sharing-2011-study-proposal.md)当时仅元数据/接口独审；S077补Python创建的显式用途声明，Workbench直接创建不支持该选项。随后用户单独批准，S080 已按独立范围实际执行；勿将 S076 时未取得原件、未授权等历史状态误认为当前事实。
 
 S075已发布后只读S065/S067原保存validation联合分析并独立复算，结果 [S075](../execution/SPRINT-075.md)：S065召回提高3题其中2题MRR下降；S067召回不变198题中24题MRR下降/12上升。已曝数据事后描述、非盲测/总体收益/迁移；无新模型/fit/排名/行动，原3/3预算保持。reader commit `a8207f63c3201eb2e601dc81642d15342943813b`、pin195项匹配，公开结果SHA c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb。
 
