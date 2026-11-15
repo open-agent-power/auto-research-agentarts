@@ -53,3 +53,5 @@ S073计划结构化案例引用在实现，初步合成5/5包括原ID退休后�
 S073计划结构化case引用已独审推送 `340e198ec5bc5a45585e4ddd2360d31d6f0741c3`，保存时锁内核当时active原件，退休后原ID重放，计划变化不绕过登记；报告逐条保留四个长引用。固定相关33/前版71、独审5+2、旧wire通过；尚无Workbench引用编辑控件，不声称模型采用，pin193项/1本地probe。检查点 2026-11-15T15:22:13.694690+08:00。
 
 S074计划引用UI/跨刷新原请求恢复进行中：新refs原body只存本机manager，pending脱敏、旧无body unknown；后台WIP14/14，UI/真实跨进程/独审未完成。已按独审修恢复正文泄露、项目pending被挤出及磁盘source漂移；快照 runs/s074-verification/checkpoint-001 manifest SHA 541f70cbc28231797d07f3ab48ca531de924eb0f16df7f90375c5bb902fba3d6，本盘且代码可能继续变。检查点 2026-11-15T15:30:56.667260+08:00。
+
+S074后台与UI初稿继续中：本盘新checkpoint-002 manifest SHA 690cbe42674aab3c18c2ade0f8c83982e7a9dff09add554c2e80ccba49270a82，UI typecheck通过，真实跨进程HTTP/browser和独审未完成。异常历史rejected按unknown可见并阻断，两恢复窗口核实际source，原body仍只留本机。检查点 2026-11-15T15:35:52.609185+08:00。

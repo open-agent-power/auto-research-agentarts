@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T15:30:56.667260+08:00",
+  "checkpoint_time": "2026-11-15T15:35:52.609185+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -343,10 +343,11 @@
     "status": "implementation_in_progress",
     "completed": false,
     "scope": "operator plan refs UI and same-ID recovery with local durable original request body",
-    "checkpoint_path": "runs/s074-verification/checkpoint-001",
-    "checkpoint_manifest_sha256": "541f70cbc28231797d07f3ab48ca531de924eb0f16df7f90375c5bb902fba3d6",
+    "checkpoint_path": "runs/s074-verification/checkpoint-002",
+    "checkpoint_manifest_sha256": "690cbe42674aab3c18c2ade0f8c83982e7a9dff09add554c2e80ccba49270a82",
     "wip_backend_tests": 14,
     "limits": "not final; UI, cross-process HTTP, browser and independent review outstanding; old missing bodies unknown",
-    "remaining": "UI, failure windows, real browser, independent audit"
+    "remaining": "final backend, cross-process HTTP, real browser, independent review",
+    "ui": "work_in_progress_typecheck_passed"
   }
 }
