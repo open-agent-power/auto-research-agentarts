@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T21:03:02+08:00",
-  "status": "S096_verified_host_workbench_in_progress",
+  "end_time": "2026-11-15T21:26:24+08:00",
+  "status": "S097_S098_verified_continuing",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -27,7 +27,9 @@
     "Research baseline updated for completed Bike study and independently reviewed",
     "S094 explicit Host adoption retains model proposal text while host attaches authenticated quality reference; synthetic validation only",
     "S095 pre-existing Workbench same-ID conflict priority fixed, pending/active safety retained, independently reviewed",
-    "S096 actual SIGKILL at two Host/Project cut points, author and independent reviewer 2/2, no additional real model/API or study"
+    "S096 actual SIGKILL at two Host/Project cut points, author and independent reviewer 2/2, no additional real model/API or study",
+    "S097 Host quality adoption integrated into Workbench with manager→Host→Project intent and transaction claim; synthetic author/independent verification",
+    "S098 four manager→Host→Project fixed cut points independently verified with actual SIGKILL and original-ID recovery, isolated synthetic project"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -55,12 +57,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Integrate explicit Host quality-plan adoption into Workbench/HTTP with manager→Host→Project nonce-bound ownership, preserving original ID and budgets.",
+  "next": "Audit whether Host plan context supplies authenticated preregistered quality outcomes; continue a verified increment without new model or research spend.",
   "next_planned_trigger": "2026-11-15T22:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "dec89d711324c0cab2f465356aa216db461ab232",
-  "last_checkpoint": "2026-11-15T21:03:02+08:00",
+  "code_commit": "203468ebeca9fed023692bcea9e16d0be979cfb8",
+  "last_checkpoint": "2026-11-15T21:26:24+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -701,5 +703,15 @@
     "independent_kill_cuts": 2,
     "author_log_sha256": "4dfb9f2bfc5b2fd562fc4e0cf30e647d368fc4b0b2879199768b6639cc254662",
     "scope": "Synthetic selected process termination cut points; no actual model, power-failure or scientific result."
+  },
+  "S097": {
+    "commit": "18377f23a6be1d5b3f72bb7d2de0d34213155499",
+    "verification": "12 new + 63 related author, 43 independent synthetic checks; no real model"
+  },
+  "S098": {
+    "commit": "203468ebeca9fed023692bcea9e16d0be979cfb8",
+    "verification": "author and independent each 4/4 actual SIGKILL cut points; synthetic only",
+    "log": "runs/s098-manager-host-process/initial.log",
+    "log_sha256": "7639d8e41f2422204d9bf2e015cf8029bc759aa1737c5f45cea6517f791a704f"
   }
 }
