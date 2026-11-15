@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S111 工作台可安全显式登记staged验证集双指标及只读反馈；Project登记/claim同事务、原ID缺失停查，独立50项+浏览器/两进程故障通过。新入口需 `-B` 和新空PYTHONPYCACHEPREFIX；未来ID执行和反馈推进UI尚未接。[SPRINT-111](../execution/SPRINT-111.md)。
+
 S110 工作台页面可显式选择并导入S109后验经验包，独立合成Chromium/HTTP验收坏包、跨项目、文件乱序和原ID HTTP重放；未测浏览器失联后恢复按钮，不自动写计划或调用研究。[SPRINT-110](../execution/SPRINT-110.md)。
 
 S109 已将S108两条已发布聚合实际导入独立持久Memory并各自导出；独审核记录隔离/哈希，重入各0。未创建真实目标Project或声明模型采纳；本轮未打开旧Project核预算。[SPRINT-109](../execution/SPRINT-109.md)。

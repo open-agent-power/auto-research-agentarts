@@ -114,6 +114,15 @@ Set-Location 'D:/XiangMuLuoDi/Development/ICT/track2/auto-research'
 .venv/Scripts/python.exe scripts/serve_local_workbench.py --root runs/my-local-workbench --enable-local-actions --port 18799
 ```
 
+仅新的 staged 双指标事前登记入口要求源码加载时无项目字节码缓存。POSIX 宿主可在原工作台目录和源码 pin 下，用全新空缓存目录及 `-B` 启动：
+
+```bash
+export PYTHONPYCACHEPREFIX="$(mktemp -d)"
+.venv/bin/python -B scripts/serve_local_workbench.py --root runs/my-local-workbench --enable-local-actions --port 18799
+```
+
+若报 `CODE_CHANGED`，保留原请求和工作台目录，核对原源码身份后用新的空缓存目录重启；不要新建项目或请求替代。该检查是协作式源码与路径保护，不证明内存代码的密码学身份或操作系统隔离；旧入口不要求这一新门。事前登记只保存条件、已知分支和未来 Controller ID，不执行方法、保证未来 ID 未被其他入口占用或登记 final。显式反馈策略遇未知时等待；普通入口不自动受该策略约束。本页面尚无以未来 ID 执行或推进反馈的按钮。
+
 打开[项目总览](http://127.0.0.1:18799/#/overview)。`--root`沿用实际manager目录，已有服务不要另建目录代替。`--enable-local-actions`显式启用本地命令；省略时不接受本地写操作。左侧五页导航贯穿当前项目，沿用毛玻璃外壳、实色内容卡与X6。总览另有[原P02研究工作区](http://127.0.0.1:18785/#/overview)入口，其原课题和封存记录独立保留；该服务需按[原项目用法](project-slice.md)启动。
 
 | 页面 | 入口与操作 |

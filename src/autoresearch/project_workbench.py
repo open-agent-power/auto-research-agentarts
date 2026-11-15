@@ -456,6 +456,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/plan-resume": "resume_plan",
                             "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/hypothesis": "register_hypothesis",
+                            "/api/local-workbench/staged-hypothesis": "register_staged_hypothesis",
+                            "/api/local-workbench/staged-hypothesis-resume": "resume_staged_hypothesis",
                             "/api/local-workbench/tabular-quality-registration": "register_tabular_quality_conditions",
                             "/api/local-workbench/advance-tabular-quality-feedback": "advance_tabular_quality_feedback",
                             "/api/local-workbench/quality-plan": "save_quality_plan",

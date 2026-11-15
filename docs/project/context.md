@@ -202,3 +202,5 @@ S109：专用S108 posthoc Memory类型已独审，原primary只作来源；Proje
 S109实际导入：独立Memory runs/s109-real-published-memory/memory/memory.sqlite，S065/S067各首次1重入0，导出包/哈希见 SPRINT-109；本轮未打开原Project核预算，未导入真实目标项目或调用模型。
 
 S110：页面文件选择器支持S109后验bundle，真实合成HTTP和Chromium独审；原ID HTTP重放已测、浏览器断线恢复按钮未测，不自动引用计划。见 SPRINT-110。
+
+S111：工作台staged双指标事前登记首片已独审；登记不派发，future ID未预留，原意图/claim缺失停查。新入口需-B+空PYTHONPYCACHEPREFIX；下一片为显式原ID primary及反馈推进，见SPRINT-111。

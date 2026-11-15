@@ -87,6 +87,13 @@ def _branches(value, primary_method_id):
 
 def register(project, *, request_id, expected_state_version, hypothesis):
     """Persist one prediction before its explicitly named controller request exists."""
+    result, _ = _register_with_created(project, request_id=request_id, expected_state_version=expected_state_version,
+                                       hypothesis=hypothesis)
+    return result
+
+
+def _register_with_created(project, *, request_id, expected_state_version, hypothesis, _manager_intent_sha256=None):
+    """Private creation signal; an optional manager claim commits with the registration."""
     identifier(request_id)
     require(type(expected_state_version) is int and expected_state_version >= 0,
             "INVALID_REQUEST", "An exact state version is required.")
@@ -107,7 +114,7 @@ def register(project, *, request_id, expected_state_version, hypothesis):
                     and stored["source_snapshot_sha256"] == previous["source_snapshot_sha256"]
                     and fingerprint(stored["source_scope"]) == previous["scope_sha256"],
                     "EVIDENCE_CHANGED", "The registered source binding changed.")
-            return copy.deepcopy(previous)
+            return copy.deepcopy(previous), False
         require(len(records) < MAX_ITEMS, "LIMIT_EXCEEDED", "At most sixteen predictions may be registered per project.")
         require(project._action(con, request_id) is None and project._action(con, target) is None,
                 "IDEMPOTENCY_CONFLICT", "An ID belongs to an existing action.")
@@ -164,7 +171,11 @@ def register(project, *, request_id, expected_state_version, hypothesis):
         stored.setdefault("hypothesis_registrations", []).append(record)
         stored["state_version"] += 1
         project._save(con, stored)
-        return copy.deepcopy(record)
+        if _manager_intent_sha256 is not None:
+            from .tabular_quality_feedback import _manager_claim
+            _manager_claim(con, "hypothesis_registration", request_id, _manager_intent_sha256,
+                           record["registration_sha256"], create=True)
+        return copy.deepcopy(record), True
 
 
 def _check_record(record):

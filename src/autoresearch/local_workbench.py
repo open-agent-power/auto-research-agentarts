@@ -6,10 +6,12 @@ import copy
 from contextlib import contextmanager
 from datetime import datetime
 import hashlib
+import importlib.machinery
 from pathlib import Path
 import re
 import secrets
 import sqlite3
+import sys
 import tempfile
 
 from . import source_evidence_adapter as reader, tabular_quality_adapter as tabular, method_registry as registry, project_controller, research_design
@@ -69,6 +71,37 @@ def batch_code_identity():
 
 
 _EXPORT_BOOT_IDENTITY = batch_code_identity()
+
+
+def _staged_source_tree_identity():
+    root = Path(__file__).resolve().parent
+    files = sorted(root.rglob("*.py"))
+    return fingerprint({str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in files})
+
+
+try:
+    _STAGED_BOOT_SOURCE_IDENTITY = _staged_source_tree_identity()
+except OSError:
+    # The new opt-in path stops; legacy Workbench startup keeps its old behavior.
+    _STAGED_BOOT_SOURCE_IDENTITY = None
+
+
+def _check_staged_runtime():
+    """Narrow cooperative source-only gate for the new staged registration path."""
+    root = Path(__file__).resolve().parent
+    _require(sys.dont_write_bytecode and _STAGED_BOOT_SOURCE_IDENTITY is not None
+             and _staged_source_tree_identity() == _STAGED_BOOT_SOURCE_IDENTITY,
+             "CODE_CHANGED", "Restart with -B and a new empty PYTHONPYCACHEPREFIX; original source must match startup.")
+    for name, module in list(sys.modules.items()):
+        if name != "autoresearch" and not name.startswith("autoresearch."):
+            continue
+        path = getattr(module, "__file__", None)
+        loader = getattr(module, "__loader__", None)
+        cached = getattr(module, "__cached__", None)
+        _require(type(path) is str and Path(path).resolve().is_relative_to(root)
+                 and isinstance(loader, importlib.machinery.SourceFileLoader)
+                 and (cached is None or (not Path(cached).exists() and not Path(cached).is_symlink())),
+                 "CODE_CHANGED", "Restart with -B and a new empty PYTHONPYCACHEPREFIX; cached project modules are not accepted.")
 
 
 def _require(condition, code, message):
@@ -378,6 +411,17 @@ class LocalWorkbench:
             active = self._active(con)
             pending = []
             active_plan_pending = 0
+            active_staged_pending = 0
+            if active is not None:
+                for row in con.execute("SELECT id,record FROM requests WHERE command='register_staged_hypothesis' ORDER BY rowid DESC"):
+                    record = tabular._parse(row["record"].encode("utf-8"))
+                    if record.get("status") == "completed" or record.get("intent", {}).get("project_id") != active:
+                        continue
+                    active_staged_pending += 1
+                    if len(pending) < 8:
+                        pending.append({"request_id": row["id"], "command": "register_staged_hypothesis",
+                                        "status": record.get("status"), "project_id": active,
+                                        "recovery": "original_terminal_binding_check_only"})
             # Active-project plan intents take priority over other Projects' bounded
             # pending list; no original plan body is projected here.
             if active is not None:
@@ -395,7 +439,7 @@ class LocalWorkbench:
                     except ResearchError:
                         item["recovery"] = "original_body_unavailable"
                     pending.append(item)
-            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt') ORDER BY rowid DESC"):
                 if len(pending) == 8:
                     break
                 if any(item["request_id"] == row["id"] for item in pending):
@@ -433,6 +477,10 @@ class LocalWorkbench:
                     "existing_cash_cap_cny": 5, "historical_costs": "unknown", "automatic_retry": False}}
         if active_plan_pending > 8:
             result["pending_plan_summary"] = {"project_id": active, "total": active_plan_pending, "shown": 8, "truncated": True}
+        if active_staged_pending:
+            shown = sum(item["command"] == "register_staged_hypothesis" and item.get("project_id") == active for item in pending)
+            result["pending_staged_hypothesis_summary"] = {"project_id": active, "total": active_staged_pending,
+                                                            "shown": shown, "truncated": shown < active_staged_pending}
         return result
 
     def binding(self):
@@ -1228,6 +1276,10 @@ class LocalWorkbench:
                 _, project = self._project(con, body["project_id"], active=True)
                 self._no_pending_batch(con, body["project_id"], evidence=True)
                 old = self._old(con, body, digest)
+                if old is not None:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "register_hypothesis", "IDEMPOTENCY_CONFLICT",
+                             "The original request belongs to another command.")
                 if old is not None and old["status"] == "completed":
                     return self._completed(old)
                 if old is None:
@@ -1240,6 +1292,213 @@ class LocalWorkbench:
                 self._save(con, body["request_id"], {"status": "completed", "result": response,
                                                     "intent": {"project_id": body["project_id"]}})
             return response
+
+    @staticmethod
+    def _preflight_staged_hypothesis(project, state, body, con):
+        from . import hypothesis_feedback as h, staged_relevance_adapter as staged
+        hypothesis = body["hypothesis"]
+        _require(type(hypothesis) is dict and set(hypothesis) == {"candidate_id", "controller_request_id", "conditions", "branches"},
+                 "INVALID_REQUEST", "Use exactly two staged conditions and both explicit branches.")
+        condition = h._condition(hypothesis)
+        _require(set(item["metric"] for item in condition["all"]) == {"recall@20", "mrr@10"},
+                 "INVALID_REQUEST", "Use one recall@20 and one mrr@10 validation condition.")
+        h._branches(hypothesis["branches"], staged.TOOL_ID)
+        target = hypothesis["controller_request_id"]
+        _require(body["request_id"] != target, "INVALID_REQUEST", "Use separate registration and future controller IDs.")
+        child = "controller-child-" + fingerprint({"project_id": state["id"], "request_id": target})[:32]
+        LocalWorkbench._quality_unclaimed(project, state, (body["request_id"], target, child))
+        for value in (target, child):
+            _require(con.execute("SELECT 1 FROM requests WHERE id=?", (value,)).fetchone() is None,
+                     "IDEMPOTENCY_CONFLICT", "A future ID is already used in the workbench.")
+        records = state.get("hypothesis_registrations", [])
+        _require(type(records) is list and len(records) < h.MAX_ITEMS, "LIMIT_EXCEEDED", "Hypothesis registration limit reached.")
+        from .tabular_quality_feedback import _checked_collection
+        quality = state.get("tabular_quality_registrations", [])
+        _checked_collection(quality)
+        for item in records:
+            h._check_record(item)
+        for item in records + quality:
+            _require(item.get("controller_request_id") not in (body["request_id"], target, child),
+                     "IDEMPOTENCY_CONFLICT", "A future controller ID already has a registration.")
+        host = HostModelSelection(project.root).status()
+        _require(not any(item.get("status") in PENDING for item in host["requests"]),
+                 "HOST_SELECTION_PENDING", "Inspect the existing Host request first.")
+        _require(not any(item.get("request_id") in (body["request_id"], target, child)
+                         or item.get("controller_request_id") in (body["request_id"], target, child)
+                         for item in host["requests"]), "IDEMPOTENCY_CONFLICT", "An original Host ID is already used.")
+        _require(state.get("plan_revisions") and state["registration"].get("method_id") == staged.TOOL_ID
+                 and not any(item["status"] in ("prepared", "running", "unknown") for item in state.get("controller_requests", []))
+                 and not any(item["status"] == "reserved" for item in state.get("local_model_requests", [])),
+                 "CONDITION_NOT_SATISFIED", "Use an idle staged project with a saved plan.")
+        project._source(state)
+        context = ProjectController(project.root)._selection_context(state, "next_check")
+        candidates = [item for item in context["candidates"] if item["id"] == hypothesis["candidate_id"]]
+        _require(not context["blockers"] and len(candidates) == 1 and candidates[0]["method_id"] == staged.TOOL_ID
+                 and candidates[0]["parameters"] == {} and candidates[0]["evaluation_ref"] == "staged-relevance-development-v1",
+                 "CONDITION_NOT_SATISFIED", "Choose the unique eligible staged primary.")
+        _require(project.status()["snapshot_ref"] == state["snapshot_ref"], "STALE_STATE", "Project changed during preflight.")
+        return context
+
+    def _staged_hypothesis_intent(self, body, digest, state, context):
+        intent = {"schema_version": "local-staged-hypothesis-intent-v1", "command": "register_staged_hypothesis",
+                  "project_id": state["id"], "run_id": state["run_id"], "body": copy.deepcopy(body), "request_sha256": digest,
+                  "source_snapshot_sha256": state["source_snapshot_sha256"], "project_code_identity": state["code_identity"],
+                  "controller_code_identity": project_controller.code_identity(), "manager_code_identity": batch_code_identity(),
+                  "manager_root": str(self.root.resolve()), "selection_context": copy.deepcopy(context),
+                  "plan_sha256": fingerprint(state["plan_revisions"][-1]), "nonce": secrets.token_hex(32)}
+        intent["intent_sha256"] = fingerprint(intent)
+        return intent
+
+    def _finish_staged_hypothesis(self, project, body, digest, record):
+        # Cooperative Project writers cannot change the source, state or claim
+        # during this check. Direct database tampering is outside this lock.
+        with project._writer():
+            return self._finish_staged_hypothesis_locked(project, body, digest, record)
+
+    def _finish_staged_hypothesis_locked(self, project, body, digest, record):
+        from . import hypothesis_feedback as h, project_selection
+        from .tabular_quality_feedback import _manager_claim
+        _check_staged_runtime()
+        intent = record.get("intent")
+        fields = {"schema_version", "command", "project_id", "run_id", "body", "request_sha256", "source_snapshot_sha256",
+                  "project_code_identity", "controller_code_identity", "manager_code_identity", "manager_root", "selection_context",
+                  "plan_sha256", "nonce", "intent_sha256"}
+        state = project.status()
+        _require(type(intent) is dict and set(intent) == fields and intent["schema_version"] == "local-staged-hypothesis-intent-v1"
+                 and intent["command"] == "register_staged_hypothesis" and canonical(intent["body"]) == canonical(body)
+                 and intent["request_sha256"] == digest == fingerprint(body)
+                 and intent["intent_sha256"] == fingerprint({k: v for k, v in intent.items() if k != "intent_sha256"})
+                 and intent["project_id"] == body["project_id"] == state["id"] and intent["run_id"] == state["run_id"]
+                 and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                 and intent["project_code_identity"] == state["code_identity"] == project_code_identity()
+                 and intent["controller_code_identity"] == project_controller.code_identity()
+                 and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                 and intent["manager_root"] == str(self.root.resolve()) and type(intent["nonce"]) is str
+                 and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
+                 "EVIDENCE_CHANGED", "Original staged registration intent or identities changed.")
+        context = intent["selection_context"]
+        _require(type(context) is dict and canonical(project_selection.seal_context({k: v for k, v in context.items() if k != "context_sha256"})) == canonical(context),
+                 "EVIDENCE_CHANGED", "Original staged context changed.")
+        found = [item for item in state.get("hypothesis_registrations", []) if item.get("request_id") == body["request_id"]]
+        _require(len(found) == 1, "OPERATION_INCOMPLETE", "The original core registration is absent; inspect without creating it.")
+        saved = found[0]
+        h._check_record(saved)
+        expected = {k: copy.deepcopy(v) for k, v in body.items() if k != "project_id"}
+        candidates = [item for item in context.get("candidates", []) if item.get("id") == body["hypothesis"]["candidate_id"]]
+        _require(canonical(saved["request"]) == canonical(expected) and saved["schema_version"] == "hypothesis-registration-v2"
+                 and saved["project_id"] == state["id"] and saved["run_id"] == state["run_id"]
+                 and saved["source_sha256"] == state["registration"]["source_sha256"]
+                 and saved["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                 and saved["scope_sha256"] == fingerprint(state["source_scope"])
+                 and saved["project_code_identity"] == intent["project_code_identity"]
+                 and saved["controller_code_identity"] == intent["controller_code_identity"]
+                 and saved["selection_context_sha256"] == context["context_sha256"]
+                 and saved["plan_sha256"] == intent["plan_sha256"]
+                 and context.get("project_id") == state["id"] and context.get("run_id") == state["run_id"]
+                 and context.get("state_version") == body["expected_state_version"]
+                 and context.get("project_code_identity") == intent["project_code_identity"]
+                 and context.get("controller_code_identity") == intent["controller_code_identity"]
+                 and fingerprint(context.get("domain_scope")) == saved["scope_sha256"]
+                 and fingerprint(context.get("research_plan")) == saved["plan_sha256"]
+                 and len(candidates) == 1 and canonical(candidates[0]) == canonical(saved["candidate"])
+                 and any(plan["version"] == saved["plan_version"] and fingerprint(plan) == saved["plan_sha256"]
+                         for plan in state.get("plan_revisions", [])),
+                 "EVIDENCE_CHANGED", "Original registration, context or historical plan differs.")
+        project._source(state)
+        with project._connect(readonly=True) as con:
+            _manager_claim(con, "hypothesis_registration", body["request_id"], intent["intent_sha256"], saved["registration_sha256"])
+        project._source(state)
+        _require(project.status()["snapshot_ref"] == state["snapshot_ref"] and project_code_identity() == intent["project_code_identity"]
+                 and project_controller.code_identity() == intent["controller_code_identity"]
+                 and batch_code_identity() == intent["manager_code_identity"] == _EXPORT_BOOT_IDENTITY,
+                 "EVIDENCE_CHANGED", "Project or code changed during registration verification.")
+        with project._connect(readonly=True) as con:
+            _manager_claim(con, "hypothesis_registration", body["request_id"], intent["intent_sha256"], saved["registration_sha256"])
+        _check_staged_runtime()
+        return copy.deepcopy(saved)
+
+    def register_staged_hypothesis(self, body):
+        fields = ("request_id", "project_id", "expected_state_version", "hypothesis")
+        digest = _body(body, fields)
+        identifier(body["project_id"], "project_id")
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "Use an exact project version.")
+        _check_staged_runtime()
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                old = self._old(con, body, digest)
+                if old is None:
+                    with project._writer():
+                        state = project.status()
+                        _require(state["state_version"] == body["expected_state_version"], "STALE_STATE", "Project state changed.")
+                        _require(state["code_identity"] == project_code_identity() and batch_code_identity() == _EXPORT_BOOT_IDENTITY,
+                                 "CODE_CHANGED", "Use the original project and manager code.")
+                        context = self._preflight_staged_hypothesis(project, state, body, con)
+                        _check_staged_runtime()
+                        intent = self._staged_hypothesis_intent(body, digest, state, context)
+                        self._accept(con, body, digest, "register_staged_hypothesis", intent)
+                        con.commit()
+                else:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "register_staged_hypothesis" and type(old) is dict
+                             and type(old.get("intent")) is dict and old.get("status") in ("preparing", "completed")
+                             and (old["status"] != "preparing" or old.get("result") is None),
+                             "OPERATION_INCOMPLETE", "Original staged registration receipt is unavailable.")
+                    intent = old["intent"]
+            if old is None:
+                from .hypothesis_feedback import _register_with_created
+                _check_staged_runtime()
+                _, created = _register_with_created(project, **{k: v for k, v in body.items() if k != "project_id"},
+                                                     _manager_intent_sha256=intent["intent_sha256"])
+                _require(created, "OPERATION_INCOMPLETE", "Another caller accepted this ID; inspect without adopting it.")
+                record = {"intent": intent}
+            else:
+                record = old
+            registration = self._finish_staged_hypothesis(project, body, digest, record)
+            response = self._response("register_staged_hypothesis", body["request_id"], body["project_id"],
+                                      status="completed", registration=registration)
+            if old is not None and old["status"] == "completed":
+                _require(type(old.get("result")) is dict and canonical({k: v for k, v in old["result"].items() if k != "replayed"})
+                         == canonical({k: v for k, v in response.items() if k != "replayed"}),
+                         "EVIDENCE_CHANGED", "Original staged registration receipt changed.")
+                return dict(response, replayed=True)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status": "completed", "intent": intent, "result": response})
+            return dict(response, replayed=old is not None)
+
+    def resume_staged_hypothesis(self, body):
+        _body(body, ("request_id", "project_id"))
+        _check_staged_runtime()
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                _require(row is not None and row["command"] == "register_staged_hypothesis",
+                         "OPERATION_INCOMPLETE", "The original staged manager intent is absent; do not create a replacement.")
+                record = tabular._parse(row["record"].encode("utf-8"))
+                _require(record.get("status") in ("preparing", "completed") and type(record.get("intent")) is dict
+                         and type(record["intent"].get("body")) is dict
+                         and record["intent"]["body"].get("request_id") == body["request_id"]
+                         and record["intent"]["body"].get("project_id") == body["project_id"]
+                         and (record["status"] != "preparing" or record.get("result") is None),
+                         "OPERATION_INCOMPLETE", "The original staged intent or body is unavailable.")
+                original = record["intent"]["body"]
+                _require(_body(original, ("request_id", "project_id", "expected_state_version", "hypothesis")) == row["digest"],
+                         "EVIDENCE_CHANGED", "The original staged request body changed.")
+            registration = self._finish_staged_hypothesis(project, original, row["digest"], record)
+            response = self._response("register_staged_hypothesis", body["request_id"], body["project_id"],
+                                      status="completed", registration=registration)
+            if record["status"] == "completed":
+                _require(type(record.get("result")) is dict and canonical({k: v for k, v in record["result"].items() if k != "replayed"})
+                         == canonical({k: v for k, v in response.items() if k != "replayed"}),
+                         "EVIDENCE_CHANGED", "Original staged registration receipt changed.")
+            else:
+                with self._connect() as con:
+                    self._save(con, body["request_id"], {"status": "completed", "intent": record["intent"], "result": response})
+            return dict(response, replayed=True)
 
     def register_holdout(self, body):
         from .retrieval_holdout import MAX_HOLDOUT_BYTES, _feedback_policy
@@ -1811,9 +2070,9 @@ class LocalWorkbench:
     def _no_staged_switch(con, project_id):
         if project_id is None:
             return
-        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
+        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
             record = tabular._parse(row["record"].encode("utf-8"))
-            terminal = {"completed"} if row["command"] in ("register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"}
+            terminal = {"completed"} if row["command"] in ("register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"}
             _require(record.get("status") in terminal or record.get("intent", {}).get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished quality request before switching projects.")
         for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
@@ -1823,9 +2082,9 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        quality_commands = ("register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
+        quality_commands = ("register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
         commands = (("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")) + quality_commands
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":
