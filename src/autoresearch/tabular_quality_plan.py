@@ -84,19 +84,19 @@ def reference_for_state(project, state, request_id, *, initial):
             and record["reader_sha256"] == feedback._reader_sha()
             and record["conditions_sha256"] == feedback._conditions_sha(),
             "CODE_CHANGED", "The original quality producer code changed during reference verification.")
-    return result, parent["state_version_after"]
+    return result, parent["state_version_after"], full_feedback
 
 
 def read_reference(project, *, registration_request_id):
     """Read a reference for a direct successor plan; never write or dispatch."""
     state = project.status()
-    ref, _ = reference_for_state(project, state, registration_request_id, initial=True)
+    ref, _, _ = reference_for_state(project, state, registration_request_id, initial=True)
     return ref
 
 
 def check_reference(project, state, ref, *, based_on_state_version, revision=None):
     validate_reference(ref)
-    expected, finished_at = reference_for_state(project, state, ref["registration_request_id"], initial=revision is None)
+    expected, finished_at, verified_feedback = reference_for_state(project, state, ref["registration_request_id"], initial=revision is None)
     require(canonical(ref) == canonical(expected), "EVIDENCE_CHANGED", "The original quality reference changed.")
     require(type(based_on_state_version) is int and finished_at <= based_on_state_version <= state["state_version"],
             "EVIDENCE_CHANGED", "The quality result must precede the saved plan.")
@@ -105,3 +105,4 @@ def check_reference(project, state, ref, *, based_on_state_version, revision=Non
                 and based_on_state_version < state["state_version"]
                 and state["plan_revisions"][ref["original_plan_version"]] == revision,
                 "EVIDENCE_CHANGED", "The quality plan is not the direct original successor.")
+    return verified_feedback

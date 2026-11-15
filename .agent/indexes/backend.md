@@ -1,5 +1,7 @@
 # 后端索引
 
+S086 显式 Controller v2 可消费原质量行动结构化引用的真实最新直接后续计划，锁内重认证原件和预算；历史view仅认证。Workbench暂不支持 v2。[合同](../../docs/tabular-quality-feedback.md)。
+
 S085 Project Python 可保存原质量行动结构化引用的直接后续计划；保存/原ID重放重核原件，context仅校形状，旧质量策略对v2等待、Workbench写前拒绝。[合同](../../docs/tabular-quality-feedback.md)。
 
 S084 表格质量登记/反馈/显式推进已接 LocalWorkbench Python/HTTP，manager nonce+Project SQLite同事务claim绑定原意图，缺失/非终态停查；只读宿主 GET 未接，非全局门禁。[合同](../../docs/tabular-quality-feedback.md)。

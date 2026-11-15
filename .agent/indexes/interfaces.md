@@ -1,5 +1,7 @@
 # 接口索引
 
+S086 Controller Python v2 显式使用真实最新质量引用计划；旧 v1 不隐式升级，Workbench/HTTP 暂未接入。[合同](../../docs/tabular-quality-feedback.md)。
+
 S085 Project Python 的 plan 可显式引用经认证的原质量行动；Workbench/HTTP暂不支持该字段，旧策略不消费此plan。context的字段有效形状不等于已重认证原件。[合同](../../docs/tabular-quality-feedback.md)。
 
 S084 增加 LocalWorkbench 表格质量登记、反馈 GET 与显式策略推进 HTTP/Python；各自按原manager/core身份恢复，受信本地、无全局门禁，只读宿主不开放新GET。[字段和边界](../../docs/tabular-quality-feedback.md)。

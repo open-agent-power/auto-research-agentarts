@@ -84,13 +84,13 @@ revision = project.save_plan(
 
 准备引用不写账本或派发；原行动未完成、反馈 unknown 或登记计划已不是当前计划时不能派生。保存时在原 Project writer 锁内重核登记、原计划、质量 parent/child、SQLite 指纹、原结果、source 与代码，并要求质量行动完成在计划依据状态之前或同一状态；新计划必须是登记原计划的直接后继。保存消耗一次状态修订，不增加研究工具、模型、fit 或 native evidence-read 用量。同 ID、相同原参数重放计划会重新核对原引用与原件后返回原修订；body 不同报冲突，原 source、代码或工件不可核时拒绝，不能靠重放重建原件。该一致性检查不是防止同时改写全部本地账本的签名认证。
 
-保存后的 selection context 可以携带该字段，但其 context validator 只校验引用**形状**，不在每次生成 context 时重新认证底层原件；Project 保存与相同 ID 重放时才做上述原件核验，不应把单独读到 context 的引用视为实时认证。当前质量 Controller 策略仍要求当前计划与登记计划相同，保存此后继计划后，原质量 reader 为 `plan_binding_changed`、原策略会等待；此字段尚不会使该策略自动采用后继计划。Workbench 的 `save_plan`/对应 HTTP 在接受 manager 意图前拒绝包含 `quality_feedback_ref` 的计划；本版只支持上述 Project Python 入口，不提供 Workbench 恢复或 UI。
+保存后的 selection context 可以携带该字段，但其 context validator 只校验引用**形状**，不在每次生成 context 时重新认证底层原件；Project 保存与相同 ID 重放时做上述原件核验，不应把单独读到 context 的引用视为实时认证。保存此后继计划后，原质量 reader 为 `plan_binding_changed`、原 v1 策略仍会等待；可以另行显式使用下述 v2 Python 策略，由其在选择时重新核验引用。Workbench 的 `save_plan`/对应 HTTP 在接受 manager 意图前拒绝包含 `quality_feedback_ref` 的计划；本版只支持上述 Project Python 入口，不提供 Workbench 恢复或 UI。
 
 profile 和空 flags 不核实上游来源或许可、字段含义和单位、采样独立性、实际组编码、因果关系或领域资格；值有效只表明受检机械条件可计算。`scientific_validation: false` 始终保持。新模块纳入项目代码身份：旧 Project 和未决请求继续使用其原 source pin，不自动迁移或扩额。无需重新运行历史行动来读取结果，但读取会发生本地 source、SQLite 和工件 I/O。
 
 登记与只读反馈本身不使用本地研究工具、模型、fit 或 native evidence-read 额度；它们不增加任何授权额度。后续实际行动仍须单独符合原候选、预算、身份和恢复门禁。现有 Controller 非终态同 ID 恢复可能继续执行原子行动；本 reader 不提供该恢复，也不保证直接 Controller/Project 调用受登记条件约束。
 
-## 显式调用 Controller 条件策略
+## 显式调用 Controller v1 条件策略
 
 在质量行动完成并保存后，调用方可在已获授权的项目和预算范围内显式调用：
 
@@ -109,7 +109,32 @@ result = controller.advance_tabular_quality_feedback(
 
 保留本次策略调用的完整三个参数和原回执。相同 ID、相同 body 的终态重放会在锁内核原登记、封存 context/proposal、相关原工件及身份；核验通过后返回原完成、等待或失败回执，不重新派发，原拒绝则抛出原拒绝。原计划之后若另有修订，历史回执仍按原封存计划核验，但 source、代码或所需原件缺失、绑定不符时会拒绝。改变 body 会报冲突。原 parent 为 `prepared`、`running` 或 `unknown` 时，同 ID 明确报 `EXECUTION_UNKNOWN`，不从此入口恢复或重发 child；其他入口也不能拿原策略 parent 当普通选择请求重放。保留原状态、原预算和原 source pin 并检查原因，不以新 ID 绕过未决状态。等待是该次请求的终态：同 ID 重放原等待，不依据之后的新状态重新选择。
 
-策略是**显式入口**，直接调用其他 `advance_selection` 或 `ResearchProject.step` 不会自动服从该质量条件。当前新策略首次选择要求登记时的计划仍为当前计划；质量后另存 plan v2，即使带有上述结构化引用，也会使原反馈 unknown/策略等待。机械质量通过也不验证来源许可、字段科学含义、因果性或用户是否批准具体研究；调用者必须自行核实这些前提。
+策略是**显式入口**，直接调用其他 `advance_selection` 或 `ResearchProject.step` 不会自动服从该质量条件。v1 策略首次选择要求登记时的计划仍为当前计划；质量后另存计划，即使带有上述结构化引用，也会使原反馈 unknown、v1 策略等待。机械质量通过也不验证来源许可、字段科学含义、因果性或用户是否批准具体研究；调用者必须自行核实这些前提。
+
+## 显式调用 Controller v2 后继计划策略
+
+对已通过 Project Python 接口保存的质量引用后继计划，可单独调用 v2。以下示例中的 `revision` 是前文 `save_plan` 返回的完整原修订；调用可能立即派发工具，必须事先已有本次行动的授权与预算：
+
+```python
+from autoresearch.contracts import fingerprint
+
+state = project.status()
+result = controller.advance_tabular_quality_feedback_v2(
+    request_id="quality-followup-v2-1",
+    registration_request_id="quality-conditions-1",
+    plan_request_id=revision["request_id"],
+    plan_sha256=fingerprint(revision),
+    expected_state_version=state["state_version"],
+)
+```
+
+五个参数均必需：三个 ID 使用前述标识符规则；`plan_sha256` 是完整保存计划修订的 canonical 指纹，须为 64 位小写 SHA-256；状态版本为精确非负整数。首次调用要求所指计划为当前**最新**计划、其 request ID 和指纹精确匹配，且它是登记原计划的直接后继并含同一登记的有效 `quality_feedback_ref`。writer 锁内重新核验原登记、计划时序、质量 parent/child、SQLite、source、结果和完整反馈指纹，使用**实际当前后继计划**的封存 context 选择；原计划的历史视图仅用于核验原质量反馈。
+
+已知 `condition_met` 且唯一数值关联候选、原行动/result 绑定、评价、成本和剩余额符合前述 v1 门时，v2 可沿原 Controller/Project 执行；已知 `condition_not_met` 或候选/预算不满足时可等待。缺失或错误的计划、引用、原件或代码身份等会拒绝或停查，不能补造已知结果；普通 reader 在后继计划下仍返回 `plan_binding_changed`，不会被 v2 改写。v2 不重新执行质量行动，不调用模型或 fit；机械条件结果不是科学验证。
+
+v2 把五字段原请求、计划 SHA、已核验反馈及真实 context/proposal 以独立 `tabular-quality-policy-v2` 保存。保留完整原参数：同 ID 同 body 的终态重放重新核验原计划引用和工件后返回原回执，即使之后另存了计划也不重新选择；原拒绝继续抛原错误，缺失或变更时拒绝。`prepared`、`running` 或 `unknown` 的原 parent 以 `EXECUTION_UNKNOWN` 停查，不从此入口重派；改 body 或用 v1 入口重放 v2 原 ID 会冲突。首次选择时若已有更新计划，原后继计划不再是 latest，不能用它启动新的 v2 请求。
+
+v2 是 Project/Controller Python 显式入口；目前 Workbench 的质量策略方法和 HTTP 路由只支持上述 v1 四字段调用，不支持 v2 请求、manager 原意图恢复或 v2 UI。旧 v1 路径及普通 reader 不因该新入口自动升级，旧 Project/未决请求继续使用原 source pin 和预算。
 
 ## 本地 Workbench 调用与恢复
 

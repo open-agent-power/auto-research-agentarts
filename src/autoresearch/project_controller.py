@@ -2,6 +2,7 @@
 import copy
 import hashlib
 from pathlib import Path
+import re
 
 from . import method_registry as registry, project_knowledge, research_methods, project_selection, research_recipe
 from . import project_design, saved_study_reference
@@ -47,7 +48,7 @@ def _check_recipe_decision(context, proposal, decision):
             "EVIDENCE_CHANGED", "Frozen recipe, host context and proposal differ.")
 
 
-def _tabular_quality_proposal(context, registration, feedback):
+def _tabular_quality_proposal(context, registration, feedback, *, _verified_plan_sha256=None):
     """Compile only a trusted original reader result; no dispatch or new candidate."""
     proposal = {"schema_version": "project-selection-proposal-v1", "context_sha256": context["context_sha256"],
                 "provider": {"kind": "operator_assistant", "label": "tabular-quality-policy-v1"},
@@ -63,7 +64,7 @@ def _tabular_quality_proposal(context, registration, feedback):
             or context["project_code_identity"] != registration["project_code_identity"]
             or context["controller_code_identity"] != registration["controller_code_identity"]
             or fingerprint(context.get("domain_scope")) != registration["scope_sha256"]
-            or fingerprint(context.get("research_plan")) != registration["plan_sha256"]):
+            or fingerprint(context.get("research_plan")) != (registration["plan_sha256"] if _verified_plan_sha256 is None else _verified_plan_sha256)):
         return proposal
     if feedback.get("outcome") != "condition_met":
         proposal["rationale"] = "Tabular quality feedback policy waits: the saved condition is " + str(feedback.get("outcome")) + "."
@@ -484,13 +485,14 @@ class ProjectController:
         return self.advance_selection(request_id=request_id, proposal=proposal,
                                       expected_state_version=expected_state_version)
 
-    def _replay_tabular_quality(self, state, parent, body, registration):
+    def _replay_tabular_quality(self, state, parent, body, registration, *, v2=False):
         """Validate an original terminal policy receipt while the writer is held."""
         from .tabular_quality_feedback import _artifact, _outcome
         meta = parent.get("tabular_quality_policy")
-        require(type(meta) is dict and set(meta) == {"schema_version", "request", "request_sha256", "registration_sha256",
-                "feedback", "context_sha256", "proposal_sha256", "record_sha256"}
-                and meta["schema_version"] == "tabular-quality-policy-v1"
+        fields = {"schema_version", "request", "request_sha256", "registration_sha256",
+                  "feedback", "context_sha256", "proposal_sha256", "record_sha256"}
+        require(type(meta) is dict and set(meta) == fields | ({"plan_sha256"} if v2 else set())
+                and meta["schema_version"] == ("tabular-quality-policy-v2" if v2 else "tabular-quality-policy-v1")
                 and meta["record_sha256"] == fingerprint({k:v for k,v in meta.items() if k != "record_sha256"})
                 and meta["request"] == body and meta["request_sha256"] == fingerprint(body)
                 and meta["registration_sha256"] == registration["registration_sha256"],
@@ -532,7 +534,19 @@ class ProjectController:
                 and fb.get("controller_request_id") == registration["controller_request_id"]
                 and fb.get("scientific_validation") is False,
                 "EVIDENCE_CHANGED", "The original feedback binding differs.")
-        require(canonical(_tabular_quality_proposal(context, registration, fb)) == canonical(request["proposal"]),
+        if v2:
+            from .tabular_quality_plan import check_reference
+            frozen_plan = context.get("research_plan")
+            require(type(frozen_plan) is dict and frozen_plan.get("request_id") == body["plan_request_id"]
+                    and fingerprint(frozen_plan) == body["plan_sha256"] == meta["plan_sha256"]
+                    and type(frozen_plan.get("quality_feedback_ref")) is dict
+                    and frozen_plan["quality_feedback_ref"].get("registration_request_id") == registration["request_id"],
+                    "EVIDENCE_CHANGED", "Original quality-linked plan differs.")
+            verified = check_reference(self.project, state, frozen_plan["quality_feedback_ref"],
+                                       based_on_state_version=frozen_plan["based_on_state_version"], revision=frozen_plan)
+            require(canonical(verified) == canonical(fb), "EVIDENCE_CHANGED", "Original plan feedback differs.")
+        require(canonical(_tabular_quality_proposal(context, registration, fb,
+                          _verified_plan_sha256=meta["plan_sha256"] if v2 else None)) == canonical(request["proposal"]),
                 "EVIDENCE_CHANGED", "The original feedback does not reproduce its frozen proposal.")
         require(fb.get("outcome") in ("condition_met", "condition_not_met", "unknown")
                 and (type(fb.get("evaluation")) is dict if fb.get("outcome") != "unknown" else
@@ -584,6 +598,10 @@ class ProjectController:
                 require(action_row is None and replay_row is None and not any(a.get("request_id") == child_id
                         for a in state["actions"] + state["evidence_actions"]),
                         "EVIDENCE_CHANGED", "A rejected parent unexpectedly has a child or replay reference.")
+                if v2:
+                    final_feedback = check_reference(self.project, state, frozen_plan["quality_feedback_ref"],
+                        based_on_state_version=frozen_plan["based_on_state_version"], revision=frozen_plan)
+                    require(canonical(final_feedback) == canonical(fb), "EVIDENCE_CHANGED", "Original quality evidence changed during replay.")
                 self._check_rejected(parent)
             with self.project._connect(readonly=True) as con:
                 row = con.execute("SELECT fingerprint, record FROM actions WHERE request_id=?", (child_id,)).fetchone()
@@ -613,6 +631,10 @@ class ProjectController:
                     "EVIDENCE_CHANGED", "Original terminal child binding differs.")
             if child["status"] == "completed":
                 _artifact(self.project, child)
+        if v2:
+            final_feedback = check_reference(self.project, state, frozen_plan["quality_feedback_ref"],
+                based_on_state_version=frozen_plan["based_on_state_version"], revision=frozen_plan)
+            require(canonical(final_feedback) == canonical(fb), "EVIDENCE_CHANGED", "Original quality evidence changed during replay.")
         self._check_rejected(parent)
         return self._response(parent, True)
 
@@ -680,6 +702,88 @@ class ProjectController:
                     from .tabular_quality_feedback import _manager_claim
                     core_sha = fingerprint({"request_sha256":parent["request_sha256"], "policy_sha256":meta["record_sha256"]})
                     _manager_claim(con, "policy", request_id, _manager_intent_sha256, core_sha, create=True)
+                parent = copy.deepcopy(parent)
+        return self._dispatch(parent, replayed=False)
+
+    def advance_tabular_quality_feedback_v2(self, *, request_id, registration_request_id, plan_request_id,
+                                            plan_sha256, expected_state_version):
+        """Opt in to a verified direct-successor plan, using the real current context."""
+        identifier(request_id)
+        identifier(registration_request_id, "registration_request_id")
+        identifier(plan_request_id, "plan_request_id")
+        require(type(plan_sha256) is str and re.fullmatch(r"[a-f0-9]{64}", plan_sha256) is not None
+                and type(expected_state_version) is int and expected_state_version >= 0,
+                "INVALID_REQUEST", "Use the exact current plan identity and state version.")
+        from .tabular_quality_feedback import _checked_collection
+        from .tabular_quality_plan import check_reference
+        body = {"request_id":request_id, "registration_request_id":registration_request_id,
+                "plan_request_id":plan_request_id, "plan_sha256":plan_sha256,
+                "expected_state_version":expected_state_version}
+        with self.project._writer():
+            with self.project._connect() as con:
+                stored = self.project._project(con)
+                registrations = stored.get("tabular_quality_registrations", [])
+                _checked_collection(registrations)
+                matches = [r for r in registrations if r["request_id"] == registration_request_id]
+                require(len(matches) == 1, "INVALID_REQUEST", "Use one original quality registration.")
+                registration = matches[0]
+                old = self._parent(stored, request_id)
+                if old is not None:
+                    return self._replay_tabular_quality(self.project.status(), old, body, registration, v2=True)
+                require(not any(p.get("status") in ("prepared", "running", "unknown") for p in stored.get("controller_requests", [])),
+                        "EXECUTION_UNKNOWN", "Inspect the original nonterminal controller request.")
+                self.project._require_unclaimed(stored, request_id)
+                require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
+                        and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
+                        "IDEMPOTENCY_CONFLICT", "Request ID belongs to an action or replay.")
+                require(stored["state_version"] == expected_state_version, "STALE_STATE", "Read the current project state before advancing.")
+                require(stored["code_identity"] == registration["project_code_identity"] == project_code_identity()
+                        and code_identity() == registration["controller_code_identity"],
+                        "CODE_CHANGED", "Use the original registered project and controller code.")
+                current = self.project.status()
+                require(not any(a.get("status") in ("pending", "running", "unknown") for a in current["actions"] + current["evidence_actions"]),
+                        "EXECUTION_UNKNOWN", "Inspect the original nonterminal action.")
+                revisions = current.get("plan_revisions", [])
+                require(bool(revisions) and revisions[-1].get("request_id") == plan_request_id
+                        and fingerprint(revisions[-1]) == plan_sha256
+                        and type(revisions[-1].get("quality_feedback_ref")) is dict
+                        and revisions[-1]["quality_feedback_ref"].get("registration_request_id") == registration_request_id,
+                        "CONDITION_NOT_SATISFIED", "Use the current exact quality-linked successor plan.")
+                revision = revisions[-1]
+                verified = check_reference(self.project, current, revision["quality_feedback_ref"],
+                                           based_on_state_version=revision["based_on_state_version"], revision=revision)
+                require(self.project.status()["snapshot_ref"] == current["snapshot_ref"], "STALE_STATE", "Project changed while authenticating quality feedback.")
+                context = self._selection_context(current, "next_check")
+                require(fingerprint(context.get("research_plan")) == plan_sha256, "EVIDENCE_CHANGED", "Current selection context has a different plan.")
+                proposal = _tabular_quality_proposal(context, registration, verified, _verified_plan_sha256=plan_sha256)
+                plan = self._selected_plan(current, "next_check", proposal, context=context)
+                final_feedback = check_reference(self.project, current, revision["quality_feedback_ref"],
+                    based_on_state_version=revision["based_on_state_version"], revision=revision)
+                require(canonical(final_feedback) == canonical(verified), "EVIDENCE_CHANGED", "Quality evidence changed before accepting the decision.")
+                request = {"project_id":stored["id"], "command":"controller.advance_selection", "need":"next_check",
+                           "expected_state_version":expected_state_version, "proposal":copy.deepcopy(proposal)}
+                child_id = "controller-child-" + fingerprint({"project_id":stored["id"], "request_id":request_id})[:32]
+                self.project._require_unclaimed(stored, child_id)
+                require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (child_id,)).fetchone() is None
+                        and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (child_id, child_id)).fetchone() is None,
+                        "IDEMPOTENCY_CONFLICT", "Derived child ID is already claimed.")
+                meta = {"schema_version":"tabular-quality-policy-v2", "request":body, "request_sha256":fingerprint(body),
+                        "registration_sha256":registration["registration_sha256"], "feedback":copy.deepcopy(verified),
+                        "context_sha256":context["context_sha256"], "proposal_sha256":fingerprint(proposal), "plan_sha256":plan_sha256}
+                meta["record_sha256"] = fingerprint(meta)
+                stored["state_version"] += 1
+                parent = {"schema_version":"project-controller-request-v1", "project_id":stored["id"],
+                          "request_id":request_id, "request_sha256":fingerprint(request), "request":request,
+                          "source_snapshot_sha256":stored["source_snapshot_sha256"], "snapshot_ref_before":current["snapshot_ref"],
+                          "state_version_before":current["state_version"], "dispatch_state_version":stored["state_version"],
+                          "code_identity":stored["code_identity"], "controller_code_identity":code_identity(),
+                          "decision":_compact_decision(plan["decision"]), "blockers":copy.deepcopy(plan["blockers"]),
+                          "child_request_id":child_id if plan["executable"] else None,
+                          "status":"prepared" if plan["executable"] else plan["status"], "result":None,
+                          "selection_context":context, "tabular_quality_policy":meta}
+                parent["decision_sha256"] = fingerprint(parent["decision"])
+                stored.setdefault("controller_requests", []).append(parent)
+                self.project._save(con, stored)
                 parent = copy.deepcopy(parent)
         return self._dispatch(parent, replayed=False)
 
