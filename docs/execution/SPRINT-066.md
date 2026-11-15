@@ -9,3 +9,5 @@
 独审三次初稿分别误解inventory mode、嵌套context SHA及目标association投影，属审查脚本失败，原日志保留，修正后通过；root曾重复尝试已发布S065 commit，Git返回nothing to commit，无重复提交并留记录。此案例可供计划参考，但没有模型实际采用或证明迁移收益，也不解锁旧预算。[精确证据](g5-local/hotpot-feedback-experience-verification.json)。
 
 待发布aggregate本身经独审与S066原件/双SHA/预算核对，100 final qid/hash/题文/base64及200正例doc ID/正文/base64精确canary未命中，SHA08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5；本次实际读取original private selection/holdout和corpus，有限canary不证明完全无泄漏。
+
+验证JSON的 `verified_pending_publication` 是公开canary前的历史状态；本提交将该已独审聚合纳入Git，完整经验包/目标上下文仍只留本地。
