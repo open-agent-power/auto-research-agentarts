@@ -98,7 +98,7 @@ Python `HostModelSelection.adopt_supplied_quality_plan(request_id=..., registrat
 
 新的Host intent固定原准备参数、材料、响应、prompt、proposal、完整context和质量引用的身份；Project writer内重核原登记、parent/child、SQL、工件、来源与代码，并在计划revision同一事务写入绑定该intent的claim。仅原ID和原登记可恢复：intent已存但原计划缺失时停查；原计划及claim已提交可只读重验后补Host回执，后续另存计划后也只回读原记录，不重新选择或派发。缺失、未知、原件漂移及旧／新入口互用均停止；这些一致性检查依赖可信合作进程，不是系统隔离或对抗性签名。
 
-此入口当前仅Python，Workbench/HTTP不自动启用；旧 `adopt_quality_plan` 行为不变。它证明材料存在于封存的prompt及原回复引用该质量行动，不证明模型实际收到、理解或使用材料，也不证明科学有效性或来源许可；它不调用模型、研究工具或新增预算。
+工作台提供独立 Python/HTTP 显式入口，不自动启用；旧 `adopt_quality_plan` 与旧工作台入口行为不变。它证明材料存在于封存的prompt及原回复引用该质量行动，不证明模型实际收到、理解或使用材料，也不证明科学有效性或来源许可；它不调用模型、研究工具或新增预算。
 
 ### 显式采用附质量引用的原计划提案
 

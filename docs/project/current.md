@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S101 将严格质量材料采纳显式接入 Workbench/HTTP，manager、Host v4和Project事务claim三层绑定；作者52、独审36、相关65项合成检查通过。四窗口为故障注入而非本版本真实SIGKILL，未证明模型理解/科研收益。[SPRINT-101](../execution/SPRINT-101.md)。
+
 S100 新增 Python 显式严格采纳：将封存的质量登记材料与原回复引用、原计划及事务归属绑定；作者12项/旧42项和独审54项隔离合成通过，仅证明封存/引用，尚未接Workbench或证明模型理解。[SPRINT-100](../execution/SPRINT-100.md)。
 
 S099 显式把事前登记质量条件和三态反馈供给 Host 计划上下文，保留原身份、未知与预算边界；最终隔离合成14项、旧合同58项、独审38项通过。原计划漂移拒绝供应，材料固定不证明送达模型或科研收益。[验证与负例](../execution/SPRINT-099.md)。

@@ -180,3 +180,5 @@ Sprint039源7c1f399a557856d232e523416f6c8b49ebc8d399/pin delegated-batch-source-
 S099：Host 规划可显式携带原登记条件和三态质量反馈，材料/原回答/计划是否同一身份是下一重点；原计划漂移拒绝，controller unknown 不证明未执行。参见 SPRINT-099；无新增真实研究、模型或预算。
 
 S100：Python显式严格采纳绑定原选择器/材料/回复与计划，旧入口不变；下一步若接Workbench须绑定manager身份及原ID恢复。无新增真实模型/研究。见 SPRINT-100。
+
+S101：严格质量材料采纳显式接入 Workbench/HTTP，三层原身份绑定；下一步可在固定窗口用实际SIGKILL验证原ID恢复。范围及未决见 SPRINT-101。
