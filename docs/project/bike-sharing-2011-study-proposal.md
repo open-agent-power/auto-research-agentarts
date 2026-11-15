@@ -64,3 +64,7 @@
 ## S077 后的用途声明更新
 
 [S077](../execution/SPRINT-077.md)已新增仅 Python `ResearchProject.create` 的显式 `operator_declared_descriptive_research`；它解决新项目可准确持久操作者用途的 API 能力，但不是研究授权、领域有效性、预算授权、文件冻结或已执行本案的证明。Workbench/CLI 的直接创建入口仍未扩展。若获批准，必须先确认采用的已发布源码 pin、完成本预案的隔离合成全链及原 ID 恢复验证、原始数据与派生 source 实际 SHA/许可/容量以及唯一 claim，之后才可行动。旧项目和预算不迁移。
+
+## 隔离合成预演（不等于真实研究）
+
+[S078](../execution/SPRINT-078.md)使用 `3ba33b6` 源码 pin 和两组合成CSV验证质量→观察/计划v2→关联→计划v3的受监督链，分别得到可计算与constant_predictor导致unknown，作者对原body/ID分进程重放，独审核原行动、算术、计划与预算、检查作者重放回执但未自行重放。每个工程项目2/2工具、0模型/fit/evidence，合计4次合成工具；未下载或读取真实Bike。没有记录PID或测崩溃恢复，所用源码/完整来源和独有claim在真实研究前仍须按方案固定。该预演不构成新表格研究授权、真实科研收益或模型自主决策。

@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": "2026-11-15T15:42:30.306213+08:00",
-  "status": "S077_independently_verified_candidate_not_authorized",
+  "status": "S078_synthetic_preflight_verified_awaiting_bike_scope",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Await specific new Bike table research scope approval if pursued; meanwhile carry out independent no-paid work and prepare synthetic preflight under existing authorization.",
+  "next": "Await specific Bike authorization; continue other authorized read-only/reference work. If approved, freeze source identity/protocol/claim and validate before any research tool.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T16:43:16.000560+08:00",
+  "checkpoint_time": "2026-11-15T16:54:56.964445+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -452,14 +452,14 @@
   "S076": {
     "status": "proposal_only_not_authorized_s077_api_gap_resolved",
     "proposal": "docs/project/bike-sharing-2011-study-proposal.md",
-    "proposal_sha256": "a9ccf0e4908208d22ccb566fca0b7f12280c83cfcdba2fcf0175e778009200d5",
+    "proposal_sha256": "e98d2a4af1be31f17de80cec691925015e35da6fbe3ba051d36069e411222d1b",
     "candidate": "UCI Bike Sharing 2011 descriptive association",
     "proposed_budget": "at most 2 native tools, 0 model, 0 fit, 0 additional native evidence reads",
     "source_zip_sha256": "unknown_not_downloaded",
     "source_labels_read": false,
     "project_created": false,
     "actual_research_actions": 0,
-    "authorization": "new table research not automatically covered by existing G5 scope",
+    "authorization": "separate request pending, no execution",
     "code_gap": "S077 Python opt-in implemented; no automatic authorization, no UI create",
     "independent_review": "metadata and API static audit; unknown-first correction applied"
   },
@@ -476,5 +476,27 @@
     "extra_synthetic_activity": "accidentally collected 2 author tests: synthetic project 2/2 tools, 4 adapter successes and 1 expected rejection",
     "limits": "opt-in Python create only; operator declaration not authorization/scientific validation; no separate fit/network sentinel on all synthetic work",
     "independent_review": "runs/s077-review/independent-assessment.md"
+  },
+  "S078": {
+    "status": "synthetic_preflight_independently_reviewed",
+    "source_commit": "3ba33b62a0d8456fb0d04765285e11d0b7e1195c",
+    "case_count": 2,
+    "synthetic_tools_each": 2,
+    "total_synthetic_tools": 4,
+    "models": 0,
+    "fits": 0,
+    "native_evidence_reads": 0,
+    "conditions": [
+      "all_positive",
+      "unknown_constant_predictor"
+    ],
+    "author_original_body_id_replay": "separate invocation, PID not retained",
+    "independent_replay": "receipt review only",
+    "power_failure_tested": false,
+    "source_freeze_sha256": "8af21e1467c4d15ba31db9e32124114868866f34a491b282eb2e4f1ac877513b",
+    "independent_report_sha256": "fb6f700a16d1bb1aaf360c95857e9898441af6ff8b1fe252f4dc3c9448998ba9",
+    "real_bike_downloaded": false,
+    "real_bike_project_created": false,
+    "scientific_gain": "unknown"
   }
 }

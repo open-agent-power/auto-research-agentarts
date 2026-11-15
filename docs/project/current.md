@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S078已完成并独审Bike方案的隔离合成预演：两个合成Project各2/2工具、0 model/fit/evidence，可计算与constant_predictor/unknown、原观察→人工plan v2→关联、作者原ID新进程重放，独审复算并核回执但未自行重放；未下载真实Bike/创建真实项目，真实表格新范围仍待用户决定。[SPRINT-078](../execution/SPRINT-078.md)。
+
 S077新表格Project可显式保存操作者描述性研究用途，已独审推送 `3ba33b62a0d8456fb0d04765285e11d0b7e1195c`；默认旧wire/旧pin不变，仅Python创建支持，非授权/领域验证/新研究。原S065只读status字节同与3/3预算保持，pin193项匹配。[SPRINT-077](../execution/SPRINT-077.md)。
 
 S076真实表格候选[Bike 2011预案](bike-sharing-2011-study-proposal.md)已元数据/接口独审，拟2工具/0模型fit/0新增native evidence，描述温度与日租赁整体和原工作日分组关联，unknown优先；现有授权不自动覆盖该新表格项目，S077已补Python新建项目的显式用途声明，但不自动授权/执行该课题，Workbench直接创建不支持该选项。原ZIP/目标值/Project均未取得或运行，不声称已授权/预注册/科研收益。
