@@ -61,3 +61,5 @@ S074后台与UI初稿继续中：本盘新checkpoint-002 manifest SHA 690cbe4267
 用户要求聚焦与独立挑刺：开始约2026-11-15T15:38:20+08:00，报告检查点 2026-11-15T15:42:30.306213+08:00。独立审查本机 runs/review/focused-adversarial-assessment.md；可公开记录 docs/project/focused-review-20261115.md，commit bea4fe2。真实G1-L历史受监督切片旧盘工件不可见；S065召回上升/MRR下降、S067同臂unknown、S035真实模型试跑needs_revision不采纳。S074本盘checkpoint-003与工作树6项一致、未完成/未发布、无测试运行；后续先校lease和原intent，不重置。计划16:47:27下次触发，平台实际执行/投递unknown。本次报告完成后释放owner，实际回执见 runs/review/focused-lease-release.json。
 
 用户要求调整基线与组织：新 [研究基线](research-baseline-20261115.md)优先真实反馈→下一决定/等待→原ID接续，独审已纠正G1门槛/采用与因果/团队共享lease/原字节迁移边界；root统筹，复用engineering收口S074、capability_review独审，拒绝用合成fixture冒充科研。S074已核checkpoint-003与工作树6项一致，正继续最小验收，尚未完成。检查点 2026-11-15T15:51:00.832090+08:00。
+
+应用户请求补充基线调研：[方法调研](baseline-research-20261115.md)核ScienceAgentBench、MLAgentBench、Negative Knowledge、Agent Laboratory和AgentBench原文/固定仓库，只读无模型/付费API；独审核版本、结果和成本，指出38题同任务重试、约一题差及尝试机会不同，已补限制。将执行/科学结果/实际采用/因果收益/端到端成本分层，未开展新科研；S074并行继续。检查点 2026-11-15T15:57:16.051762+08:00。

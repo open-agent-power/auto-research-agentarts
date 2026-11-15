@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T15:51:00.832090+08:00",
+  "checkpoint_time": "2026-11-15T15:57:16.051762+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -375,5 +375,22 @@
     "completed_research_claim": "none in this rebaseline; historic and current evidence separately classified",
     "current_lease_owner": "root-rebaseline-20261115T1548",
     "S074": "checkpoint-003 preserved, verification in progress"
+  },
+  "baseline_research": {
+    "status": "independently_reviewed",
+    "document": "docs/project/baseline-research-20261115.md",
+    "methods": [
+      "ScienceAgentBench v3",
+      "MLAgentBench v2",
+      "Negative Knowledge v1 commit 015ac48",
+      "Agent Laboratory v2",
+      "AgentBench v3"
+    ],
+    "key_limits": "same-task 38 cases, unequal attempts, about one-case difference; total tokens not memory length; no claim of replication or transfer",
+    "models_called": 0,
+    "paid_api_calls": 0,
+    "new_research_actions": 0,
+    "cost": "unknown",
+    "remaining": "select licensed real dataset and preregister task/metrics/budget under existing authorization; S074 still in progress"
   }
 }
