@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T06:58:15+08:00",
-  "status": "S126_staged_purpose_verified_next_synthetic_preparation_review",
+  "end_time": "2026-11-16T07:14:09+08:00",
+  "status": "S127_synthetic_preparation_verified_next_chain_review",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -60,7 +60,8 @@
     "S124 Python resume-only for new manager pin, independently tested synthetic transaction windows and prior pin",
     "S125 workbench successor plan save and original-ID resume, independently verified synthetic HTTP/browser with pending scans and cooperative tab locks",
     "Metadata-only UCI 501 candidate review and NFCorpus sample exposure recorded; Wikinews conditional protocol independently reviewed, not authorized or executable",
-    "S126 opt-in staged research-purpose declaration, synthetic old/new 14/14 and pinned-source cross-process verification"
+    "S126 opt-in staged research-purpose declaration, synthetic old/new 14/14 and pinned-source cross-process verification",
+    "S127 deterministic built-in synthetic staged preparation independently recomputed; no real Wikinews data or research"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1001,5 +1002,13 @@
     "manifest_sha256": "7eb9d035c4706b7f3f07efb7fdde13c3bebf16cf1056f483fc3fb59d03cb666f",
     "verification": "author and independent 14/14 synthetic; old pin/new code cross-process protection; coordinated tamper can evade same-ledger consistency",
     "limits": "operator declaration not license/authorization; status scope is shape only; default evidence budget 8; old pins not migrated; no real research"
+  },
+  "S127": {
+    "commit": "c85ed7a6da7a73c90643c309826e8f9ef8656e88",
+    "source_head": "e17c27121c9e706a88041ab5ea51f81fb44bc316",
+    "manifest_sha256": "7f6c773896b4edff7d04f157a0450cb697a5180f53e95ffa41bedd883627af98",
+    "packet_sha256": "cc62d84e405fa61cd297128bc792deb8ca4311e02830e402c3ac85c43e9ec923",
+    "verification": "independent 15/15; independent standard-library recompute 1005→1002 components, 1000/50/100 and 150 mappings, 11 files byte equal",
+    "limits": "built-in synthetic only; no real dump parsing/rights/auth, no Project or rank/score/model/fit"
   }
 }
