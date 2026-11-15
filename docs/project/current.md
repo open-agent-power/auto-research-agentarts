@@ -1,7 +1,7 @@
 # 当前自主研究开发
 Status: resumable
 
-S074进行中：计划引用界面与原计划请求跨刷新恢复。新含refs请求本机intent事务存原body，pending脱敏且按项目优先，旧无body标unknown；未提交核原来源及状态、已提交仅核历史后补原receipt。后台WIP 14/14，尚未完成UI/跨进程HTTP/浏览器和独审；本盘快照 runs/s074-verification/checkpoint-002 manifest SHA 690cbe42674aab3c18c2ade0f8c83982e7a9dff09add554c2e80ccba49270a82，代码可能继续变化，不是发布版本。
+S074进行中：计划引用界面与原计划请求跨刷新恢复。新含refs请求本机intent事务存原body，pending脱敏且按项目优先，旧无body标unknown；两个恢复窗口均拟核实际source，已提交只核历史并补原receipt、不重派；source漂移保守停。UI初稿typecheck/build通过，最新后台改动尚未重测，真实跨进程HTTP/浏览器与独审未完成；本盘快照 runs/s074-verification/checkpoint-003 manifest SHA 9b9ee418f7d167409d6565bbcadeff95b6ca3750038399039e963dd8e0f44598，代码可能继续变化，不是发布版本。
 
 S073可选计划结构化case引用已独审推送 `340e198ec5bc5a45585e4ddd2360d31d6f0741c3`，锁内核active原bytes、历史按接受版本、撤回后原ID可重放，登记后的计划改变不放松原假设绑定；四条长声明逐条完整出现在Markdown/PDF。固定相关33/前版71，独审5+2及旧wire通过，仍无Workbench引用编辑控件；pin193项匹配/1本地probe。[SPRINT-073](../execution/SPRINT-073.md)。
 

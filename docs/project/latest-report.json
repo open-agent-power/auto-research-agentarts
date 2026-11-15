@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": null,
-  "status": "S074_implementation_in_progress",
+  "status": "focused_review_s074_safely_paused",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Continue S074 under existing lease; preserve original intents and case identities.",
+  "next": "Review charter, evidence and independent critique; then resume S074 original work under lease, without resetting original intents.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T15:35:52.609185+08:00",
+  "checkpoint_time": "2026-11-15T15:40:22.919603+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -340,14 +340,16 @@
     "independent_review": "runs/s073-review/independent-assessment.md"
   },
   "S074": {
-    "status": "implementation_in_progress",
+    "status": "safely_paused_for_focused_review",
     "completed": false,
     "scope": "operator plan refs UI and same-ID recovery with local durable original request body",
-    "checkpoint_path": "runs/s074-verification/checkpoint-002",
-    "checkpoint_manifest_sha256": "690cbe42674aab3c18c2ade0f8c83982e7a9dff09add554c2e80ccba49270a82",
+    "checkpoint_path": "runs/s074-verification/checkpoint-003",
+    "checkpoint_manifest_sha256": "9b9ee418f7d167409d6565bbcadeff95b6ca3750038399039e963dd8e0f44598",
     "wip_backend_tests": 14,
-    "limits": "not final; UI, cross-process HTTP, browser and independent review outstanding; old missing bodies unknown",
+    "limits": "WIP not released; latest backend changes untested; real browser/cross-process and independent review outstanding; both recovery windows must verify actual source",
     "remaining": "final backend, cross-process HTTP, real browser, independent review",
-    "ui": "work_in_progress_typecheck_passed"
+    "ui": "work_in_progress_typecheck_passed",
+    "checkpoint_matches_worktree": true,
+    "active_test_processes": false
   }
 }
