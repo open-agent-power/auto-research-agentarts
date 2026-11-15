@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T03:59:55+08:00",
-  "status": "S118_integrated_synthetic_workflow_verified_research_capability_review_in_progress",
+  "end_time": "2026-11-16T04:22:16+08:00",
+  "status": "S119_opt_in_posthoc_guidance_verified_research_candidate_review_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -51,7 +51,8 @@
     "S115 strict staged feedback backend for fully authenticated completed primary and known outcomes; independently verified 52+51 synthetic tests",
     "S116 independent 10 synthetic real SIGKILL transaction windows, 2 actual old-entry multiprocess races, 4 asymmetric branch cases and claims verified",
     "S117 workbench explicitly handles authenticated known staged feedback with original-ID resume-only; independent synthetic UI and backend validation",
-    "S118 independent Chromium/HTTP full workflows in two isolated synthetic Projects: public posthoc experience→manual plan ref→preregistration→original-ID primary→known feedback→report/replay"
+    "S118 independent Chromium/HTTP full workflows in two isolated synthetic Projects: public posthoc experience→manual plan ref→preregistration→original-ID primary→known feedback→report/replay",
+    "S119 explicit opt-in posthoc plan guidance implemented and independently reviewed; synthetic browser verification, no model or new study"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -927,5 +928,13 @@
     "browser_log_sha256": "703393e90fdaed42be9ca2cba0cd74d648f295da3a5081fbfe7ae107a58d4167",
     "verification_sha256": "4ce120b274baaf92ec7434c77210a56d040001cdb2834862d63cda79f637ba69",
     "limits": "synthetic human-selected thresholds and [0,0], no model understanding or real scientific gain; backend network/fit/rank no independent sentinels"
+  },
+  "S119": {
+    "commit": "2b993c37188eeab699566c3769d7cc4eb1a8957f",
+    "source_head": "c8611e232d8ec64406c91232c302852344e10726",
+    "freeze_manifest_sha256": "7617d4b3ed7485945fe43a2dbd9f08ed1e92fe9d4ad1066ab8daff5eda30dd0b",
+    "verification": "independent static review, frontend tests and four actual Chromium/local HTTP synthetic scenarios",
+    "limits": "selected exposed subgroup, deterministic editable advice only; no automatic thresholds, execution, model or demonstrated research gain",
+    "next": "independent licensed zero-model research candidate review, metadata only"
   }
 }
