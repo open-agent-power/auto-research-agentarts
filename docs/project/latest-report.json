@@ -452,7 +452,7 @@
   "S076": {
     "status": "proposal_only_not_authorized_s077_api_gap_resolved",
     "proposal": "docs/project/bike-sharing-2011-study-proposal.md",
-    "proposal_sha256": "3b96112a3bb455695b98ffb5eaa342367baf87d87a911a3dc060ded35067df3d",
+    "proposal_sha256": "a9ccf0e4908208d22ccb566fca0b7f12280c83cfcdba2fcf0175e778009200d5",
     "candidate": "UCI Bike Sharing 2011 descriptive association",
     "proposed_budget": "at most 2 native tools, 0 model, 0 fit, 0 additional native evidence reads",
     "source_zip_sha256": "unknown_not_downloaded",
