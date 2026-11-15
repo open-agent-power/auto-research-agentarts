@@ -1,6 +1,6 @@
 # 事前登记表格质量条件与只读反馈
 
-本文描述 Python `ResearchProject` 的显式表格质量登记和只读反馈接口。它对已保存的机械质量结果作有限条件判断；登记或读取不会选择下一方法、派发工具、修订计划、调用模型或证明科学有效。质量结果的自动分支策略、Controller 接线、Workbench/HTTP 和模型采用不属于本接口。
+本文描述 Python `ResearchProject` 的显式表格质量登记、只读反馈，以及单独调用的 `ProjectController` 条件策略。登记或读取不会选择下一方法或派发工具；Controller 策略则可能立即执行一次符合条件的数值关联。它们都不会修订计划、调用模型或证明科学有效；Workbench/HTTP 接线和模型采用不属于本接口。
 
 ## 登记与读取
 
@@ -61,3 +61,24 @@ reader 检查保存的登记请求和散列、项目及 run、源 packet/snapsho
 profile 和空 flags 不核实上游来源或许可、字段含义和单位、采样独立性、实际组编码、因果关系或领域资格；值有效只表明受检机械条件可计算。`scientific_validation: false` 始终保持。新模块纳入项目代码身份：旧 Project 和未决请求继续使用其原 source pin，不自动迁移或扩额。无需重新运行历史行动来读取结果，但读取会发生本地 source、SQLite 和工件 I/O。
 
 登记与只读反馈本身不使用本地研究工具、模型、fit 或 native evidence-read 额度；它们不增加任何授权额度。后续实际行动仍须单独符合原候选、预算、身份和恢复门禁。现有 Controller 非终态同 ID 恢复可能继续执行原子行动；本 reader 不提供该恢复，也不保证直接 Controller/Project 调用受登记条件约束。
+
+## 显式调用 Controller 条件策略
+
+在质量行动完成并保存后，调用方可在已获授权的项目和预算范围内显式调用：
+
+```python
+state = project.status()
+result = controller.advance_tabular_quality_feedback(
+    request_id="quality-followup-1",
+    registration_request_id="quality-conditions-1",
+    expected_state_version=state["state_version"],
+)
+```
+
+三个参数均为必需项；状态版本须为精确的非负整数，两个 request ID 使用上述标识符规则。此调用可能立即派发工具，调用前须由使用者确保本次行动已有授权；方法不弹出批准提示，也不增加模型、fit 或工具额度。这里的 `request_id` 是本次策略请求 ID，`registration_request_id` 指向原质量登记，两者不替代登记中指向原质量行动的 Controller ID。
+
+该策略在原 Project writer 锁内读取登记及已核验反馈，核对项目、source/scope、代码和登记时原计划，再基于当前封存 context 固定 proposal 与 parent。只有反馈为 `condition_met`，且无 blocker、存在唯一 `data.numeric-association` 候选、其评价和参数精确绑定原质量 action ID/result SHA，实际候选成本恰为 1 次本地工具、0 次 native evidence-read、0 次 fit，且原账本有剩余工具额度时，才交给原 Controller/Project 路径执行。质量条件未通过或为 unknown、资格/候选/预算不可用时可保存等待；代码身份漂移、读取失败或请求/状态冲突也可能直接拒绝或停查并保留原错误，不保证所有情况都有等待回执。存在未决 Controller 或行动时可能以 `EXECUTION_UNKNOWN` 停查，不伪造等待或重派。执行数值关联不消耗模型调用；登记、只读反馈和等待不会派发研究工具，但会进行本地文件和账本 I/O。
+
+保留本次策略调用的完整三个参数和原回执。相同 ID、相同 body 的终态重放会在锁内核原登记、封存 context/proposal、相关原工件及身份；核验通过后返回原完成、等待或失败回执，不重新派发，原拒绝则抛出原拒绝。原计划之后若另有修订，历史回执仍按原封存计划核验，但 source、代码或所需原件缺失、绑定不符时会拒绝。改变 body 会报冲突。原 parent 为 `prepared`、`running` 或 `unknown` 时，同 ID 明确报 `EXECUTION_UNKNOWN`，不从此入口恢复或重发 child；其他入口也不能拿原策略 parent 当普通选择请求重放。保留原状态、原预算和原 source pin 并检查原因，不以新 ID 绕过未决状态。等待是该次请求的终态：同 ID 重放原等待，不依据之后的新状态重新选择。
+
+策略是**显式入口**，直接调用其他 `advance_selection` 或 `ResearchProject.step` 不会自动服从该质量条件。当前新策略首次选择要求登记时的计划仍为当前计划；质量后另存 plan v2 会使反馈 unknown/策略等待，不能把自由文本反馈当成已实现的结构化计划绑定。机械质量通过也不验证来源许可、字段科学含义、因果性或用户是否批准具体研究；调用者必须自行核实这些前提。

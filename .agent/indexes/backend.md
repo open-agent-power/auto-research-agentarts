@@ -1,5 +1,7 @@
 # 后端索引
 
+S083 显式 `ProjectController.advance_tabular_quality_feedback` 根据同项目已登记并认证的质量反馈选择唯一绑定关联候选；非通过/不可执行等待，锁内拒绝同ID非终态重派。合成验证，非全局低层门禁或模型自主。[Sprint](../../docs/execution/SPRINT-083.md)。
+
 S082 表格质量的显式事前登记和原行动只读反馈：绑定 Project/来源/计划/代码/Controller parent/child/SQL/工件，unknown 不派行动；仅 Python API，尚未接策略或自动选择。旧项目保留原 pin。[合同](../../docs/tabular-quality-feedback.md)。
 
 S059 staged事前联合条件opt-in：同一登记恰2不同validation配对差，AND/整体unknown，单次原primary summary核验；旧scalar v1保持，新registration/context-v2及S052沿原分支消费。联合门不改变原Recall20冻结规则或预算；见[合同](../../docs/hypothesis-feedback.md#显式双指标联合条件s059)。

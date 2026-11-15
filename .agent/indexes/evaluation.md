@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+S083 质量反馈→Controller 条件分支与请求中断仅隔离合成验证；须分别评估真实任务反馈价值，不将机械质量或合成通过计为科研收益。[Sprint](../../docs/execution/SPRINT-083.md)。
+
 S082 表格质量登记与只读反馈通过隔离合成和独审；机械质量通过不是来源许可、科学有效性或模型自主收益。仍需显式策略和原 Controller 接入。[范围](../../docs/execution/SPRINT-082.md)。
 
 S059 staged事前联合条件opt-in：同一登记恰2不同validation配对差，AND/整体unknown，单次原primary summary核验；旧scalar v1保持，新registration/context-v2及S052沿原分支消费。联合门不改变原Recall20冻结规则或预算；见[合同](../../docs/hypothesis-feedback.md#显式双指标联合条件s059)。
