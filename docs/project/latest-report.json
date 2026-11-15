@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T02:41:19+08:00",
-  "status": "S114_staged_primary_ui_verified_feedback_design_in_progress",
+  "end_time": "2026-11-16T02:51:33+08:00",
+  "status": "S115_feedback_backend_uncommitted_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -86,12 +86,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Design safe explicit staged feedback wait/audit branch with original identity, bounded tool cost and conservative recovery.",
+  "next": "Fix S115 audit terminal original action binding, verify wait/audit + same-ID recovery and then independently review; no UI yet.",
   "next_planned_trigger": "2026-11-16T04:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
   "code_commit": "6cfab2102b8da94cd823d3a3a0004e5af427abf7",
-  "last_checkpoint": "2026-11-16T02:41:19+08:00",
+  "last_checkpoint": "2026-11-16T02:51:33+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -885,5 +885,12 @@
     "additional_independent_tests": 43,
     "scope": "synthetic Chromium/local HTTP; pending total=9 mocked, project-switch hidden control programmatic",
     "limitations": "primary consumes up to one tool doing dev/validation ranking and score; old staged v2 projects add optional metadata; no feedback branch UI"
+  },
+  "S115_work_in_progress": {
+    "status": "uncommitted_unfrozen",
+    "checkpoint": "runs/s115-verification/checkpoint-001/manifest.json",
+    "checkpoint_sha256": "044620439d243900f07c9762b5e2a9ab530c73e12508d1a84c5b96b29f3ced15",
+    "known_failure": "initial synthetic wait passed; audit tool completed but terminal inspector passed parameters instead of original action and returned EVIDENCE_CHANGED; author reports fix not yet retested",
+    "scope": "new-version synthetic only, no real model/study; old pins not upgraded; unknown stops"
   }
 }
