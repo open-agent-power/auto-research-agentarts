@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T19:46:39+08:00",
-  "status": "S089_verified_alignment_continues",
+  "end_time": "2026-11-15T20:17:08+08:00",
+  "status": "S092_verified_original_request_material_analysis_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -19,7 +19,10 @@
     "S087 structured quality plan and Controller v2 integrated with LocalWorkbench/HTTP; independently reviewed with transaction-bound manager ownership",
     "S088 verified five actual SIGKILL cut points with original-ID recovery in isolated synthetic projects",
     "Reviewed Meta Ax fd8a67a524b063b2615815c638af2c94b034f476 MIT source without installing or running it",
-    "S089 fixed reachable unknown controller parent hole; original-ID recovery preserved, new IDs blocked"
+    "S089 fixed reachable unknown controller parent hole; original-ID recovery preserved, new IDs blocked",
+    "S090 blocked new Project operations with unknown controller parent and allowed safe read-only selection/report of recovered child",
+    "S091 exposed bounded unknown parent identities without request bodies",
+    "S092 safely exposed that specific GET in restricted read-only host using immutable SQLite and sidecar checks"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -35,7 +38,9 @@
     "S084 manager/core same-ID race, missing intent and nondistinct intent identified in review; transactional nonce-bound ownership and tests added",
     "S085 review identified source-code drift after evidence read; final identity recheck and injection added",
     "S086 orphan replay target in parent ID precheck found by independent review, fixed and reverified",
-    "S089 pre-fix synthetic action recovered but unknown parent allowed new candidate/parent; test intercepted before second tool. Three old test expectations changed, original failing regression retained."
+    "S089 pre-fix synthetic action recovered but unknown parent allowed new candidate/parent; test intercepted before second tool. Three old test expectations changed, original failing regression retained.",
+    "S090 reachable unknown parent allowed new Project budget/source/step/upgrade and simulated Europe PMC fetch; fixed, original pre-fix evidence retained",
+    "S091 missing unknown IDs in manager pending projection fixed with bounded explicit GET"
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -44,12 +49,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Continue audit and correct inconsistent unknown parent handling across Workbench and saved report, without changing old projects or research budgets.",
+  "next": "Evaluate whether original controller/manager request bodies can be reconstructed without guessing from saved intent and sealed context; keep unknown when unprovable, no dispatch.",
   "next_planned_trigger": "2026-11-15T22:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "d62f31edee0d758a097a822a14369ae85ebab35b",
-  "last_checkpoint": "2026-11-15T19:46:39+08:00",
+  "code_commit": "b1a522f20ba3bf9b82649f0fe7d943524924f38c",
+  "last_checkpoint": "2026-11-15T20:17:08+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -640,5 +645,26 @@
     "independent_regressions": 36,
     "independent_updated_tests": 13,
     "real_research_actions": 0
+  },
+  "S090": {
+    "code_commit": "3dbb516912695f23a690f972d38714f8d31a1a4e",
+    "joint_unittest_log": "d390fa66aa4d5a9a909144a683f65f0b650699f26e1d55d565b94dcc8f71d461",
+    "joint_tests": 112,
+    "shell_exit": "unknown",
+    "independent_targeted_tests": 21,
+    "independent_legacy_tests": 42,
+    "real_research_actions": 0
+  },
+  "S091": {
+    "code_commit": "c04a4fabc67d81e588504b394267998e0c540685",
+    "author_tests": 15,
+    "independent_tests": 13,
+    "scope": "Bounded saved-state projection; no body or proof of recovery."
+  },
+  "S092": {
+    "code_commit": "b1a522f20ba3bf9b82649f0fe7d943524924f38c",
+    "author_tests": 22,
+    "independent_tests": 19,
+    "scope": "This restricted-host GET only; immutable/stability checks are not adversarial isolation."
   }
 }
