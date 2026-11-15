@@ -1513,6 +1513,23 @@ class LocalWorkbench:
                 # Snapshot hashes of exactly the records returned above; this GET
                 # does not authenticate the saved Host files or original producer.
                 view["quality_fact_identities"] = identities
+            # Snapshot identity only; adoption's POST is responsible for verifying
+            # original files, ownership and the manager/Host/Project binding.
+            adopted = [record for record in view["records"] if record.get("status") == "applied"
+                       and record.get("quality_adoption", {}).get("schema_version") == "host-quality-adoption-v4"]
+            if adopted:
+                state = project.status()
+                receipts = []
+                for record in adopted:
+                    plan = record.get("outcome", {}).get("research_plan")
+                    binding = record.get("quality_adoption", {}).get("manager_binding", {})
+                    revisions = [r for r in state.get("plan_revisions", []) if r.get("request_id") == record.get("request_id")]
+                    if (type(plan) is dict and len(revisions) == 1 and revisions[0] == plan
+                            and type(binding.get("request_id")) is str):
+                        receipts.append({"host_request_id":record["request_id"], "request_id":binding["request_id"],
+                                         "plan_version":plan["version"], "plan_sha256":fingerprint(plan)})
+                _require(project.status()["snapshot_ref"] == state["snapshot_ref"], "STALE_STATE", "Project changed while reading adoption identity.")
+                view["quality_adoption_receipts"] = {"project_id":state["id"], "snapshot_ref":state["snapshot_ref"], "items":receipts}
             view["plan_reviews"] = review_plan_requests(view["records"])
             view["recipe_validations"] = [read_recipe_validation(project.root, record["request_id"])
                                           for record in view["records"] if record.get("purpose") == "recipe"]
@@ -1574,7 +1591,11 @@ class LocalWorkbench:
         """Adopt only the exact quality material sealed into the original Host prompt."""
         return self._model_quality_plan_adopt(body, supplied_quality=True)
 
-    def _model_quality_plan_adopt(self, body, *, supplied_quality):
+    def resume_supplied_quality_plan_adopt(self, body):
+        """Reconcile only an already accepted original manager intent."""
+        return self._model_quality_plan_adopt(body, supplied_quality=True, resume_only=True)
+
+    def _model_quality_plan_adopt(self, body, *, supplied_quality, resume_only=False):
         command = "model_supplied_quality_plan_adopt" if supplied_quality else "model_quality_plan_adopt"
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "host_request_id", "registration_request_id"))
         for name in ("request_id", "project_id", "host_request_id", "registration_request_id"):
@@ -1586,6 +1607,8 @@ class LocalWorkbench:
             with self._connect() as con:
                 _, project = self._project(con, body["project_id"], active=True)
                 old = self._old(con, body, digest)
+                _require(not resume_only or old is not None, "OPERATION_INCOMPLETE",
+                         "The original manager intent is unavailable; no replacement request was accepted.")
                 self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
                 host = HostModelSelection(project.root)
                 if old is None:

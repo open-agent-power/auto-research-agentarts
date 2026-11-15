@@ -10,7 +10,7 @@ import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean };
 type PlanCaseRef = { case_id: string; case_version: number; bundle_sha256: string; applicability_statement: string };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
@@ -35,6 +35,7 @@ const methodNames: Record<string, string> = {
   "p02.source-mapping-check": "读取已登记的来源选区",
 };
 const PENDING_KEY = "autoresearch.local-workbench.pending.v1";
+const QUALITY_PENDING_KEY = "autoresearch.local-workbench.supplied-quality-adoption.v1";
 const MODEL_COMMANDS = new Set(["model-advance", "model-resume", "model-plan-advance", "model-plan-adopt", "model-plan-reject"]);
 
 function header(textValue: string, delimiter: string): string[] {
@@ -435,12 +436,24 @@ export async function mountLocalWorkbench(): Promise<void> {
   const evidencePending = new Map<string, Pending>();
   const selectedRoles = (kind: string): string[] => headers.filter(name => roleInputs.get(name)?.[kind].checked);
   const activeId = (): string => text(description.active_project_id, "");
+  const savedQualityRequest = (): Pending | null => {
+    try {
+      const saved = obj(JSON.parse(sessionStorage.getItem(QUALITY_PENDING_KEY) ?? "null"));
+      const body = obj(JSON.parse(text(saved.body, "")));
+      if (saved.command !== "model-supplied-quality-plan-adopt" || typeof saved.body !== "string"
+          || Object.keys(body).sort().join(",") !== "expected_state_version,host_request_id,project_id,registration_request_id,request_id"
+          || typeof body.expected_state_version !== "number" || !Number.isSafeInteger(body.expected_state_version)
+          || ![body.request_id, body.project_id, body.host_request_id, body.registration_request_id].every(v => typeof v === "string" && v.length > 0)) return null;
+      return {command: saved.command, requestId: text(body.request_id, ""), body: saved.body, uncertain: true};
+    } catch { return null; }
+  };
+  const hasQualityRequest = (): boolean => { try { return sessionStorage.getItem(QUALITY_PENDING_KEY) !== null; } catch { return false; } };
   const scopedPending = (command: string): boolean => ["evidence", "save_plan"].includes(command);
   const serverPending = (projectId = activeId()): boolean => items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
   const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
-  const uncertain = (projectId = activeId()): boolean => !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
+  const uncertain = (projectId = activeId()): boolean => hasQualityRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
     && (!["evidence", "plan", "plan-resume"].includes(lastRequest.command) || requestProject(lastRequest) === projectId);
-  const navigationBlocked = (): boolean => items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
+  const navigationBlocked = (): boolean => hasQualityRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
     || !!lastRequest?.uncertain && !["batch", "continue", "evidence", "plan", "plan-resume"].includes(lastRequest.command);
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
@@ -534,7 +547,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     const records = items(description.pending_requests);
     let remembered: Obj = {};
     try { remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}")); } catch { /* Storage is optional; manager owns durable state. */ }
-    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && ![...evidencePending.values()].some(pending => pending.uncertain);
+    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !hasQualityRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
     if (records.length) pendingNotice.append(el("strong", "", records.some(record => ["batch", "continue"].includes(text(record.command, "")))
       ? "有原推进记录尚未收口。请在继续研究中核对原阶段；计划建议需先采用或拒绝，未知行动不会重发。"
       : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
@@ -557,6 +570,16 @@ export async function mountLocalWorkbench(): Promise<void> {
       }
       pendingNotice.append(row);
     }
+    if (hasQualityRequest()) {
+      const saved = savedQualityRequest();
+      if (!saved) pendingNotice.append(el("p", "notice error", "严格采纳的浏览器原请求不可核对；停止并核对原 manager 记录，不会重建正文或创建新ID。"));
+      else {
+        const button = el("button", "text-button", "核对并重试原严格采纳"); button.type = "button";
+        button.disabled = !canRecoverQuality(saved);
+        button.addEventListener("click", () => { if (!button.disabled) void submit({...saved, recoverQuality: true}); });
+        pendingNotice.append(el("p", "detail-note", `严格采纳原ID ${saved.requestId} · 结果待核对。仅可显式重用原项目、版本和正文；恢复入口要求原 manager 记录已存在，不会创建首次请求。`), button);
+      }
+    }
     for (const pending of evidencePending.values()) if (pending.uncertain && !records.some(record => record.request_id === pending.requestId)) pendingNotice.append(el("p", "detail-note", "evidence · 原ID " + pending.requestId + " · 结果待核对 · 项目 " + requestProject(pending)));
     if (batchUncertain && !records.some(record => record.request_id === batchUncertain?.requestId)) pendingNotice.append(el("p", "detail-note", "batch · 原ID " + batchUncertain.requestId + " · 结果待核对；可切回原项目，新提交保持锁定。"));
     if (remembered.request_id && !records.some(record => record.request_id === remembered.request_id)) pendingNotice.append(el("p", "detail-note", text(remembered.command) + " · 原ID " + text(remembered.request_id)));
@@ -570,6 +593,14 @@ export async function mountLocalWorkbench(): Promise<void> {
         && (!scopedPending(text(item.command, "")) || !item.project_id || item.project_id === body.project_id))) return false;
     if (lastRequest?.uncertain && lastRequest.requestId !== body.request_id && requestProject(lastRequest) === body.project_id) return false;
     return !batchUncertain && !evidencePending.get(text(body.project_id, ""))?.uncertain;
+  }
+  function canRecoverQuality(pending: Pending): boolean {
+    const saved = savedQualityRequest(), body = obj(JSON.parse(pending.body));
+    if (busy || description.enabled !== true || !saved || saved.body !== pending.body || saved.requestId !== pending.requestId
+        || body.project_id !== activeId() || current.id !== activeId() || unknownExecution() || batchUncertain
+        || evidencePending.get(text(body.project_id, ""))?.uncertain) return false;
+    return !items(description.pending_requests).some(item => item.request_id !== body.request_id
+      && (!scopedPending(text(item.command, "")) || !item.project_id || item.project_id === body.project_id));
   }
   function revealPendingOperations(): void {
     const projectId = activeId(); if (!projectId || current.id !== projectId) return;
@@ -836,13 +867,20 @@ export async function mountLocalWorkbench(): Promise<void> {
     const recoverModel = pending.recoverModel === true && canRecoverModel(obj(JSON.parse(pending.body)));
     const recoverExperience = pending.recoverExperience === true && pending.command === "experience-resume" && canRecoverExperience(obj(JSON.parse(pending.body)));
     const recoverPlan = pending.recoverPlan === true && pending.command === "plan-resume" && canRecoverPlan(obj(JSON.parse(pending.body)));
+    const recoverQuality = pending.recoverQuality === true && pending.command === "model-supplied-quality-plan-adopt" && canRecoverQuality(pending);
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
     if (pending.recoverExperience && !recoverExperience) { announce("请先只读刷新，核对本项目的原案例请求；不会用新文件或参数重建操作。", true); return null; }
     if (pending.recoverPlan && !recoverPlan) { announce("请先只读刷新并核对原计划请求；不会用当前草稿重建或创建新ID。", true); return null; }
+    if (pending.recoverQuality && !recoverQuality) { announce("原严格采纳请求尚不能核对；保留原ID和正文，不创建替代请求。", true); return null; }
     const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (pending.command === "model-supplied-quality-plan-adopt" && !recoverQuality) {
+      try { sessionStorage.setItem(QUALITY_PENDING_KEY, JSON.stringify({command: pending.command, body: pending.body}));
+        if (savedQualityRequest()?.body !== pending.body) throw Error("storage");
+      } catch { announce("无法保存严格采纳原ID与正文；尚未提交。", true); return null; }
+    }
     const modelCommand = MODEL_COMMANDS.has(pending.command);
     const continuation = pending.command === "continue" ? obj(JSON.parse(pending.body)) : {};
     const modelContinuation = pending.command === "continue" && (continuation.plan_mode === "suggest" || continuation.execution_mode === "model");
@@ -851,7 +889,8 @@ export async function mountLocalWorkbench(): Promise<void> {
     try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ request_id: pending.requestId, command: pending.command })); } catch { /* Host journal remains authoritative. */ }
     let outcomeMessage = "", failed = false, accepted: Obj | null = null;
     try {
-      const response = await fetch("/api/local-workbench/" + pending.command, { method: "POST", credentials: "same-origin", cache: "no-store",
+      const route = recoverQuality ? "model-supplied-quality-plan-resume" : pending.command;
+      const response = await fetch("/api/local-workbench/" + route, { method: "POST", credentials: "same-origin", cache: "no-store",
         headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(modelContinuation ? 420000 : modelCommand ? 210000 : 60000) });
       const result = obj(await response.json());
       if (!response.ok) {
@@ -893,6 +932,44 @@ export async function mountLocalWorkbench(): Promise<void> {
         }
         if (pending.command === "plan") outcomeMessage = "研究计划已保存。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
         if (pending.command === "plan-resume") outcomeMessage = "原计划请求已核对；如此前尚未写入，本次已按原正文保存，否则仅补原回执。未创建新ID。";
+        if (pending.command === "model-supplied-quality-plan-adopt") {
+          if (Object.keys(result).sort().join(",") !== "command,host_request_id,plan_sha256,plan_version,project_id,replayed,request_id,schema_version,status"
+              || result.schema_version !== "local-workbench-command-v1" || result.command !== "model_supplied_quality_plan_adopt"
+              || typeof result.replayed !== "boolean" || !Number.isSafeInteger(result.plan_version) || (result.plan_version as number) < 1
+              || typeof result.plan_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(result.plan_sha256)
+              || result.status !== "applied" || result.request_id !== pending.requestId || result.project_id !== targetProject
+              || result.host_request_id !== obj(JSON.parse(pending.body)).host_request_id) {
+            pending.uncertain = true; failed = true; accepted = null;
+            outcomeMessage = "严格采纳回执身份未能核对，保留原ID和正文；不会自动重派。";
+          } else {
+            try {
+              if (!recoverQuality) {
+                const verifiedResponse = await fetch("/api/local-workbench/model-supplied-quality-plan-resume", {
+                  method: "POST", credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(60000),
+                  headers: {"Content-Type":"application/json", "X-AutoResearch-CSRF":text(description.csrf_token, "")}, body:pending.body });
+                const verified = obj(await verifiedResponse.json());
+                if (!verifiedResponse.ok || verified.replayed !== true
+                    || Object.keys(verified).length !== Object.keys(result).length
+                    || Object.keys(result).some(key => key !== "replayed" && verified[key] !== result[key])) throw Error("manager identity");
+              }
+              const projected = await read("/api/project"), model = await read("/api/local-workbench/model"), confirm = await read("/api/project");
+              const identities = obj(model.quality_adoption_receipts), matches = items(identities.items).filter(item =>
+                item.request_id === pending.requestId && item.host_request_id === result.host_request_id
+                && item.plan_version === result.plan_version && item.plan_sha256 === result.plan_sha256);
+              const revisions = items(obj(projected.research_plan).revisions).filter(item =>
+                item.request_id === result.host_request_id && item.version === result.plan_version);
+              if (activeId() !== targetProject || projected.id !== targetProject || confirm.id !== targetProject
+                  || model.project_id !== targetProject || identities.project_id !== targetProject
+                  || projected.snapshot_ref !== identities.snapshot_ref || confirm.snapshot_ref !== projected.snapshot_ref
+                  || matches.length !== 1 || revisions.length !== 1 || savedQualityRequest()?.body !== pending.body) throw Error("identity");
+              sessionStorage.removeItem(QUALITY_PENDING_KEY);
+              outcomeMessage = "已按原供应质量材料记录计划采用；这不证明模型理解或科学结论。";
+            } catch {
+              pending.uncertain = true; failed = true; accepted = null;
+              outcomeMessage = "严格采纳回执或原计划身份未能核对，保留原ID和正文；不会自动重派。";
+            }
+          }
+        }
         if (pending.command === "recipe-adopt") outcomeMessage = "外环决定已写入项目，后续配方决策将读取当前有效版本。";
         if (pending.command === "design-bind") outcomeMessage = "研究设计与输入声明已保存。请核对检查计划，再明确执行下一项验证。";
         if (pending.command === "design-improve") outcomeMessage = "已根据实际反馈保存候选新版，可在知识空间查看，并明确选择采用。";

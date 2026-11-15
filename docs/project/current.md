@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S106 页面可显式严格采纳已供应质量材料；独立resume-only在锁内拒绝无原意图的首次接受，回执不符保留原body。双路径/异常经独立合成Chromium/HTTP验证，详见[SPRINT-106](../execution/SPRINT-106.md)；无真实模型/研究新增。
+
 S105 工作台计划页可显式选择原质量登记并只读预览，旧wire/预算保持；独立双合成项目真实Chromium/HTTP、跨项目与重复预览竞态修复验收，混合/四项上限为模拟。页面严格采纳按钮仍未接。[SPRINT-105](../execution/SPRINT-105.md)。
 
 S104 工作台页面可对已封存质量材料的Host计划选句核对，独立真实Chromium/本地HTTP和23项合成回归通过；跨项目切换仅静态核查，页面尚不能新建质量材料请求或严格采纳。[SPRINT-104](../execution/SPRINT-104.md)。

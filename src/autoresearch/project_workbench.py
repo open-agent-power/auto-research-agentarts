@@ -481,6 +481,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/model-plan-adopt": "model_plan_adopt",
                             "/api/local-workbench/model-quality-plan-adopt": "model_quality_plan_adopt",
                             "/api/local-workbench/model-supplied-quality-plan-adopt": "model_supplied_quality_plan_adopt",
+                            "/api/local-workbench/model-supplied-quality-plan-resume": "resume_supplied_quality_plan_adopt",
                             "/api/local-workbench/model-plan-reject": "model_plan_reject"}
                 _require(not parsed.scheme and not parsed.netloc and not parsed.query and not parsed.fragment
                          and parsed.path in commands, "INVALID_REQUEST", "Select a supported local command route.")

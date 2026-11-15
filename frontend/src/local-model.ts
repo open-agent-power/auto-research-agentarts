@@ -11,7 +11,7 @@ type Host = {
   canCheckPlanFacts(): boolean;
   checkPlanFact(body: Obj): Promise<Obj>;
   methodTitle(methodId: string): string;
-  submit(command: "model-advance" | "model-resume" | "model-plan-advance" | "model-plan-adopt" | "model-plan-reject", body: Obj): Promise<Obj | null>;
+  submit(command: "model-advance" | "model-resume" | "model-plan-advance" | "model-plan-adopt" | "model-plan-reject" | "model-supplied-quality-plan-adopt", body: Obj): Promise<Obj | null>;
   announce(message: string, error?: boolean): void;
 };
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
@@ -229,6 +229,7 @@ export function createLocalModelPanel(host: Host): {
   let allowedRequestId = "";
   const resumeButtons: { button: HTMLButtonElement; body: Obj }[] = [];
   const decisionButtons: { button: HTMLButtonElement; record: Obj; rejectReason?: HTMLTextAreaElement }[] = [];
+  const strictDecisionControls: (() => void)[] = [];
   const rejectDrafts = new Map<string, string>();
   const factDrafts = new Map<string, FactDraft>();
   const qualityFactDrafts = new Map<string, QualityFactDraft>();
@@ -362,6 +363,7 @@ export function createLocalModelPanel(host: Host): {
       const selected = object(object(record.context).selection_context);
       button.disabled = locked && record.request_id !== allowedRequestId || loading || record.status !== "proposed" || (rejectReason ? !rejectReason.value.trim() : selected.context_sha256 !== context?.context_sha256);
     }
+    for (const update of strictDecisionControls) update();
     materialControls();
   }
 
@@ -468,8 +470,55 @@ export function createLocalModelPanel(host: Host): {
     rejectReason.addEventListener("input", () => { rejectDrafts.set(id, rejectReason.value); controls(); });
     const frozen = object(object(record.context).selection_context);
     if (frozen.context_sha256 !== context?.context_sha256) card.append(el("p", "notice", "项目已变化，核对当前计划后再准备新的建议。"));
+    strictQualityAdoption(record, card);
     card.append(field("拒绝理由", rejectReason)); actions.append(adopt, reject);
     decisionButtons.push({ button: adopt, record }, { button: reject, record, rejectReason });
+  }
+  function strictQualityAdoption(record: Obj, card: HTMLElement): void {
+    const id = text(record.request_id, ""), sourceProject = projectId;
+    const materials = suppliedMaterials(object(record.context)).filter(item => item.kind === "tabular_quality_feedback");
+    if (!materials.length) return;
+    const identities = objects(view.quality_fact_identities).filter(item => item.host_request_id === id);
+    const identity = identities.length === 1 ? identities[0] : {};
+    const hash = (value: unknown): boolean => typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
+    const key = (item: Obj): string => JSON.stringify([item.registration_request_id, item.registration_sha256]);
+    const select = factSelect({ "": "请选择原供应登记", ...Object.fromEntries(materials.map(item => [key(item),
+      `${text(item.registration_request_id)} · ${qualityState(object(item.feedback).outcome)} · ${text(item.registration_sha256)}`])) }, "");
+    const button = el("button", "action-button", "按原质量材料严格采纳"); button.type = "button";
+    const box = el("div", "local-quality-adoption"), eligibility = el("p", "detail-note");
+    box.append(el("p", "detail-note", "可另选严格采纳：仅核原建议已供应的登记及其已知反馈，不判断模型是否理解，也不是科学结论。未知、身份或项目状态变化时停止。收到成功回执后会以原正文核对已存在的 manager 请求，原 Host 已完成时可能补原 manager 回执；不能创建首次采纳。请求未知或超时须由你显式核对原请求，不自动重派。"),
+      field("原供应质量登记", select), eligibility, button); card.append(box);
+    const chosen = (): Obj | undefined => {
+      const found = materials.filter(item => key(item) === select.value);
+      if (!select.value || found.length !== 1 || identity.status !== "available" || identities.length !== 1
+          || !hash(identity.context_sha256) || !hash(identity.response_sha256) || identity.response_sha256 !== record.response_sha256) return undefined;
+      const material = found[0], feedback = object(material.feedback), refs = objects(identity.materials).filter(ref => key(ref) === key(material));
+      const choice = qualityChoice({kind: "tabular_quality_feedback", registration_request_id: text(material.registration_request_id, ""),
+        registration_sha256: text(material.registration_sha256, "")});
+      if (refs.length !== 1 || !hash(refs[0].material_sha256) || !choice || !sameJSON(material.conditions, choice.conditions)
+          || material.plan_version !== choice.plan_version || material.plan_sha256 !== choice.plan_sha256
+          || material.source_snapshot_sha256 !== choice.source_snapshot_sha256 || material.scientific_validation !== false
+          || feedback.scientific_validation !== false
+          || material.controller_request_id !== choice.controller_request_id || feedback.controller_request_id !== choice.controller_request_id
+          || feedback.request_id !== material.registration_request_id || feedback.registration_sha256 !== material.registration_sha256
+          || !["condition_met", "condition_not_met"].includes(text(feedback.outcome, ""))
+          || feedback.unknown_reason !== null || typeof feedback.action_id !== "string" || !hash(feedback.result_sha256)
+          || !strings(object(record.proposal).feedback_action_ids).includes(feedback.action_id)
+          || !objects(object(record.context).feedback).some(item => item.action_id === feedback.action_id && item.status === "completed")) return undefined;
+      return material;
+    };
+    const update = (): void => { const frozen = object(object(record.context).selection_context);
+      button.disabled = locked || loading || sourceProject !== projectId || record.status !== "proposed" || !chosen()
+        || frozen.project_id !== projectId || frozen.context_sha256 !== context?.context_sha256
+        || typeof frozen.state_version !== "number" || frozen.state_version !== project.state_version || frozen.state_version !== context?.state_version;
+      eligibility.textContent = select.value && !chosen() ? "原登记未知、身份不匹配，或建议未引用对应的已完成质量行动；不能严格采纳。" : "";
+    };
+    select.addEventListener("change", update);
+    button.addEventListener("click", () => { const material = chosen(), frozen = object(object(record.context).selection_context);
+      if (!button.disabled && material) void host.submit("model-supplied-quality-plan-adopt", { project_id: sourceProject,
+        expected_state_version: frozen.state_version, host_request_id: id, registration_request_id: material.registration_request_id });
+    });
+    strictDecisionControls.push(update); update();
   }
   function planFactCheck(record: Obj, card: HTMLElement): void {
     const sourceProject = projectId, id = text(record.request_id, ""), key = sourceProject + ":" + id;
@@ -731,7 +780,7 @@ export function createLocalModelPanel(host: Host): {
     improvement.append(actions);
   }
   function savedRequests(): void {
-    resumeButtons.length = 0; decisionButtons.length = 0; history.replaceChildren(el("h3", "", "已保存的模型请求"));
+    resumeButtons.length = 0; decisionButtons.length = 0; strictDecisionControls.length = 0; history.replaceChildren(el("h3", "", "已保存的模型请求"));
     planHistory.replaceChildren(el("h2", "section-title", "模型计划建议")); planHistory.hidden = !records.some(record => record.purpose === "plan");
     improvement.replaceChildren(); improvement.hidden = true;
     if (!records.length) { history.append(el("p", "detail-note", "尚无请求。打开页面不会创建请求。")); return; }
