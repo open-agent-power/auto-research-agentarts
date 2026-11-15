@@ -391,7 +391,8 @@ class ResearchProject:
         return set_status(self, request_id=request_id, expected_state_version=expected_state_version,
                           case_id=case_id, status=status, reason=reason)
 
-    def save_plan(self, *, request_id, expected_state_version, plan, reason, _validate_only=False):
+    def save_plan(self, *, request_id, expected_state_version, plan, reason, _validate_only=False,
+                  _manager_intent_sha256=None, _return_created=False):
         """Save an operator-authored plan revision without dispatching research."""
         identifier(request_id)
         require(type(expected_state_version) is int and expected_state_version >= 0,
@@ -410,6 +411,10 @@ class ResearchProject:
         if "quality_feedback_ref" in plan:
             from .tabular_quality_plan import validate_reference
             validate_reference(plan["quality_feedback_ref"])
+        require(type(_return_created) is bool and (not _return_created or
+                (_manager_intent_sha256 is not None and "quality_feedback_ref" in plan and not _validate_only))
+                and (_manager_intent_sha256 is None or _return_created),
+                "INVALID_REQUEST", "Manager quality plans require their original ownership identity.")
         require(type(reason) is str and 0 < len(reason) <= 2000 and bool(reason.strip()) and "\x00" not in reason,
                 "INVALID_REQUEST", "Record a reason for the plan revision.")
         with self._writer():
@@ -429,8 +434,11 @@ class ResearchProject:
                         from .tabular_quality_plan import check_reference
                         check_reference(self, self.status(), plan["quality_feedback_ref"],
                                         based_on_state_version=expected_state_version, revision=previous)
-                    return previous
+                    return (previous, False) if _return_created else previous
                 require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
+                if _return_created:
+                    require(con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
+                            "IDEMPOTENCY_CONFLICT", "ID belongs to an action replay reference.")
                 self._require_unclaimed(project, request_id, except_collection="plan_revisions")
                 self._require_fresh(project, self.status(), expected_state_version)
                 require(not any(item["status"] in ("prepared", "running", "unknown")
@@ -452,7 +460,10 @@ class ResearchProject:
                 revisions.append(revision)
                 project["state_version"] += 1
                 self._save(con, project)
-                return revision
+                if _manager_intent_sha256 is not None:
+                    from .tabular_quality_feedback import _manager_claim
+                    _manager_claim(con, "plan", request_id, _manager_intent_sha256, fingerprint(revision), create=True)
+                return (revision, True) if _return_created else revision
 
     def prepare_tabular_quality_plan_ref(self, *, registration_request_id):
         """Read a verified reference for an explicit successor plan without dispatch."""

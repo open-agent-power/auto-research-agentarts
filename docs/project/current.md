@@ -5,7 +5,7 @@ S080 已完成获批的 Bike 2011 真实研究并独立复算：总体/编码0/�
 
 通用表格质量反馈按[设计](tabular-quality-feedback-design.md)继续推进：S081 有界条件、S082 事前登记和原行动认证、S083 显式 Controller 策略之后，S084 已将登记、读取和推进接入 LocalWorkbench/Python/HTTP，并以同事务归属凭据保护两层原ID恢复。隔离合成 HTTP 和故障注入已独审；没有新真实研究、模型自主或科研收益声明。旧项目沿原 pin、原预算保持。[S083](../execution/SPRINT-083.md) · [S084](../execution/SPRINT-084.md)。
 
-S085 Project Python 已能保存引用原质量行动的直接后续 plan v2；S086 显式 Controller v2 策略可重新认证原行动与真实最新计划，再按条件及预算选择或等待。历史视图仅用于认证，不用于派发；合成验证及独审通过。Workbench 对计划引用写前拒绝、尚未接策略v2，context仅校引用形状。[S085](../execution/SPRINT-085.md) · [S086](../execution/SPRINT-086.md)。
+S085 Project Python 能保存引用原质量行动的直接后续 plan v2；S086 显式 Controller v2 策略可重新认证原行动与真实最新计划；S087 已通过独立 Workbench/Python/HTTP 入口连接质量引用读取、计划保存和v2推进，原 manager/core 归属同事务绑定。隔离合成和独审通过；旧普通计划入口仍拒新字段，只读宿主新 GET 未开放，context仅校引用形状。[S085](../execution/SPRINT-085.md) · [S086](../execution/SPRINT-086.md) · [S087](../execution/SPRINT-087.md)。
 
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。
 

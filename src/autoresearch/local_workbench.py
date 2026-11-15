@@ -258,13 +258,13 @@ class LocalWorkbench:
                     except ResearchError:
                         item["recovery"] = "original_body_unavailable"
                     pending.append(item)
-            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2') ORDER BY rowid DESC"):
                 if len(pending) == 8:
                     break
                 if any(item["request_id"] == row["id"] for item in pending):
                     continue
                 record = tabular._parse(row["record"].encode("utf-8"))
-                quality_terminal = row["command"] == "advance_tabular_quality_feedback" and record["status"] in ("completed", "failed", "waiting", "needs_review", "rejected")
+                quality_terminal = row["command"] in ("advance_tabular_quality_feedback", "advance_tabular_quality_feedback_v2") and record["status"] in ("completed", "failed", "waiting", "needs_review", "rejected")
                 if not quality_terminal and record["status"] != "completed" and (row["command"] == "save_plan" or record["status"] != "rejected"):
                     item = {"request_id": row["id"], "command": row["command"], "status": record["status"],
                             "project_id": (record.get("result") or {}).get("project_id", record["intent"].get("project_id"))}
@@ -533,7 +533,7 @@ class LocalWorkbench:
             for request_id in ids:
                 project._require_unclaimed(state, request_id)
                 _require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
-                         and con.execute("SELECT 1 FROM replays WHERE request_id=?", (request_id,)).fetchone() is None,
+                         and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
                          "IDEMPOTENCY_CONFLICT", "The original project ID is already claimed; inspect the original operation.")
 
     @staticmethod
@@ -584,6 +584,20 @@ class LocalWorkbench:
         project._source(state)
         _require(project.status()["snapshot_ref"] == state["snapshot_ref"], "STALE_STATE", "Project changed during preflight.")
 
+    @staticmethod
+    def _preflight_quality_advance_v2(project, state, body):
+        from .tabular_quality_plan import check_reference
+        LocalWorkbench._preflight_quality_advance(project, state, body)
+        revisions = state.get("plan_revisions", [])
+        _require(bool(revisions) and revisions[-1].get("request_id") == body["plan_request_id"]
+                 and fingerprint(revisions[-1]) == body["plan_sha256"]
+                 and type(revisions[-1].get("quality_feedback_ref")) is dict
+                 and revisions[-1]["quality_feedback_ref"].get("registration_request_id") == body["registration_request_id"],
+                 "CONDITION_NOT_SATISFIED", "Use the current exact quality-linked successor plan.")
+        plan = revisions[-1]
+        check_reference(project, state, plan["quality_feedback_ref"],
+                        based_on_state_version=plan["based_on_state_version"], revision=plan)
+
     def read_tabular_quality_feedback(self, *, project_id, snapshot_ref, registration_request_id):
         """Read bounded quality feedback for the active original snapshot only."""
         identifier(project_id, "project_id"); identifier(registration_request_id, "registration_request_id")
@@ -601,6 +615,100 @@ class LocalWorkbench:
         _require(before["snapshot_ref"] == after["snapshot_ref"] and current.root == project.root,
                  "STALE_STATE", "The selected project changed while reading quality feedback.")
         return value
+
+    def read_tabular_quality_plan_ref(self, *, project_id, snapshot_ref, registration_request_id):
+        """Read the exact quality reference only for the active current snapshot."""
+        identifier(project_id, "project_id"); identifier(registration_request_id, "registration_request_id")
+        _require(type(snapshot_ref) is str and re.fullmatch(r"[a-f0-9]{64}", snapshot_ref) is not None,
+                 "INVALID_REQUEST", "Use the original project snapshot identity.")
+        with self._connect(readonly=True) as con:
+            _, project = self._project(con, project_id, active=True)
+        before = project.status()
+        _require(before["id"] == project_id and before["snapshot_ref"] == snapshot_ref,
+                 "STALE_STATE", "The selected project snapshot changed.")
+        value = project.prepare_tabular_quality_plan_ref(registration_request_id=registration_request_id)
+        after = project.status()
+        with self._connect(readonly=True) as con:
+            _, current = self._project(con, project_id, active=True)
+        _require(before["snapshot_ref"] == after["snapshot_ref"] and current.root == project.root,
+                 "STALE_STATE", "The selected project changed while reading the quality reference.")
+        return value
+
+    @staticmethod
+    def _checked_quality_plan(project, body, intent):
+        from .tabular_quality_feedback import _manager_claim
+        state = project.status()
+        found = [p for p in state.get("plan_revisions", []) if p.get("request_id") == body["request_id"]]
+        _require(len(found) == 1, "OPERATION_INCOMPLETE", "The original quality plan is absent; inspect without retrying.")
+        revision = found[0]
+        with project._connect(readonly=True) as con:
+            _manager_claim(con, "plan", body["request_id"], intent["intent_sha256"], fingerprint(revision))
+        original = project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                                     plan=body["plan"], reason=body["reason"], _validate_only=True)
+        _require(canonical(original) == canonical(revision) and project.status()["snapshot_ref"] == state["snapshot_ref"],
+                 "EVIDENCE_CHANGED", "The original quality plan or Project changed.")
+        return revision
+
+    def save_quality_plan(self, body):
+        """Persist a quality-linked plan with a manager-owned core claim."""
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "plan", "reason"))
+        identifier(body["project_id"], "project_id")
+        _require(type(body["plan"]) is dict and "quality_feedback_ref" in body["plan"]
+                 and type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "Use an exact quality-linked plan and state version.")
+        _require(len(canonical(body).encode("utf-8")) <= MAX_PLAN_RECOVERY_BYTES,
+                 "INVALID_REQUEST", "Original plan request exceeds its recovery bound.")
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                old = self._old(con, body, digest)
+                state = project.status()
+                if old is None:
+                    # This validation acquires its own Project writer; do not nest it.
+                    project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                                      plan=body["plan"], reason=body["reason"], _validate_only=True)
+                    host_sha = host_model_snapshot_sha256(project.root)
+                    with project._writer():
+                        current = project.status()
+                        _require(current["snapshot_ref"] == state["snapshot_ref"]
+                                 and host_model_snapshot_sha256(project.root) == host_sha,
+                                 "STALE_STATE", "Project or host changed before accepting the plan.")
+                        _require(current["state_version"] == body["expected_state_version"]
+                                 and current["code_identity"] == project_code_identity()
+                                 and batch_code_identity() == _EXPORT_BOOT_IDENTITY,
+                                 "CODE_CHANGED", "Use the original Project and manager code.")
+                        self._quality_unclaimed(project, current, (body["request_id"],))
+                        from .research_project import _check_plan_experience_refs
+                        _check_plan_experience_refs(project.root, current,
+                            {**body["plan"], "based_on_state_version":body["expected_state_version"]}, code="INVALID_REQUEST", pending=True)
+                        from .tabular_quality_plan import check_reference
+                        check_reference(project, current, body["plan"]["quality_feedback_ref"],
+                                        based_on_state_version=body["expected_state_version"])
+                        intent = self._quality_intent(body, digest, "save_quality_plan", current)
+                        self._accept(con, body, digest, "save_quality_plan", intent)
+                        con.commit()
+                else:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "save_quality_plan" and old.get("status") in ("preparing", "completed"),
+                             "WORKBENCH_CHANGED", "Original quality plan receipt changed.")
+                    intent = old.get("intent")
+                    self._check_quality_intent(intent, body, digest, "save_quality_plan", state)
+            if old is None:
+                _, created = project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                    plan=body["plan"], reason=body["reason"], _manager_intent_sha256=intent["intent_sha256"], _return_created=True)
+                _require(created, "OPERATION_INCOMPLETE", "Another caller accepted this plan; inspect without adopting it.")
+            revision = self._checked_quality_plan(project, body, intent)
+            response = self._response("save_quality_plan", body["request_id"], body["project_id"], status="completed", research_plan=revision)
+            if old is not None and old["status"] == "completed":
+                saved = old.get("result")
+                _require(type(saved) is dict and {k:v for k,v in saved.items() if k != "replayed"}
+                         == {k:v for k,v in response.items() if k != "replayed"},
+                         "EVIDENCE_CHANGED", "Original manager quality plan receipt differs.")
+                return dict(response, replayed=True)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status":"completed", "intent":intent, "result":response})
+            return dict(response, replayed=old is not None)
 
     def register_tabular_quality_conditions(self, body):
         fields = ("request_id","project_id","expected_state_version","controller_request_id","candidate_id","conditions")
@@ -685,6 +793,77 @@ class LocalWorkbench:
             try:
                 response = controller.advance_tabular_quality_feedback(request_id=body["request_id"],
                     registration_request_id=body["registration_request_id"], expected_state_version=body["expected_state_version"],
+                    _manager_intent_sha256=intent["intent_sha256"])
+            except ResearchError as exc:
+                state = project.status()
+                parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == body["request_id"]]
+                failure = ((parents[0].get("result") or {}).get("failure") if len(parents) == 1 and parents[0].get("status") == "rejected" else None)
+                if type(failure) is dict and failure == {"code":exc.code,"message":str(exc)}:
+                    self._quality_policy_claim(project, parents[0], intent)
+                    if old is not None and old["status"] == "rejected":
+                        _require(old.get("failure") == failure, "EVIDENCE_CHANGED", "Original rejected receipt differs.")
+                    elif old is not None and old["status"] != "preparing":
+                        raise ResearchError("EVIDENCE_CHANGED", "Original manager terminal receipt differs.") from None
+                    elif old is None or old["status"] == "preparing":
+                        with self._connect() as con:self._save(con,body["request_id"],{"status":"rejected","intent":intent,"result":None,"failure":failure})
+                raise
+            _require(type(response) is dict and response.get("schema_version") == "project-controller-advance-v1"
+                     and response.get("project_id") == body["project_id"] and response.get("request_id") == body["request_id"]
+                     and response.get("status") in terminal - {"rejected"}, "EVIDENCE_CHANGED", "Original controller response differs.")
+            _require(old is not None or response.get("replayed") is False, "OPERATION_INCOMPLETE",
+                     "A different caller accepted the core request after the manager intent; inspect without adopting it.")
+            parents = [p for p in project.status().get("controller_requests", []) if p.get("request_id") == body["request_id"]]
+            _require(len(parents) == 1, "EVIDENCE_CHANGED", "Original policy parent is absent.")
+            self._quality_policy_claim(project, parents[0], intent)
+            if old is not None and old["status"] in terminal:
+                saved = old.get("result")
+                _require(type(saved) is dict and {k:v for k,v in saved.items() if k != "replayed"}
+                         == {k:v for k,v in response.items() if k != "replayed"}, "EVIDENCE_CHANGED", "Original manager receipt differs.")
+                return response
+            with self._connect() as con:
+                self._save(con,body["request_id"],{"status":response["status"],"intent":intent,"result":copy.deepcopy(response)})
+            return response
+
+    def advance_tabular_quality_feedback_v2(self, body):
+        digest = _body(body, ("request_id","project_id","expected_state_version","registration_request_id","plan_request_id","plan_sha256"))
+        identifier(body["project_id"],"project_id"); identifier(body["registration_request_id"],"registration_request_id")
+        identifier(body["plan_request_id"],"plan_request_id")
+        _require(type(body["plan_sha256"]) is str and re.fullmatch(r"[a-f0-9]{64}",body["plan_sha256"]) is not None,
+                 "INVALID_REQUEST", "Use the exact current plan identity.")
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "An exact saved state version is required.")
+        terminal = {"completed", "failed", "waiting", "needs_review", "rejected"}
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con,body["project_id"],active=True)
+                self._no_pending_batch(con,body["project_id"],except_id=body["request_id"],evidence=True)
+                old = self._old(con,body,digest)
+                state = project.status()
+                if old is None:
+                    with project._writer():
+                        state = project.status()
+                        _require(state["state_version"] == body["expected_state_version"], "STALE_STATE", "The project state changed.")
+                        _require(state["code_identity"] == project_code_identity() and batch_code_identity() == _EXPORT_BOOT_IDENTITY,
+                                 "CODE_CHANGED", "Use the original project and manager code.")
+                        self._preflight_quality_advance_v2(project, state, body)
+                        intent = self._quality_intent(body,digest,"advance_tabular_quality_feedback_v2",state)
+                        self._accept(con,body,digest,"advance_tabular_quality_feedback_v2",intent)
+                        con.commit()
+                else:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "advance_tabular_quality_feedback_v2"
+                             and old.get("status") in terminal | {"preparing"}, "WORKBENCH_CHANGED", "Original quality strategy receipt changed.")
+                    intent = old.get("intent")
+                    self._check_quality_intent(intent,body,digest,"advance_tabular_quality_feedback_v2",state)
+                    parents = [p for p in state.get("controller_requests", []) if p.get("request_id") == body["request_id"]]
+                    _require(len(parents) == 1, "OPERATION_INCOMPLETE", "Original controller parent is absent; inspect without dispatch.")
+                    _require(parents[0].get("status") in terminal, "EXECUTION_UNKNOWN", "Original controller parent is nonterminal; inspect without dispatch.")
+                    self._quality_policy_claim(project, parents[0], intent)
+            controller = ProjectController(project.root)
+            try:
+                response = controller.advance_tabular_quality_feedback_v2(request_id=body["request_id"],
+                    registration_request_id=body["registration_request_id"], expected_state_version=body["expected_state_version"],
+                    plan_request_id=body["plan_request_id"], plan_sha256=body["plan_sha256"],
                     _manager_intent_sha256=intent["intent_sha256"])
             except ResearchError as exc:
                 state = project.status()
@@ -1275,9 +1454,9 @@ class LocalWorkbench:
     def _no_staged_switch(con, project_id):
         if project_id is None:
             return
-        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_tabular_quality_conditions','advance_tabular_quality_feedback')"):
+        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2')"):
             record = tabular._parse(row["record"].encode("utf-8"))
-            terminal = {"completed"} if row["command"] == "register_tabular_quality_conditions" else {"completed", "failed", "waiting", "needs_review", "rejected"}
+            terminal = {"completed"} if row["command"] in ("register_tabular_quality_conditions", "save_quality_plan") else {"completed", "failed", "waiting", "needs_review", "rejected"}
             _require(record.get("status") in terminal or record.get("intent", {}).get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished quality request before switching projects.")
         for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
@@ -1287,9 +1466,9 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        quality_commands = ("register_tabular_quality_conditions", "advance_tabular_quality_feedback")
+        quality_commands = ("register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2")
         commands = (("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")) + quality_commands
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback')"))
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":
@@ -1314,7 +1493,7 @@ class LocalWorkbench:
                 continue
             record = tabular._parse(row["record"].encode("utf-8"))
             terminal = ({"completed", "failed", "waiting", "needs_review", "rejected"}
-                        if row["command"] == "advance_tabular_quality_feedback" else {"completed"})
+                        if row["command"] in ("advance_tabular_quality_feedback", "advance_tabular_quality_feedback_v2") else {"completed"})
             _require(record["status"] in terminal or record["intent"].get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished request for this project before submitting another operation.")
 

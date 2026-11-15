@@ -322,6 +322,9 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 | POST `/api/local-workbench/tabular-quality-registration` | 精确登记原表格质量候选、条件及未来 Controller ID；不执行质量行动 |
 | POST `/api/local-workbench/advance-tabular-quality-feedback` | 显式按原已核验质量反馈选择等待或绑定的数值关联；通过时可能立即执行一次工具 |
 | GET `/api/local-workbench/tabular-quality-feedback.json` | 按活动 `project_id`、当前 `snapshot_ref` 和 `registration_request_id` 只读原质量反馈；受限只读宿主模式不提供此路由 |
+| GET `/api/local-workbench/tabular-quality-plan-ref.json` | 使用相同三个精确 query 参数，只读派生原已完成质量反馈的后继计划引用；受限只读宿主模式不提供此路由 |
+| POST `/api/local-workbench/quality-plan` | 原 `request_id/project_id/expected_state_version/plan/reason`，保存带 `quality_feedback_ref` 的直接后继计划 |
+| POST `/api/local-workbench/advance-tabular-quality-feedback-v2` | 原 `request_id/project_id/expected_state_version/registration_request_id/plan_request_id/plan_sha256`，按当前质量引用计划选择，可能执行一次工具 |
 | POST `/api/local-workbench/evidence` | 当前project/version/task_ref、未核验contributor、原文件Base64、明确选区及remaining_questions；只登记 |
 | POST `/api/local-workbench/continue` | 冻结计划方式、执行方式、行动上限、方法及确切来源收据；同ID跨计划采用门接回原批次 |
 | POST `/api/local-workbench/batch` | 明确冻结方法、确切来源收据、行动数与理由；受原条件、预算和恢复门禁约束 |
@@ -343,7 +346,7 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 
 POST使用同源JSON与`X-AutoResearch-CSRF`，严格字段由宿主校验，不把任意JSON扩成工具调用；资料登记请求上限90MiB，其余命令保持12MiB。候选的method/parameters/evaluation完全由宿主提供，UI不能更改评价或原结果。取得新CLI回答的接口须另外显式启用，只运行启动时固定的CLI，CLI工具关闭。采用或拒绝已保存计划建议使用本地操作权限。当前开放受管表格输入、资料登记及已登记白名单分析/选区读取，科学批准、跨域策略收益和真实用户价值按相应证据确认。
 
-表格质量 Python/HTTP 请求字段、三态、授权与[原 ID 恢复边界](tabular-quality-feedback.md#本地-workbench-调用与恢复)沿原项目账本：manager 意图包含一次性随机 nonce 和 manager 根路径身份；manager 首次创建登记或策略 parent 时，Project SQLite 在同一事务保存关联的意图与核心记录摘要。已保存的 manager 意图不等于核心行动已执行；缺原核心登记、原 Controller parent 或匹配的事务 claim 时停查，非终态 parent 不重派。调用方保留完整原 body，同 ID 核验终态；未决请求不换 ID 绕过。manager 路径变化不自动恢复，pending 的可见列表有上限；服务端按项目检查经过 `_no_pending_batch` 的研究写命令和活动项目切换，不是所有操作的全局门，同项目重新选择不受该切换门阻断。这是协作式一致性保护，不是签名或 OS 安全隔离。新接口没有新增页面控件，也不使直接 Controller/Project 入口自动遵循质量策略。
+表格质量 Python/HTTP 请求字段、三态、授权与[原 ID 恢复边界](tabular-quality-feedback.md#本地-workbench-调用与恢复)沿原项目账本：manager 意图包含一次性随机 nonce 和 manager 根路径身份；manager 首次创建登记、质量计划或 v1/v2 策略 parent 时，Project SQLite 在同一事务保存关联的意图与核心记录摘要。已保存的 manager 意图不等于核心行动已执行；缺原核心登记、质量计划、原 Controller parent 或匹配的事务 claim 时停查，非终态 parent 不重派。调用方保留完整原 body，在同一质量入口同 ID 核验终态；普通 `plan-resume` 不恢复独立质量计划。原 `/plan` 不接受质量引用，旧四字段计划和已有经验引用流程保持原入口。manager 路径变化不自动恢复，pending 的可见列表有上限；服务端按项目检查经过 `_no_pending_batch` 的研究写命令和活动项目切换，不是所有操作的全局门，同项目重新选择不受该切换门阻断。这是协作式一致性保护，不是签名或 OS 安全隔离。新接口没有新增页面控件，也不使直接 Controller/Project 入口自动遵循质量策略或构成科学批准。
 
 ## A27 页面模型选择与反馈接续
 

@@ -1,5 +1,7 @@
 # 研究推进与价值评测索引
 
+S087 质量反馈→结构化计划v2→Controller/Workbench HTTP闭环经隔离合成及独审；未做新真实研究/模型采纳，不能将工程闭环计作科研收益。[Sprint](../../docs/execution/SPRINT-087.md)。
+
 S084 的 Workbench 原ID与 HTTP 闭环、双进程/故障注入为隔离合成工程验证；不是新真实研究或模型自主收益。[Sprint](../../docs/execution/SPRINT-084.md)。
 
 S083 质量反馈→Controller 条件分支与请求中断仅隔离合成验证；须分别评估真实任务反馈价值，不将机械质量或合成通过计为科研收益。[Sprint](../../docs/execution/SPRINT-083.md)。

@@ -84,7 +84,7 @@ revision = project.save_plan(
 
 准备引用不写账本或派发；原行动未完成、反馈 unknown 或登记计划已不是当前计划时不能派生。保存时在原 Project writer 锁内重核登记、原计划、质量 parent/child、SQLite 指纹、原结果、source 与代码，并要求质量行动完成在计划依据状态之前或同一状态；新计划必须是登记原计划的直接后继。保存消耗一次状态修订，不增加研究工具、模型、fit 或 native evidence-read 用量。同 ID、相同原参数重放计划会重新核对原引用与原件后返回原修订；body 不同报冲突，原 source、代码或工件不可核时拒绝，不能靠重放重建原件。该一致性检查不是防止同时改写全部本地账本的签名认证。
 
-保存后的 selection context 可以携带该字段，但其 context validator 只校验引用**形状**，不在每次生成 context 时重新认证底层原件；Project 保存与相同 ID 重放时做上述原件核验，不应把单独读到 context 的引用视为实时认证。保存此后继计划后，原质量 reader 为 `plan_binding_changed`、原 v1 策略仍会等待；可以另行显式使用下述 v2 Python 策略，由其在选择时重新核验引用。Workbench 的 `save_plan`/对应 HTTP 在接受 manager 意图前拒绝包含 `quality_feedback_ref` 的计划；本版只支持上述 Project Python 入口，不提供 Workbench 恢复或 UI。
+保存后的 selection context 可以携带该字段，但其 context validator 只校验引用**形状**，不在每次生成 context 时重新认证底层原件；Project 保存与相同 ID 重放时做上述原件核验，不应把单独读到 context 的引用视为实时认证。保存此后继计划后，原质量 reader 为 `plan_binding_changed`、原 v1 策略仍会等待；可以另行显式使用下述 v2 策略，由其在选择时重新核验引用。Workbench 原 `save_plan`/`/api/local-workbench/plan` 在接受 manager 意图前仍拒绝 `quality_feedback_ref`；质量引用计划须使用下述独立 `save_quality_plan` 入口，没有新增 UI。
 
 profile 和空 flags 不核实上游来源或许可、字段含义和单位、采样独立性、实际组编码、因果关系或领域资格；值有效只表明受检机械条件可计算。`scientific_validation: false` 始终保持。新模块纳入项目代码身份：旧 Project 和未决请求继续使用其原 source pin，不自动迁移或扩额。无需重新运行历史行动来读取结果，但读取会发生本地 source、SQLite 和工件 I/O。
 
@@ -113,7 +113,7 @@ result = controller.advance_tabular_quality_feedback(
 
 ## 显式调用 Controller v2 后继计划策略
 
-对已通过 Project Python 接口保存的质量引用后继计划，可单独调用 v2。以下示例中的 `revision` 是前文 `save_plan` 返回的完整原修订；调用可能立即派发工具，必须事先已有本次行动的授权与预算：
+对已保存的质量引用后继计划，可单独调用 v2。以下示例中的 `revision` 是前文 Project `save_plan` 返回的完整原修订；调用可能立即派发工具，必须事先已有本次行动的授权与预算：
 
 ```python
 from autoresearch.contracts import fingerprint
@@ -134,13 +134,19 @@ result = controller.advance_tabular_quality_feedback_v2(
 
 v2 把五字段原请求、计划 SHA、已核验反馈及真实 context/proposal 以独立 `tabular-quality-policy-v2` 保存。保留完整原参数：同 ID 同 body 的终态重放重新核验原计划引用和工件后返回原回执，即使之后另存了计划也不重新选择；原拒绝继续抛原错误，缺失或变更时拒绝。`prepared`、`running` 或 `unknown` 的原 parent 以 `EXECUTION_UNKNOWN` 停查，不从此入口重派；改 body 或用 v1 入口重放 v2 原 ID 会冲突。首次选择时若已有更新计划，原后继计划不再是 latest，不能用它启动新的 v2 请求。
 
-v2 是 Project/Controller Python 显式入口；目前 Workbench 的质量策略方法和 HTTP 路由只支持上述 v1 四字段调用，不支持 v2 请求、manager 原意图恢复或 v2 UI。旧 v1 路径及普通 reader 不因该新入口自动升级，旧 Project/未决请求继续使用原 source pin 和预算。
+v2 可通过 Project/Controller Python 显式调用，也可使用下述独立 Workbench v2 入口；没有新增 v2 UI。旧 v1 路径及普通 reader 不因该新入口自动升级，旧 Project/未决请求继续使用原 source pin 和预算。
 
 ## 本地 Workbench 调用与恢复
 
 对当前活动的受管项目，`LocalWorkbench.register_tabular_quality_conditions(body)` 接受恰好六个字段：`request_id`、`project_id`、`expected_state_version`、`controller_request_id`、`candidate_id`、`conditions`，条件与上述 Project 接口相同。成功返回 `local-workbench-command-v1`、`status: "completed"` 和原 `registration`。`LocalWorkbench.advance_tabular_quality_feedback(body)` 接受恰好四个字段：`request_id`、`project_id`、`expected_state_version`、`registration_request_id`，返回原 `project-controller-advance-v1` 回执；该方法可能立即执行已授权的关联行动。
 
 只读反馈使用 `LocalWorkbench.read_tabular_quality_feedback(project_id=..., snapshot_ref=..., registration_request_id=...)`。三个参数均必需；项目须仍为活动项目，`snapshot_ref` 须为当前 64 位小写 SHA-256。该方法在读取前后检查项目快照及活动项目，返回上述有界 feedback，状态变化时拒绝；它不会返回整个 source packet 或启动行动。
+
+质量后继计划与 v2 策略另外使用以下 Python 方法：
+
+- `LocalWorkbench.read_tabular_quality_plan_ref(project_id=..., snapshot_ref=..., registration_request_id=...)`：只读派生上述原质量引用，要求活动项目、当前快照及已完成且已知的原反馈；原登记计划须仍是当前计划。保存后继计划前保留返回值。
+- `LocalWorkbench.save_quality_plan(body)`：恰好接受 `request_id`、`project_id`、`expected_state_version`、`plan`、`reason`。`plan` 须包含四个原计划字段与 `quality_feedback_ref`，可同时包含有效的 `experience_case_refs`；完整请求须在原 192 KiB 恢复上限内。成功返回 `local-workbench-command-v1` 和 `research_plan`，不派研究工具。
+- `LocalWorkbench.advance_tabular_quality_feedback_v2(body)`：恰好接受 `request_id`、`project_id`、`expected_state_version`、`registration_request_id`、`plan_request_id`、`plan_sha256`，返回原 `project-controller-advance-v1` 回执；可能立即派发一次已授权的数值关联。计划 SHA 是 `fingerprint(完整 research_plan)`。
 
 本地 HTTP 对应：
 
@@ -149,11 +155,14 @@ v2 是 Project/Controller Python 显式入口；目前 Workbench 的质量策略
 | POST `/api/local-workbench/tabular-quality-registration` | 上述六字段 JSON |
 | POST `/api/local-workbench/advance-tabular-quality-feedback` | 上述四字段 JSON，可能派发一次工具 |
 | GET `/api/local-workbench/tabular-quality-feedback.json` | 恰好各一次 query 参数 `project_id`、`snapshot_ref`、`registration_request_id` |
+| GET `/api/local-workbench/tabular-quality-plan-ref.json` | 相同三个精确 query 参数，只读派生可用于直接后继计划的质量引用 |
+| POST `/api/local-workbench/quality-plan` | 上述五字段 JSON，显式保存质量引用计划 |
+| POST `/api/local-workbench/advance-tabular-quality-feedback-v2` | 上述六字段 JSON，显式按当前质量引用计划选择，可能派发一次工具 |
 
-POST 沿现有活动项目、同源、CSRF、大小和代码身份门；不提供新的页面控件或通用执行权限。受限 `LocalWorkbench.open_readonly` HTTP 宿主不提供该反馈 GET（返回 404），也不能通过其只读 HTTP 服务提交这两个 POST；该限制不应误述为新增了只读报告或旧 pin 迁移接口。
+POST 沿现有活动项目、同源、CSRF、大小和代码身份门；不提供新的页面控件或通用执行权限。受限 `LocalWorkbench.open_readonly` HTTP 宿主不提供上述反馈和引用 GET（返回 404），也不能通过其只读 HTTP 服务提交上述 POST；该限制不应误述为新增了只读报告或旧 pin 迁移接口。
 
-Workbench 在 manager 中保存原完整 body、摘要、随机一次性 nonce 及 Project/run/source/代码和规范化 manager 根路径身份，但不把 body 或 nonce 放在 `pending_requests` 投影中。manager 调用首次创建核心质量登记或策略 parent 时，会在同一 Project SQLite 事务中写入对应的 manager 意图摘要与核心记录摘要作为归属 claim；直接通过 Project/Controller 创建的记录不会自动获得该 manager claim。恢复时 manager 要核对原意图、原件和事务 claim；claim 缺失或不符时停查，不能将相同 ID 或内容的其他调用冒认为自己的结果。manager 根路径变更也会使原身份核验失败，不应默认为可搬迁恢复。
+Workbench 在 manager 中保存原完整 body、摘要、随机一次性 nonce 及 Project/run/source/代码和规范化 manager 根路径身份，但不把 body 或 nonce 放在 `pending_requests` 投影中。manager 调用首次创建核心质量登记、质量计划或 v1/v2 策略 parent 时，会在同一 Project SQLite 事务中写入对应的 manager 意图摘要与核心记录摘要作为归属 claim；直接通过 Project/Controller 创建的记录不会自动获得该 manager claim。恢复时 manager 要核对原意图、原件和事务 claim；claim 缺失或不符时停查，不能将相同 ID 或内容的其他调用冒认为自己的结果。manager 根路径变更也会使原身份核验失败，不应默认为可搬迁恢复。
 
-调用方应保留原 ID 和完整 body；恢复时向同一活动项目提交相同 body，不以新版本重造请求。manager 意图已保存而原核心登记尚不存在时返回 `OPERATION_INCOMPLETE`；核心登记及匹配的事务 claim 已保存但 manager 回执丢失时，核原登记及身份后可补原回执，不再登记一次。策略请求若缺原 Controller parent，返回 `OPERATION_INCOMPLETE`；parent 为 `prepared`、`running` 或 `unknown` 时返回 `EXECUTION_UNKNOWN`，均不重派。parent 终态且原记录及事务 claim 核验通过时可补回或重放原回执；原拒绝继续抛原错误，身份/原件不符则拒绝。不同 body 发生 ID 冲突。对经过 `_no_pending_batch` 检查的研究写命令和切换活动项目，未决质量意图按项目阻止绕过；这不是所有操作的全局门，例如重新选择同一活动项目不受该切换门阻断。pending 列表最多显示八项，不代表后续未列出的意图已消失。
+调用方应保留原 ID 和完整 body；恢复时向同一活动项目的同一质量入口提交相同 body，不以新版本重造请求。manager 意图已保存而原核心登记或质量计划尚不存在时返回 `OPERATION_INCOMPLETE`；核心记录及匹配的事务 claim 已保存但 manager 回执丢失时，核原登记或计划及身份后可补原回执，不再次创建。原普通计划 `plan-resume` 并不是质量计划的恢复入口。策略请求若缺原 Controller parent，返回 `OPERATION_INCOMPLETE`；parent 为 `prepared`、`running` 或 `unknown` 时返回 `EXECUTION_UNKNOWN`，均不重派。parent 终态且原记录及事务 claim 核验通过时可补回或重放原回执；原拒绝继续抛原错误，身份/原件不符则拒绝。不同 body 发生 ID 冲突。对经过 `_no_pending_batch` 检查的研究写命令和切换活动项目，未决质量意图按项目阻止绕过；这不是所有操作的全局门，例如重新选择同一活动项目不受该切换门阻断。pending 列表最多显示八项，不代表后续未列出的意图已消失。
 
 这些 claim 和 nonce 用于受信本地协作及原请求一致性检查，不是签名、防止可同时改写本地账本者的认证、OS 隔离或全局强制质量门。错误、网络中断或未知状态不能解释为行动未发生；保留原项目、原请求和预算后检查。实际跨进程恢复、独立验收和研究收益须分别按已保存证据判断。

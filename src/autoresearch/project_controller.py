@@ -706,7 +706,7 @@ class ProjectController:
         return self._dispatch(parent, replayed=False)
 
     def advance_tabular_quality_feedback_v2(self, *, request_id, registration_request_id, plan_request_id,
-                                            plan_sha256, expected_state_version):
+                                            plan_sha256, expected_state_version, _manager_intent_sha256=None):
         """Opt in to a verified direct-successor plan, using the real current context."""
         identifier(request_id)
         identifier(registration_request_id, "registration_request_id")
@@ -784,6 +784,10 @@ class ProjectController:
                 parent["decision_sha256"] = fingerprint(parent["decision"])
                 stored.setdefault("controller_requests", []).append(parent)
                 self.project._save(con, stored)
+                if _manager_intent_sha256 is not None:
+                    from .tabular_quality_feedback import _manager_claim
+                    core_sha = fingerprint({"request_sha256":parent["request_sha256"], "policy_sha256":meta["record_sha256"]})
+                    _manager_claim(con, "policy", request_id, _manager_intent_sha256, core_sha, create=True)
                 parent = copy.deepcopy(parent)
         return self._dispatch(parent, replayed=False)
 
