@@ -434,6 +434,7 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/design-improve": "improve_design",
                             "/api/local-workbench/design-import": "import_design",
                             "/api/local-workbench/plan": "save_plan",
+                            "/api/local-workbench/plan-resume": "resume_plan",
                             "/api/local-workbench/feedback": "record_feedback",
                             "/api/local-workbench/hypothesis": "register_hypothesis",
                             "/api/local-workbench/retrieval-holdout": "register_holdout",

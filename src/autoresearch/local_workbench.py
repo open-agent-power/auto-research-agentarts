@@ -23,6 +23,8 @@ from .research_project import ResearchProject, safe_path, write_bytes_once, code
 from .research_recipe import MAX_RECIPE_BYTES, compile_recipe, parse_json
 
 MAX_PROJECTS = 32
+MAX_PLAN_RECOVERY_BYTES = 192 * 1024
+PLAN_RECOVERY_VERSION = "local-plan-experience-recovery-v1"
 
 
 def batch_code_identity():
@@ -237,11 +239,40 @@ class LocalWorkbench:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]
             active = self._active(con)
             pending = []
-            for row in con.execute("SELECT id,command,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged') ORDER BY rowid DESC"):
+            active_plan_pending = 0
+            # Active-project plan intents take priority over other Projects' bounded
+            # pending list; no original plan body is projected here.
+            if active is not None:
+                for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command='save_plan' ORDER BY rowid DESC"):
+                    record = tabular._parse(row["record"].encode("utf-8"))
+                    if record.get("status") == "completed" or record.get("intent", {}).get("project_id") != active:
+                        continue
+                    active_plan_pending += 1
+                    if len(pending) >= 8:
+                        continue
+                    item = {"request_id": row["id"], "command": "save_plan", "status": record["status"], "project_id": active}
+                    try:
+                        self._check_plan_intent(row["id"], row["digest"], record)
+                        item["recovery"] = "original_body_available"
+                    except ResearchError:
+                        item["recovery"] = "original_body_unavailable"
+                    pending.append(item)
+            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan') ORDER BY rowid DESC"):
+                if len(pending) == 8:
+                    break
+                if any(item["request_id"] == row["id"] for item in pending):
+                    continue
                 record = tabular._parse(row["record"].encode("utf-8"))
-                if record["status"] not in ("completed", "rejected"):
-                    pending.append({"request_id": row["id"], "command": row["command"], "status": record["status"],
-                                    "project_id": (record.get("result") or {}).get("project_id", record["intent"].get("project_id"))})
+                if record["status"] != "completed" and (row["command"] == "save_plan" or record["status"] != "rejected"):
+                    item = {"request_id": row["id"], "command": row["command"], "status": record["status"],
+                            "project_id": (record.get("result") or {}).get("project_id", record["intent"].get("project_id"))}
+                    if row["command"] == "save_plan":
+                        try:
+                            self._check_plan_intent(row["id"], row["digest"], record)
+                            item["recovery"] = "original_body_available"
+                        except ResearchError:
+                            item["recovery"] = "original_body_unavailable"
+                    pending.append(item)
                     if len(pending) == 8:
                         break
             batches = []
@@ -256,11 +287,14 @@ class LocalWorkbench:
                 record = tabular._parse(row["record"].encode("utf-8"))
                 self._check_continuation(record, row["digest"])
                 continuations.append(copy.deepcopy(record["result"]))
-        return {"schema_version": "local-research-workbench-v1", "active_project_id": active, "projects": projects,
+        result = {"schema_version": "local-research-workbench-v1", "active_project_id": active, "projects": projects,
                 "pending_requests": pending, "batches": batches, "continuations": continuations,
                 "constraints": {"max_projects": MAX_PROJECTS, "max_csv_bytes": tabular.MAX_CSV_BYTES, "max_spec_bytes": tabular.MAX_SPEC_BYTES,
                     "max_tool_calls": [1, 2], "local_tool_limit_choices": [1, 2], "model_requests_allowed": 0, "new_fits": 0,
                     "existing_cash_cap_cny": 5, "historical_costs": "unknown", "automatic_retry": False}}
+        if active_plan_pending > 8:
+            result["pending_plan_summary"] = {"project_id": active, "total": active_plan_pending, "shown": 8, "truncated": True}
+        return result
 
     def binding(self):
         with self._connect(readonly=True) as con:
@@ -501,33 +535,118 @@ class LocalWorkbench:
                 self._save(con, body["request_id"], record)
             return response
 
+    @staticmethod
+    def _check_plan_intent(request_id, digest, record):
+        intent = record.get("intent") if type(record) is dict else None
+        fields = {"project_id", "request_sha256", "recovery_version", "body", "snapshot_ref", "state_version",
+                  "run_id", "source_sha256", "source_snapshot_sha256", "project_code_identity", "manager_source_identity", "host_snapshot_sha256"}
+        _require(type(record) is dict and set(record) == {"status", "intent", "result"}
+                 and ((record["status"] == "preparing" and record["result"] is None)
+                      or (record["status"] == "completed" and type(record["result"]) is dict
+                          and record["result"].get("status") == "completed" and record["result"].get("command") == "save_plan"
+                          and record["result"].get("request_id") == request_id))
+                 and type(intent) is dict and set(intent) == fields and intent.get("recovery_version") == PLAN_RECOVERY_VERSION
+                 and type(intent.get("body")) is dict and len(canonical(intent["body"]).encode("utf-8")) <= MAX_PLAN_RECOVERY_BYTES
+                 and _body(intent["body"], ("request_id", "project_id", "expected_state_version", "plan", "reason")) == digest
+                 and intent["request_sha256"] == digest and intent["body"]["request_id"] == request_id
+                 and intent["body"]["project_id"] == intent["project_id"]
+                 and intent["body"]["expected_state_version"] == intent["state_version"]
+                 and type(intent["state_version"]) is int and intent["state_version"] >= 0
+                 and type(intent["body"].get("plan")) is dict and "experience_case_refs" in intent["body"]["plan"]
+                 and all(type(intent.get(k)) is str and re.fullmatch(r"[0-9a-f]{64}", intent[k]) for k in
+                         ("request_sha256", "snapshot_ref", "source_sha256", "source_snapshot_sha256", "project_code_identity",
+                          "manager_source_identity", "host_snapshot_sha256")),
+                 "EVIDENCE_CHANGED", "The original recoverable plan intent changed.")
+        identifier(intent["run_id"], "run_id")
+        if record["status"] == "completed":
+            result = record["result"]
+            _require(set(result) == {"schema_version", "command", "request_id", "project_id", "replayed", "status", "research_plan"}
+                     and result["schema_version"] == "local-workbench-command-v1" and result["project_id"] == intent["project_id"]
+                     and type(result["replayed"]) is bool and type(result["research_plan"]) is dict,
+                     "EVIDENCE_CHANGED", "The original completed plan receipt changed.")
+        return intent
+
     def save_plan(self, body):
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "plan", "reason"))
+        versioned = type(body.get("plan")) is dict and "experience_case_refs" in body["plan"]
         with self._writer():
             with self._connect() as con:
                 _, project = self._project(con, body["project_id"], active=True)
-                self._no_pending_batch(con, body["project_id"], evidence=True)
+                self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
                 old = self._old(con, body, digest)
                 if old is not None and old["status"] == "completed":
-                    if type(body.get("plan")) is dict and "experience_case_refs" in body["plan"]:
+                    if versioned:
+                        if old.get("intent", {}).get("recovery_version") == PLAN_RECOVERY_VERSION:
+                            self._check_plan_intent(body["request_id"], digest, old)
                         revision = project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
                                                      plan=body["plan"], reason=body["reason"], _validate_only=True)
                         _require(revision == old.get("result", {}).get("research_plan"), "EVIDENCE_CHANGED",
                                  "The saved plan receipt differs from its original Project revision.")
                     return self._completed(old)
                 if old is None:
-                    if type(body.get("plan")) is dict and "experience_case_refs" in body["plan"]:
+                    intent = {"project_id": body["project_id"]}
+                    if versioned:
+                        _require(batch_code_identity() == _EXPORT_BOOT_IDENTITY, "CODE_CHANGED", "Restart with the loaded manager source.")
+                        _require(len(canonical(body).encode("utf-8")) <= MAX_PLAN_RECOVERY_BYTES,
+                                 "INVALID_REQUEST", "Original plan request exceeds its recovery bound.")
+                        state = project.status()
+                        project._source(state)
                         project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
                                           plan=body["plan"], reason=body["reason"], _validate_only=True)
-                    self._accept(con, body, digest, "save_plan", {"project_id": body["project_id"]})
+                        _require(project.status()["snapshot_ref"] == state["snapshot_ref"], "STALE_STATE", "Project changed before plan intent.")
+                        intent = {"project_id": state["id"], "request_sha256": digest, "recovery_version": PLAN_RECOVERY_VERSION,
+                                  "body": copy.deepcopy(body), "snapshot_ref": state["snapshot_ref"], "state_version": state["state_version"],
+                                  "run_id": state["run_id"], "source_sha256": state["registration"]["source_sha256"],
+                                  "source_snapshot_sha256": state["source_snapshot_sha256"],
+                                  "project_code_identity": state["code_identity"], "manager_source_identity": batch_code_identity(),
+                                  "host_snapshot_sha256": host_model_snapshot_sha256(project.root)}
+                    self._accept(con, body, digest, "save_plan", intent)
+                elif versioned:
+                    intent = self._check_plan_intent(body["request_id"], digest, old)
+                    state = project.status()
+                    _require(state["id"] == intent["project_id"] and state["run_id"] == intent["run_id"]
+                             and state["registration"]["source_sha256"] == intent["source_sha256"]
+                             and state["source_snapshot_sha256"] == intent["source_snapshot_sha256"]
+                             and state["code_identity"] == intent["project_code_identity"] == project_code_identity()
+                             and batch_code_identity() == _EXPORT_BOOT_IDENTITY == intent["manager_source_identity"],
+                             "CODE_CHANGED", "Use the original project and manager source identities.")
+                    project._source(state)
+                    saved = [item for item in state.get("plan_revisions", []) if item.get("request_id") == body["request_id"]]
+                    _require(len(saved) <= 1, "EVIDENCE_CHANGED", "Multiple saved original plans are ambiguous.")
+                    if not saved:
+                        _require(state["state_version"] == intent["state_version"] and state["snapshot_ref"] == intent["snapshot_ref"]
+                                 and host_model_snapshot_sha256(project.root) == intent["host_snapshot_sha256"],
+                                 "STALE_STATE", "The original unsaved plan snapshot or host state changed.")
             revision = project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
                                          plan=body["plan"], reason=body["reason"])
             response = self._response("save_plan", body["request_id"], body["project_id"], status="completed",
                                       research_plan=revision)
+            if old is not None:
+                response["replayed"] = True
             with self._connect() as con:
                 self._save(con, body["request_id"], {"status": "completed", "result": response,
-                                                    "intent": {"project_id": body["project_id"]}})
+                                                    "intent": intent if versioned else {"project_id": body["project_id"]}})
             return response
+
+    def resume_plan(self, body):
+        _body(body, ("request_id", "project_id"))
+        with self._connect(readonly=True) as con:
+            self._project(con, body["project_id"], active=True)
+            row = con.execute("SELECT digest,record FROM requests WHERE id=? AND command='save_plan'", (body["request_id"],)).fetchone()
+            _require(row is not None, "ARTIFACT_NOT_FOUND", "No original plan request matches this ID.")
+            record = tabular._parse(row["record"].encode("utf-8"))
+            try:
+                intent = self._check_plan_intent(body["request_id"], row["digest"], record)
+            except ResearchError:
+                raise ResearchError("OPERATION_INCOMPLETE", "The original plan body is unavailable or changed; do not reconstruct it.") from None
+            _require(intent["project_id"] == body["project_id"], "EVIDENCE_CHANGED", "The original plan belongs to another Project.")
+            original = copy.deepcopy(intent["body"])
+        result = self.save_plan(original)
+        revision = result["research_plan"]
+        response = self._response("plan-resume", body["request_id"], body["project_id"], status="completed",
+                                  plan_revision={key: revision[key] for key in ("request_id", "version", "based_on_state_version")})
+        response["replayed"] = True
+        return response
 
     def register_hypothesis(self, body):
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "hypothesis"))
@@ -906,8 +1025,8 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        commands = ("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged")
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged')"))
+        commands = ("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":

@@ -10,10 +10,12 @@ import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean };
+type PlanCaseRef = { case_id: string; case_version: number; bundle_sha256: string; applicability_statement: string };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
+const numeric = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(value) : "未记录";
 const names = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 const sameBody = (left: Obj, right: Obj): boolean => Object.keys(left).length === Object.keys(right).length
   && Object.keys(left).every(key => JSON.stringify(left[key]) === JSON.stringify(right[key]));
@@ -110,9 +112,11 @@ function planChangeView(previous: Obj, saved: Obj, projectId: string, modelRecor
     }
     change.append(columns); body.append(change);
   }
+  if (JSON.stringify(previous.experience_case_refs ?? null) !== JSON.stringify(saved.experience_case_refs ?? null))
+    body.append(el("p", "detail-note", "本次操作者声明的案例引用有变化；原版本引用仍保留在修订记录中。"));
   const model = modelRecords.find(record => {
     const outcome = obj(record.outcome), adopted = obj(outcome.research_plan), context = obj(obj(record.context).selection_context), proposal = obj(record.proposal);
-    return record.purpose === "plan" && record.status === "applied" && record.controller_request_id === saved.request_id
+    return !("experience_case_refs" in saved) && record.purpose === "plan" && record.status === "applied" && record.controller_request_id === saved.request_id
       && outcome.kind === "plan_revision" && context.project_id === projectId && context.state_version === saved.based_on_state_version
       && ["request_id", "version", "based_on_state_version"].every(key => adopted[key] === saved[key])
       && planFields.filter(definition => definition.key !== "reason").every(definition => obj(proposal.plan)[definition.key] === adopted[definition.key])
@@ -160,7 +164,7 @@ function planSourceFeedback(project: Obj, saved: Obj): HTMLElement {
 }
 
 function createResearchPlanPanel(deps: {
-  current(): Obj; modelRecords(projectId: string): Obj[]; submit(body: Obj): Promise<Obj | null>;
+  current(): Obj; context(): Obj | null; modelRecords(projectId: string): Obj[]; submit(body: Obj): Promise<Obj | null>;
 }): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
   const section = panel("研究计划", "写下当前问题、准备采取的步骤，以及什么反馈会让你调整路线。"), sourceFeedback = el("div"), preview = el("div", "research-plan-copy");
   section.classList.add("research-plan");
@@ -170,6 +174,11 @@ function createResearchPlanPanel(deps: {
     const control = el("textarea"); control.maxLength = definition.maximum; control.required = definition.required; control.rows = definition.key === "steps" ? 4 : 2;
     inputs.set(definition.key, control); fields.append(field(definition.label, control));
   }
+  const references = el("section", "local-plan-experience"), referenceList = el("div"), referenceStatus = el("p", "detail-note");
+  references.append(el("h4", "", "操作者声明的历史案例引用（可选）"),
+    el("p", "detail-note", "最多选择4个当前有效的案例，并逐条说明适用范围与差异；这是操作者声明，未证明模型采用或科学适用。"),
+    referenceList, referenceStatus);
+  fields.append(references);
   const status = el("p", "detail-note"), save = el("button", "local-primary", "保存计划"), rebase = el("button", "text-button", "按当前版本继续编辑");
   save.type = "submit"; rebase.type = "button"; rebase.hidden = true;
   const actions = el("div", "local-actions"); actions.append(save, rebase); form.append(fields, status, actions); editor.append(summary, form);
@@ -177,20 +186,85 @@ function createResearchPlanPanel(deps: {
   const comparison = el("details", "research-plan-comparison"), comparisonTitle = el("summary"), comparisonBody = el("div");
   comparison.append(comparisonTitle, comparisonBody); comparison.hidden = true;
   section.append(sourceFeedback, preview, comparison, editor, history);
-  const drafts = new Map<string, { values: Record<string, string>; stateVersion: number }>();
+  const drafts = new Map<string, { values: Record<string, string>; stateVersion: number; refs: PlanCaseRef[] }>();
   let projectId = "", stateVersion = 0, locked = true;
+  let selectedRefs: PlanCaseRef[] = [];
   const values = (): Record<string, string> => Object.fromEntries([...inputs].map(([key, control]) => [key, control.value]));
+  const keepDraft = (): void => { if (projectId) drafts.set(projectId, { values: values(), stateVersion, refs: selectedRefs.map(ref => ({ ...ref })) }); };
+  const validIdentity = (caseId: unknown, version: unknown, sha: unknown): boolean => typeof caseId === "string" && !!caseId.trim()
+    && typeof version === "number" && Number.isSafeInteger(version) && version >= 1 && typeof sha === "string" && /^[0-9a-f]{64}$/.test(sha);
+  const sameIdentity = (ref: PlanCaseRef, item: Obj): boolean => ref.case_id === item.case_id && ref.case_version === item.case_version && ref.bundle_sha256 === item.bundle_sha256;
+  function available(): Obj[] | null {
+    const context = deps.context(), project = deps.current();
+    if (!context || context.project_id !== projectId || project.id !== projectId
+        || context.state_version !== project.state_version || context.snapshot_ref !== project.snapshot_ref) return null;
+    return items(obj(context.experience).cases).filter(item => item.inclusion_status === "active"
+      && validIdentity(item.case_id, item.case_version, item.bundle_sha256));
+  }
+  function showSavedRefs(parent: HTMLElement, saved: Obj): void {
+    const envelope = obj(saved.experience_case_refs), refs = items(envelope.items);
+    if (!refs.length) return;
+    parent.append(el("h4", "", "操作者保存的案例声明（未核验适用性）"));
+    for (const ref of refs) parent.append(el("p", "detail-note", text(ref.case_id) + " · v" + numeric(ref.case_version)
+      + " · SHA-256 " + text(ref.bundle_sha256) + " · " + text(ref.applicability_statement)));
+  }
+  function drawReferences(): void {
+    referenceList.replaceChildren();
+    const cases = available();
+    referenceStatus.textContent = cases === null ? "当前案例快照尚未就绪；已选引用不会自动更换，请先只读刷新。"
+      : cases.length ? "勾选当前有效案例；若原版本已撤回或升级，须先移除原身份再明确选择。"
+        : "当前没有可选的有效案例；原计划中的历史声明仍保留。";
+    for (const ref of selectedRefs.filter(item => !cases?.some(candidate => sameIdentity(item, candidate)))) {
+      const row = el("div", "local-plan-reference-unavailable"), remove = el("button", "text-button", "移除不可用的原引用");
+      remove.type = "button"; remove.addEventListener("click", () => {
+        selectedRefs = selectedRefs.filter(item => item !== ref); keepDraft(); drawReferences(); controls();
+      });
+      row.append(el("p", "detail-note", "原身份当前不可用 · " + ref.case_id + " · v" + ref.case_version + " · SHA-256 " + ref.bundle_sha256),
+        el("p", "detail-note", "原声明 · " + ref.applicability_statement), remove); referenceList.append(row);
+    }
+    for (const item of cases ?? []) {
+      const existing = selectedRefs.find(ref => sameIdentity(ref, item));
+      const label = el("label", "local-checkbox"), check = el("input"), note = el("textarea"), block = el("div", "local-plan-reference");
+      check.type = "checkbox"; check.checked = !!existing;
+      const title = text(obj(item.method_card).question, text(item.case_id));
+      check.setAttribute("aria-label", "引用案例 " + text(item.case_id));
+      label.append(check, el("span", "", title + " · " + text(item.case_id) + " · v" + numeric(item.case_version)));
+      note.maxLength = 1000; note.rows = 2; note.required = !!existing; note.value = existing?.applicability_statement ?? "";
+      note.disabled = !existing; note.setAttribute("aria-label", "案例 " + text(item.case_id) + " 的适用范围与差异");
+      note.addEventListener("input", () => { const target = selectedRefs.find(ref => sameIdentity(ref, item));
+        if (target) target.applicability_statement = note.value; keepDraft(); controls(); });
+      check.addEventListener("change", () => {
+        if (check.checked) {
+          if (selectedRefs.length >= 4 || selectedRefs.some(ref => ref.case_id === item.case_id)) {
+            check.checked = false; referenceStatus.textContent = "最多4个不同案例；请先移除同ID的旧身份。"; return;
+          }
+          selectedRefs.push({ case_id: text(item.case_id, ""), case_version: Number(item.case_version),
+            bundle_sha256: text(item.bundle_sha256, ""), applicability_statement: "" });
+        } else selectedRefs = selectedRefs.filter(ref => !sameIdentity(ref, item));
+        keepDraft(); drawReferences(); controls();
+      });
+      block.append(label, el("p", "detail-note", "原快照 SHA-256 · " + text(item.bundle_sha256)),
+        field("适用范围与差异", note)); referenceList.append(block);
+    }
+  }
   function controls(): void {
     const stale = stateVersion !== deps.current().state_version;
-    fields.disabled = locked || !projectId; save.disabled = fields.disabled || stale;
+    const cases = available(), invalidRefs = selectedRefs.some(ref => !cases?.some(item => sameIdentity(ref, item))
+      || !ref.applicability_statement.trim() || ref.applicability_statement.length > 1000 || ref.applicability_statement.includes("\0"));
+    fields.disabled = locked || !projectId; save.disabled = fields.disabled || stale || invalidRefs;
     rebase.hidden = !projectId || !stale; rebase.disabled = locked;
-    status.textContent = stale ? "项目已更新，草稿已保留。核对当前计划后，可按当前版本继续编辑。" : "保存后进入项目记录，下一次模型选择会读取当前计划。";
+    status.textContent = stale ? "项目已更新，草稿已保留。核对当前计划后，可按当前版本继续编辑。"
+      : invalidRefs ? "请核对每条所选案例的原身份与适用说明；不可用身份不会自动替换。"
+        : "保存后进入项目记录；新计划不会自动更新已有登记，原反馈可能变为未知或最终评价被阻断。";
   }
   function update(project: Obj): void {
     if (projectId !== project.id) comparison.open = false;
     projectId = text(project.id, ""); section.hidden = !projectId;
     const plan = obj(project.research_plan), saved = obj(plan.current), draft = drafts.get(projectId);
     stateVersion = draft?.stateVersion ?? Number(project.state_version);
+    selectedRefs = draft ? draft.refs.map(ref => ({ ...ref })) : items(obj(saved.experience_case_refs).items).map(ref => ({
+      case_id: text(ref.case_id, ""), case_version: Number(ref.case_version), bundle_sha256: text(ref.bundle_sha256, ""),
+      applicability_statement: text(ref.applicability_statement, "") }));
     summary.textContent = typeof saved.version === "number" ? "修订计划 · 当前第" + saved.version + "版" : "编写计划";
     preview.replaceChildren();
     sourceFeedback.replaceChildren();
@@ -201,6 +275,7 @@ function createResearchPlanPanel(deps: {
         el("h3", "", text(saved.question)), el("p", "research-plan-steps", text(saved.steps)));
       if (saved.basis) route.append(el("h4", "", "依据与材料"), el("p", "", text(saved.basis)));
       feedback.append(el("h4", "", "预期反馈与调整"), el("p", "", text(saved.expected_feedback)), el("h4", "", "本次修订依据"), el("p", "", text(saved.reason)));
+      showSavedRefs(feedback, saved);
       preview.append(route, feedback);
     } else preview.append(el("p", "detail-note", "当前项目尚未保存研究计划，可以从本轮问题开始编写。"));
     for (const [key, control] of inputs) control.value = draft ? draft.values[key] : key === "reason" ? "" : text(saved[key], key === "question" ? text(project.goal, "") : "");
@@ -215,18 +290,22 @@ function createResearchPlanPanel(deps: {
       const record = el("details"), heading = el("summary", "", "第" + revision.version + "版 · " + text(revision.reason));
       record.append(heading, el("p", "", text(revision.question)), el("p", "research-plan-steps", text(revision.steps)), el("p", "", "预期反馈与调整 · " + text(revision.expected_feedback)));
       if (revision.basis) record.append(el("p", "", "依据与材料 · " + text(revision.basis)));
+      showSavedRefs(record, revision);
       historyBody.append(record);
     }
+    drawReferences();
     controls();
   }
-  form.addEventListener("input", () => { if (projectId) drafts.set(projectId, { values: values(), stateVersion }); });
+  form.addEventListener("input", keepDraft);
   rebase.addEventListener("click", () => {
-    stateVersion = Number(deps.current().state_version); drafts.set(projectId, { values: values(), stateVersion }); controls();
+    stateVersion = Number(deps.current().state_version); keepDraft(); drawReferences(); controls();
   });
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (save.disabled || !form.reportValidity()) return;
-    const submittedProject = projectId, content = values(), { reason, ...plan } = content;
-    drafts.set(projectId, { values: content, stateVersion });
+    const submittedProject = projectId, content = values(), { reason, ...planText } = content;
+    const plan: Obj = { ...planText };
+    if (selectedRefs.length) plan.experience_case_refs = { schema_version: "project-plan-experience-refs-v1", items: selectedRefs.map(ref => ({ ...ref })) };
+    keepDraft();
     const result = await deps.submit({ project_id: projectId, expected_state_version: stateVersion, plan, reason });
     if (result?.status === "completed") { drafts.delete(submittedProject); update(deps.current()); editor.open = false; summary.focus(); }
   });
@@ -356,11 +435,13 @@ export async function mountLocalWorkbench(): Promise<void> {
   const evidencePending = new Map<string, Pending>();
   const selectedRoles = (kind: string): string[] => headers.filter(name => roleInputs.get(name)?.[kind].checked);
   const activeId = (): string => text(description.active_project_id, "");
-  const serverPending = (projectId = activeId()): boolean => items(description.pending_requests).some(record => record.command !== "evidence" || !record.project_id || record.project_id === projectId);
+  const scopedPending = (command: string): boolean => ["evidence", "save_plan"].includes(command);
+  const serverPending = (projectId = activeId()): boolean => items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
   const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
-  const uncertain = (projectId = activeId()): boolean => !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain && (lastRequest.command !== "evidence" || requestProject(lastRequest) === projectId);
-  const navigationBlocked = (): boolean => items(description.pending_requests).some(record => !["batch", "continue", "evidence"].includes(text(record.command, "")))
-    || !!lastRequest?.uncertain && !["batch", "continue", "evidence"].includes(lastRequest.command);
+  const uncertain = (projectId = activeId()): boolean => !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
+    && (!["evidence", "plan", "plan-resume"].includes(lastRequest.command) || requestProject(lastRequest) === projectId);
+  const navigationBlocked = (): boolean => items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
+    || !!lastRequest?.uncertain && !["batch", "continue", "evidence", "plan", "plan-resume"].includes(lastRequest.command);
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
   const experiencePanel = createLocalExperiencePanel({ read, submit: (name, body, recover) => submit(recover
@@ -377,7 +458,7 @@ export async function mountLocalWorkbench(): Promise<void> {
   const recipePanel = createLocalRecipePanel({ read, preview: body => previewLocal("recipe-preview", body),
     submit: (name, body) => submit(command(name, body)), announce });
   const designPanel = createResearchDesignPanel({ read, submit: (name, body) => submit(command(name, body)), announce });
-  const planPanel = createResearchPlanPanel({ current: () => current, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
+  const planPanel = createResearchPlanPanel({ current: () => current, context: () => context, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
@@ -458,10 +539,37 @@ export async function mountLocalWorkbench(): Promise<void> {
       ? "有原推进记录尚未收口。请在继续研究中核对原阶段；计划建议需先采用或拒绝，未知行动不会重发。"
       : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
     else if (remembered.request_id) pendingNotice.append(el("strong", "", "上次浏览器提交尚需对照保存记录核对；没有自动重发。"));
-    for (const record of records) pendingNotice.append(el("p", "detail-note", text(record.command) + " · " + text(record.request_id) + " · " + text(record.status) + (record.project_id ? " · 项目 " + text(record.project_id) : "")));
+    const planSummary = obj(description.pending_plan_summary);
+    if (planSummary.truncated === true && planSummary.project_id === activeId())
+      pendingNotice.append(el("p", "detail-note", "当前项目有 " + numeric(planSummary.total) + " 条未收口计划，仅显示前 " + numeric(planSummary.shown) + " 条；多个原请求可能互相阻断，须人工核对，不能新建替代请求。"));
+    for (const record of records) {
+      const row = el("div", "local-pending-row");
+      row.append(el("p", "detail-note", text(record.command) + " · " + text(record.request_id) + " · " + text(record.status) + (record.project_id ? " · 项目 " + text(record.project_id) : "")));
+      if (record.command === "save_plan") {
+        if (record.recovery === "original_body_available") {
+          const button = el("button", "text-button", "核对并继续原计划请求"); button.type = "button";
+          const body = { request_id: text(record.request_id, ""), project_id: text(record.project_id, "") };
+          button.disabled = !canRecoverPlan(body);
+          button.addEventListener("click", () => { if (!button.disabled) void submit({ command: "plan-resume", requestId: body.request_id,
+            body: JSON.stringify(body), uncertain: false, recoverPlan: true }); });
+          row.append(el("p", "detail-note", "若原计划尚未写入，将以原内容和原ID继续保存；若已写入，仅补原回执。不是新请求，也不会自动执行。"), button);
+        } else row.append(el("p", "detail-note", "旧记录或损坏记录没有可核验的原正文；状态未知，不能自动重建或用新ID绕过。"));
+      }
+      pendingNotice.append(row);
+    }
     for (const pending of evidencePending.values()) if (pending.uncertain && !records.some(record => record.request_id === pending.requestId)) pendingNotice.append(el("p", "detail-note", "evidence · 原ID " + pending.requestId + " · 结果待核对 · 项目 " + requestProject(pending)));
     if (batchUncertain && !records.some(record => record.request_id === batchUncertain?.requestId)) pendingNotice.append(el("p", "detail-note", "batch · 原ID " + batchUncertain.requestId + " · 结果待核对；可切回原项目，新提交保持锁定。"));
     if (remembered.request_id && !records.some(record => record.request_id === remembered.request_id)) pendingNotice.append(el("p", "detail-note", text(remembered.command) + " · 原ID " + text(remembered.request_id)));
+  }
+  function canRecoverPlan(body: Obj): boolean {
+    const plan = items(description.pending_requests).find(item => item.command === "save_plan" && item.request_id === body.request_id
+      && item.project_id === body.project_id && item.recovery === "original_body_available");
+    if (busy || description.enabled !== true || !plan || body.project_id !== activeId() || current.id !== activeId()
+        || obj(description.pending_plan_summary).truncated === true || unknownExecution() || modelPanel.pending()) return false;
+    if (items(description.pending_requests).some(item => item.request_id !== body.request_id
+        && (!scopedPending(text(item.command, "")) || !item.project_id || item.project_id === body.project_id))) return false;
+    if (lastRequest?.uncertain && lastRequest.requestId !== body.request_id && requestProject(lastRequest) === body.project_id) return false;
+    return !batchUncertain && !evidencePending.get(text(body.project_id, ""))?.uncertain;
   }
   function revealPendingOperations(): void {
     const projectId = activeId(); if (!projectId || current.id !== projectId) return;
@@ -679,10 +787,14 @@ export async function mountLocalWorkbench(): Promise<void> {
       catch (error) { planPanel.update({}); feedbackPanel.update({}); await workspacePages.update({}, null); throw error; }
       const savedPlanIds = new Set(items(obj(current.research_plan).revisions).map(revision => revision.request_id));
       const savedFeedbackIds = new Set(items(current.researcher_feedback).map(record => record.request_id));
-      if (lastRequest && (lastRequest.command === "plan" && savedPlanIds.has(lastRequest.requestId) || lastRequest.command === "feedback" && savedFeedbackIds.has(lastRequest.requestId))) lastRequest = null;
+      const pendingPlans = new Set(items(description.pending_requests).filter(record => record.command === "save_plan").map(record => record.request_id));
+      if (lastRequest && ((lastRequest.command === "plan" || lastRequest.command === "plan-resume")
+          && savedPlanIds.has(lastRequest.requestId) && !pendingPlans.has(lastRequest.requestId)
+          || lastRequest.command === "feedback" && savedFeedbackIds.has(lastRequest.requestId))) lastRequest = null;
       try {
         const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
-        if (remembered.command === "plan" && savedPlanIds.has(remembered.request_id) || remembered.command === "feedback" && savedFeedbackIds.has(remembered.request_id)) sessionStorage.removeItem(PENDING_KEY);
+        if ((remembered.command === "plan" || remembered.command === "plan-resume") && savedPlanIds.has(remembered.request_id)
+            && !pendingPlans.has(remembered.request_id) || remembered.command === "feedback" && savedFeedbackIds.has(remembered.request_id)) sessionStorage.removeItem(PENDING_KEY);
       } catch { /* The project record remains available when browser storage is unavailable. */ }
       showPending();
       try {
@@ -723,12 +835,14 @@ export async function mountLocalWorkbench(): Promise<void> {
       && canRecoverBatch(obj(JSON.parse(pending.body)), pending.command);
     const recoverModel = pending.recoverModel === true && canRecoverModel(obj(JSON.parse(pending.body)));
     const recoverExperience = pending.recoverExperience === true && pending.command === "experience-resume" && canRecoverExperience(obj(JSON.parse(pending.body)));
+    const recoverPlan = pending.recoverPlan === true && pending.command === "plan-resume" && canRecoverPlan(obj(JSON.parse(pending.body)));
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
     if (pending.recoverExperience && !recoverExperience) { announce("请先只读刷新，核对本项目的原案例请求；不会用新文件或参数重建操作。", true); return null; }
+    if (pending.recoverPlan && !recoverPlan) { announce("请先只读刷新并核对原计划请求；不会用当前草稿重建或创建新ID。", true); return null; }
     const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && !recoverModel && !recoverExperience && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
     const modelCommand = MODEL_COMMANDS.has(pending.command);
     const continuation = pending.command === "continue" ? obj(JSON.parse(pending.body)) : {};
     const modelContinuation = pending.command === "continue" && (continuation.plan_mode === "suggest" || continuation.execution_mode === "model");
@@ -778,6 +892,7 @@ export async function mountLocalWorkbench(): Promise<void> {
               : "配方请求已保存，请核对实际行动和原请求状态；没有自动继续。";
         }
         if (pending.command === "plan") outcomeMessage = "研究计划已保存。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
+        if (pending.command === "plan-resume") outcomeMessage = "原计划请求已核对；如此前尚未写入，本次已按原正文保存，否则仅补原回执。未创建新ID。";
         if (pending.command === "recipe-adopt") outcomeMessage = "外环决定已写入项目，后续配方决策将读取当前有效版本。";
         if (pending.command === "design-bind") outcomeMessage = "研究设计与输入声明已保存。请核对检查计划，再明确执行下一项验证。";
         if (pending.command === "design-improve") outcomeMessage = "已根据实际反馈保存候选新版，可在知识空间查看，并明确选择采用。";
@@ -827,7 +942,8 @@ export async function mountLocalWorkbench(): Promise<void> {
         outcomeMessage = "已从保存记录确认原任务阶段，没有重新发送。" + continuationStopReason(obj(saved.stop));
       }
     }
-    if (pending.command === "plan" && items(obj(current.research_plan).revisions).some(revision => revision.request_id === pending.requestId)) {
+    if (pending.command === "plan" && !items(description.pending_requests).some(record => record.command === "save_plan" && record.request_id === pending.requestId)
+        && items(obj(current.research_plan).revisions).some(revision => revision.request_id === pending.requestId)) {
       pending.uncertain = false; failed = false; accepted = { status: "completed" }; lastRequest = null;
       outcomeMessage = "研究计划已从保存记录中确认。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
     }
