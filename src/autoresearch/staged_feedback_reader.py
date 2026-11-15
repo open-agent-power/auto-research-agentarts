@@ -5,6 +5,7 @@ No final package, ranking, qrel scoring, fitting, recovery or dispatch occurs.
 from . import staged_project_experience as evidence, staged_relevance_adapter as staged
 import copy
 import hashlib
+import math
 from pathlib import Path
 
 from . import retrieval_lexical as lexical, saved_retrieval_reader as legacy
@@ -173,4 +174,110 @@ def read_adverse_query(project, state, *, action_id, query_id, split):
                 "contract": contract, "query": {"id": query_id, "split": split, "text": query_text[:4096],
                 "text_truncated": len(query_text) > 4096, "line": query_lines[query_id],
                 "source_sha256": source["assets"]["queries"]["sha256"]}, "category": legacy._category(row), "arms": arms}
+    return _finish(project, state, action, value, response)
+
+
+STABILITY_METRICS = ("recall@20", "mrr@10")
+STABILITY_EPSILON = 1e-12
+
+
+def _stability_sign(value):
+    return 1 if value > STABILITY_EPSILON else -1 if value < -STABILITY_EPSILON else 0
+
+
+def _stability_aggregate(deltas, saved):
+    """Summarize every saved pair; leave one query out without treating it as an independent sample."""
+    n = len(deltas)
+    _require(n >= 1 and all(type(x) in (int, float) and math.isfinite(x) and -1 <= x <= 1 for x in deltas))
+    mean = math.fsum(deltas) / n
+    wins = sum(_stability_sign(x) == 1 for x in deltas)
+    losses = sum(_stability_sign(x) == -1 for x in deltas)
+    ties = n - wins - losses
+    _require(type(saved) is dict and all(type(saved.get(key)) is int and saved[key] == expected
+             for key, expected in (("wins", wins), ("losses", losses), ("ties", ties)))
+             and type(saved.get("mean")) in (int, float) and math.isfinite(saved["mean"])
+             and math.isclose(mean, saved["mean"], abs_tol=STABILITY_EPSILON, rel_tol=0))
+    sign = _stability_sign(mean)
+    if n < 2:
+        loo = {"minimum": None, "maximum": None, "positive": None, "negative": None, "near_zero": None,
+               "original_mean_sign": sign, "to_near_zero": None, "to_opposite_sign": None, "reason": "fewer_than_two_queries"}
+    else:
+        values = [math.fsum(deltas[:i] + deltas[i + 1:]) / (n - 1) for i in range(n)]
+        positive = sum(_stability_sign(x) == 1 for x in values)
+        negative = sum(_stability_sign(x) == -1 for x in values)
+        near_zero = n - positive - negative
+        loo = {"minimum": min(values), "maximum": max(values), "positive": positive, "negative": negative,
+               "near_zero": near_zero, "original_mean_sign": sign,
+               "to_near_zero": near_zero if sign else None,
+               "to_opposite_sign": (negative if sign > 0 else positive) if sign else None, "reason": None}
+    return {"queries": n, "saved_mean": saved["mean"], "checked_fsum_mean": mean,
+            "wins": wins, "losses": losses, "ties": ties, "leave_one_out": loo}
+
+
+def validate_stability_aggregate(metrics):
+    """Check bounded frozen arithmetic relationships without claiming source provenance."""
+    try:
+        _require(type(metrics) is dict and set(metrics) == set(STABILITY_METRICS))
+        totals = []
+        for item in metrics.values():
+            _require(type(item) is dict and set(item) == {"queries", "saved_mean", "checked_fsum_mean", "wins", "losses", "ties", "leave_one_out"})
+            n = item["queries"]; totals.append(n)
+            _require(type(n) is int and 1 <= n <= staged.LIMITS["max_queries"]
+                     and all(type(item[k]) in (int, float) and -1 <= item[k] <= 1 and math.isfinite(item[k])
+                             for k in ("saved_mean", "checked_fsum_mean"))
+                     and math.isclose(item["saved_mean"], item["checked_fsum_mean"], abs_tol=STABILITY_EPSILON, rel_tol=0)
+                     and all(type(item[k]) is int and 0 <= item[k] <= n for k in ("wins", "losses", "ties"))
+                     and item["wins"] + item["losses"] + item["ties"] == n
+                     and (item["wins"] > 0 or item["checked_fsum_mean"] <= STABILITY_EPSILON)
+                     and (item["losses"] > 0 or item["checked_fsum_mean"] >= -STABILITY_EPSILON))
+            loo = item["leave_one_out"]
+            _require(type(loo) is dict and set(loo) == {"minimum", "maximum", "positive", "negative", "near_zero",
+                    "original_mean_sign", "to_near_zero", "to_opposite_sign", "reason"}
+                    and type(loo["original_mean_sign"]) is int and loo["original_mean_sign"] == _stability_sign(item["checked_fsum_mean"]))
+            if n < 2:
+                _require(loo["reason"] == "fewer_than_two_queries" and all(loo[k] is None for k in
+                         ("minimum", "maximum", "positive", "negative", "near_zero", "to_near_zero", "to_opposite_sign")))
+                continue
+            _require(loo["reason"] is None and all(type(loo[k]) in (int, float) and -1 <= loo[k] <= 1 and math.isfinite(loo[k])
+                     for k in ("minimum", "maximum")) and loo["minimum"] <= loo["maximum"]
+                     and all(type(loo[k]) is int and 0 <= loo[k] <= n for k in ("positive", "negative", "near_zero"))
+                     and loo["positive"] + loo["negative"] + loo["near_zero"] == n
+                     and (loo["positive"] > 0) == (_stability_sign(loo["maximum"]) == 1)
+                     and (loo["negative"] > 0) == (_stability_sign(loo["minimum"]) == -1)
+                     and (_stability_sign(loo["minimum"]) != 1 or loo["positive"] == n)
+                     and (_stability_sign(loo["maximum"]) != -1 or loo["negative"] == n)
+                     and (not (_stability_sign(loo["minimum"]) == 0 and _stability_sign(loo["maximum"]) == 0)
+                          or loo["near_zero"] == n)
+                     and loo["minimum"] - STABILITY_EPSILON <= item["checked_fsum_mean"] <= loo["maximum"] + STABILITY_EPSILON)
+            sign = loo["original_mean_sign"]
+            if sign == 0:
+                _require(loo["to_near_zero"] is None and loo["to_opposite_sign"] is None)
+            else:
+                _require(type(loo["to_near_zero"]) is int and loo["to_near_zero"] == loo["near_zero"]
+                         and type(loo["to_opposite_sign"]) is int
+                         and loo["to_opposite_sign"] == (loo["negative"] if sign > 0 else loo["positive"]))
+        _require(totals[0] == totals[1])
+        return metrics
+    except ResearchError:
+        raise
+    except (KeyError, TypeError, ValueError, OverflowError, RecursionError):
+        raise ResearchError("EVIDENCE_CHANGED", "Saved validation stability is malformed.") from None
+
+
+def read_validation_stability(project, state, *, action_id):
+    """Bounded retrospective validation-only description from one original primary."""
+    action, value, binding, origin, _ = _view(project, state, action_id)
+    qids = sorted(value["source"]["spec"]["query_splits"]["validation"])
+    _require(bool(qids) and len(qids) == len(set(qids)))
+    metrics = {}
+    for metric in STABILITY_METRICS:
+        deltas = [value["metrics"][("validation", qid, "tfidf_cosine")]["metrics"][metric]
+                  - value["metrics"][("validation", qid, "bm25")]["metrics"][metric] for qid in qids]
+        saved = value["summary"]["splits"]["validation"]["paired_candidate_minus_baseline"][metric]
+        metrics[metric] = _stability_aggregate(deltas, saved)
+    validate_stability_aggregate(metrics)
+    response = {"schema_version": "saved-staged-validation-stability-v1", "binding": binding, "origin": origin,
+                "contract": {"id": staged.CONTRACT, "split": "validation", "baseline": "bm25",
+                             "candidate": "tfidf_cosine", "epsilon": STABILITY_EPSILON},
+                "metrics": metrics, "scientific_validation": False}
     return _finish(project, state, action, value, response)

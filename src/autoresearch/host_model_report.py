@@ -185,6 +185,11 @@ def supplied_material_summaries(record) -> list:
         return []
     summaries = []
     for material in context["supplied_materials"]:
+        if type(material) is dict and material.get("kind") == "staged_validation_stability":
+            summaries.append({key: copy.deepcopy(material[key]) for key in
+                              ("kind", "action_id", "result_sha256", "artifact_ref", "binding", "origin", "producer",
+                               "contract", "coverage", "source_text_included", "scientific_validation") if key in material})
+            continue
         if type(material) is dict and material.get("kind") == "staged_retrieval_adverse_query":
             summary = {key: copy.deepcopy(material[key]) for key in
                        ("kind", "action_id", "result_sha256", "artifact_ref", "binding", "origin", "producer",

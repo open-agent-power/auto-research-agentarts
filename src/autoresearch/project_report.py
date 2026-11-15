@@ -523,6 +523,12 @@ def _supplied_material_rows(report):
     rows = []
     for record in report["host_models"]["records"]:
         for material in host_model_report.supplied_material_summaries(record):
+            if material.get("kind") == "staged_validation_stability":
+                rows.extend([["请求 / 检索行动", record["request_id"] + " / " + material.get("action_id", "未记录")],
+                             ["验证范围", "保存validation配对与单题移除摘要"],
+                             ["保存结果 SHA256", material.get("result_sha256", "未记录")],
+                             ["供应范围", material.get("coverage", "未记录")]])
+                continue
             if material.get("kind") in ("retrieval_adverse_query", "staged_retrieval_adverse_query"):
                 query = material.get("query", {})
                 rows.extend([["请求 / 检索行动", record["request_id"] + " / " + material.get("action_id", "未记录")],

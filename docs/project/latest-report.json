@@ -1,127 +1,33 @@
 {
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
-  "start_time": "2026-11-15T07:44:27+08:00",
-  "end_time": "2026-11-15T08:09:49.583394+08:00",
-  "last_checkpoint": "2026-11-15T08:09:49.583394+08:00",
-  "end_time_scope": "Final work/handoff checkpoint before ordinary commit/push and lease release; actual release receipt stored separately",
-  "status": "S059_S060_verified_published_code_final_handoff",
-  "repository": "/workspace/development-continuation-20261114/auto-research-agentarts",
-  "origin": "https://github.com/open-agent-power/auto-research-agentarts.git",
-  "confirmed_commit": "4e17a63af164cd8d0cb49a1e5a3feae458df459d",
-  "verified_commits": {
-    "S059_product_and_contract": "030af51c4ff06813d08a5f75610dea9f6573ad26",
-    "S060_analysis_code_and_frozen_protocol_before_execution": "4e17a63af164cd8d0cb49a1e5a3feae458df459d"
-  },
-  "workflow": {
-    "remote_commit": "02e72e3e411bec53db2288651df01afb27d8904d",
-    "version": "0.3.1",
-    "remote_head_rechecked": true,
-    "installed_seven_files_hash_rechecked": true,
-    "dev_system": "archived_disabled",
-    "methods": [
-      "project router/backend/interfaces/evaluation",
-      "native saved IR metrics, SQLite parent/child/source binding",
-      "fixed two-predicate conjunction, no arbitrary expression",
-      "paired all-query counts and leave-one-out influence, no p/CI inference"
-    ],
-    "team": "root and reused engineering/capability_review; implementation and independent review separated; no new agents"
-  },
+  "start_time": "2026-11-15T09:44:02+08:00",
+  "end_time": "2026-11-15T09:54:42.666181+08:00",
+  "status": "S061_verified_pending_publication",
+  "source_freeze_sha256": "b12815a63cec2fade229f61486dcc0d2be86e823abe7c20678b73289b0b3fbb8",
+  "core_identity": "49db2282583ae82090963d129ed348bfa674261ec166c6ac2e68dc8d671e296b",
+  "base_commit": "968cdf1e2c7e09cd01f6f964eb41a83b5ecc2c5a",
   "completed": [
-    "S059 new staged-only preregistered two-metric AND uses single original primary checked summary, all-or-nothing unknown, original scalar v1/wire preserved",
-    "S059 49 related final and6 independent pure mechanism probes passed;3 actual synthetic HTTP paths and independent original bindings checked;3 exact new-process original-body replays preserved response/state/budget/public files",
-    "Actual original S054 scalar feedback/notice/state/budget old72b versus newreader byte-identical; no retrospective hypothesis registration",
-    "S060 retrospective analysis script/protocol committed and pushed before computation; actual saved validation200 queries across2metrics ->400 pairs/400 leave-one-out means; independent original source/SQL/summary and every value checked",
-    "S054 validation R20 gain1win0loss99ties, omitting1query yieldszero; MRR7wins10losses83ties and one query removal changes mean sign",
-    "S046 validation R20 loss0wins1loss99ties, omitting1query yieldszero; MRR1win12losses87ties remainsnegative in each single-query exclusion",
-    "Original S04636/S05017/S05447 files equal original inventories, scientific budgets/sourcepins unchanged;100 protected files",
-    "AAW remote still02e72e3, all7 installed file hashes rechecked; no restoration of old cloud history"
+    "S061 plan-only saved validation stability material, original saved source and project bindings",
+    "42 author related checks, 5 independent probes, real S046 and S054 readonly comparisons against S060"
   ],
-  "not_completed": [
-    "S050 new single model call remains unapproved/no launch; previous S035 exhausted approval not reused",
-    "Autonomous model-driven iterative research benefit not demonstrated by these engineering/descriptive increments",
-    "Prior S058 archive upload401 still unresolved; no new evidence and no retry this round, no remote delivery",
-    "Original cloud disk/history/reference8 remain unavailable, global original executor unknown; not fullGates/OS/sealed/RSI"
+  "limitations": [
+    "No real model selection or new research gain",
+    "No change to frozen strategy or old research budget",
+    "Whole plan can read primary for other existing feedback; material reader itself checks once",
+    "Read only public original source and primary; private path guard is not OS isolation"
   ],
-  "verification": {
-    "S059_root_related": 49,
-    "S059_independent_pure": 6,
-    "S059_actual_synthetic_HTTP_cases": 3,
-    "S059_exact_fresh_process_replays": 3,
-    "S059_core": "a05f668cb8de230b134ab4e0394c17297b7aa5cd026c378172bce2001325b4b5",
-    "S059_fixed_source_freeze_sha256": "4903d279ad6a31045de7b1ec4090cdd29cc67dbfa73c501e050d075d853c98dd",
-    "S059_original_v1_bytes_identical": true,
-    "S060_arithmetic_boundaries": 3,
-    "S060_original_pairs_independently_verified": 400,
-    "S060_original_LOO_independently_verified": 400,
-    "S060_output_sha256": "9c4d2d8bc1297856b89317e4f279cca030f756e3e5e1635ab3d98bece06e7d38",
-    "S060_python_optimization": 0,
-    "original_cases_unchanged": {
-      "S046": 36,
-      "S050": 17,
-      "S054": 47
-    },
-    "private_io_scope": "Analysis/feedback/wait/replay guards block private/final; synthetic audit final/report authorized private read. Full integrity hashes outside guards read private-marked bytes; no blanket zero-private-IO claim."
-  },
-  "actual_research_results": {
-    "scope": "New analysis of existing public saved validation, not a new experiment or new scientific benefit",
-    "results": "docs/execution/g5-local/saved-validation-stability-results.json",
-    "generalization": "unknown",
-    "global_promotion": false,
-    "old_final_metrics_or_decisions_changed": false
-  },
-  "research_usage": {
-    "new_native_research_projects": 0,
-    "new_native_research_actions": 0,
-    "new_research_model_calls": 0,
-    "new_research_fits": 0,
-    "new_research_index_ranking_scoring": 0,
-    "engineering_HTTP_native_tool_counts": [
-      3,
-      1,
-      0
-    ],
-    "engineering_dispatches_overall": "not separately metered",
-    "descriptive_saved_pairs": 400,
-    "descriptive_leave_one_out_means": 400,
-    "development_tokens": "unknown",
-    "development_cost": "unknown",
-    "old_cases_reset": false
-  },
-  "failures_this_round": [
-    "initial source v1 canonical check tightened old behavior; retained191-source snapshot, restored v1 original equality in final",
-    "initial root HTTP fixture source directory included workspace; existing product gate rejected before dispatch; initial runner/log/failed directory retained",
-    "S060 negative/sensitive results retained; no claim that an observed1pp gain is general improvement",
-    "Independent reviewer initially guessed wrong test filename for read-only lookup, corrected via manifest; both actual recomputations exit0/empty stderr, no invented computation failure"
+  "failures": [
+    "Initial author fixture source/workspace overlap rejected before dispatch; preserved",
+    "Initial independent spy assumed entire plan had only one primary read; corrected to check separate reader and feedback calls; initial failure retained"
   ],
-  "activity": {
-    "owner": "root-g5-continuation-20261115T0744",
-    "root": "Finalizing underlease; release after commit/push, actual receipt runs/s060-closing/lease-release.json",
-    "engineering": "completed, no active assigned work",
-    "capability_review": "completed independent acceptance, no active assigned work",
-    "active_assigned_subagents": 0,
-    "old_disk_executor": "unknown"
-  },
-  "next": "Prioritize real model-driven feedback selection when existing S050 one-call approval is explicitly received; otherwise select independent authorized zero-model work from current evidence, do not reset exhausted cases. Archive upload requires new credential evidence then official upload/download SHA verification. At next trigger recheck actual lease/origin/source/unchanged evidence.",
-  "user_decision_required": "Existing S050 new1-call request still pending, no repeated question or inferred approval; no repeated Worker request",
-  "automation": {
-    "id": "Automation_edb903b958e0819192a39990b23d9ab7",
-    "last_run_marker": "2026-11-14T23:44:16.802212+00:00",
-    "next_planned_trigger": "2026-11-15T10:47:27+08:00",
-    "completion": "unknown",
-    "notification_delivery": "unknown"
-  },
-  "evidence": [
-    "docs/execution/SPRINT-059.md",
-    "docs/execution/g5-local/conjunctive-validation-verification.json",
-    "runs/s059-review/independent-assessment.md",
-    "runs/s059-verification/http-fixed/result.json",
-    "docs/execution/SPRINT-060.md",
-    "docs/execution/g5-local/saved-validation-stability-protocol-v1.json",
-    "docs/execution/g5-local/saved-validation-stability-results.json",
-    "runs/s060-verification/original-validation-audit.json",
-    "runs/s060-review/independent-assessment.md",
-    "runs/s060-review/independent-check-v2.json"
-  ],
-  "source_pin": "/workspace/development-continuation-20261114/source-pins/4e17a63"
+  "research_actions": 0,
+  "research_models": 0,
+  "research_fits": 0,
+  "development_cost": "unknown",
+  "lease_owner": "root-continuation-20261115T0944",
+  "next": "Publish verified increment; continue autonomous research under existing budget, S050 still pending explicit one-call approval",
+  "next_planned_trigger": "2026-11-15T10:47:27+08:00",
+  "automation_completion": "unknown",
+  "delivery": "unknown"
 }

@@ -10,6 +10,7 @@ from .project_selection import _hash, _text
 FIELDS = ("groups", "folds", "rows")
 RETRIEVAL_KIND = "retrieval_adverse_query"
 STAGED_RETRIEVAL_KIND = "staged_retrieval_adverse_query"
+STABILITY_KIND = "staged_validation_stability"
 MAX_RETRIEVAL_SELECTORS = 4
 METHODS = {"data.saved-oof-random-diagnostics": ("random_cv", "data.ridge-random-validation"),
            "data.saved-oof-group-diagnostics": ("group_cv", "data.ridge-group-validation")}
@@ -29,6 +30,15 @@ def normalize_requests(value):
     _require(type(value) is list, "Saved materials must be an array of explicit saved diagnostic selectors.", code)
     known, queries = set(), set()
     for item in value:
+        if type(item) is dict and item.get("kind") == STABILITY_KIND:
+            _require(set(item) == {"kind", "action_id", "result_sha256"}
+                     and _text(item["action_id"], 160) and _hash(item["result_sha256"]),
+                     "Select the exact original staged primary action and result.", code)
+            identity = (item["action_id"], None, None)
+            _require(identity not in queries and len(queries) < MAX_RETRIEVAL_SELECTORS,
+                     "Use at most four distinct saved retrieval selectors.", code)
+            queries.add(identity)
+            continue
         if type(item) is dict and item.get("kind") in (RETRIEVAL_KIND, STAGED_RETRIEVAL_KIND):
             _require(set(item) == {"kind", "action_id", "result_sha256", "split", "query_id"}
                      and _text(item["action_id"], 160) and _hash(item["result_sha256"])
@@ -324,6 +334,9 @@ def materialize(project, state, normalized_requests):
         _require(len(matches) == 1 and matches[0].get("result_sha256") == request["result_sha256"],
                  "The selected diagnostic action or exact result SHA is unavailable.")
         action = matches[0]
+        if request.get("kind") == STABILITY_KIND:
+            materials.append(_stability_material(project, state, action, request))
+            continue
         if request.get("kind") == RETRIEVAL_KIND:
             materials.append(_retrieval_material(project, state, action, request))
             continue
@@ -351,6 +364,9 @@ def validate_supplied(context):
     feedback = {item["action_id"]: item for item in context["feedback"]}
     known, queries = set(), set()
     for material in materials:
+        if type(material) is dict and material.get("kind") == STABILITY_KIND:
+            _validate_stability_material(context, material, feedback, queries)
+            continue
         if type(material) is dict and material.get("kind") == RETRIEVAL_KIND:
             _validate_retrieval_material(context, material, feedback, queries)
             continue
@@ -556,3 +572,79 @@ def _validate_staged_retrieval_material(context, material, feedback, seen):
         raise
     except (KeyError, TypeError, ValueError, OverflowError, RecursionError):
         raise ResearchError(code, "Malformed staged saved query material.") from None
+
+
+def _stability_material(project, state, action, request):
+    from . import staged_feedback_reader as reader, staged_relevance_adapter as staged
+    _require(action.get("command") == staged.TOOL_ID and action.get("status") == "completed",
+             "Stability material requires the original completed staged primary.")
+    value = reader.read_validation_stability(project, state, action_id=action["id"])
+    binding = value["binding"]
+    _require(binding["project_id"] == state["id"] and binding["snapshot_ref"] == state["snapshot_ref"]
+             and binding["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+             and binding["action_id"] == binding["primary_action_id"] == action["id"]
+             and binding["result_sha256"] == binding["primary_result_sha256"] == request["result_sha256"]
+             and value["origin"]["producer_code_identity"] == action["code_identity"],
+             "Saved stability source, producer, primary or snapshot differs.")
+    return {"kind": STABILITY_KIND, "action_id": action["id"], "result_sha256": action["result_sha256"],
+            "artifact_ref": action["artifact"], "binding": copy.deepcopy(binding), "origin": copy.deepcopy(value["origin"]),
+            "producer": {"request_id": action["request_id"], "method_id": action["command"],
+                         "code_identity": action["code_identity"], "evaluation_ref": action["method_instance"]["evaluation_ref"]},
+            "contract": copy.deepcopy(value["contract"]), "metrics": copy.deepcopy(value["metrics"]),
+            "coverage": "all_saved_validation_pairs; leave_one_out_when_possible",
+            "source_text_included": False, "scientific_validation": False}
+
+
+def _validate_stability_material(context, material, feedback, seen):
+    from . import staged_feedback_reader as reader, staged_relevance_adapter as staged
+    from .method_registry import evaluation_ref
+    code = "INVALID_PLAN_CONTEXT"
+    try:
+        fields = {"kind", "action_id", "result_sha256", "artifact_ref", "binding", "origin", "producer",
+                  "contract", "metrics", "coverage", "source_text_included", "scientific_validation"}
+        _require(type(material) is dict and set(material) == fields and material["kind"] == STABILITY_KIND
+                 and material["coverage"] == "all_saved_validation_pairs; leave_one_out_when_possible"
+                 and material["source_text_included"] is False and material["scientific_validation"] is False
+                 and _text(material["action_id"], 160) and _hash(material["result_sha256"]),
+                 "Use exact saved staged stability material.", code)
+        identity = (material["action_id"], None, None)
+        _require(identity not in seen and len(seen) < MAX_RETRIEVAL_SELECTORS,
+                 "Use at most four distinct saved retrieval selectors.", code)
+        selection = context["selection_context"]; binding = material["binding"]; origin = material["origin"]
+        fields = {"project_id", "snapshot_ref", "action_id", "result_sha256", "source_snapshot_sha256",
+                  "primary_action_id", "primary_result_sha256"}
+        _require(type(binding) is dict and set(binding) == fields and binding["project_id"] == selection["project_id"]
+                 and binding["snapshot_ref"] == selection["snapshot_ref"]
+                 and binding["source_snapshot_sha256"] == selection["source_snapshot_sha256"]
+                 and binding["action_id"] == binding["primary_action_id"] == material["action_id"]
+                 and binding["result_sha256"] == binding["primary_result_sha256"] == material["result_sha256"],
+                 "Saved stability source or snapshot differs.", code)
+        _require(type(origin) is dict and set(origin) == {"source_file_sha256", "producer_code_identity", "reader_implementation_sha256"}
+                 and all(_hash(v) for v in origin.values()) and origin["producer_code_identity"] == selection["project_code_identity"],
+                 "Saved stability producer or reader differs.", code)
+        producer = material["producer"]; action = feedback.get(material["action_id"], {})
+        _require(type(producer) is dict and set(producer) == {"request_id", "method_id", "code_identity", "evaluation_ref"}
+                 and producer["method_id"] == staged.TOOL_ID == action.get("method_id")
+                 and producer["request_id"] == action.get("request_id") and _text(producer["request_id"], 160)
+                 and producer["code_identity"] == origin["producer_code_identity"]
+                 and producer["evaluation_ref"] == evaluation_ref(staged.TOOL_ID) and action.get("status") == "completed"
+                 and material["artifact_ref"] == action.get("artifact_ref") == "artifacts/" + material["action_id"] + ".json",
+                 "Saved stability feedback or producer differs.", code)
+        contract = {"id": staged.CONTRACT, "split": "validation", "baseline": "bm25",
+                    "candidate": "tfidf_cosine", "epsilon": reader.STABILITY_EPSILON}
+        _require(canonical(material["contract"]) == canonical(contract)
+                 and selection["domain_scope"].get("contract") == staged.CONTRACT
+                 and selection["domain_scope"].get("stage") == "development",
+                 "Saved stability contract differs.", code)
+        try:
+            reader.validate_stability_aggregate(material["metrics"])
+        except ResearchError:
+            raise ResearchError(code, "Malformed saved stability aggregate.") from None
+        expected_n = selection["domain_scope"].get("query_split_counts", {}).get("validation")
+        _require(type(expected_n) is int and all(item["queries"] == expected_n for item in material["metrics"].values()),
+                 "Saved stability validation coverage differs.", code)
+        seen.add(identity)
+    except ResearchError:
+        raise
+    except (KeyError, TypeError, ValueError, OverflowError, RecursionError):
+        raise ResearchError(code, "Malformed saved stability material.") from None

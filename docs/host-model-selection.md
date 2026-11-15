@@ -489,3 +489,8 @@ S057 新增明确 plan-only kind `staged_retrieval_adverse_query`，selector 精
 规范化及materialization拒绝test/final、audit/未知/损坏或非不利query。离线sealed validator校验字段关系，不能脱离原件证明文本真实。recipe两个入口与Host selection不接材料；只有原plan路径使用。Host report与Markdown/PDF仅记query ID/split/行/SHA、producer/binding/coverage，不把query或doc正文复制进材料摘要；修正了旧retrieval摘要无fields导致renderer异常的路径，原诊断行保持。
 
 真实S054只读v3校验为28,513/65,536字节，保20+20排名、3+3节选；其原producer core300421与当前新实现不同，仍有CODE_CHANGED执行阻断，未prepare Host、未修改旧计划或发送模型。[精确验收](execution/g5-local/staged-plan-material-verification.json)。新类型不是新增模型/API或研究额度授权；旧pending仍用原source pin。
+
+
+## 显式提供staged验证稳定性
+
+生成研究计划时，saved_materials可显式选择 `{"kind":"staged_validation_stability","action_id":"原primary ID","result_sha256":"原结果SHA"}`。材料固定汇总保存的validation Recall@20/MRR双臂胜负平、均值与逐题留一影响，不包含查询ID或正文。不足两题时留一为null及原因。它与其他选择共享4项和64KiB上限；旧默认不变，recipe两入口拒绝，报告摘要仅身份。它不是科学显著性证明，也不改变冻结或自动决策。详情见[S061](execution/SPRINT-061.md)。
