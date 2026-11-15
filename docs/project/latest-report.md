@@ -33,3 +33,5 @@ S066结果提交 `311da1e689106fb7cd72010343b375e5be9d7f7e`，状态修订 `6614
 S067真实BoolQ独立case已完成并独审：原pin `5bd9883dd435a1d39b857a51bb6f4d20a53f156b`，project `project-dc1b1b59889f49c0b744254b1a1afd68` / run `run-276475c33d7542509c840bc575005271`。A/B同选BM25，validation R20差0/MRR差−.023367，final 200题BM25 R20 .97/MRR .858728；比较unknown、TFIDF final未测。3/3工具0model/fit，原ID恢复/stdout/48文件相同，私有内容读用于核验，非盲测；公开聚合经有限canary独审。检查点 2026-11-15T13:30:40.808579+08:00，owner仍活跃，继续下一任务。
 
 S068真实S067负结果/原生A反馈经现有v2 Memory进入合成目标Project和计划，目标工具used0；B/同臂unknown仅未验证操作者说明，非模型采纳。原48文件/claim和3/3预算不变，独审通过；原fit guard措辞已单独更正、private读取边界见Sprint。S069正在实现可选回源验证，未完成。检查点 2026-11-15T13:37:34.425174+08:00。
+
+S069可选v3回源验证进行中：真实S067只读试算同臂unknown，尚缺篡改/兼容/完整导入和独审，未提交或声称完成；本云盘WIP快照 runs/s069-verification/checkpoint-001 manifest SHA a6edb7525320f1e86460705c78140c477a361de9d4c625402f47ce7900e932f0。快照后源码可能继续变化，接续先核工作树/lease。检查点 2026-11-15T13:43:07.891618+08:00。
