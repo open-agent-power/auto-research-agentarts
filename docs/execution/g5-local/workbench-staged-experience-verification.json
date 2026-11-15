@@ -1,0 +1,81 @@
+{
+  "browser_receipt_sha256": "cd8c035daae151427161a423fd20a30d4990d31ef23ab8d5cbf97206f9c8a9ab",
+  "case_import_requests": [
+    {
+      "bundle_sha256": "5a6833e120624280f42949096bda3d3641d613b68c5641beb08df440ba80f8e8",
+      "case_id": "s046-squad-paragraph-history",
+      "request_id": "local-experience-import-ee57caa7-ca71-4294-9c3b-f472f589a542",
+      "status": "completed"
+    },
+    {
+      "bundle_sha256": "027b35124677af1c90c8ff98369468ecfcdf29363a37bc545db75128eff4b191",
+      "case_id": "s067-boolq-paired-history",
+      "request_id": "local-experience-import-6231f473-59b2-488c-b862-a46d23ab9a48",
+      "status": "completed"
+    },
+    {
+      "bundle_sha256": "e8c232d5767685fc3432a1337cbdba424b09410c0aa760ee881b0a5f44a9471e",
+      "case_id": "s067-boolq-shadow-history",
+      "request_id": "local-experience-import-a3ed4207-b56c-4e9f-942a-946eb35c90d5",
+      "status": "completed"
+    },
+    {
+      "bundle_sha256": "f4b6ef7f071a901ed1b11ce3aa901338cc22051315c9fefe008bfacfe5691a72",
+      "case_id": "s070-text-escape-fixture",
+      "request_id": "local-experience-import-a4116508-f989-4715-94a3-284fde9d45e7",
+      "status": "completed"
+    }
+  ],
+  "code_commit": "dd7cf66cefe1940d96c08e5e7e7a7388a9439301",
+  "frontend_build_reproduced_in_isolated_tree": true,
+  "frontend_lint": "passed",
+  "frontend_tests_passed": 4,
+  "limits": [
+    "Historical source snapshots and local manager files include development data; keep local.",
+    "Original 48 study files and claim were binary-hashed before/after, including private bytes.",
+    "Browser network was restricted to loopback; this is not an OS isolation claim.",
+    "Case-derived shadow comparison is historical and unverified offline; no scientific/model benefit is implied."
+  ],
+  "original_study_and_claim_unchanged": true,
+  "original_study_files": 48,
+  "prior_failures": [
+    "Two browser preview timeouts happened before any POST; preserved in initial and fixed logs.",
+    "The first synthetic XSS case failed HTTP 400 before manager acceptance because JSON reserialization changed numeric representation; its request ID was not persisted. The valid byte-preserving variant used a separate request.",
+    "First isolated rebuild missed tokens.css; second used an external symlink and omitted notices. Both failures are preserved; a third independent copied-dependency rebuild matched all four assets."
+  ],
+  "project_core": "4ee10be6c711eff1aeb026294989d5c5e939b8be01f25719feae3dcbce896ae6",
+  "restart_receipt_sha256": "71524a84c40d2b55fd394133bdd3bdd78fc6158c2aa31781cff53a957987ea75",
+  "review_status_at_creation": "pending_public_aggregate_review",
+  "schema_version": "s070-public-verification-v1",
+  "scientific_validation": false,
+  "source_freeze_sha256": "5bc999e0fc2a7f6293543a9af73c90926b2607dc142ae5d1952adf14ece2ad79",
+  "target_actions": 0,
+  "target_budget": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 0,
+    "evidence_reads_reserved": 0,
+    "evidence_reads_used": 0,
+    "existing_cash_cap_cny": 5,
+    "fit_attempts_used": 0,
+    "fit_limit": 0,
+    "fits_completed": 0,
+    "fits_reserved": 0,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "s068-engineering-only",
+    "local_tool_call_limit": 1,
+    "local_tool_calls_reserved": 0,
+    "local_tool_calls_used": 0,
+    "local_tool_dispatches": 0,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "preprocessing_fits": 0,
+    "preprocessing_fits_completed": 0,
+    "ridge_fits_completed": 0
+  },
+  "target_project_id": "project-42fa013b611e44598c324ab328f6089c",
+  "verification_sha256": "5f2901744d08825b41c0ac66477e825cf9103cc9b32aa7ffc97c9855c45a4e94"
+}
