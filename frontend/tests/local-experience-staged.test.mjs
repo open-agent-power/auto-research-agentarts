@@ -10,7 +10,13 @@ class Element {
 globalThis.document = { createElement: tag => new Element(tag) };
 const result = await build({ entryPoints: ["src/local-experience.ts"], bundle: true, write: false, platform: "node", format: "esm" });
 const moduleUrl = "data:text/javascript;base64," + Buffer.from(result.outputFiles[0].contents).toString("base64");
-const { isStagedExperienceSchema, isSupportedExperienceSchema, stagedObservation } = await import(moduleUrl);
+const { isStagedExperienceSchema, isSupportedExperienceSchema, stagedObservation, stagedWaitObservation } = await import(moduleUrl);
+assert.equal(isStagedExperienceSchema("staged-retrieval-wait-experience-bundle-v1"), true);
+const waitNode = new Element("article");
+stagedWaitObservation(waitNode, { feedback: {outcome:"unknown", condition:{metric:"recall@20"}, value:null} });
+assert.match(waitNode.textContent, /原条件等待 · 未知/);
+assert.match(waitNode.textContent, /当时 final 未测；等待不限制后续路线/);
+assert.match(waitNode.textContent, /未知不等于零/);
 for (const version of [1, 2, 3]) {
   assert.equal(isStagedExperienceSchema(`staged-retrieval-experience-bundle-v${version}`), true);
   assert.equal(isSupportedExperienceSchema(`staged-retrieval-experience-bundle-v${version}`), true);

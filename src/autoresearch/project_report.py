@@ -40,11 +40,12 @@ def exporter_code_identity(kind):
 
 def recovery_source_identity(kind):
     """Bounded report producer source closure, separate from project runtime identity."""
-    from . import staged_project_experience
+    from . import staged_project_experience, staged_wait_experience
     return fingerprint({"schema_version": "report-recovery-source-v1", "exporter": exporter_code_identity(kind),
                         "artifact_reader": hashlib.sha256(Path(project_workbench.__file__).read_bytes()).hexdigest(),
                         "snapshot_reader": hashlib.sha256(Path(snapshot_viewer.__file__).read_bytes()).hexdigest(),
-                        "staged_experience": hashlib.sha256(Path(staged_project_experience.__file__).read_bytes()).hexdigest()})
+                        "staged_experience": hashlib.sha256(Path(staged_project_experience.__file__).read_bytes()).hexdigest(),
+                        "staged_wait_experience": hashlib.sha256(Path(staged_wait_experience.__file__).read_bytes()).hexdigest()})
 
 EXPERIENCE_NOTE = ("以下为显式导入的历史方法案例，数值属于原项目、目标与协议，不是本项目的结果。"
                    "方法卡条件仍需核对，案例不创建候选或增加执行额度。源记忆撤回限制后续导出；"
@@ -57,6 +58,15 @@ def _experience_rows(report):
         origin = case["origin_evidence"]
         scope = case["source_scope"]
         saved = case["observation"]
+        if saved.get("kind") == "staged_wait_feedback":
+            feedback = saved["feedback"]
+            source = str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id") or "无已完成 primary")
+            observation = ("原事前条件 " + canonical(feedback["condition"]) + "；原条件等待，判定 " + str(feedback["outcome"]) + "；原反馈值 "
+                           + canonical(feedback["value"]) + "；当时 final 未测。等待不限制后续路线；离线来源须回查。")
+            rows.append([case["case_id"] + " v" + str(case["case_version"]),
+                         "用于后续参考" if case["inclusion_status"] == "active" else "已从后续参考撤回",
+                         source, observation])
+            continue
         if saved.get("kind") == "saved_staged_retrieval":
             final = saved["final"]
             delta = saved["paired_summary"]["splits"]["validation"]["paired_candidate_minus_baseline"]["recall@20"]["mean"]

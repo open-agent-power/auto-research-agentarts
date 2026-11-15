@@ -18,7 +18,7 @@ const strings = (value: unknown): string[] => Array.isArray(value) ? value.filte
 const numeric = (value: unknown): string => typeof value === "number" && Number.isFinite(value) ? String(value) : "未记录";
 
 export function isStagedExperienceSchema(value: unknown): boolean {
-  return ["staged-retrieval-experience-bundle-v1", "staged-retrieval-experience-bundle-v2", "staged-retrieval-experience-bundle-v3"].includes(text(value, ""));
+  return ["staged-retrieval-experience-bundle-v1", "staged-retrieval-experience-bundle-v2", "staged-retrieval-experience-bundle-v3", "staged-retrieval-wait-experience-bundle-v1"].includes(text(value, ""));
 }
 
 export function isSupportedExperienceSchema(value: unknown): boolean {
@@ -90,6 +90,15 @@ function cpuObservation(article: HTMLElement, observation: Obj, scope: Obj): voi
   if (view) article.append(view);
   else article.append(el("p", "detail-note", "此CPU方法没有可展示的保存汇总，请查看原案例记录。"));
   article.append(el("p", "detail-note", "以上是原项目保存的结果与仅限保存值的核对，不是当前项目的新观察或科学评审。完整结果与原协议保留在案例快照中。"));
+}
+
+export function stagedWaitObservation(article: HTMLElement, observation: Obj): void {
+  const feedback = object(observation.feedback);
+  const labels: Record<string, string> = { condition_met: "条件满足", condition_not_met: "条件未满足", unknown: "未知" };
+  article.append(el("p", "", "原条件等待 · " + text(labels[text(feedback.outcome, "")], "未记录")),
+    el("p", "detail-note", "事前条件 · " + (feedback.condition === undefined ? "未记录" : JSON.stringify(feedback.condition))),
+    el("p", "detail-note", "反馈值 · " + (feedback.value === undefined ? "未记录" : JSON.stringify(feedback.value))),
+    el("p", "detail-note", "当时 final 未测；等待不限制后续路线。未知不等于零，离线来源绑定需回查原件。"));
 }
 
 export function stagedObservation(article: HTMLElement, observation: Obj, scope: Obj): void {
@@ -189,7 +198,7 @@ export function createLocalExperiencePanel(host: Host): {
     const draft = active ? draftFor(active) : null;
     reason.value = draft?.reason ?? "";
     const stagedSchema = isStagedExperienceSchema(draft?.preview.schema_version);
-    fileStatus.textContent = draft?.name ? draft.name + " · " + (stagedSchema ? "阶段检索保存结果" : draft.preview.schema_version === "cpu-project-experience-bundle-v1" ? "CPU保存结果" : "Ridge保存结果")
+    fileStatus.textContent = draft?.name ? draft.name + " · " + (draft.preview.schema_version === "staged-retrieval-wait-experience-bundle-v1" ? "阶段检索条件等待" : stagedSchema ? "阶段检索保存结果" : draft.preview.schema_version === "cpu-project-experience-bundle-v1" ? "CPU保存结果" : "Ridge保存结果")
       + " · 案例 " + text(draft.preview.id) + " · v" + numeric(draft.preview.version)
       + (draft.submitted ? " · 已从保存记录确认导入。" : " · 草稿已准备，尚未提交。") : "选择不超过4MiB的案例JSON；选择文件只准备草稿。";
   }
@@ -220,12 +229,14 @@ export function createLocalExperiencePanel(host: Host): {
     const article = el("article", "evidence-card local-experience-case"), card = object(record.method_card), origin = object(record.origin_evidence);
     const observation = object(record.observation), scope = object(record.source_scope), id = text(record.case_id, ""), sourceProject = active;
     const retired = record.inclusion_status === "retired", draft = draftFor(sourceProject);
-    const cpu = observation.kind === "saved_cpu_fixed_pair", staged = observation.kind === "saved_staged_retrieval";
+    const cpu = observation.kind === "saved_cpu_fixed_pair", wait = observation.kind === "staged_wait_feedback";
+    const staged = observation.kind === "saved_staged_retrieval" || wait;
     article.append(el("h3", "", text(card.question, id)), el("p", "detail-note", id + " · v" + numeric(record.case_version)
       + " · " + (retired ? "已从后续建议撤回" : "当前用于参考")), el("p", "", text(card.rationale)),
       el("p", "detail-note", "源项目 · " + text(origin.project_id)));
     if (staged) {
-      stagedObservation(article, observation, scope);
+      if (wait) stagedWaitObservation(article, observation);
+      else stagedObservation(article, observation, scope);
     } else if (cpu) {
       const comparison = object(observation.comparison);
       article.append(el("p", "detail-note", "原方法 · " + host.methodTitle(text(observation.method_id)) + "；原协议 · " + text(observation.evaluation_ref)),
