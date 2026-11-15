@@ -62,3 +62,4 @@ A31 [hiMSC来源核对](../../docs/himsc-source-audit.md)取得此前缺失的�
 [S032经验决策引用](../../docs/experience-decision-citations.md)给直接proposal增加已绑定active case的精确来源引用，保留原association/反例，不自动跨项目recall或提升方法资格。真实双CPU包的等待/保存/退休/重放47工程检查不等于经验科研收益，内置模型wire尚未支持。
 
 S033已接Host/native selection可选引用wire（新context能力标记驱动），以真实旧context字节对照和合成journal验证；没有模型推理、自动经验召回或因果收益证据。[剩余运行时和研究缺口](../../docs/model-research-readiness.md)。
+- S127 纯合成 Wikimedia 形状准备器仅生成内建虚构资料及弱配对，严格限定输出、身份和fail-closed；不接真实 dump 或认证版权。[范围](../../docs/project/synthetic-wikinews-preparation.md)。

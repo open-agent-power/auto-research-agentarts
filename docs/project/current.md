@@ -1,5 +1,7 @@
 # 当前自主研究开发
 
+S127 内建纯合成准备器固定去重与1000/50/100映射，独立复算和15/15通过；仅简化人工XML，不解析真实dump、不证明许可或研究收益。[记录](../execution/SPRINT-127.md)。
+
 S126 为 staged 检索增加操作者显式用途声明，独立合成14/14及旧pin保护通过；声明不授权研究，状态只核形状且双字段非防伪。[记录](../execution/SPRINT-126.md)。
 
 Wikinews [条件性研究草案](wikinews-retrieval-study-proposal-20261115.md)已独审，许可、超限源、解析、用途声明与合成预演未决，不是研究授权或已执行；[候选记录](retrieval-candidate-audit-20261115.md)包括UCI元数据冲突及NFCorpus一次意外样本曝光。
