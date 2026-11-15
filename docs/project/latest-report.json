@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T03:26:01+08:00",
-  "status": "S116_verified_feedback_ui_in_progress",
+  "end_time": "2026-11-16T03:47:26+08:00",
+  "status": "S117_feedback_ui_verified_integrated_staged_workflow_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -49,7 +49,8 @@
     "S113 independently verified seven real synthetic SIGSTOP/SIGKILL windows and old Controller genuine multi-process race, 8/8 original claim checks",
     "S114 UI explicitly executes registered future Controller ID with preserved body and resume-only; synthetic browser and 29+43 independent backend tests",
     "S115 strict staged feedback backend for fully authenticated completed primary and known outcomes; independently verified 52+51 synthetic tests",
-    "S116 independent 10 synthetic real SIGKILL transaction windows, 2 actual old-entry multiprocess races, 4 asymmetric branch cases and claims verified"
+    "S116 independent 10 synthetic real SIGKILL transaction windows, 2 actual old-entry multiprocess races, 4 asymmetric branch cases and claims verified",
+    "S117 workbench explicitly handles authenticated known staged feedback with original-ID resume-only; independent synthetic UI and backend validation"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -80,7 +81,8 @@
     "S112 prior regression encountered one failure and one error CODE_CHANGED because author edited source while running; retained and reran fixed version.",
     "S113 author fixed2 timed out on repeated trace barrier after seven windows; fixed3 expected wrong error EVIDENCE_CHANGED and failed; later separate run plus independent eight-scenario run passed.",
     "S114 test harness initially timed out selecting hidden project switch; corrected using programmatic hidden control; did not prove visible user interaction.",
-    "S115 initial synthetic audit completed but terminal inspector used parameters instead of original action and returned EVIDENCE_CHANGED; corrected and retained initial logs."
+    "S115 initial synthetic audit completed but terminal inspector used parameters instead of original action and returned EVIDENCE_CHANGED; corrected and retained initial logs.",
+    "S117 feedback UI originally did not block nonempty/missing context.blockers; fixed and independently verified. Independent unknown test initially waited outdated text, retained and reran."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -89,12 +91,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Implement explicit staged feedback wait/audit UI with original ID, clear tool cost and conservative resume-only.",
+  "next": "Verify full same-project synthetic UI chain: experience import, explicit plan refs, preregistration, original-ID primary, known feedback and report.",
   "next_planned_trigger": "2026-11-16T04:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "ce0fcc0ed070b7b2c2995186d892dc461544e4c9",
-  "last_checkpoint": "2026-11-16T03:26:01+08:00",
+  "code_commit": "c74f8d14afe932536915ede1d06200a197ed6b4b",
+  "last_checkpoint": "2026-11-16T03:47:26+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -905,5 +907,12 @@
     "asymmetric_branch_cases": 4,
     "scope": "independent synthetic processes, no proof power failure/all races; each case baseline 1 synthetic primary, audit separately budgeted",
     "manifest_sha256": "76cf350c97c7508807e393aab4ec627726642575d6e721872289698ab527fbae"
+  },
+  "S117": {
+    "commit": "c74f8d14afe932536915ede1d06200a197ed6b4b",
+    "independent_tests": 11,
+    "projection_tests": 2,
+    "scope": "actual synthetic Chromium wait/audit/budget-wait and recovery; unknown/blockers/9 pending mocked; unknown stops, no true study/model",
+    "manifest_sha256": "976246cd573bf3b32da2c32c65a15e97144b1bc51bf97073b64bd6255fff8ae8"
   }
 }

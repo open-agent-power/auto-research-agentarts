@@ -151,3 +151,5 @@ S079现有授权内新检索源元数据筛选：无可直接准入候选；QASP
 检查点 2026-11-16T03:05:08+08:00：S115后端已推 `a8bf70d5e7a7f9434cef338a3dce1efbb5a540a9`，完整认证primary的已知反馈可按原登记wait/audit，unknown及缺原件停查；独审52+51合成及3项事务负例通过。S115自身故障/竞争为函数注入，未证真实多进程，UI未接；audit最多1额外工具、使用保存结果不新排名评分但读取共享源。首轮合成audit终态传错原action导致EVIDENCE_CHANGED已修、日志保留；旧pin不迁移。本目录owner root-quality-20261115T1806活跃，旧盘/全局执行者unknown；下次计划2026-11-16T04:47:27+08:00，平台完成/投递unknown。继续真实进程验证与UI设计。
 
 检查点 2026-11-16T03:26:01+08:00：S116记录已推 `ce0fcc0ed070b7b2c2995186d892dc461544e4c9`；独立合成10个真实SIGKILL窗口、2个旧入口进程竞争、4个非对称分支和claims回执通过，每例原primary 1工具，audit另计；4份rollback journal保留。非断电、任意竞争、OS隔离或真实科研证明。继续实现显式反馈UI，unknown/原件损坏停查，audit最多1工具读取保存结果/共享corpus而不新rank/score。owner root-quality-20261115T1806活跃，旧盘/全局执行者unknown；下次计划2026-11-16T04:47:27+08:00，平台完成/投递unknown。
+
+检查点 2026-11-16T03:47:26+08:00：S117已推 `c74f8d14afe932536915ede1d06200a197ed6b4b`，页面对已认证known staged反馈按原登记显式wait/audit，独立合成Chromium/HTTP与11项回归通过；unknown/阻塞/pending模拟停查，初版未检查context.blockers已修并复验。audit可能额外1工具并读共享corpus、不新rank/score；无真实研究/模型，旧pin不迁。继续同一合成项目验证经验→计划→登记→primary→反馈→报告整链。owner root-quality-20261115T1806活跃，旧盘/全局执行者unknown；下次计划2026-11-16T04:47:27+08:00，平台完成/投递unknown。
