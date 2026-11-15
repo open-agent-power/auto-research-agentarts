@@ -97,7 +97,7 @@ def _check_plan_experience_refs(root, state, plan, *, code="EVIDENCE_CHANGED", l
 
 def code_identity():
     from . import project_recipe, recipe_improvement
-    from . import staged_wait_experience
+    from . import staged_wait_experience, posthoc_loss_experience
     from . import project_model_protocol
     from . import tabular_quality_conditions, tabular_quality_feedback, tabular_quality_plan, contracts as contracts_module
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
@@ -124,6 +124,7 @@ def code_identity():
                         "staged_continuation": hashlib.sha256(Path(staged_continuation.__file__).read_bytes()).hexdigest(),
                         "staged_project_experience": hashlib.sha256(Path(staged_project_experience.__file__).read_bytes()).hexdigest(),
                         "staged_wait_experience": hashlib.sha256(Path(staged_wait_experience.__file__).read_bytes()).hexdigest(),
+                        "posthoc_loss_experience": hashlib.sha256(Path(posthoc_loss_experience.__file__).read_bytes()).hexdigest(),
                         "methods": hashlib.sha256(Path(methods.__file__).read_bytes()).hexdigest(),
                         "knowledge": project_knowledge.code_identity(),
                         "local_model_protocol": hashlib.sha256(Path(project_model_protocol.__file__).read_bytes()).hexdigest()})

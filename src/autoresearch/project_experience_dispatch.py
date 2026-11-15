@@ -3,6 +3,7 @@ from . import cpu_project_experience as cpu
 from . import project_experience as ridge
 from . import staged_project_experience as staged
 from . import staged_wait_experience as staged_wait
+from . import posthoc_loss_experience as posthoc_loss
 from .contracts import ResearchError
 from .research_recipe import parse_json
 
@@ -20,6 +21,8 @@ def _family(bundle):
         return staged
     if bundle.get("schema_version") == staged_wait.SCHEMA:
         return staged_wait
+    if bundle.get("schema_version") == posthoc_loss.SCHEMA:
+        return posthoc_loss
     raise ResearchError("INVALID_PROJECT_EXPERIENCE", "Unsupported experience bundle schema.")
 
 

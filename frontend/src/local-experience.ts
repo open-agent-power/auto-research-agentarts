@@ -230,11 +230,19 @@ export function createLocalExperiencePanel(host: Host): {
     const observation = object(record.observation), scope = object(record.source_scope), id = text(record.case_id, ""), sourceProject = active;
     const retired = record.inclusion_status === "retired", draft = draftFor(sourceProject);
     const cpu = observation.kind === "saved_cpu_fixed_pair", wait = observation.kind === "staged_wait_feedback";
+    const posthoc = observation.kind === "posthoc_validation_loss";
     const staged = observation.kind === "saved_staged_retrieval" || wait;
     article.append(el("h3", "", text(card.question, id)), el("p", "detail-note", id + " · v" + numeric(record.case_version)
       + " · " + (retired ? "已从后续建议撤回" : "当前用于参考")), el("p", "", text(card.rationale)),
       el("p", "detail-note", "源项目 · " + text(origin.project_id)));
-    if (staged) {
+    if (posthoc) {
+      const cell = object(observation.cell);
+      article.append(el("p", "detail-note", "事后分析：已曝光验证集，Recall@20 差在 ±1e-12 内且 MRR@10 下降的子集。"));
+      article.append(el("p", "", cell.status === "available"
+        ? "该子集 " + numeric(cell.count) + " 题；平均下降 " + numeric(cell.mean_mrr_loss) + "（四位舍入）。"
+        : "子集数量与均值未供应。"));
+      article.append(el("p", "detail-note", "仅匹配已发布聚合；导入时未重算，离线须回查原件。原 primary 仅为来源引用；非总体均值、因果或匿名保证。"));
+    } else if (staged) {
       if (wait) stagedWaitObservation(article, observation);
       else stagedObservation(article, observation, scope);
     } else if (cpu) {
@@ -259,7 +267,11 @@ export function createLocalExperiencePanel(host: Host): {
       const values = strings(applicability[key]), ul = el("ul"); for (const value of values) ul.append(el("li", "", value));
       if (values.length) original.append(el("h4", "", label), ul);
     }
-    if (staged) {
+    if (posthoc) {
+      original.append(el("h4", "", "事后分析的来源身份"),
+        el("p", "detail-note", "原 primary 来源引用：" + text(origin.action_id) + "；原结果 SHA-256：" + text(origin.result_sha256)),
+        el("p", "detail-note", "公开聚合 SHA-256：" + text(origin.published_result_sha256) + "；原协议 SHA-256：" + text(origin.protocol_sha256)));
+    } else if (staged) {
       original.append(el("h4", "", "原阶段检索来源身份"),
         el("p", "", "原行动：" + text(origin.action_id) + "；原项目版本 " + numeric(origin.state_version)),
         el("p", "detail-note", "原来源快照 SHA-256：" + text(origin.source_snapshot_sha256)),

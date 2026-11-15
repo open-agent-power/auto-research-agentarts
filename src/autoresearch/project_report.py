@@ -26,7 +26,7 @@ TITLES = {"p02": "P02 保存预测与来源核对报告", "steel": "钢材保存
 
 def exporter_code_identity(kind):
     """The same source identity displayed by a generated report."""
-    from . import project_experience_binding, project_experience, cpu_project_experience, project_experience_dispatch
+    from . import project_experience_binding, project_experience, cpu_project_experience, project_experience_dispatch, posthoc_loss_experience
     return hashlib.sha256(Path(__file__).read_bytes() + Path(paper_export.__file__).read_bytes()
                           + Path(project_selection_view.__file__).read_bytes() + Path(host_model_report.__file__).read_bytes()
                           + Path(plan_readiness.__file__).read_bytes() + Path(project_controller.__file__).read_bytes()
@@ -34,18 +34,20 @@ def exporter_code_identity(kind):
                           + Path(feature_comparison.__file__).read_bytes() + Path(project_design.__file__).read_bytes()
                           + Path(input_basis.__file__).read_bytes() + Path(project_experience_binding.__file__).read_bytes()
                           + Path(project_experience.__file__).read_bytes() + Path(cpu_project_experience.__file__).read_bytes()
-                          + Path(project_experience_dispatch.__file__).read_bytes() + Path(research_design.__file__).read_bytes()
+                          + Path(project_experience_dispatch.__file__).read_bytes() + Path(posthoc_loss_experience.__file__).read_bytes()
+                          + Path(research_design.__file__).read_bytes()
                           + (Path(cpu_report_sections.__file__).read_bytes() if kind in cpu_report_sections.PRIMARY else b"")).hexdigest()
 
 
 def recovery_source_identity(kind):
     """Bounded report producer source closure, separate from project runtime identity."""
-    from . import staged_project_experience, staged_wait_experience
+    from . import staged_project_experience, staged_wait_experience, posthoc_loss_experience
     return fingerprint({"schema_version": "report-recovery-source-v1", "exporter": exporter_code_identity(kind),
                         "artifact_reader": hashlib.sha256(Path(project_workbench.__file__).read_bytes()).hexdigest(),
                         "snapshot_reader": hashlib.sha256(Path(snapshot_viewer.__file__).read_bytes()).hexdigest(),
                         "staged_experience": hashlib.sha256(Path(staged_project_experience.__file__).read_bytes()).hexdigest(),
-                        "staged_wait_experience": hashlib.sha256(Path(staged_wait_experience.__file__).read_bytes()).hexdigest()})
+                        "staged_wait_experience": hashlib.sha256(Path(staged_wait_experience.__file__).read_bytes()).hexdigest(),
+                        "posthoc_loss_experience": hashlib.sha256(Path(posthoc_loss_experience.__file__).read_bytes()).hexdigest()})
 
 EXPERIENCE_NOTE = ("以下为显式导入的历史方法案例，数值属于原项目、目标与协议，不是本项目的结果。"
                    "方法卡条件仍需核对，案例不创建候选或增加执行额度。源记忆撤回限制后续导出；"
@@ -58,6 +60,16 @@ def _experience_rows(report):
         origin = case["origin_evidence"]
         scope = case["source_scope"]
         saved = case["observation"]
+        if saved.get("kind") == "posthoc_validation_loss":
+            cell = saved["cell"]
+            source = str(origin.get("project_id", "未提供")) + " / 原 primary 来源引用 " + str(origin.get("action_id", "未提供"))
+            observation = ("已曝光验证集的事后筛选：Recall@20 差在 ±1e-12 内且 MRR@10 下降；"
+                           + ("子集 " + str(cell["count"]) + " 题，平均下降 " + format(cell["mean_mrr_loss"], ".4f")
+                              if cell["status"] == "available" else "子集数量与均值已抑制")
+                           + "。仅核发布聚合字节绑定，未在导入时重算；离线须回查来源。非整体均值、因果或匿名保证。")
+            rows.append([case["case_id"] + " v" + str(case["case_version"]),
+                         "用于后续参考" if case["inclusion_status"] == "active" else "已从后续参考撤回", source, observation])
+            continue
         if saved.get("kind") == "staged_wait_feedback":
             feedback = saved["feedback"]
             source = str(origin.get("project_id", "未提供")) + " / " + str(origin.get("action_id") or "无已完成 primary")
