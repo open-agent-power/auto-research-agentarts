@@ -636,10 +636,17 @@ def _research_plan_rows(state):
     if not revisions:
         return []
     current = revisions[-1]
-    return [("当前版本", "第" + str(current["version"]) + "版"), ("本轮问题", current["question"]),
+    rows = [("当前版本", "第" + str(current["version"]) + "版"), ("本轮问题", current["question"]),
             ("依据与材料", current["basis"] or "尚未填写"), ("推进步骤", current["steps"]),
             ("预期反馈与调整", current["expected_feedback"]), ("本次修订理由", current["reason"]),
             ("修订记录", "\n".join("第" + str(item["version"]) + "版 · " + item["reason"] for item in revisions))]
+    if "experience_case_refs" in current:
+        references = current["experience_case_refs"]["items"]
+        rows.extend(("操作者声明的历史案例引用 " + str(index) + "（适用性未核验）",
+                     item["case_id"] + " v" + str(item["case_version"]) + " · SHA-256 " + item["bundle_sha256"]
+                     + " · " + item["applicability_statement"])
+                    for index, item in enumerate(references, 1))
+    return rows
 
 
 RESEARCHER_FEEDBACK_NOTE = "以下为研究者提交的未核验意见和下一步建议。实际工具观察、计划采用与科学结论按各自证据和评审确认。"

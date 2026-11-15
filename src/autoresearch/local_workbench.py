@@ -509,8 +509,16 @@ class LocalWorkbench:
                 self._no_pending_batch(con, body["project_id"], evidence=True)
                 old = self._old(con, body, digest)
                 if old is not None and old["status"] == "completed":
+                    if type(body.get("plan")) is dict and "experience_case_refs" in body["plan"]:
+                        revision = project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                                                     plan=body["plan"], reason=body["reason"], _validate_only=True)
+                        _require(revision == old.get("result", {}).get("research_plan"), "EVIDENCE_CHANGED",
+                                 "The saved plan receipt differs from its original Project revision.")
                     return self._completed(old)
                 if old is None:
+                    if type(body.get("plan")) is dict and "experience_case_refs" in body["plan"]:
+                        project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
+                                          plan=body["plan"], reason=body["reason"], _validate_only=True)
                     self._accept(con, body, digest, "save_plan", {"project_id": body["project_id"]})
             revision = project.save_plan(request_id=body["request_id"], expected_state_version=body["expected_state_version"],
                                          plan=body["plan"], reason=body["reason"])

@@ -26,6 +26,61 @@ def _source_metadata(receipt):
     return [{key: source[key] for key in ("id", "sha256", "media_type")} for source in receipt["sources"]]
 
 
+def validate_plan_experience_refs(value, *, code="INVALID_REQUEST"):
+    """Validate an explicit operator declaration, never infer applicability."""
+    require(type(value) is dict and set(value) == {"schema_version", "items"}
+            and value["schema_version"] == "project-plan-experience-refs-v1"
+            and type(value["items"]) is list and 1 <= len(value["items"]) <= 4,
+            code, "Use one to four explicitly declared historical case references.")
+    seen = set()
+    for item in value["items"]:
+        require(type(item) is dict and set(item) == {"case_id", "case_version", "bundle_sha256", "applicability_statement"},
+                code, "Use the exact historical case reference and operator statement.")
+        case_id, statement = item["case_id"], item["applicability_statement"]
+        require(type(case_id) is str and 0 < len(case_id) <= 160 and bool(case_id.strip()) and "\x00" not in case_id
+                and case_id not in seen and type(item["case_version"]) is int and item["case_version"] >= 1
+                and type(item["bundle_sha256"]) is str and re.fullmatch(r"[0-9a-f]{64}", item["bundle_sha256"]) is not None
+                and type(statement) is str and 0 < len(statement) <= 1000 and bool(statement.strip()) and "\x00" not in statement,
+                code, "Case identities must be distinct, exact and accompanied by a bounded operator statement.")
+        seen.add(case_id)
+    return value
+
+
+def _check_plan_experience_refs(root, state, plan, *, code="EVIDENCE_CHANGED", loaded=None, pending=False):
+    """Reconstruct each case's inclusion at the original plan state and check bytes."""
+    if "experience_case_refs" not in plan:
+        return
+    from .project_experience_binding import _load
+    validate_plan_experience_refs(plan["experience_case_refs"], code=code)
+    at = plan.get("based_on_state_version")
+    revisions = state.get("experience_revisions", [])
+    require(type(at) is int and 0 <= at and (at == state["state_version"] if pending else at < state["state_version"])
+            and type(revisions) is list,
+            code, "The historical plan or case revisions are malformed.")
+    latest, previous_state = {}, -1
+    for index, revision in enumerate(revisions, 1):
+        require(type(revision) is dict and type(revision.get("revision")) is int and revision["revision"] == index
+                and type(revision.get("based_on_state_version")) is int
+                and previous_state < revision["based_on_state_version"] < state["state_version"]
+                and type(revision.get("case_id")) is str and revision.get("inclusion_status") in ("active", "retired"),
+                code, "The original case inclusion history is malformed.")
+        previous_state = revision["based_on_state_version"]
+        if previous_state < at:
+            latest[revision["case_id"]] = revision
+    loaded = {} if loaded is None else loaded
+    for ref in plan["experience_case_refs"]["items"]:
+        case = latest.get(ref["case_id"])
+        require(type(case) is dict and case.get("inclusion_status") == "active"
+                and type(case.get("case_version")) is int and case["case_version"] == ref["case_version"]
+                and case.get("bundle_sha256") == ref["bundle_sha256"]
+                and type(case.get("bundle_ref")) is str and type(case.get("entry_id")) is str,
+                code, "The referenced case was not the latest active version at the plan's original state.")
+        key = (case["case_id"], case["case_version"], case["bundle_sha256"], case.get("bundle_ref"), case.get("entry_id"))
+        if key not in loaded:
+            _load(root, case)
+            loaded[key] = True
+
+
 def code_identity():
     from . import project_recipe, recipe_improvement
     from . import staged_wait_experience
@@ -220,6 +275,9 @@ class ResearchProject:
             con.execute("BEGIN")
             project = self._project(con)
             actions = [json.loads(row[0]) for row in con.execute("SELECT record FROM actions ORDER BY rowid")]
+        loaded_plan_cases = {}
+        for plan in project.get("plan_revisions", []):
+            _check_plan_experience_refs(self.root, project, plan, loaded=loaded_plan_cases)
         numerical = [a for a in actions if not registry.is_source(a["command"])]
         sources = [a for a in actions if registry.is_source(a["command"])]
         project["actions"], project["evidence_actions"] = numerical, sources
@@ -300,29 +358,34 @@ class ResearchProject:
         return set_status(self, request_id=request_id, expected_state_version=expected_state_version,
                           case_id=case_id, status=status, reason=reason)
 
-    def save_plan(self, *, request_id, expected_state_version, plan, reason):
+    def save_plan(self, *, request_id, expected_state_version, plan, reason, _validate_only=False):
         """Save an operator-authored plan revision without dispatching research."""
         identifier(request_id)
         require(type(expected_state_version) is int and expected_state_version >= 0,
                 "INVALID_REQUEST", "Bind the current project version before saving a plan.")
         limits = {"question": 4000, "basis": 6000, "steps": 12000, "expected_feedback": 4000}
-        require(type(plan) is dict and set(plan) == set(limits),
+        require(type(plan) is dict and set(plan) in (set(limits), set(limits) | {"experience_case_refs"}),
                 "INVALID_REQUEST", "Use the exact research plan fields.")
         for key, limit in limits.items():
             value = plan[key]
             require(type(value) is str and len(value) <= limit and "\x00" not in value
                     and (key == "basis" or bool(value.strip())),
                     "INVALID_REQUEST", "Research plan text is missing or exceeds its field limit.")
+        if "experience_case_refs" in plan:
+            validate_plan_experience_refs(plan["experience_case_refs"])
         require(type(reason) is str and 0 < len(reason) <= 2000 and bool(reason.strip()) and "\x00" not in reason,
                 "INVALID_REQUEST", "Record a reason for the plan revision.")
         with self._writer():
-            with self._connect() as con:
+            with self._connect(readonly=_validate_only) as con:
                 project = self._project(con)
                 previous = next((item for item in project.get("plan_revisions", []) if item["request_id"] == request_id), None)
                 if previous is not None:
                     require(previous["based_on_state_version"] == expected_state_version
-                            and previous["reason"] == reason and all(previous[key] == plan[key] for key in limits),
+                            and previous["reason"] == reason and all(previous[key] == plan[key] for key in limits)
+                            and ("experience_case_refs" in previous) == ("experience_case_refs" in plan)
+                            and ("experience_case_refs" not in plan or canonical(previous["experience_case_refs"]) == canonical(plan["experience_case_refs"])),
                             "IDEMPOTENCY_CONFLICT", "The original plan revision is bound to different content.")
+                    _check_plan_experience_refs(self.root, project, previous)
                     return previous
                 require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
                 self._require_unclaimed(project, request_id, except_collection="plan_revisions")
@@ -334,6 +397,9 @@ class ResearchProject:
                 from .host_model_selection import HostModelSelection, PENDING
                 require(not any(item["status"] in PENDING for item in HostModelSelection(self.root).status()["requests"]),
                         "HOST_SELECTION_PENDING", "Reconcile the original host-model request before revising its plan.")
+                _check_plan_experience_refs(self.root, project, {**plan, "based_on_state_version": expected_state_version}, code="INVALID_REQUEST", pending=True)
+                if _validate_only:
+                    return None
                 revisions = project.setdefault("plan_revisions", [])
                 revision = {"version": len(revisions) + 1, **plan, "reason": reason, "request_id": request_id,
                             "based_on_state_version": expected_state_version}
