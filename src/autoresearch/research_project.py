@@ -19,6 +19,39 @@ def require(condition, code, message):
         raise ResearchError(code, message)
 
 
+def _staged_primary_parent_claim_sha(parent):
+    """Bind only immutable parent and staged registration identities."""
+    meta = parent.get("staged_primary") if type(parent) is dict else None
+    fields = {"schema_version", "registration_request_id", "registration_sha256", "manager_intent_sha256",
+              "controller_request_id", "child_request_id", "context_sha256", "proposal_sha256", "plan_sha256",
+              "source_snapshot_sha256", "record_sha256"}
+    require(type(meta) is dict and set(meta) == fields and meta["schema_version"] == "staged-primary-binding-v1"
+            and meta["record_sha256"] == fingerprint({k:v for k,v in meta.items() if k != "record_sha256"})
+            and meta["controller_request_id"] == parent.get("request_id") and meta["child_request_id"] == parent.get("child_request_id")
+            and meta["source_snapshot_sha256"] == parent.get("source_snapshot_sha256")
+            and parent.get("request_sha256") == fingerprint(parent.get("request"))
+            and parent.get("decision_sha256") == fingerprint(parent.get("decision"))
+            and meta["context_sha256"] == parent.get("selection_context", {}).get("context_sha256")
+            and meta["proposal_sha256"] == fingerprint(parent.get("request", {}).get("proposal")),
+            "EVIDENCE_CHANGED", "The staged primary parent binding changed.")
+    return fingerprint({"request_sha256": parent["request_sha256"], "binding_sha256": meta["record_sha256"],
+                        "decision_sha256": parent["decision_sha256"], "snapshot_ref_before": parent["snapshot_ref_before"],
+                        "state_version_before": parent["state_version_before"], "dispatch_state_version": parent["dispatch_state_version"]})
+
+
+def _staged_primary_child_claim_sha(parent, child_request_sha256):
+    return fingerprint({"parent_claim_sha256": _staged_primary_parent_claim_sha(parent),
+                        "parent_request_id": parent["request_id"], "child_request_id": parent["child_request_id"],
+                        "child_request_sha256": child_request_sha256})
+
+
+def _require_no_pending_staged_primary(project):
+    require(not any(type(parent) is dict and "staged_primary" in parent
+                    and parent.get("status") in ("prepared", "running", "unknown")
+                    for parent in project.get("controller_requests", [])),
+            "OPERATION_INCOMPLETE", "Inspect the original staged primary before a source operation.")
+
+
 _UNSET_SELECTION_POLICY = object()
 _UNSET_EVIDENCE_PURPOSE = object()
 _DECLARED_RESEARCH_PURPOSE = "operator_declared_descriptive_research"
@@ -365,6 +398,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_fresh(project, current, expected_state_version):
+        _require_no_pending_staged_primary(project)
         require(expected_state_version is None or (type(expected_state_version) is int
                 and expected_state_version == project["state_version"]), "STALE_STATE", "Project state changed.")
         require(project["code_identity"] == code_identity(), "CODE_CHANGED", "Explicitly upgrade this project first.")
@@ -691,13 +725,37 @@ class ResearchProject:
                 "EVIDENCE_CHANGED", "The generated prediction result has a different source.")
         return {**reference, "analysis": analysis}
 
-    def step(self, *, request_id, dimension=None, expected_state_version=None, method_id=None, parameters=None):
+    def step(self, *, request_id, dimension=None, expected_state_version=None, method_id=None, parameters=None, _staged_primary=None):
         identifier(request_id)
         with self._writer():
             with self._connect() as con:
                 project = self._project(con)
+                marked = [p for p in project.get("controller_requests", []) if type(p) is dict and "staged_primary" in p]
+                pending = [p for p in marked if p.get("status") in ("prepared", "running", "unknown")]
+                linked = [p for p in marked if p.get("child_request_id") == request_id]
+                if _staged_primary is None:
+                    require(not pending and not linked, "OPERATION_INCOMPLETE",
+                            "Inspect the original staged primary; ordinary step cannot dispatch or recover it.")
+                else:
+                    require(type(_staged_primary) is dict and set(_staged_primary) == {"parent_request_id", "intent_sha256"}
+                            and len(pending) == 1 and len(linked) == 1 and pending[0] == linked[0]
+                            and pending[0].get("request_id") == _staged_primary["parent_request_id"]
+                            and pending[0].get("status") == "prepared"
+                            and pending[0]["staged_primary"].get("manager_intent_sha256") == _staged_primary["intent_sha256"]
+                            and expected_state_version == pending[0].get("dispatch_state_version"),
+                            "OPERATION_INCOMPLETE", "Use the uniquely bound first staged child; do not recover or replace it.")
+                    from .tabular_quality_feedback import _manager_claim
+                    _manager_claim(con, "staged_primary_parent", pending[0]["request_id"], _staged_primary["intent_sha256"],
+                                   _staged_primary_parent_claim_sha(pending[0]))
+                    require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
+                            and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
+                            "OPERATION_INCOMPLETE", "The original staged child already exists or is claimed; do not recover it.")
                 primary_id = registry.primary_id(project)
                 method_id = primary_id if method_id is None else method_id
+                if _staged_primary is not None:
+                    require(method_id == "research.relevance-validation-pair" and method_id == primary_id
+                            and dimension is None and (parameters is None or parameters == {}),
+                            "EVIDENCE_CHANGED", "The staged child must use its registered primary method.")
                 followup = method_id in registry.followup_ids(primary_id)
                 require(method_id == primary_id or followup, "METHOD_NOT_SUPPORTED", "This method is not supported by the registered input.")
                 primary = registry.get_analysis(method_id)
@@ -745,6 +803,9 @@ class ResearchProject:
                         request["generated_prediction_ref"] = reference
                 digest = fingerprint(request)
                 old = self._action(con, request_id)
+                if old is not None:
+                    require(not any(p.get("child_request_id") == old.get("request_id") for p in marked),
+                            "OPERATION_INCOMPLETE", "The staged child cannot be recovered through ordinary step.")
             if old:
                 require(old["request_sha256"] == digest, "IDEMPOTENCY_CONFLICT", "Request ID is bound to different content.")
                 return self._recover(old)
@@ -761,6 +822,7 @@ class ResearchProject:
                     "EXECUTION_UNKNOWN", "Recover the existing execution; do not submit another action.")
             prior = next((a for a in current["actions"] if a["request_sha256"] == digest and a["status"] == "completed"), None)
             if prior:
+                require(_staged_primary is None, "OPERATION_INCOMPLETE", "A staged primary cannot reuse an earlier action.")
                 with self._connect() as con:
                     con.execute("INSERT INTO replays VALUES(?,?)", (request_id, prior["request_id"]))
                 return dict(self._recover(prior), reused=True)
@@ -851,10 +913,30 @@ class ResearchProject:
                 action["method_instance"]["input_bindings"]["generated_prediction_ref"] = reference
             if method_id in registry.RIDGE:
                 action.update(fit_reservation=fit_reservation, fit_events=[])
+            if _staged_primary is not None:
+                from .local_workbench import _check_staged_runtime
+                from .project_controller import code_identity as controller_code_identity
+                _check_staged_runtime()
+                require(project["code_identity"] == code_identity()
+                        and pending[0]["controller_code_identity"] == controller_code_identity()
+                        and self._source(project) == payload,
+                        "EVIDENCE_CHANGED", "The staged source or code changed before child acceptance.")
             with self._connect() as con:
                 con.execute("INSERT INTO actions VALUES(?,?,?)", (request_id, digest, canonical(action)))
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
+                if _staged_primary is not None:
+                    from .tabular_quality_feedback import _manager_claim
+                    _manager_claim(con, "staged_primary_child", request_id, _staged_primary["intent_sha256"],
+                                   _staged_primary_child_claim_sha(pending[0], digest), create=True)
+            if _staged_primary is not None:
+                # If the closure drifts after acceptance, preserve the running
+                # action/claim for inspection; never enter the adapter or retry.
+                _check_staged_runtime()
+                require(project["code_identity"] == code_identity()
+                        and pending[0]["controller_code_identity"] == controller_code_identity()
+                        and self._source(project) == payload,
+                        "EVIDENCE_CHANGED", "The staged source or code changed after child acceptance.")
             try:
                 if method_id in registry.STAGED_FINALS:
                     result = primary.execute_project(self.root, original, parameters)
@@ -886,6 +968,10 @@ class ResearchProject:
             with self._connect() as con:
                 action = self._action(con, request_id)
                 project = self._project(con)
+                require(action is None or not any(type(parent) is dict and "staged_primary" in parent
+                        and parent.get("child_request_id") == action.get("request_id")
+                        for parent in project.get("controller_requests", [])),
+                        "OPERATION_INCOMPLETE", "The staged child cannot be recovered through ordinary resume.")
             require(action is not None, "ACTION_NOT_FOUND", "No accepted execution has this request ID.")
             require(project["code_identity"] == code_identity() or action["status"] in ("completed", "failed"),
                     "CODE_CHANGED", "Recover using the registered application version.")
@@ -905,6 +991,7 @@ class ResearchProject:
                             and previous["evidence_read_limit"] == evidence_read_limit,
                             "IDEMPOTENCY_CONFLICT", "Upgrade request content changed.")
                     return previous
+                _require_no_pending_staged_primary(project)
                 require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to a tool action.")
                 self._require_unclaimed(project, request_id, except_collection="code_revisions")
             require(project["code_identity"] == expected_code_identity, "CODE_CHANGED", "Expected old code identity differs.")
@@ -1239,6 +1326,7 @@ class ResearchProject:
         current = self.status()
         with self._connect() as con:
             project = self._project(con)
+            _require_no_pending_staged_primary(project)
             action_owner = self._action(con, request_id)
         old = next((item for item in project.get("evidence_registrations", []) if item["request_id"] == request_id), None)
         if old is None:
@@ -1299,6 +1387,7 @@ class ResearchProject:
                 "INVALID_REQUEST", "A registered lowercase receipt SHA-256 is required.")
         with self._connect() as con:
             project = self._project(con)
+            _require_no_pending_staged_primary(project)
             old = self._action(con, request_id)
         if old:
             request = {"project_id": project["id"], "command": old["command"],
@@ -1369,6 +1458,7 @@ class ResearchProject:
         with self._writer():
             with self._connect() as con:
                 project = self._project(con)
+                _require_no_pending_staged_primary(project)
                 old = self._action(con, request_id)
             if old:
                 require(registry.is_source(old["command"]), "IDEMPOTENCY_CONFLICT", "ID belongs to a different tool action.")

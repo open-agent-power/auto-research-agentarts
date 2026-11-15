@@ -367,7 +367,12 @@ class ProjectController:
                 self.project._save(con, project)
                 return copy.deepcopy(parent)
 
-    def _dispatch(self, parent, *, replayed):
+    def _dispatch(self, parent, *, replayed, _staged_primary=None):
+        if "staged_primary" in parent:
+            require(not replayed and type(_staged_primary) is dict and parent.get("status") == "prepared",
+                    "OPERATION_INCOMPLETE", "Inspect the original staged primary without redispatch.")
+        else:
+            require(_staged_primary is None, "EVIDENCE_CHANGED", "Unexpected staged primary dispatch binding.")
         self._check_rejected(parent)
         if parent["status"] not in ("prepared", "unknown", "running"):
             return self._response(parent, replayed)
@@ -378,6 +383,9 @@ class ProjectController:
                 require(stored is not None and stored["request_sha256"] == parent["request_sha256"],
                         "IDEMPOTENCY_CONFLICT", "Controller request binding changed.")
                 parent = copy.deepcopy(stored)
+                if "staged_primary" in parent:
+                    require(not replayed and parent.get("status") == "prepared" and type(_staged_primary) is dict,
+                            "OPERATION_INCOMPLETE", "The staged primary cannot be dispatched again.")
                 self._check_rejected(parent)
                 if parent["status"] not in ("prepared", "unknown", "running"):
                     return self._response(parent, True)
@@ -389,6 +397,8 @@ class ProjectController:
                         and parent["controller_code_identity"] == code_identity(),
                         "CODE_CHANGED", "Resume the original nonterminal request with its source pin.")
                 child = self.project._action(con, parent["child_request_id"])
+                if "staged_primary" in parent:
+                    require(child is None, "OPERATION_INCOMPLETE", "The original staged child already exists; inspect it.")
             failure = None
             if child is None:
                 if "selection_context" in parent:
@@ -404,6 +414,8 @@ class ProjectController:
                 elif current["source_snapshot_sha256"] != parent["source_snapshot_sha256"]:
                     failure = {"code": "EVIDENCE_CHANGED", "message": "The frozen controller input identity changed."}
         if failure is not None:
+            if _staged_primary is not None:
+                raise ResearchError(failure["code"], failure["message"])
             rejected = self._finish(parent, failure=failure)
             self._check_rejected(rejected)
             return self._response(rejected, replayed)
@@ -419,9 +431,17 @@ class ProjectController:
                     result = self.project.step(request_id=parent["child_request_id"], method_id=action["method_id"],
                                                parameters=parameters, expected_state_version=parent["dispatch_state_version"])
                 else:
-                    result = self.project.step(request_id=parent["child_request_id"], dimension=parameters.get("dimension"),
-                                               expected_state_version=parent["dispatch_state_version"])
+                    if _staged_primary is None:
+                        result = self.project.step(request_id=parent["child_request_id"], dimension=parameters.get("dimension"),
+                                                   expected_state_version=parent["dispatch_state_version"])
+                    else:
+                        result = self.project.step(request_id=parent["child_request_id"], dimension=parameters.get("dimension"),
+                                                   expected_state_version=parent["dispatch_state_version"], _staged_primary=_staged_primary)
         except ResearchError as error:
+            if _staged_primary is not None:
+                # Do not adopt an existing child or infer a terminal rejection
+                # from an ambiguous interrupted/competing staged execution.
+                raise
             # A concurrent writer may still own the child. Do not persist a spurious failure.
             if error.code == "PROJECT_BUSY":
                 raise
@@ -459,6 +479,81 @@ class ProjectController:
         except (TypeError, ValueError, RecursionError):
             raise ResearchError("INVALID_SELECTION_PROPOSAL", "A bounded JSON proposal is required.") from None
         return self._advance(request_id=request_id, need=need, expected_state_version=expected_state_version, proposal=proposal)
+
+    def _advance_staged_primary(self, *, request_id, registration_request_id, registration_sha256,
+                                expected_state_version, proposal, _manager_intent_sha256, _registration_intent_sha256):
+        """Create one claimed staged primary parent; existing parents never dispatch here."""
+        from . import hypothesis_feedback, staged_relevance_adapter as staged
+        from .research_project import _staged_primary_parent_claim_sha
+        from .tabular_quality_feedback import _manager_claim
+        identifier(request_id); identifier(registration_request_id, "registration_request_id")
+        require(type(expected_state_version) is int and expected_state_version >= 0,
+                "INVALID_REQUEST", "Bind the exact staged project version.")
+        proposal = project_selection.parse_proposal(canonical(proposal).encode("utf-8"))
+        with self.project._writer(), self.project._connect() as con:
+            stored = self.project._project(con)
+            records = [r for r in stored.get("hypothesis_registrations", []) if r.get("request_id") == registration_request_id]
+            require(len(records) == 1, "EVIDENCE_CHANGED", "The original staged registration is unavailable.")
+            registration = records[0]; hypothesis_feedback._check_record(registration)
+            require(registration["registration_sha256"] == registration_sha256
+                    and registration["controller_request_id"] == request_id and registration["schema_version"] == "hypothesis-registration-v2"
+                    and registration["candidate"]["method_id"] == staged.TOOL_ID,
+                    "EVIDENCE_CHANGED", "The staged registration or future controller ID differs.")
+            _manager_claim(con, "hypothesis_registration", registration_request_id, _registration_intent_sha256, registration_sha256)
+            require(self._parent(stored, request_id) is None, "OPERATION_INCOMPLETE", "The original staged parent already exists; inspect without dispatch.")
+            require(stored["state_version"] == expected_state_version, "STALE_STATE", "Read the exact staged project version.")
+            require(stored["code_identity"] == registration["project_code_identity"] == project_code_identity()
+                    and code_identity() == registration["controller_code_identity"],
+                    "CODE_CHANGED", "Use the original staged source.")
+            require(stored["source_snapshot_sha256"] == registration["source_snapshot_sha256"]
+                    and stored["registration"]["source_sha256"] == registration["source_sha256"]
+                    and fingerprint(stored["source_scope"]) == registration["scope_sha256"]
+                    and stored.get("plan_revisions") and fingerprint(stored["plan_revisions"][-1]) == registration["plan_sha256"],
+                    "EVIDENCE_CHANGED", "The original source or plan changed after preregistration.")
+            require(not any(p.get("status") in ("prepared", "running", "unknown") for p in stored.get("controller_requests", [])),
+                    "EXECUTION_UNKNOWN", "Inspect the existing controller request.")
+            self.project._require_unclaimed(stored, request_id)
+            require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
+                    and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
+                    "IDEMPOTENCY_CONFLICT", "The original staged controller ID is already claimed.")
+            child_id = "controller-child-" + fingerprint({"project_id": stored["id"], "request_id": request_id})[:32]
+            self.project._require_unclaimed(stored, child_id)
+            require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (child_id,)).fetchone() is None
+                    and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (child_id, child_id)).fetchone() is None,
+                    "IDEMPOTENCY_CONFLICT", "The original staged child ID is already claimed.")
+            self.project._source(stored)
+            current = self.project.status()
+            context = self._selection_context(current, "next_check")
+            require(fingerprint(context.get("research_plan")) == registration["plan_sha256"]
+                    and registration["candidate"] in context["candidates"] and not context["blockers"],
+                    "CONDITION_NOT_SATISFIED", "The original staged candidate is not currently eligible.")
+            selected = project_selection.validate_proposal(context, proposal)
+            require(selected["candidate"] == registration["candidate"] and selected["evidence_citation_ids"] == [],
+                    "EVIDENCE_CHANGED", "Choose exactly the registered staged primary without additional evidence.")
+            plan = self._selected_plan(current, "next_check", proposal, context=context)
+            require(plan["executable"] and plan["decision"]["next_action"]["method_id"] == staged.TOOL_ID,
+                    "CONDITION_NOT_SATISFIED", "The staged primary is not executable under the current budget.")
+            request = {"project_id": stored["id"], "command": "controller.advance_selection", "need": "next_check",
+                       "expected_state_version": expected_state_version, "proposal": copy.deepcopy(proposal)}
+            meta = {"schema_version":"staged-primary-binding-v1", "registration_request_id":registration_request_id,
+                    "registration_sha256":registration_sha256, "manager_intent_sha256":_manager_intent_sha256,
+                    "controller_request_id":request_id, "child_request_id":child_id, "context_sha256":context["context_sha256"],
+                    "proposal_sha256":fingerprint(proposal), "plan_sha256":registration["plan_sha256"],
+                    "source_snapshot_sha256":stored["source_snapshot_sha256"]}
+            meta["record_sha256"] = fingerprint(meta)
+            stored["state_version"] += 1
+            parent = {"schema_version":"project-controller-request-v1", "project_id":stored["id"], "request_id":request_id,
+                      "request_sha256":fingerprint(request), "request":request, "source_snapshot_sha256":stored["source_snapshot_sha256"],
+                      "snapshot_ref_before":current["snapshot_ref"], "state_version_before":current["state_version"],
+                      "dispatch_state_version":stored["state_version"], "code_identity":stored["code_identity"],
+                      "controller_code_identity":code_identity(), "decision":_compact_decision(plan["decision"]),
+                      "blockers":copy.deepcopy(plan["blockers"]), "child_request_id":child_id, "status":"prepared", "result":None,
+                      "selection_context":context, "staged_primary":meta}
+            parent["decision_sha256"] = fingerprint(parent["decision"])
+            stored.setdefault("controller_requests", []).append(parent)
+            self.project._save(con, stored)
+            _manager_claim(con, "staged_primary_parent", request_id, _manager_intent_sha256, _staged_primary_parent_claim_sha(parent), create=True)
+        return self._dispatch(parent, replayed=False, _staged_primary={"parent_request_id":request_id,"intent_sha256":_manager_intent_sha256})
 
     def advance_feedback(self, *, request_id, registration_request_id, expected_state_version=None):
         """Execute a preregistered branch through the original selection gates.
@@ -825,6 +920,8 @@ class ProjectController:
                 if old is not None:
                     require("tabular_quality_policy" not in old, "IDEMPOTENCY_CONFLICT",
                             "Use the original tabular quality policy request; direct replay is forbidden.")
+                    require("staged_primary" not in old, "OPERATION_INCOMPLETE",
+                            "The original staged primary must be inspected without redispatch.")
                     require(old["request_sha256"] == digest, "IDEMPOTENCY_CONFLICT", "Controller request content changed.")
                     if recipe_decision is not None:
                         require(fingerprint(old["request"]) == old["request_sha256"],

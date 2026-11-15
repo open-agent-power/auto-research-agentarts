@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S112 后端新增以原登记future ID显式staged primary与只核终态恢复，parent/child各自事务claim；独审43+42合成通过，direct抢占仅函数注入、尚无UI。旧pin登记不可自动升级。[SPRINT-112](../execution/SPRINT-112.md)。
+
 S111 工作台可安全显式登记staged验证集双指标及只读反馈；Project登记/claim同事务、原ID缺失停查，独立50项+浏览器/两进程故障通过。新入口需 `-B` 和新空PYTHONPYCACHEPREFIX；未来ID执行和反馈推进UI尚未接。[SPRINT-111](../execution/SPRINT-111.md)。
 
 S110 工作台页面可显式选择并导入S109后验经验包，独立合成Chromium/HTTP验收坏包、跨项目、文件乱序和原ID HTTP重放；未测浏览器失联后恢复按钮，不自动写计划或调用研究。[SPRINT-110](../execution/SPRINT-110.md)。
