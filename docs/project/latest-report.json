@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T07:50:41+08:00",
-  "status": "S131_synthetic_successor_recovery_verified",
+  "end_time": "2026-11-16T07:55:35+08:00",
+  "status": "UCI_conditional_protocol_reviewed_quality_recovery_gap_under_review",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -65,7 +65,8 @@
     "S128 one synthetic S127 packet preregistered primary, wait and plan-v2 original-ID recovery, independently recalculated saved metrics",
     "S129 second synthetic white-box fixture fixed and independently checked without ranking; -0.5 MRR is unmeasured expectation",
     "S130 two independently reviewed preregistered synthetic branches under same pin; no new real research",
-    "S131 original S130 synthetic projects saved operator successor plans, dropped response and original-ID resume, independently reviewed"
+    "S131 original S130 synthetic projects saved operator successor plans, dropped response and original-ID resume, independently reviewed",
+    "UCI 501 conditional descriptive protocol independently reviewed, not authorized or ready to execute"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1060,5 +1061,12 @@
     "reported_credits_used_each": 1,
     "actual_billing": "unknown",
     "model_or_dataset_download": "none reported"
-  }
+  },
+  "uci_proposal": {
+    "commit": "9586c5fb523ca6cf350a84f9b8d36ff69988d946",
+    "reviewed_draft_sha256": "f8051b1a62a3acbe978a07748a546727073fe309f6862cabf963b0de0abf6eac",
+    "limits": "station/timezone/rights/data bytes unresolved, snapshot-bound time verification and safe first quality recovery not implemented, no study/data acquisition",
+    "budget_deviation": "two unauthorized Firecrawl metadata scrapes creditsUsed=1 each, actual billing unknown, stopped"
+  },
+  "next_scheduled_trigger": "2026-11-16T10:47:27+08:00"
 }
