@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T09:44:02+08:00",
-  "end_time": "2026-11-15T09:54:42.666181+08:00",
-  "status": "S061_verified_pending_publication",
+  "end_time": "2026-11-15T09:55:25.362835+08:00",
+  "status": "S061_published",
   "source_freeze_sha256": "b12815a63cec2fade229f61486dcc0d2be86e823abe7c20678b73289b0b3fbb8",
   "core_identity": "49db2282583ae82090963d129ed348bfa674261ec166c6ac2e68dc8d671e296b",
   "base_commit": "968cdf1e2c7e09cd01f6f964eb41a83b5ecc2c5a",
@@ -29,5 +29,8 @@
   "next": "Publish verified increment; continue autonomous research under existing budget, S050 still pending explicit one-call approval",
   "next_planned_trigger": "2026-11-15T10:47:27+08:00",
   "automation_completion": "unknown",
-  "delivery": "unknown"
+  "delivery": "unknown",
+  "code_commit": "777f92acaf08ee0c695d94cfd97d70706b308d71",
+  "active_assigned_agents": 0,
+  "lease": "release on exit; verify actual guard state"
 }
