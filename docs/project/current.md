@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S071进行中：构建原请求waiting经验，known保留原primary，controller_not_started保持value/action null，final仅当时unmeasured；snapshot漂移拒绝。尚未独审/提交，源码WIP本盘快照 runs/s071-verification/checkpoint-001 manifest SHA 1fc23f4a6dedbd5b0fa49d91259d7e8445880bb41526fa1fa03336c53aeff8fb，源码可能继续变化；待完整Memory/计划/报告、篡改与独审。
+
 S070修复Workbench拒绝staged v1/v2/v3和错误Ridge卡片，代码推送 `dd7cf66cefe1940d96c08e5e7e7a7388a9439301`；真实Chromium+原后端独立目标导入三版本、原字节与同ID重启恢复通过，加载期间禁用、unknown/单臂与安全文本正确。旧Ridge/CPU独审仅预览；原研究48文件/claim不变，工程目标工具0。隔离构建四产物字节同，pin dd7cf66 238项匹配。[SPRINT-070](../execution/SPRINT-070.md)。
 
 S069可选v3外层比较经验已独审并推送 `5d091b16e45b5b172bf8bee1dc8cbd05c78eccc9`：只对固定S067回源核验后进入Memory/计划/报告，BM25/BM25保留unknown；外层规则是操作者规则，离线不能证明原始绑定和锚前快照。40相关/独审7、旧v1/v2摘要与报告逐字节一致；目标工具used0，原48文件/claim和3/3预算不变。源码pin 5d091b1 的192文件匹配冻结；[SPRINT-069](../execution/SPRINT-069.md)。S068 v2接入见[SPRINT-068](../execution/SPRINT-068.md)。

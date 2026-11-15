@@ -41,3 +41,5 @@ S069可选v3回源验证进行中：真实S067只读试算同臂unknown，尚缺
 S069可选v3真实S067回源绑定/Memory/计划/报告已独审并推送 `5d091b16e45b5b172bf8bee1dc8cbd05c78eccc9`，仅固定S067、操作者规则非原生登记、同臂unknown、离线与锚前快照不可独证。40相关/独审7、旧v1/v2字节一致；target工具used0、原48文件/claim与3/3预算保持，源码pin 192文件匹配。公开聚合有限canary通过。检查点 2026-11-15T14:02:08.501957+08:00；继续评估通用化。
 
 S070 Workbench staged v1/v2/v3文件导入及卡片已推 `dd7cf66cefe1940d96c08e5e7e7a7388a9439301`；独立真实浏览器+原本地后端三格式原字节导入/重启同ID恢复、加载禁用和安全文本通过；Ridge/CPU独审仅预览，工程目标工具0。隔离构建四产物及源码pin 238项一致；先前超时、被拒400 ID未保存和构建夹具失败均记录。公开聚合有限canary通过。检查点 2026-11-15T14:27:38.179150+08:00。
+
+S071等待经验进行中：S059 known待定和S062 controller_not_started unknown工程原件只读capture初稿，独审发现未来primary ID占用及封存scope投影缺口正在修复；WIP专项5/5、frontend build/静态渲染通过但完整接入及独审未完成。WIP快照 runs/s071-verification/checkpoint-001 manifest SHA 1fc23f4a6dedbd5b0fa49d91259d7e8445880bb41526fa1fa03336c53aeff8fb，本盘非发布产物，源码可能继续变。检查点 2026-11-15T14:37:00.961603+08:00。
