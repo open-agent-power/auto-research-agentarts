@@ -216,3 +216,5 @@ S115：严格已知反馈后端wait/audit已独审；unknown或原primary不完�
 S116：严格反馈wait/audit十个真实SIGKILL窗口、两个竞争、四种不同分支独审通过，仅合成；各例原primary已用1工具，audit各自再计。反馈UI未接，见SPRINT-116。
 
 S117：已知staged反馈wait/audit接页面，原body/ID与resume-only、预算和unknown边界保留；模拟unknown/阻塞，真实合成主链与跨项目独审通过。见SPRINT-117。
+
+S118：公开经验+两个隔离合成Project经真实UI贯通计划/登记/primary/反馈/报告及原ID恢复，wait 1/2、audit 2/2；非模型自主/真实科研，后端无独立网络/fit/rank哨兵。见SPRINT-118。
