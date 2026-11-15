@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T02:18:51+08:00",
-  "status": "S113_real_process_verification_complete_primary_ui_in_progress",
+  "end_time": "2026-11-16T02:41:19+08:00",
+  "status": "S114_staged_primary_ui_verified_feedback_design_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -46,7 +46,8 @@
     "S110 Workbench file selector accepts S109 posthoc bundle; independently verified browser/HTTP import and same-ID replay in isolated synthetic target",
     "S111 Workbench staged dual-metric preregistration and read-only feedback with manager/Project same-transaction ownership; independently verified synthetic tests/browser/process interruptions",
     "S112 staged primary backend binds original registered future ID, parent and child transaction claims; independently verified 43+42 synthetic tests",
-    "S113 independently verified seven real synthetic SIGSTOP/SIGKILL windows and old Controller genuine multi-process race, 8/8 original claim checks"
+    "S113 independently verified seven real synthetic SIGSTOP/SIGKILL windows and old Controller genuine multi-process race, 8/8 original claim checks",
+    "S114 UI explicitly executes registered future Controller ID with preserved body and resume-only; synthetic browser and 29+43 independent backend tests"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -75,7 +76,8 @@
     "S110 independent loading test initially lost its synthetic service, connection refused; reran new service successfully.",
     "S111 late-loaded pyc after preflight previously left manager intent before CODE_CHANGED; reproduced synthetic and fixed pre-accept. Independent initial tests without empty cache failed 2+3 and retained.",
     "S112 prior regression encountered one failure and one error CODE_CHANGED because author edited source while running; retained and reran fixed version.",
-    "S113 author fixed2 timed out on repeated trace barrier after seven windows; fixed3 expected wrong error EVIDENCE_CHANGED and failed; later separate run plus independent eight-scenario run passed."
+    "S113 author fixed2 timed out on repeated trace barrier after seven windows; fixed3 expected wrong error EVIDENCE_CHANGED and failed; later separate run plus independent eight-scenario run passed.",
+    "S114 test harness initially timed out selecting hidden project switch; corrected using programmatic hidden control; did not prove visible user interaction."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -84,12 +86,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Implement and verify explicit staged primary UI using registered original future ID, clear one-tool rank/score disclosure, safe resume-only.",
+  "next": "Design safe explicit staged feedback wait/audit branch with original identity, bounded tool cost and conservative recovery.",
   "next_planned_trigger": "2026-11-16T04:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "7db84ce25e8bad8080daed822503e9a449856b16",
-  "last_checkpoint": "2026-11-16T02:18:51+08:00",
+  "code_commit": "6cfab2102b8da94cd823d3a3a0004e5af427abf7",
+  "last_checkpoint": "2026-11-16T02:41:19+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -876,5 +878,12 @@
     "review_manifest_sha256": "9f01abc233ca9c945291a02907abda9929fcb55f3457850bb22585f417eaaff1",
     "independent_scenarios": 8,
     "limits": "synthetic selected processes, not power failure or adversarial isolation; three rollback journals retained"
+  },
+  "S114": {
+    "commit": "6cfab2102b8da94cd823d3a3a0004e5af427abf7",
+    "independent_tests": 29,
+    "additional_independent_tests": 43,
+    "scope": "synthetic Chromium/local HTTP; pending total=9 mocked, project-switch hidden control programmatic",
+    "limitations": "primary consumes up to one tool doing dev/validation ranking and score; old staged v2 projects add optional metadata; no feedback branch UI"
   }
 }

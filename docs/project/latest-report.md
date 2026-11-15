@@ -143,3 +143,5 @@ S079现有授权内新检索源元数据筛选：无可直接准入候选；QASP
 检查点 2026-11-16T01:59:08+08:00：S112后端已推 `74d8021816fb62c895e08467035885c1c7bc3119`，以原登记future ID显式primary，parent与child各自事务claim、未决保守停查；独审43+42合成通过。direct抢占目前仅函数注入，UI未接；旧S111 pin登记不可自动升级。此前测试中途编辑触发CODE_CHANGED失败保留，固定版重跑。无新真实模型/研究；继续实际多进程竞争验证及UI设计。本目录owner root-quality-20261115T1806活跃，旧盘/全局执行者unknown，下次计划2026-11-16T04:47:27+08:00，平台完成/投递unknown。
 
 检查点 2026-11-16T02:18:51+08:00：S113记录推 `7db84ce25e8bad8080daed822503e9a449856b16`，独立合成七个真实SIGSTOP/SIGKILL窗口和旧Controller真实多进程抢先，八场/claim 8项通过；已接受child但adapter前为used/reserved/dispatch=0/1/1。作者fixed2同步点重复超时、fixed3误判真实EVIDENCE_CHANGED失败保留，三份rollback journal未清理。非断电/恶意隔离证明，无新真实研究/模型。继续接显式原ID primary页面，明确1工具含dev/validation排名评分。本目录owner root-quality-20261115T1806活跃，旧盘/全局执行者unknown；下次计划2026-11-16T04:47:27+08:00，平台完成/投递unknown。
+
+检查点 2026-11-16T02:41:19+08:00：S114已推 `6cfab2102b8da94cd823d3a3a0004e5af427abf7`，页面显式按原future ID执行strict primary，说明最多1工具及dev/validation排名评分；独审29+43合成及浏览器通过。pending总数9为mock，跨项目草稿清理用程序操作隐藏控件；初次定位失败保留。仅登记元数据投影非claim认证，旧staged v2响应新增可选字段；旧pin不迁移。无新真实研究/模型；继续设计显式反馈wait/audit。本目录owner root-quality-20261115T1806活跃，旧盘/全局执行者unknown；下次计划2026-11-16T04:47:27+08:00，平台完成/投递unknown。
