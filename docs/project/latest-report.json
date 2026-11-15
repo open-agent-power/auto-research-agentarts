@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": "2026-11-15T15:42:30.306213+08:00",
-  "status": "S074_verified_S075_protocol_review",
+  "status": "S075_descriptive_analysis_verified_continuing",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Independently review and publish before executing S075 descriptive saved validation joint analysis; then select a preregistered real task within existing authorization.",
+  "next": "Select a new research slice with provenance, authorization, budget and predeclared evaluation; avoid reopening old full-budget studies.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T16:12:17.743613+08:00",
+  "checkpoint_time": "2026-11-15T16:20:18.413470+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -397,5 +397,56 @@
     "new_research_actions": 0,
     "cost": "unknown",
     "remaining": "select licensed real dataset and preregister task/metrics/budget under existing authorization; S074 still in progress"
+  },
+  "S075": {
+    "status": "independently_verified",
+    "reader_commit": "a8207f63c3201eb2e601dc81642d15342943813b",
+    "source_pin": "/workspace/development-continuation-20261114/source-pins/a8207f6",
+    "source_pin_files_verified": 195,
+    "result_sha256": "c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb",
+    "S065_matrix": [
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        16,
+        62,
+        18
+      ],
+      [
+        2,
+        1,
+        0
+      ]
+    ],
+    "S067_matrix": [
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        24,
+        162,
+        12
+      ],
+      [
+        0,
+        1,
+        0
+      ]
+    ],
+    "rows": "recall20 negative/zero/positive",
+    "columns": "mrr10 negative/zero/positive",
+    "new_research_actions": 0,
+    "new_models": 0,
+    "new_fits": 0,
+    "new_rank_score": 0,
+    "scope": "previously exposed validation, descriptive only; dev+validation public source and SQLite metadata read; no final query/qrel",
+    "independent_review": "runs/s075-review/actual-independent-assessment.md",
+    "canary": "runs/s075-review/public-results-check.json",
+    "development_cost": "unknown"
   }
 }

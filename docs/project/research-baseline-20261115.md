@@ -20,6 +20,7 @@
 | 本盘真实检索 | [S065](../execution/SPRINT-065.md) Hotpot final Recall@20 .91→.92、MRR .865984→.830095；[S067](../execution/SPRINT-067.md) BoolQ 同臂 | S065 有排名损失；S067 规则对照和 TF-IDF 最终反事实 unknown。公开来源曾被读取，相关标签不完备，非盲测。各自原 Project、源码 pin、claim 和已用预算保留。 |
 | 模型参与 | [S035](../execution/SPRINT-035.md) 3 次逻辑委派、2 项工具 | 复核 needs_revision，计划未采纳；底层请求数与费用 unknown。其他经验导入不证明模型采纳。S050 新增请求未授权，不能套用旧批准。 |
 | 工程能力 | [S069](../execution/SPRINT-069.md)–[S073](../execution/SPRINT-073.md)：经验来源、导入、等待/恢复、合成闭环、计划引用 | 属工程可靠性证据而非科研收益；S069 v3 当前只支持固定 S067，非通用验证器。 |
+| 已保存结果再分析 | [S075](../execution/SPRINT-075.md)：S065召回提升的3题中2题MRR下降；S067召回不变的198题中24题MRR下降/12题上升 | 事后、已曝光validation的描述，不合并任务，不代表前瞻验证、总体科研收益或迁移。 |
 | 交付与运行 | 本源码续作已推 Git；[S058](../execution/SPRINT-058.md)一次附件上传 401 | 原云盘与原全局执行者状态 unknown，源码 checkout 不等于原账本恢复。附件未证明送达，定时触发不是常驻模型或投递回执。 |
 
 ## 当前执行顺序

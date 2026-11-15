@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S075已发布后只读S065/S067原保存validation联合分析并独立复算，结果 [S075](../execution/SPRINT-075.md)：S065召回提高3题其中2题MRR下降；S067召回不变198题中24题MRR下降/12上升。已曝数据事后描述、非盲测/总体收益/迁移；无新模型/fit/排名/行动，原3/3预算保持。reader commit `a8207f63c3201eb2e601dc81642d15342943813b`、pin195项匹配，公开结果SHA c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb。
+
 **当前执行基线：** [自主研究任务基线（2026-11-15）](research-baseline-20261115.md)，外部证据与适配见[方法调研](baseline-research-20261115.md)。以可复核真实问题、反馈改变下一决定及原身份接续为首要验收；工程测试不替代科研收益。S074已完成限定范围验收，按基线登记并验证下一研究切片；不改旧盘、预算或授权。
 
 S074计划引用UI与原请求恢复已独审推送 `ea8152e595abca322870a9eb6c7fbc0b9e1eebbf`：两真实进程中断窗口同ID恢复、原来源漂移拒绝、脱敏和跨项目pending已验；UI未保存草稿跨项目返回的完整往返独审未完成，旧无body为unknown。原正文仅本地manager，禁止假称零写入/OS隔离；pin195项匹配。[SPRINT-074](../execution/SPRINT-074.md)。

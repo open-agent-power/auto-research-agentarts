@@ -13,3 +13,16 @@
 固定清单 `runs/s075-verification/source-freeze.json` SHA-256 `d4ca88f1d753444274237fe81541416e2977cf2ddcff2cabf93c744642fa5fa8`，含 192 个产品 Python 源及协议、脚本、专项测试，共 195 项；reader Project core `e4424e6e8b1d0927f1d6dd71d412767b1210a29e4dc84f91`。协议 SHA `575f57346c8c0bd3c4e4f8b6c95a71eb3c70eb50bc8cfc4a467d577b414a925b`，脚本 SHA `ad8091d1b1549a2c6ec02ca21e7680f5b4ec1e784d4d53ce11ae215b22ae14b2`，测试 SHA `79ae4edd694ba77e225bf71136352f731e30c53e6d8c40cb65ff77d105b812ab`。
 
 作者纯合成回归 5/5 通过（`runs/s075-verification/final-synthetic-regression.log`，SHA `e18b439b5db289daeb4b09115dd38d040b411061ac6f6e9fae5c8edeeb23d145`），包括阈值边界、缺失/重复、类型及 summary 错误、producer 身份拒绝、读取中身份漂移和写入失败/目标已存在。独审另以合成输入验证 3×3 九格、SQL 行失败、原 producer 身份和目录 fsync 失败留下完整但未确认的目标，4/4 通过（`runs/s075-review/independent-probe.log`，SHA `82ae1665759c33cf102ae04971f0cb443a724134e8dd19e46e5aee4ff48d4ab4`），并独立重跑作者 5/5。独审发现的 producer 身份、读取窗口和原子发布问题已修，前版和日志保留。测试不产生研究项目、工具行动、模型或 fit；本地工程计算及任何未来费用不据此假称为零。
+
+## 已保存 validation 的实际只读再分析
+
+协议及脚本先在 `a8207f63c3201eb2e601dc81642d15342943813b` 推送，实际运行后独立复算完成；独立源码pin `/workspace/development-continuation-20261114/source-pins/a8207f6` 的195项与冻结清单匹配。[聚合结果](g5-local/saved-joint-validation-results.json) SHA256 `c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb`。行是 TF-IDF−BM25 的 Recall@20 负/零/正，列是 MRR@10 负/零/正（epsilon 1e−12）：
+
+| 案例 | 负召回 | 零召回 | 正召回 |
+|---|---|---|---|
+| S065 Hotpot，100题 | 0 / 1 / 0 | 16 / 62 / 18 | 2 / 1 / 0 |
+| S067 BoolQ，200题 | 0 / 1 / 0 | 24 / 162 / 12 | 0 / 1 / 0 |
+
+每格三个数字依次是 MRR 负/零/正。S065 的3个召回改善问题中2个MRR下降；S067 的198个召回不变问题中24个MRR下降、12个上升。两组任务和标签语义不同，不合并，均为已曝光验证集的事后描述；不推断总体、显著性、因果或经验迁移，也不改变原条件或 final 结论。
+
+独审从两个原 primary 保存结果独立以 Decimal 重算矩阵、边际与均值，核原 Project/SQL/action/source/原3/3预算与前后状态；未重新rank/score/fit/model，不执行新研究。读取范围为完整 dev+validation 已存值及共享语料、SQLite行动元数据；进程内禁止原final/private路径、非primary工件、网络、写入及指定执行入口；没有全case私有hash。实际公开文件与结果原字节相等，有限canary覆盖600个dev/validation qid及5,920个共享语料doc ID/文本及其SHA（26,080项），均未命中；未读取或核final query/qrel，亦无base64或语义泄露保证。见 `runs/s075-review/actual-independent-assessment.md` 和 `public-results-check.json`。

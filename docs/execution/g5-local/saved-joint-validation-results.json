@@ -1,0 +1,128 @@
+{
+  "cases": [
+    {
+      "aggregate": {
+        "category_order": [
+          "negative",
+          "zero",
+          "positive"
+        ],
+        "columns": "mrr@10",
+        "margins_and_means": {
+          "mrr@10": {
+            "checked_fsum_mean": 0.008559523809523812,
+            "negative": 18,
+            "positive": 18,
+            "saved_mean": 0.00855952380952381,
+            "zero": 64
+          },
+          "recall@20": {
+            "checked_fsum_mean": 0.01,
+            "negative": 1,
+            "positive": 3,
+            "saved_mean": 0.01,
+            "zero": 96
+          }
+        },
+        "matrix": [
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            16,
+            62,
+            18
+          ],
+          [
+            2,
+            1,
+            0
+          ]
+        ],
+        "queries": 100,
+        "rows": "recall@20"
+      },
+      "case": "S065",
+      "primary_action_id": "action-4de378649a2bc9026793872874663343",
+      "primary_artifact_sha256": "d75481f0f3b2a2f502aa299cc42224fc9af26e9fe3b43d2aa08ba736cbfa4502",
+      "primary_result_sha256": "32ced585400985fc64fb30b97877ba2ccc71c1164a651766764af4b49f0a9b1a",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+      "run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+      "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb"
+    },
+    {
+      "aggregate": {
+        "category_order": [
+          "negative",
+          "zero",
+          "positive"
+        ],
+        "columns": "mrr@10",
+        "margins_and_means": {
+          "mrr@10": {
+            "checked_fsum_mean": -0.02336706349206349,
+            "negative": 24,
+            "positive": 12,
+            "saved_mean": -0.02336706349206349,
+            "zero": 164
+          },
+          "recall@20": {
+            "checked_fsum_mean": 0.0,
+            "negative": 1,
+            "positive": 1,
+            "saved_mean": 0.0,
+            "zero": 198
+          }
+        },
+        "matrix": [
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            24,
+            162,
+            12
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "queries": 200,
+        "rows": "recall@20"
+      },
+      "case": "S067",
+      "primary_action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+      "primary_artifact_sha256": "4f9ad51aa8f88074697e66f04631083c32e5f5e4c49be6d5746216c92edc8dd3",
+      "primary_result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+      "run_id": "run-276475c33d7542509c840bc575005271",
+      "source_snapshot_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb"
+    }
+  ],
+  "development_cost": "unknown",
+  "guard_scope": "Read-only manager and Project SQLite (including ledger metadata), public source packet and exactly the original primary artifact only. Guard private/holdout/Host paths, non-primary artifact paths, project writes/recovery, index/rank/score/fit/model and dispatch. No whole-case inventory or private-file hashing is performed. The checked primary verifies all saved dev and validation rows even though only validation enters the output. Program guards are local safeguards, not OS isolation.",
+  "limitations": [
+    "Both public datasets and previous research outputs were exposed before this descriptive audit.",
+    "Query independence and target-population sampling are not established; no p-values, confidence intervals or significance claims.",
+    "The two cases have different tasks and cohorts and are reported separately, not pooled or treated as a transfer experiment.",
+    "Joint counts describe these saved queries, not model adoption, scientific benefit or a new preregistered result."
+  ],
+  "new_fits": 0,
+  "new_models": 0,
+  "new_research_actions": 0,
+  "protocol_sha256": "575f57346c8c0bd3c4e4f8b6c95a71eb3c70eb50bc8cfc4a467d577b414a925b",
+  "reader_commit": "a8207f63c3201eb2e601dc81642d15342943813b",
+  "reader_core": "e4424e6e8b1d0927f1d6dd71d412767b1210a29e4dc84f1b1b76ae6b92084f91",
+  "reader_implementation_sha256": "f9a7913bc3ec121011682d506a95ab37e2d02e1289bf367f3f4a1fb3a6784227",
+  "schema_version": "saved-joint-validation-audit-v1",
+  "script_sha256": "ad8091d1b1549a2c6ec02ca21e7680f5b4ec1e784d4d53ce11ae215b22ae14b2",
+  "verified_remote_head_at_execution": "a8207f63c3201eb2e601dc81642d15342943813b"
+}
