@@ -1,0 +1,43 @@
+{
+  "schema_version": "saved-joint-validation-protocol-v1",
+  "scope": "Retrospective descriptive joint accounting of previously exposed saved validation data; not blind, prospective confirmation, a new research project, evidence of transfer, or a causal effect of experience.",
+  "direction": "tfidf_cosine_minus_bm25",
+  "split": "validation",
+  "rows": "recall@20",
+  "columns": "mrr@10",
+  "categories": ["negative", "zero", "positive"],
+  "epsilon": 1e-12,
+  "mean_absolute_tolerance": 1e-12,
+  "cases": [
+    {
+      "label": "S065",
+      "workspace": "5d43109/runs/s065-hotpot-support-v1",
+      "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+      "project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+      "run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb",
+      "primary_action_id": "action-4de378649a2bc9026793872874663343",
+      "primary_result_sha256": "32ced585400985fc64fb30b97877ba2ccc71c1164a651766764af4b49f0a9b1a",
+      "validation_queries": 100
+    },
+    {
+      "label": "S067",
+      "workspace": "5bd9883/runs/s067-boolq-paired-passage-v1",
+      "source_commit": "5bd9883dd435a1d39b857a51bb6f4d20a53f156b",
+      "project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+      "run_id": "run-276475c33d7542509c840bc575005271",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "source_snapshot_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb",
+      "primary_action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+      "primary_result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f",
+      "validation_queries": 200
+    }
+  ],
+  "procedure": "One checked primary per case; exact validation query coverage and both original methods. Compute each per-query pair of saved metric deltas, classify below -epsilon / within inclusive [-epsilon,+epsilon] / above +epsilon, count a 3x3 matrix and margins. Verify margins against saved wins/ties/losses and full-precision math.fsum mean against the original paired summary to absolute tolerance; any missing/duplicate/invalid value or disagreement aborts without partial result. Never combine cases.",
+  "guard_scope": "Read-only manager and Project SQLite (including ledger metadata), public source packet and exactly the original primary artifact only. Guard private/holdout/Host paths, non-primary artifact paths, project writes/recovery, index/rank/score/fit/model and dispatch. No whole-case inventory or private-file hashing is performed. The checked primary verifies all saved dev and validation rows even though only validation enters the output. Program guards are local safeguards, not OS isolation.",
+  "output": "Aggregate matrices, margins, original and checked means, fixed identities and code/protocol hashes only; no individual query/document text, ID, query hash, rankings, final values or raw rows. Exclusive new output outside all source cases; no partial success output.",
+  "budget": {"cases": 2, "validation_queries": 300, "new_research_projects": 0, "new_research_actions": 0, "new_models": 0, "new_fits": 0, "new_rank_or_score": 0},
+  "limitations": ["Both public datasets and previous research outputs were exposed before this descriptive audit.", "Query independence and target-population sampling are not established; no p-values, confidence intervals or significance claims.", "The two cases have different tasks and cohorts and are reported separately, not pooled or treated as a transfer experiment.", "Joint counts describe these saved queries, not model adoption, scientific benefit or a new preregistered result."],
+  "release_gate": "Freeze and independently review this protocol and script, publish both on the canonical repository main, then run only with the exact published reader commit and original case identities. Before reading cases verify each producer pin has its exact committed HEAD, canonical GitHub origin and clean product source, and each producer commit is an ancestor of the actual canonical main; reader and producer identities remain distinct. Do not analyze before publication."
+}
