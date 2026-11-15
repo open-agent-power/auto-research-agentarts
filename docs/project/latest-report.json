@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": "2026-11-15T15:42:30.306213+08:00",
-  "status": "focused_review_completed_s074_paused",
+  "status": "rebaselined_s074_in_progress",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Resume S074 original WIP after checking lease and checkpoint; finish cross-process/browser/independent audit, then charter evidence matrix and preregistered real research comparison.",
+  "next": "Finish only necessary S074 recovery validation, then preregister and carry out a real research slice within existing authorized budgets.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T15:42:30.306213+08:00",
+  "checkpoint_time": "2026-11-15T15:51:00.832090+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -362,5 +362,18 @@
     "next_scheduled_time": "2026-11-15T16:47:27+08:00",
     "delivery_status": "unknown",
     "lease_release_receipt": "runs/review/focused-lease-release.json"
+  },
+  "rebaseline": {
+    "status": "independently_reviewed_and_in_effect",
+    "document": "docs/project/research-baseline-20261115.md",
+    "objective": "real research evidence -> next plan or explicit wait -> same-ID continuation",
+    "team": [
+      "root: integration, identity, budget, reporting",
+      "engineering: S074 and minimal execution implementation",
+      "capability_review: independent evidence and review"
+    ],
+    "completed_research_claim": "none in this rebaseline; historic and current evidence separately classified",
+    "current_lease_owner": "root-rebaseline-20261115T1548",
+    "S074": "checkpoint-003 preserved, verification in progress"
   }
 }
