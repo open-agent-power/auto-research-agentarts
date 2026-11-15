@@ -21,6 +21,8 @@ S094 新增显式 Host Python 质量计划采用入口：保留原已保存propo
 
 S096 用隔离合成Host回复在意图已存/core前与core计划+claim已提交/Host回执前两个栅栏实际SIGKILL，并以不同进程原ID恢复；作者和独审各2/2通过。前者停查，后者核原claim只读收敛；不证明断电/所有中断或真实模型采纳。[S096](../execution/SPRINT-096.md)。
 
+S098 对 S097 的 manager→Host→Project 四个固定提交切点用隔离合成实际 SIGKILL 子进程、不同进程原ID恢复；作者和独审各4/4。前三停查，仅Host已applied且原链匹配时补manager回执；不证明断电/全部时序/真实模型。[S098](../execution/SPRINT-098.md)。
+
 参考调研：本轮固定并只读审查 MIT 的 Meta Ax `fd8a67a524b063b2615815c638af2c94b034f476`；它允许行动完成但指标缺失，印证本项目应区分完成状态与反馈 unknown。转移/暂停顺序与本项目规则不同，不直接合入或覆盖原预算门；未运行 Ax。[源码对照](ax-transition-review-20261115.md)。
 
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。

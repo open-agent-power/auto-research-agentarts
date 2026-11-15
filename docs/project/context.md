@@ -20,6 +20,8 @@ S094 Host Python 可显式采用原已保存的四文本模型计划并由宿主
 
 S096 对该Host采用的两个固定提交切点完成真实进程SIGKILL与原ID新进程恢复；仅隔离合成、非断电或真实模型验证。
 
+S098 对工作台→Host→Project 的四个固定进程终止切点完成独立合成SIGKILL/原ID恢复；仅原Host完成且claim核实后补manager回执，其余停查，非断电或完整自治证据。
+
 ## 当前任务基线（2026-11-15 15:48 后）
 
 基线外部方法已独审写入 [调研](baseline-research-20261115.md)（commit ca3f40a）；S075事后只读再分析两个真实项目validation的召回/排序联合分布，保留不利例、无新实验/模型，见[S075](../execution/SPRINT-075.md)。
