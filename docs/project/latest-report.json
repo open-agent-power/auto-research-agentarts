@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T07:25:38+08:00",
-  "status": "S128_synthetic_single_branch_rehearsal_reviewed_next_fixture_design",
+  "end_time": "2026-11-16T07:31:31+08:00",
+  "status": "S129_whitebox_fixture_fixed_next_dual_branch_synthetic",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -62,7 +62,8 @@
     "Metadata-only UCI 501 candidate review and NFCorpus sample exposure recorded; Wikinews conditional protocol independently reviewed, not authorized or executable",
     "S126 opt-in staged research-purpose declaration, synthetic old/new 14/14 and pinned-source cross-process verification",
     "S127 deterministic built-in synthetic staged preparation independently recomputed; no real Wikinews data or research",
-    "S128 one synthetic S127 packet preregistered primary, wait and plan-v2 original-ID recovery, independently recalculated saved metrics"
+    "S128 one synthetic S127 packet preregistered primary, wait and plan-v2 original-ID recovery, independently recalculated saved metrics",
+    "S129 second synthetic white-box fixture fixed and independently checked without ranking; -0.5 MRR is unmeasured expectation"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1022,5 +1023,12 @@
     "result": "synthetic validation [0,0] met→wait, 1/2 tools, 0 model/fit/evidence; browser original-ID resume after discarded response",
     "negative": "first run observer attached wrong rank function and failed; rank300 from saved artifact, not real-time independently counted",
     "limits": "single synthetic input/met branch; read-only independent review did not rerun browser/primary; no real research"
+  },
+  "S129": {
+    "commit": "a873fd6cef436a9a793df930a7c4cc37184c8261",
+    "source_manifest_sha256": "59e6e7e84cce42a06133b374887adff6987fef7980123f53d3355df76649c509",
+    "packet_sha256": "cbcf90e7b50d58dad3233a0a03fcb9f02fc07394250ee6a784557e59a7023e8e",
+    "verification": "independent 21/21 synthetic format/old tests; 11 files byte equal; no rank/score",
+    "limitations": "engineered whitebox known-query distractors, -0.5 theoretical only, no unseen scientific results; packets locally retained, bytes not committed; manifest recorded old HEAD; review-end newer docs-only HEAD, test-start HEAD unknown"
   }
 }
