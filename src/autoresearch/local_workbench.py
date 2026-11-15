@@ -2179,6 +2179,177 @@ class LocalWorkbench:
                     self._save(con, body["request_id"], {"status":"completed", "intent":intent, "result":response}); con.commit()
                     return dict(response, replayed=old is not None)
 
+    def preview_staged_feedback_plan(self, body):
+        """Read-only preview of an explicit post-observation rule; never dispatch or save."""
+        try:
+            return self._preview_staged_feedback_plan_checked(body)
+        except ResearchError:
+            raise
+        except (KeyError, TypeError, ValueError, AttributeError, IndexError, OverflowError, RecursionError, OSError):
+            raise ResearchError("EVIDENCE_CHANGED", "Original preview inputs or saved records are malformed or unavailable.") from None
+
+    def _preview_staged_feedback_plan_checked(self, body):
+        from .research_project import _check_plan_experience_refs
+        from .tabular_quality_feedback import _manager_claim
+        from .retrieval_holdout import FINAL_TOOL_ID
+        from . import staged_relevance_adapter as staged
+        required = {"project_id", "snapshot_ref", "plan_request_id", "plan_sha256"}
+        _require(type(body) is dict and required <= set(body) <= required | {"posthoc_rule"},
+                 "INVALID_REQUEST", "Use the exact project, snapshot and successor plan identity.")
+        identifier(body["project_id"], "project_id"); identifier(body["plan_request_id"], "plan_request_id")
+        _require(all(type(body[k]) is str and re.fullmatch(r"[a-f0-9]{64}", body[k]) for k in ("snapshot_ref", "plan_sha256")),
+                 "INVALID_REQUEST", "Use exact snapshot and plan SHA-256 identities.")
+        rule = body.get("posthoc_rule")
+        if rule is not None:
+            _require(type(rule) is dict and set(rule) == {"schema_version", "condition_met", "condition_not_met", "posthoc_acknowledged"}
+                     and rule["schema_version"] == "staged-feedback-preview-rule-v1" and rule["posthoc_acknowledged"] is True
+                     and rule["condition_met"] in ("wait", "audit") and rule["condition_not_met"] in ("wait", "audit"),
+                     "INVALID_REQUEST", "Explicitly acknowledge the bounded post-observation rule.")
+        _check_staged_runtime()
+        with self._writer():
+            # This inspection connection rejects existing journal/WAL/SHM and
+            # uses immutable SQLite; cooperative OS lock files may be created.
+            with _immutable_inspection_database(self.db) as con:
+                _, managed = self._project(con, body["project_id"], active=True)
+                project = _InspectionProject(managed.root)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                with project._writer():
+                    state = project.status()
+                    _require(state["snapshot_ref"] == body["snapshot_ref"], "STALE_STATE", "Project snapshot changed.")
+                    _require(state.get("private_evaluation") is None and state.get("frozen_evaluation_strategy") is None
+                             and not any(a.get("command") == FINAL_TOOL_ID for a in state["actions"]),
+                             "CONDITION_NOT_SATISFIED", "Projects with holdout, freeze or final are excluded.")
+                    project._require_fresh(state, state, state["state_version"])
+                    _require(not any(p.get("status") in ("prepared", "running", "unknown") for p in state.get("controller_requests", []))
+                             and not any(x.get("status") == "reserved" for x in state.get("local_model_requests", [])),
+                             "EXECUTION_UNKNOWN", "Inspect unfinished Project operations before preview.")
+                    # Knowledge index searches are outside this narrow no-new-ranking preview.
+                    _require(not state.get("knowledge_refs"), "CONDITION_NOT_SATISFIED", "This preview does not search existing knowledge indexes.")
+                    host = HostModelSelection(project.root); host.project = project
+                    from .host_model_selection import _read_file as _read_host_file, MAX_STATE_BYTES
+                    def host_bytes_sha():
+                        safe_path(host.state_file)
+                        return (hashlib.sha256(_read_host_file(host.state_file, MAX_STATE_BYTES)).hexdigest()
+                                if host.state_file.exists() else None)
+                    host_sha_before = host_bytes_sha(); host_before = host.status()
+                    _require(host_bytes_sha() == host_sha_before, "STALE_STATE", "Host changed while reading its original status.")
+                    _require(not any(item.get("status") in PENDING for item in host_before["requests"]),
+                             "EXECUTION_UNKNOWN", "Inspect the original unfinished Host operation.")
+                    revisions = state.get("plan_revisions", [])
+                    _require(type(revisions) is list and revisions and revisions[-1].get("request_id") == body["plan_request_id"]
+                             and fingerprint(revisions[-1]) == body["plan_sha256"], "STALE_STATE", "Use the latest exact successor plan.")
+                    revision = revisions[-1]
+                    row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (body["plan_request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "save_staged_feedback_plan", "OPERATION_INCOMPLETE", "Original successor manager receipt is absent.")
+                    record = tabular._parse(row["record"].encode("utf-8"))
+                    _require(type(record) is dict and record.get("status") == "completed" and type(record.get("intent")) is dict
+                             and type(record["intent"].get("body")) is dict and type(record.get("result")) is dict,
+                             "OPERATION_INCOMPLETE", "The original successor manager receipt is incomplete.")
+                    intent = record["intent"]; original = intent["body"]
+                    fields = ("request_id", "project_id", "expected_state_version", "feedback_request_id", "plan", "reason")
+                    _require(_body(original, fields) == row["digest"] and original["request_id"] == body["plan_request_id"]
+                             and original["project_id"] == state["id"], "EVIDENCE_CHANGED", "Original successor body changed.")
+                    ref, finished_at = self._staged_plan_reference_locked(con, project, original["feedback_request_id"])
+                    expected_fields = {"schema_version","command","project_id","run_id","body","request_sha256","source_snapshot_sha256",
+                                       "project_code_identity","controller_code_identity","manager_code_identity","manager_root","nonce","intent_sha256","feedback_ref_sha256"}
+                    _require(set(intent) == expected_fields and intent["schema_version"] == "local-staged-feedback-plan-intent-v1"
+                             and intent["command"] == "save_staged_feedback_plan" and intent["request_sha256"] == row["digest"]
+                             and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                             and intent["project_id"] == state["id"] and intent["run_id"] == state["run_id"]
+                             and intent["manager_root"] == str(self.root.resolve()) and type(intent["nonce"]) is str
+                             and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None
+                             and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                             and intent["project_code_identity"] == state["code_identity"] == project_code_identity()
+                             and intent["controller_code_identity"] == project_controller.code_identity()
+                             and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                             and intent["feedback_ref_sha256"] == fingerprint(ref), "EVIDENCE_CHANGED", "Original successor manager identity changed.")
+                    expected_revision = {"version":ref["original_plan_version"]+1, **copy.deepcopy(original["plan"]), "staged_feedback_ref":ref,
+                                         "reason":original["reason"], "request_id":original["request_id"], "based_on_state_version":original["expected_state_version"]}
+                    _require(canonical(revision) == canonical(expected_revision) and type(original["expected_state_version"]) is int
+                             and finished_at <= original["expected_state_version"] < state["state_version"],
+                             "EVIDENCE_CHANGED", "Original successor revision or ordering changed.")
+                    expected_receipt = self._response("save_staged_feedback_plan", original["request_id"], state["id"], status="completed", research_plan=revision)
+                    _require(type(record["result"].get("replayed")) is bool
+                             and canonical({k:v for k,v in record["result"].items() if k != "replayed"})
+                             == canonical({k:v for k,v in expected_receipt.items() if k != "replayed"}),
+                             "EVIDENCE_CHANGED", "Original successor manager receipt changed.")
+                    _check_plan_experience_refs(project.root, state, revision)
+                    with project._connect(readonly=True) as pc:
+                        _manager_claim(pc, "staged_feedback_plan", original["request_id"], intent["intent_sha256"], fingerprint(revision))
+                    primaries = [a for a in state["actions"] if a.get("command") == staged.TOOL_ID]
+                    _require(len(primaries) == 1 and primaries[0].get("status") == "completed"
+                             and primaries[0].get("id") == ref["primary_action_id"]
+                             and primaries[0].get("result_sha256") == ref["primary_result_sha256"],
+                             "EVIDENCE_CHANGED", "The original primary is missing or ambiguous.")
+                    controller = ProjectController(project.root); controller.project = project
+                    context = controller._selection_context(state, "next_check")
+                    _require(context["project_id"] == state["id"] and context["run_id"] == state["run_id"]
+                             and context["snapshot_ref"] == state["snapshot_ref"] and context["state_version"] == state["state_version"]
+                             and fingerprint(context.get("research_plan")) == body["plan_sha256"] and not context["blockers"],
+                             "EVIDENCE_CHANGED", "Current selection context changed or has unresolved blockers.")
+                    items = [x for x in context.get("hypothesis_feedback", {}).get("items", []) if x.get("request_id") == ref["registration_request_id"]]
+                    _require(len(items) == 1 and items[0].get("outcome") == ref["feedback_outcome"]
+                             and items[0].get("action_id") == ref["primary_action_id"]
+                             and items[0].get("result_sha256") == ref["primary_result_sha256"]
+                             and fingerprint(items[0]) == ref["feedback_sha256"],
+                             "EVIDENCE_CHANGED", "Current original feedback is unknown or differs.")
+                    budget = context["budget"]
+                    _require(all(type(budget.get(k)) is int and budget[k] >= 0 for k in
+                                 ("local_tool_call_limit", "local_tool_calls_used", "local_tool_calls_reserved")),
+                             "EVIDENCE_CHANGED", "Tool budget is unknown.")
+                    remaining = budget["local_tool_call_limit"] - budget["local_tool_calls_used"] - budget["local_tool_calls_reserved"]
+                    _require(remaining >= 0, "EVIDENCE_CHANGED", "Tool budget is inconsistent.")
+                    audits = [a for a in state["actions"] if a.get("command") == staged.AUDIT_TOOL_ID]
+                    _require(not any(a.get("status") != "completed" for a in audits), "EXECUTION_UNKNOWN", "Inspect the original audit before preview.")
+                    parameters = {"based_on_action_id":ref["primary_action_id"], "based_on_result_sha256":ref["primary_result_sha256"]}
+                    all_audit_candidates = [c for c in context["candidates"] if c.get("method_id") == staged.AUDIT_TOOL_ID]
+                    matches = [c for c in all_audit_candidates if c.get("parameters") == parameters
+                               and c.get("evaluation_ref") == registry.evaluation_ref(staged.AUDIT_TOOL_ID)]
+                    audit_conditions = [c for c in context["conditions"] if c.get("method_id") == staged.AUDIT_TOOL_ID]
+                    _require(len(audits) <= 1 and len(all_audit_candidates) == len(matches) <= 1
+                             and len(audit_conditions) == 1 and audit_conditions[0].get("condition") == "satisfied"
+                             and audit_conditions[0].get("budget_cost") == {"local_tool_calls":1,"evidence_reads":0,"estimator_fits":0},
+                             "EVIDENCE_CHANGED", "Original audit candidate, condition or cost is ambiguous.")
+                    _require((not audits and ref["decision"] == "wait")
+                             or (len(audits) == 1 and ref["decision"] == "audit" and audits[0].get("id") == ref["audit_action_id"]
+                                 and audits[0].get("result_sha256") == ref["audit_result_sha256"]),
+                             "EVIDENCE_CHANGED", "An unbound audit already exists; inspect it without suggesting another.")
+                    request = "wait" if rule is None else rule[ref["feedback_outcome"]]
+                    decision, reason, candidate = "wait", "default_or_requested_wait", None
+                    if request == "audit":
+                        if audits:
+                            reason = "audit_already_completed"
+                        elif remaining == 0:
+                            reason = "tool_budget_exhausted"
+                        else:
+                            _require(ref["decision"] == "wait" and len(matches) == 1,
+                                     "CONDITION_NOT_SATISFIED", "The exact original saved-audit candidate is unavailable.")
+                            decision, reason, candidate = "suggest_audit", "posthoc_new_authorization_required", copy.deepcopy(matches[0])
+                    final_ref, _ = self._staged_plan_reference_locked(con, project, original["feedback_request_id"])
+                    with project._connect(readonly=True) as pc:
+                        _manager_claim(pc, "staged_feedback_plan", original["request_id"], intent["intent_sha256"], fingerprint(revision))
+                    host_sha_final_before = host_bytes_sha(); host_after = host.status(); host_sha_final_after = host_bytes_sha()
+                    _require(canonical(final_ref) == canonical(ref) and project.status()["snapshot_ref"] == state["snapshot_ref"]
+                             and canonical(host_after) == canonical(host_before)
+                             and host_sha_before == host_sha_final_before == host_sha_final_after,
+                             "STALE_STATE", "Original evidence or Project/Host changed during preview.")
+                    _check_staged_runtime()
+                    return {"schema_version":"staged-feedback-plan-decision-preview-v1", "project_id":state["id"], "run_id":state["run_id"],
+                            "snapshot_ref":state["snapshot_ref"], "state_version":state["state_version"], "context_sha256":context["context_sha256"],
+                            "plan_request_id":revision["request_id"], "plan_version":revision["version"], "plan_sha256":fingerprint(revision),
+                            "original_plan_version":ref["original_plan_version"], "original_plan_sha256":ref["original_plan_sha256"],
+                            "source_snapshot_sha256":ref["source_snapshot_sha256"], "registration_request_id":ref["registration_request_id"],
+                            "registration_sha256":ref["registration_sha256"], "primary_action_id":ref["primary_action_id"],
+                            "primary_result_sha256":ref["primary_result_sha256"], "feedback_request_id":ref["feedback_parent_request_id"],
+                            "feedback_sha256":ref["feedback_sha256"], "feedback_outcome":ref["feedback_outcome"],
+                            "original_feedback_decision":ref["decision"], "posthoc_rule":copy.deepcopy(rule),
+                            "decision":decision, "reason":reason, "candidate":candidate,
+                            "candidate_potential_cost":({"local_tool_calls":1,"evidence_reads":0,"estimator_fits":0} if candidate else None),
+                            "tool_calls_remaining":remaining, "additional_dispatches":0, "model_calls":0, "new_fits":0,
+                            "may_execute":False, "scientific_validation":False,
+                            "rule_scope":"caller_declared_posthoc_not_extracted_from_plan",
+                            "notice":"A post-observation preview is not a preregistration, authorization, model adoption or scientific result; plan text is not interpreted."}
+
     def register_holdout(self, body):
         from .retrieval_holdout import MAX_HOLDOUT_BYTES, _feedback_policy
         if type(body) is dict and "selection_policy" in body:

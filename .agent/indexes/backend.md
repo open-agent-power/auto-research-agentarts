@@ -206,3 +206,4 @@ S036通过现有saved_retrieval_reader只读校验与原生行动/结果/produce
 S039 `HostModelBatch.advance_delegated`/host-model-batch-v2复用Host journal、原Controller与累计grant；先持久context/prompt身份，原ID导入接续，completed child才推进，可选反馈plan停待显式采用。库/CLI已验，Workbench未接，cached unknown不自动收敛；见[S039](../../docs/execution/SPRINT-039.md)。
 
 - 严格 staged 反馈后的显式后续计划：仅无 holdout 的新版本 Project，可在 `LocalWorkbench.save_staged_feedback_plan` 内认证原 manager/Project 记录并原子保存 revision 与 claim；原 ID 仅认证已存计划，不自动派发。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
+- staged 后续计划的 `LocalWorkbench.preview_staged_feedback_plan` 仅提供已认证的事后规则预览，不写研究账本、不补回执、不派发；锁文件可有副作用。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。

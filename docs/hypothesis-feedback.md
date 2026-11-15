@@ -108,3 +108,9 @@ staged 的 context/prompt 使用独立说明：来源仅含 dev/validation，任
 入口只允许原登记计划仍为最新计划且项目没有 private evaluation、freeze 或 final；这些项目应继续使用原已登记路径，不能以新计划追认或授权原 holdout。保存新计划会让旧登记策略的最新计划绑定不再满足，旧策略不会自动升级或消费新计划。反馈为 unknown、原件缺失或来源/身份漂移时停查。保存 revision 与专用 Project claim 同事务；若中断后 revision 或 claim 缺失，重复原 ID 与完整原 body 仅停查，不创建替代计划。若两者都存在，同 ID 原 body 只核原链及必要时补原 manager 回执；异 body 冲突。旧普通 Project 保存入口不认领新引用计划。manager 持久意图和 Project 数据库属于不同事务，不能称全链原子。
 
 入口只保存操作者计划，不调用模型、派发工具、增加预算或验证科学结论；复核既存 primary 可读取已登记 dev/validation 与共享来源语料。它没有 HTTP/Workbench 页面，也不自动选择下一方法或宣称模型采用。变更源码会改变 Project/Controller/manager 身份，已有项目和未决操作继续使用原 pin，不自动迁移。
+
+`LocalWorkbench.preview_staged_feedback_plan` 可在活动 Project 上以精确 `project_id`、当前 `snapshot_ref`、`plan_request_id` 和 `plan_sha256` 只读预览后续决策。默认等待；调用者可选提供带 `posthoc_acknowledged: true` 的 `staged-feedback-preview-rule-v1`，为原反馈 `condition_met` 和 `condition_not_met` 各指定 `wait` 或 `audit`。规则是在观察后由调用者提供的，不从计划正文、历史子集或模型回复推导；预览不会证明计划文本表达了该规则，也不代表事前登记、科学结论或执行授权。
+
+入口仅接受 S121 原 manager 已 completed 的精确原 receipt，并以 manager→Project 协作锁核原意图、原登记、primary、反馈、后续 plan、claims、来源及工件。它基于当前真实 selection context 检查唯一原 primary、唯一绑定的 saved-audit 候选和剩余预算。原反馈为 wait、候选可用且有额度时，显式规则可建议另行授权的**事后** audit；若原 audit 已完成或工具额度不足则等待。任何未知、原件不一致、额外未绑定 audit、未决操作或当前计划变化均停查。仅返回认证时点的项目/登记/行动/结果/计划和 context 身份、决策及候选；候选的潜在费用为 1 工具、0 evidence/fit，不是本次已消耗费用。预览不派发工具、不补 manager 回执、不保存计划或其他研究账本、不调用模型；如以后执行 audit 必须另行明确授权并保留原预算与 ID 约束，不能冒称原事前 wait 分支授权，也不能事后授权原 holdout final。
+
+为避免隐藏检索，本首片拒绝非空 `knowledge_refs`；认证与 context 可读注册的 dev/validation、原保存排名及共享来源语料、Host journal 和已引用案例原字节，共享语料可能包含与其他评测共享的 passage。它不访问 final query/qrels 或 private 包。数据库使用现有 immutable 只读与 sidecar 检查；现有协作锁可能创建或填充 `writer.lock`，不能称全文件零写或 OS 隔离。此前已生成项目保留原 manager pin，不因新接口迁移。当前仅 Python 入口，非 HTTP/页面。

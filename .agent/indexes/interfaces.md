@@ -217,3 +217,4 @@ S036计划的`saved_materials`新增显式`retrieval_adverse_query` selector（�
 S039新增`advance-delegated-batch`：最多2selection及可选1个原Host plan slot，原batch参数/初始version恢复，awaiting原字节导入后只consume，原grant不扩；库/CLI及报告v2，未接网页，CLI阈值不是delegated费用cap。见[合同](../../docs/host-model-selection.md#宿主委派的持久批次)。
 
 - 严格 staged 反馈后续计划当前仅提供 `LocalWorkbench.save_staged_feedback_plan` Python 入口，无 HTTP 或页面；原登记、原 plan 与含 holdout 项目不迁移。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
+- staged 后续计划的决策预览仅为 `LocalWorkbench.preview_staged_feedback_plan` Python 入口，默认 wait，显式后验规则不构成授权；没有 HTTP/页面。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
