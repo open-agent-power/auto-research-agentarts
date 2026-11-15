@@ -235,6 +235,104 @@ class LocalWorkbench:
         with self._connect() as con:
             self._save(con, request_id, record)
 
+    def read_unknown_controller_requests(self, *, project_id, snapshot_ref):
+        """Project saved unknown parents using limited state fields, not SQL or artifact authentication."""
+        identifier(project_id, "project_id")
+        _require(type(snapshot_ref) is str and re.fullmatch(r"[a-f0-9]{64}", snapshot_ref) is not None,
+                 "INVALID_QUERY", "Use the exact project snapshot identity.")
+        with self._connect(readonly=True) as con:
+            row, project = self._project(con, project_id, active=True)
+            slot = row["slot"]
+        state = project.status()
+        _require(state.get("id") == project_id and state.get("snapshot_ref") == snapshot_ref,
+                 "STALE_STATE", "The active project snapshot changed; reload it first.")
+        _require(type(state.get("run_id")) is str and re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", state["run_id"]) is not None,
+                 "EVIDENCE_CHANGED", "The saved run identity is malformed.")
+        runtime_project = project_code_identity()
+        runtime_controller = project_controller.code_identity()
+        parents = state.get("controller_requests", [])
+        history_complete = type(parents) is list
+        if not history_complete:
+            parents = []
+        actions_complete = type(state.get("actions")) is list and type(state.get("evidence_actions")) is list
+        actions = state["actions"] + state["evidence_actions"] if actions_complete else []
+        actions_complete = actions_complete and all(type(a) is dict for a in actions)
+        if not actions_complete:
+            actions = []
+        items, seen = [], {}
+        def digest_or_none(value):
+            return value if type(value) is str and re.fullmatch(r"[a-f0-9]{64}", value) else None
+        for parent in parents:
+            if type(parent) is not dict or parent.get("status") not in ("prepared", "running", "unknown", "completed", "failed", "rejected", "waiting", "needs_review"):
+                history_complete = False
+                continue
+            if parent.get("status") != "unknown":
+                continue
+            request_id = parent.get("request_id")
+            if type(request_id) is not str or re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", request_id) is None:
+                request_id = None
+                history_complete = False
+            if request_id is not None and request_id in seen:
+                history_complete = False
+                seen[request_id].update(record_binding="malformed", identity_binding="unknown",
+                                        command=None, child_request_id=None, child_status=None)
+                continue
+            original_source = digest_or_none(parent.get("source_snapshot_sha256"))
+            original_core = digest_or_none(parent.get("code_identity"))
+            controller_core = digest_or_none(parent.get("controller_code_identity"))
+            current_source = digest_or_none(state.get("source_snapshot_sha256"))
+            current_core = digest_or_none(state.get("code_identity"))
+            identity = ("unknown" if None in (original_source, original_core, controller_core, current_source, current_core,
+                                               digest_or_none(runtime_project), digest_or_none(runtime_controller))
+                        else "match" if (original_source == current_source and original_core == current_core == runtime_project
+                                          and controller_core == runtime_controller) else "mismatch")
+            item = {"request_id": request_id, "command": None, "status": "unknown",
+                    "child_request_id": None, "child_status": None,
+                    "source_snapshot_sha256": original_source, "project_code_identity": original_core,
+                    "controller_code_identity": controller_core, "current_source_snapshot_sha256": current_source,
+                    "current_project_code_identity": current_core, "runtime_project_code_identity": digest_or_none(runtime_project),
+                    "runtime_controller_code_identity": digest_or_none(runtime_controller), "identity_binding": identity,
+                    "record_binding": "malformed", "unknown_reason": "controller_parent_unknown"}
+            try:
+                request, decision = parent["request"], parent["decision"]
+                child_id, saved_child = parent["child_request_id"], parent["result"]["child"]
+                children = [a for a in actions if a.get("request_id") == child_id]
+                valid = (request_id is not None and parent["project_id"] == project_id
+                         and type(request) is dict and request.get("project_id") == project_id
+                         and request.get("command") in ("controller.advance", "controller.advance_selection", "controller.advance_recipe")
+                         and parent["request_sha256"] == fingerprint(request)
+                         and type(decision) is dict and parent["decision_sha256"] == fingerprint(decision)
+                         and identity != "unknown"
+                         and child_id == "controller-child-" + fingerprint({"project_id": project_id, "request_id": request_id})[:32]
+                         and len(children) == 1 and type(saved_child) is dict
+                         and saved_child.get("request_id") == child_id and saved_child.get("status") == "unknown"
+                         and saved_child.get("id") == children[0].get("id")
+                         and saved_child.get("command") == children[0].get("command")
+                         and children[0].get("status") in ("pending", "running", "unknown", "completed", "failed"))
+                if valid:
+                    item.update(command=request["command"], child_request_id=child_id,
+                                child_status=children[0]["status"], record_binding="limited_fields_match")
+            except (KeyError, TypeError, ValueError, RecursionError):
+                pass  # Preserve only safe identifiers for inspection; no recovery claim.
+            items.append(item)
+            if request_id is not None:
+                seen[request_id] = item
+        _require(project.status().get("snapshot_ref") == snapshot_ref, "STALE_STATE", "The project changed during this read.")
+        _require(project_code_identity() == runtime_project and project_controller.code_identity() == runtime_controller,
+                 "CODE_CHANGED", "The runtime identities changed during this read.")
+        with self._connect(readonly=True) as con:
+            after, _ = self._project(con, project_id, active=True)
+            _require(after["slot"] == slot, "WORKBENCH_CHANGED", "The managed project binding changed during this read.")
+        return {"schema_version": "local-unknown-controller-requests-v1", "project_id": project_id,
+                "run_id": state["run_id"], "snapshot_ref": snapshot_ref,
+                "total": len(items) if history_complete else None, "observed_total": len(items),
+                "history_complete": history_complete, "actions_complete": actions_complete,
+                "shown": min(len(items), 8), "truncated": True if len(items) > 8 else False if history_complete else None,
+                "items": items[:8],
+                "verification": "saved_state_projection_only", "binding_scope": "limited_state_fields_only_not_sql_or_artifacts",
+                "recovery_verified": False,
+                "request_body_included": False, "scientific_validation": False}
+
     def describe(self):
         with self._connect(readonly=True) as con:
             projects = [{"id": row["id"], "goal": row["goal"]} for row in con.execute("SELECT id,goal FROM projects ORDER BY rowid")]

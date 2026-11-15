@@ -13,6 +13,8 @@ S089 修复旧 Controller 对原 parent `unknown` 漏阻断：合成真实恢复
 
 S090 将相同未知父请求保护延伸到 Project 的新预算、来源、工具与升级请求；旧子行动原ID恢复及prepared parent首次child保持。只读selection/report可查看合法 parent unknown→原 child后续completed 的未收敛状态，仍保留parent/原child快照unknown；纯view不核磁盘，report另核工件。隔离合成、模拟网络及独审通过；不代表真实断电或科学收益。[S090](../execution/SPRINT-090.md)。
 
+S091 为普通活动 Workbench 增加按 Project/snapshot 查询 unknown Controller parent 的只读端点，返回有界原ID、身份差异与 partial/截断状态，不输出 body 或自动恢复；旧 describe wire保持，readonly宿主新路由404。隔离合成和独审通过。[S091](../execution/SPRINT-091.md)。
+
 参考调研：本轮固定并只读审查 MIT 的 Meta Ax `fd8a67a524b063b2615815c638af2c94b034f476`；它允许行动完成但指标缺失，印证本项目应区分完成状态与反馈 unknown。转移/暂停顺序与本项目规则不同，不直接合入或覆盖原预算门；未运行 Ax。[源码对照](ax-transition-review-20261115.md)。
 
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。

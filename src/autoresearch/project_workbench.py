@@ -535,6 +535,11 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                                                 "read_only": getattr(local_workspace, "read_only", False)})
                 if getattr(local_workspace, "read_only", False) and parsed.path not in {"/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip"}:
                     return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and stored summaries are available in this read-only host mode.")
+                if parsed.path == "/api/local-workbench/unknown-controller-requests.json":
+                    _require_runtime_current(runtime_sources)
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    return self.send_json(200, local_workspace.read_unknown_controller_requests(**_fixed_protocol_query(parsed.query)))
                 if parsed.path in ("/api/local-workbench/tabular-quality-feedback.json", "/api/local-workbench/tabular-quality-plan-ref.json"):
                     _require_runtime_current(runtime_sources)
                     if local_workspace is None:

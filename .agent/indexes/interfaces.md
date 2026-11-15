@@ -1,5 +1,7 @@
 # 接口索引
 
+S091 GET `/api/local-workbench/unknown-controller-requests.json` 仅普通活动工作台，按 project/snapshot 有界只读返回未知parent ID；不提供body/恢复许可，只读宿主404。[合同](../../docs/local-workbench.md)。
+
 S087 普通活动工作台新增质量计划引用 GET、独立质量计划与v2推进 POST；原ID/claim校验，旧普通plan不接受新字段，只读宿主新GET不可用。[字段](../../docs/tabular-quality-feedback.md)。
 
 S086 Controller Python v2 显式使用真实最新质量引用计划；旧 v1 不隐式升级，Workbench/HTTP 暂未接入。[合同](../../docs/tabular-quality-feedback.md)。
