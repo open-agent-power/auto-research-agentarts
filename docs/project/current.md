@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S102 对严格三层采纳4个固定窗口实际 SIGKILL 并由不同PID原ID恢复，作者与独审各4/4；前三停查，末点核凭据仅补管理回执。仅合成，非断电/全时序或模型理解证明。[SPRINT-102](../execution/SPRINT-102.md)。
+
 S101 将严格质量材料采纳显式接入 Workbench/HTTP，manager、Host v4和Project事务claim三层绑定；作者52、独审36、相关65项合成检查通过。四窗口为故障注入而非本版本真实SIGKILL，未证明模型理解/科研收益。[SPRINT-101](../execution/SPRINT-101.md)。
 
 S100 新增 Python 显式严格采纳：将封存的质量登记材料与原回复引用、原计划及事务归属绑定；作者12项/旧42项和独审54项隔离合成通过，仅证明封存/引用，尚未接Workbench或证明模型理解。[SPRINT-100](../execution/SPRINT-100.md)。
