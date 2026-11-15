@@ -424,7 +424,19 @@ def freeze_strategy(project, *, request_id, expected_state_version, primary_acti
         if old is not None:
             require(old.get("request_id") == request_id and old.get("request_sha256") == fingerprint(request),
                     "IDEMPOTENCY_CONFLICT", "A different strategy freeze already exists.")
-            _check_frozen(project, state, old)
+            # _project(con) contains only the persisted project record. The
+            # registered-feedback verifier also needs the original action rows
+            # and computed budget supplied by status; never fabricate them.
+            current = project.status()
+            require(current["id"] == state["id"] and current["state_version"] == state["state_version"]
+                    and current.get("frozen_evaluation_strategy") == old,
+                    "EVIDENCE_CHANGED", "The original frozen project state changed.")
+            try:
+                _check_frozen(project, current, old)
+            except (OSError, ValueError):
+                raise ResearchError("EVIDENCE_CHANGED", "The original frozen evidence is unavailable or malformed.") from None
+            require(project.status()["snapshot_ref"] == current["snapshot_ref"] and project._project(con) == state,
+                    "EVIDENCE_CHANGED", "The original frozen project changed during verification.")
             return copy.deepcopy(old)
         require(project._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "Request ID belongs to an action.")
         project._require_unclaimed(state, request_id)
