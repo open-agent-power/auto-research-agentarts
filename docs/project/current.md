@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S109 已将S108两条已发布聚合实际导入独立持久Memory并各自导出；独审核记录隔离/哈希，重入各0。未创建真实目标Project或声明模型采纳；本轮未打开旧Project核预算。[SPRINT-109](../execution/SPRINT-109.md)。
+
 S109 新增S108两条已发布后验结果的独立Memory类型，支持Project显式导入、上下文/计划引用和报告；原行动只作来源、字节绑定不等于重算，独立合成及浏览器验证。页面只能展示，文件选择器尚不支持新类型。[SPRINT-109](../execution/SPRINT-109.md)。
 
 S108 对已曝光S065/S067 validation只读事后计算：召回不变且MRR下降子集分别16题/平均下降0.4026、24题/0.3724；独立Decimal复算，原各3/3预算不变。不是全体平均、盲测或因果收益。[SPRINT-108](../execution/SPRINT-108.md)。

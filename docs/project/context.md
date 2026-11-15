@@ -198,3 +198,5 @@ S107：直接Host人工回复入口及页面完整合成链已独审；Host名�
 S108：S065/S067已存validation召回不变且MRR下降子集16/24题，平均下降0.4026/0.3724；独立Decimal复算，已曝事后且不是总体平均。原预算不变；见 SPRINT-108。
 
 S109：专用S108 posthoc Memory类型已独审，原primary只作来源；Project上下文/操作者引用与报告可用，页面文件导入尚未支持。以发布bytes绑定非现场重算；未触旧账本。见 SPRINT-109。
+
+S109实际导入：独立Memory runs/s109-real-published-memory/memory/memory.sqlite，S065/S067各首次1重入0，导出包/哈希见 SPRINT-109；本轮未打开原Project核预算，未导入真实目标项目或调用模型。

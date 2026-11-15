@@ -1,0 +1,118 @@
+{
+  "id": "s109-s067-posthoc",
+  "limitations": [
+    "Published post-hoc validation subset; source data and prior outputs were already exposed, not blind.",
+    "Selected negative subset is not an overall mean, causal estimate, independent sample, or evidence of transfer.",
+    "Four-decimal rounding and suppression are not an anonymity guarantee.",
+    "This import checks pinned published bytes and exact projection only; it does not independently recompute the original data or verify a signature."
+  ],
+  "method_card": {
+    "applicability": {
+      "not_applicable": [
+        "Not a current-project result or causal claim."
+      ],
+      "requires": [
+        "Check task, source and measurement differences."
+      ],
+      "uncertain": [
+        "Transfer and independent applicability are unverified."
+      ]
+    },
+    "evaluation": "Previously exposed validation subset with unchanged recall and decreased MRR; four-decimal published loss.",
+    "feedback_branches": [
+      {
+        "evidence_required": [
+          "Applicable independently obtained evidence for the target task."
+        ],
+        "id": "inspect",
+        "observed": "A selected subset has lower MRR despite unchanged recall.",
+        "suggested_next": "Review task-specific evidence before deciding whether to proceed."
+      }
+    ],
+    "id": "s108-published-posthoc-loss",
+    "method_refs": [
+      {
+        "evaluation_ref": "staged-relevance-development-v1",
+        "method_id": "research.relevance-validation-pair"
+      }
+    ],
+    "question": "What ranking loss was observed within the selected validation subset?",
+    "rationale": "A published post-hoc aggregate may inform what to check; it does not establish transfer.",
+    "schema_version": "research-method-card-v1",
+    "scope_match": {
+      "contract": "staged-relevance-development-v1",
+      "domain": "retrieval"
+    },
+    "sources": [
+      {
+        "id": "s108-published-output",
+        "locator": "Published per-case aggregate and source identities.",
+        "note": "Byte-bound published output; importing does not recompute or authenticate a signature.",
+        "url": "https://github.com/open-agent-power/auto-research-agentarts/blob/5fa9dce69fd447e9c885e15e732667caf1af5df5/docs/execution/g5-local/saved-unchanged-recall-mrr-loss-results.json"
+      }
+    ],
+    "version": 1
+  },
+  "record": {
+    "id": "92b1a528680fdcaa49783eb91b424bd3763a0469c2125df4bd8983176403b8c8",
+    "kind": "diagnostic_observation",
+    "numerical_recomputation": false,
+    "payload": {
+      "cell": {
+        "count": 24,
+        "mean_mrr_loss": 0.3724,
+        "status": "available"
+      },
+      "evaluation_ref": "staged-relevance-development-v1",
+      "limitations": [
+        "Published aggregate byte binding requires origin; this import did not recompute the source data or verify a signature. The original primary action is a source reference, not the producer of this later analysis. Exposed validation data, post hoc selected negative subset, not blind, causal, anonymous, or an overall result. Four-place rounding may show 0.0000 for a nonzero loss; applicability and transfer remain unverified. Scope inputs_sha256 fingerprints the published result SHA and case label, not the original input bytes; source_manifest_sha256 records the original source snapshot identity, not a newly verified manifest file."
+      ],
+      "method_id": "research.relevance-validation-pair",
+      "selector": {
+        "direction": "tfidf_cosine_minus_bm25",
+        "epsilon": 1e-12,
+        "magnitude": "mean_negative_delta_mrr@10_rounded_4_decimals",
+        "mrr": "delta_mrr@10 < -epsilon",
+        "recall": "abs(delta_recall@20) <= epsilon",
+        "split": "validation"
+      }
+    },
+    "provenance": {
+      "action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+      "action_role": "upstream_primary_reference_not_audit_producer",
+      "protocol_sha256": "bef2c9e49cb2323be5d16918703beb09b09aac19271186e059554e5685da1e70",
+      "published_case": {
+        "case": "S067",
+        "cell": {
+          "count": 24,
+          "mean_mrr_loss": 0.3724,
+          "status": "available"
+        },
+        "primary_action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+        "primary_artifact_sha256": "4f9ad51aa8f88074697e66f04631083c32e5f5e4c49be6d5746216c92edc8dd3",
+        "primary_result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f",
+        "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+        "project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+        "run_id": "run-276475c33d7542509c840bc575005271",
+        "source_commit": "5bd9883dd435a1d39b857a51bb6f4d20a53f156b",
+        "source_snapshot_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb"
+      },
+      "reader_commit": "a4c2eb01e92526b73e2dee4e24f1ba7aa38d5867",
+      "reader_sha256": "910e5715a533483aca7066e92a85591e7a3c351ae265d1d1196479eab0d6f07e",
+      "result_commit": "5fa9dce69fd447e9c885e15e732667caf1af5df5",
+      "source_record_sha256": "762d92f53422976fd6b0928f4a7f35d0572fc6803bfb11cb04315cc1176493f8"
+    },
+    "review_status": "derived_not_scientifically_reviewed",
+    "schema_version": "conditional-research-memory-v1",
+    "scope": {
+      "analysis_code_sha256": "910e5715a533483aca7066e92a85591e7a3c351ae265d1d1196479eab0d6f07e",
+      "inputs_sha256": "87f9b952868f5ba88697bb600979d4851dae841ed1262a447df01b46fcc8d9e3",
+      "protocol": "s108-posthoc-validation-loss-binding-v1",
+      "source_manifest_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb"
+    }
+  },
+  "schema_version": "posthoc-validation-loss-experience-bundle-v1",
+  "scientific_validation": false,
+  "source_inclusion_status": "active_at_export",
+  "version": 1
+}
