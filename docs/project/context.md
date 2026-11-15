@@ -16,6 +16,8 @@ S090 补 Project 新请求的unknown parent保护及合法未收敛父子状态�
 
 S093 保存历史不再把合法 advance_feedback/core selection 对应误报为篡改；原登记有限候选与双摘要/封存context仅能证明当前reader语义匹配，仍partial、producer未验证、无body/恢复许可。旧pin不要求升级。
 
+S094 Host Python 可显式采用原已保存的四文本模型计划并由宿主附加质量行动引用，Host意图与Project claim保护原ID；新入口未接Workbench/HTTP，合成回复不能证明真实模型采纳。干净HEAD既存1项旧Workbench错误优先级失败已复现，正单独处理，不冒称已通过。
+
 ## 当前任务基线（2026-11-15 15:48 后）
 
 基线外部方法已独审写入 [调研](baseline-research-20261115.md)（commit ca3f40a）；S075事后只读再分析两个真实项目validation的召回/排序联合分布，保留不利例、无新实验/模型，见[S075](../execution/SPRINT-075.md)。

@@ -1,5 +1,7 @@
 # 后端索引
 
+Host 显式 `adopt_quality_plan` 可在保持原提案正文的同时附加原质量行动引用；Host nonce 与 Project 事务 claim 绑定，未知停止，Python 专用。[合同](../../docs/host-model-selection.md#显式采用附质量引用的原计划提案)。
+
 S093 已保存历史区分合法manager advance_feedback/core selection与明确篡改；仅已验证当前reader语义匹配，producer未验证时partial、不返回body或授权恢复。[Sprint](../../docs/execution/SPRINT-093.md)。
 
 S092 unknown parent 只读查询已开放至受限宿主；此查询对manager/Project使用immutable SQLite及sidecar/身份检查，不赋执行权限、不证明对抗性隔离。[Sprint](../../docs/execution/SPRINT-092.md)。

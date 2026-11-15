@@ -33,6 +33,17 @@ def _reconcile_code_identity():
 _RECONCILE_BOOT_IDENTITY = _reconcile_code_identity()
 
 
+def _quality_adoption_identity():
+    directory = Path(__file__).parent
+    # Freeze the whole local package, including indirect prompt/context helpers.
+    # This is cooperative source identity, not runtime or OS isolation.
+    return fingerprint({str(path.relative_to(directory)): hashlib.sha256(path.read_bytes()).hexdigest()
+                        for path in sorted(directory.rglob("*.py"))})
+
+
+_QUALITY_ADOPTION_BOOT_IDENTITY = _quality_adoption_identity()
+
+
 def _require(condition, code, message):
     if not condition:
         raise ResearchError(code, message)
@@ -47,6 +58,29 @@ def _cli_metadata(raw):
 
 def _request_protocol(purpose):
     return {"selection": protocol, "plan": plan_protocol, "recipe": recipe_protocol}[purpose]
+
+
+def _check_quality_adoption_in_project(project, request_id, version, plan, reason, intent_sha):
+    """Recheck a persisted Host intent while the Project writer is held."""
+    host = HostModelSelection(project.root)
+    record = host._record(host._load(), request_id)
+    intent = host._check_quality_adoption(record)
+    _require(intent["intent_sha256"] == intent_sha and intent["expected_state_version"] == version
+             and plan == {**record["proposal"]["plan"], "quality_feedback_ref": intent["quality_feedback_ref"]}
+             and reason == record["proposal"]["reason"],
+             "EVIDENCE_CHANGED", "The Project plan differs from the original Host adoption.")
+    host._fresh(record)
+    _require(intent["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
+             "CODE_CHANGED", "The Host implementation changed while verifying the adoption.")
+
+
+def _check_quality_adoption_final(project, request_id, intent_sha):
+    """Re-read Host originals and loaded identity after the final quality check."""
+    host = HostModelSelection(project.root)
+    intent = host._check_quality_adoption(host._record(host._load(), request_id))
+    _require(intent["intent_sha256"] == intent_sha
+             and intent["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
+             "EVIDENCE_CHANGED", "The original Host adoption changed during verification.")
 
 
 class HostModelSelection:
@@ -151,6 +185,9 @@ class HostModelSelection:
                 return copy.deepcopy(old)
             _require(state["grant"] is None or state["grant"] == grant,
                      "HOST_GRANT_CHANGED", "The original prospective host limit cannot be replaced or reset.")
+            _require(not any("quality_adoption" in r and r.get("status") != "applied"
+                             for r in state["requests"].values()),
+                     "OPERATION_INCOMPLETE", "Inspect the original pending quality adoption before another Host request.")
             _require(len(state["requests"]) < decision_limit, "HOST_DECISION_LIMIT", "The cumulative host decision limit is exhausted.")
             _require(not any(r["status"] in PENDING for r in state["requests"].values()),
                      "HOST_SELECTION_PENDING", "Resolve the original pending/unknown request; do not start another decision.")
@@ -458,6 +495,8 @@ class HostModelSelection:
         with self._writer():
             state = self._load(); record = self._record(state, request_id)
             _require(record.get("purpose") == "plan", "INVALID_REQUEST", "Only a plan proposal can be adopted.")
+            _require("quality_adoption" not in record, "OPERATION_INCOMPLETE",
+                     "Use the original quality adoption to inspect or recover this plan.")
             if record["status"] == "applied":
                 return copy.deepcopy(record)
             _require(record["status"] == "proposed", "HOST_RESPONSE_NOT_READY", "Consume the saved plan response before adopting it.")
@@ -489,12 +528,124 @@ class HostModelSelection:
             self._save(state)
             return copy.deepcopy(record)
 
+    def _check_quality_adoption(self, record):
+        intent = record.get("quality_adoption")
+        fields = {"schema_version", "request_id", "project_id", "run_id", "source_snapshot_sha256",
+                  "project_code_identity", "host_code_identity", "host_root", "nonce", "expected_state_version",
+                  "context_sha256", "prompt_sha256", "proposal_sha256", "response_sha256", "quality_feedback_ref", "intent_sha256"}
+        _require(type(intent) is dict and set(intent) == fields
+                 and intent["schema_version"] == "host-quality-adoption-v1"
+                 and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                 and type(intent["nonce"]) is str and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
+                 "EVIDENCE_CHANGED", "The original quality adoption intent changed.")
+        project = self.project.status()
+        _require(intent["request_id"] == record["request_id"] == record["controller_request_id"]
+                 and record.get("purpose") == "plan" and record.get("status") in ("proposed", "applied")
+                 and intent["project_id"] == project["id"] and intent["run_id"] == project["run_id"]
+                 and intent["source_snapshot_sha256"] == project["source_snapshot_sha256"]
+                 and intent["project_code_identity"] == project["code_identity"] == research_project.code_identity()
+                 and intent["host_root"] == str(self.directory.resolve())
+                 and intent["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
+                 "EVIDENCE_CHANGED", "The original Host, Project or code identity changed.")
+        proposal, context = record["proposal"], record["context"]
+        plan_protocol.validate_proposal(context, proposal)
+        raw = _read_file(safe_path(self.directory / record["response_file"]), protocol.MAX_RESPONSE_BYTES)
+        parsed = plan_protocol.parse_host_response(raw, record["provider"])
+        folder = safe_path(self.directory / record["directory"])
+        _require(hashlib.sha256(raw).hexdigest() == record["response_sha256"] == intent["response_sha256"]
+                 and fingerprint(proposal) == intent["proposal_sha256"]
+                 and fingerprint(context) == intent["context_sha256"]
+                 and fingerprint(record["prompt"]) == intent["prompt_sha256"]
+                 and record["prompt"] == plan_protocol.build_prompt(context)
+                 and context["selection_context"]["state_version"] == intent["expected_state_version"]
+                 and _read_file(folder / "context.json", protocol.MAX_CONTEXT_BYTES) == canonical(context).encode("utf-8")
+                 and _read_file(folder / "prompt.json", MAX_STATE_BYTES) == canonical(record["prompt"]).encode("utf-8")
+                 and _read_file(folder / "proposal.json", protocol.MAX_RESPONSE_BYTES) == canonical(proposal).encode("utf-8")
+                 and plan_protocol.build_proposal(context, parsed["arguments"], proposal["provider"]["label"]) == proposal,
+                 "EVIDENCE_CHANGED", "The original Host context, response or proposal changed.")
+        from .tabular_quality_plan import validate_reference
+        ref = validate_reference(intent["quality_feedback_ref"], code="EVIDENCE_CHANGED")
+        _require(ref["quality_action_id"] in proposal["feedback_action_ids"]
+                 and any(item["action_id"] == ref["quality_action_id"] and item["status"] == "completed"
+                         for item in context["feedback"]),
+                 "EVIDENCE_CHANGED", "The proposal did not reference its supplied quality action.")
+        return intent
+
+    def adopt_quality_plan(self, *, request_id, registration_request_id):
+        """Explicitly adopt an unchanged Host proposal with an authenticated quality reference."""
+        identifier(request_id); identifier(registration_request_id)
+        from .tabular_quality_feedback import _manager_claim
+        with self._writer():
+            state = self._load(); record = self._record(state, request_id)
+            _require(record.get("purpose") == "plan" and record.get("status") in ("proposed", "applied"),
+                     "HOST_RESPONSE_NOT_READY", "Use an original proposed plan.")
+            old = record.get("quality_adoption")
+            if old is None:
+                _require(record["status"] == "proposed", "OPERATION_INCOMPLETE", "The original plan was already adopted without this intent.")
+                self._fresh(record)
+                current = self.project.status()
+                ref = self.project.prepare_tabular_quality_plan_ref(registration_request_id=registration_request_id)
+                _require(ref["quality_action_id"] in record["proposal"]["feedback_action_ids"]
+                         and any(x["action_id"] == ref["quality_action_id"] and x["status"] == "completed"
+                                 for x in record["context"]["feedback"]),
+                         "INVALID_PLAN_PROPOSAL", "The original proposal must reference its supplied quality action.")
+                _require(not any(x["request_id"] == request_id for x in current.get("plan_revisions", [])),
+                         "OPERATION_INCOMPLETE", "A plan already occupies this Host ID.")
+                intent = {"schema_version": "host-quality-adoption-v1", "request_id": request_id,
+                          "project_id": current["id"], "run_id": current["run_id"],
+                          "source_snapshot_sha256": current["source_snapshot_sha256"],
+                          "project_code_identity": current["code_identity"], "host_code_identity": _quality_adoption_identity(),
+                          "host_root": str(self.directory.resolve()), "nonce": os.urandom(32).hex(),
+                          "expected_state_version": current["state_version"], "context_sha256": fingerprint(record["context"]),
+                          "prompt_sha256": fingerprint(record["prompt"]),
+                          "proposal_sha256": fingerprint(record["proposal"]), "response_sha256": record["response_sha256"],
+                          "quality_feedback_ref": ref}
+                intent["intent_sha256"] = fingerprint(intent)
+                record["quality_adoption"] = intent
+                self._check_quality_adoption(record)
+                self._save(state)
+            else:
+                intent = self._check_quality_adoption(record)
+                _require(intent["quality_feedback_ref"]["registration_request_id"] == registration_request_id,
+                         "IDEMPOTENCY_CONFLICT", "The original quality registration differs.")
+            proposal = record["proposal"]
+            plan = {**proposal["plan"], "quality_feedback_ref": intent["quality_feedback_ref"]}
+            if old is None:
+                revision, created = self.project.save_plan(request_id=request_id,
+                    expected_state_version=intent["expected_state_version"], plan=plan, reason=proposal["reason"],
+                    _manager_intent_sha256=intent["intent_sha256"], _return_created=True,
+                    _host_quality_intent_sha256=intent["intent_sha256"])
+                _require(created, "OPERATION_INCOMPLETE", "Another caller accepted the plan; inspect without adopting it.")
+            else:
+                matches = [p for p in self.project.status().get("plan_revisions", []) if p["request_id"] == request_id]
+                _require(len(matches) == 1, "OPERATION_INCOMPLETE", "The original plan is absent; inspect without retrying.")
+                revision = matches[0]
+            with self.project._connect(readonly=True) as con:
+                _manager_claim(con, "plan", request_id, intent["intent_sha256"], fingerprint(revision))
+            checked = self.project.save_plan(request_id=request_id, expected_state_version=intent["expected_state_version"],
+                                             plan=plan, reason=proposal["reason"], _validate_only=True)
+            _require(checked == revision, "EVIDENCE_CHANGED", "The original quality plan changed.")
+            if record["status"] == "applied":
+                outcome = record.get("outcome")
+                _require(type(outcome) is dict and set(outcome) == {"status", "kind", "research_plan", "state_version", "replayed"}
+                         and outcome["status"] == "completed" and outcome["kind"] == "plan_revision"
+                         and outcome["research_plan"] == revision and type(outcome["replayed"]) is bool
+                         and outcome["state_version"] == revision["based_on_state_version"] + 1,
+                         "EVIDENCE_CHANGED", "The original adoption receipt changed.")
+                return copy.deepcopy(record)
+            record.update(status="applied", outcome={"status": "completed", "kind": "plan_revision", "research_plan": revision,
+                          "state_version": revision["based_on_state_version"] + 1, "replayed": old is not None})
+            self._save(state)
+            return copy.deepcopy(record)
+
     def reject_plan(self, *, request_id, reason):
         _require(type(reason) is str and bool(reason.strip()) and len(reason) <= 2000 and "\x00" not in reason,
                  "INVALID_REQUEST", "Record a bounded reason for rejecting this plan.")
         with self._writer():
             state = self._load(); record = self._record(state, request_id)
             _require(record.get("purpose") == "plan", "INVALID_REQUEST", "Only a plan proposal can be rejected.")
+            _require("quality_adoption" not in record, "OPERATION_INCOMPLETE",
+                     "Inspect the original quality adoption before any other plan decision.")
             if record["status"] == "rejected":
                 _require(record["rejection_reason"] == reason, "IDEMPOTENCY_CONFLICT", "The original rejection reason is fixed.")
                 return copy.deepcopy(record)

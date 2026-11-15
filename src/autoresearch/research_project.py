@@ -393,7 +393,7 @@ class ResearchProject:
                           case_id=case_id, status=status, reason=reason)
 
     def save_plan(self, *, request_id, expected_state_version, plan, reason, _validate_only=False,
-                  _manager_intent_sha256=None, _return_created=False):
+                  _manager_intent_sha256=None, _return_created=False, _host_quality_intent_sha256=None):
         """Save an operator-authored plan revision without dispatching research."""
         identifier(request_id)
         require(type(expected_state_version) is int and expected_state_version >= 0,
@@ -416,6 +416,9 @@ class ResearchProject:
                 (_manager_intent_sha256 is not None and "quality_feedback_ref" in plan and not _validate_only))
                 and (_manager_intent_sha256 is None or _return_created),
                 "INVALID_REQUEST", "Manager quality plans require their original ownership identity.")
+        require(_host_quality_intent_sha256 is None or
+                (_return_created and _host_quality_intent_sha256 == _manager_intent_sha256),
+                "INVALID_REQUEST", "Host quality adoption requires its original ownership identity.")
         require(type(reason) is str and 0 < len(reason) <= 2000 and bool(reason.strip()) and "\x00" not in reason,
                 "INVALID_REQUEST", "Record a reason for the plan revision.")
         with self._writer():
@@ -453,6 +456,16 @@ class ResearchProject:
                 if "quality_feedback_ref" in plan:
                     from .tabular_quality_plan import check_reference
                     check_reference(self, self.status(), plan["quality_feedback_ref"], based_on_state_version=expected_state_version)
+                if _host_quality_intent_sha256 is not None:
+                    from .host_model_selection import _check_quality_adoption_in_project
+                    _check_quality_adoption_in_project(self, request_id, expected_state_version, plan, reason,
+                                                       _host_quality_intent_sha256)
+                    # Host verification may read additional files; check the original
+                    # quality evidence and producer identity again immediately before saving.
+                    from .tabular_quality_plan import check_reference
+                    check_reference(self, self.status(), plan["quality_feedback_ref"], based_on_state_version=expected_state_version)
+                    from .host_model_selection import _check_quality_adoption_final
+                    _check_quality_adoption_final(self, request_id, _host_quality_intent_sha256)
                 if _validate_only:
                     return None
                 revisions = project.setdefault("plan_revisions", [])

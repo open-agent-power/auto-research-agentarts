@@ -82,6 +82,14 @@
 
 模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
 
+### 显式采用附质量引用的原计划提案
+
+Python `HostModelSelection.adopt_quality_plan(request_id=..., registration_request_id=...)` 是独立的显式采用操作，只接受原 Host 已保存的 `proposed` 计划。原封存 context 必须供应已完成的质量行动，原 proposal 的 `feedback_action_ids` 必须明确引用该行动。系统重新读取原 response、proposal、context 和 prompt，核对 prompt 可由封存 context 生成；再由同项目的质量 reader 核原登记、计划、parent/child、SQL、工件、来源及代码，生成结构化引用。四项计划正文和理由逐字来自原 proposal；质量引用由宿主附加，已知 met 与 not_met 都可保存，unknown 停止。认证会读取原来源和工件文件，但不派发模型、研究工具或来源读取行动，也不增加任何预算。后续若要执行，仍需显式调用原质量策略 v2 并重验其计划、条件和剩余额度。
+
+Host 持锁先持久化含随机 nonce 和源码身份的原采用意图；Project 在自己的 writer 内重验原意图与质量证据，并在保存 revision 的同一 SQLite 事务写入归属 claim。原意图已保存而 core 计划不存在时停查，不自动重试；core 已完成而 Host 回执未写时，只能以同一 request ID、原登记及匹配的 claim 只读核对并补回执。已有占用、缺失或不一致的 claim 停查，未决时旧 `adopt_plan`、`reject_plan` 和新 Host 请求不可绕过。完整本地 Python 源包身份变化会停止该 opt-in 的新采用与恢复；这只是可信协作进程的文件身份核对，不是隔离或对抗性签名。其他低层入口不因此成为全局策略门。断电持久性未证。
+
+普通 `adopt_plan`、旧计划 wire 和旧项目 pin 不变；此增量仅 Python，Workbench、HTTP 与现有连续研究入口不自动接入。项目 revision 自身没有模型来源标签，须联合原 Host 意图和 Project claim 才能核其归属。导入的 delegated 回复不能证明实际模型、费用或模型是否看到或理解材料；结果并不证明科学有效性或研究收益。
+
 ### 计划执行条件
 
 v2的反馈仍有`action_id/request_id/method_id/status/observations/next_decision/failure/artifact_ref`八个字段。每项非空`next_decision`通过`kind=saved_action_record`及项目、行动、请求、`field=next_decision`定位完整原决定；决定只存在原行动账本，不能指向更早的工具工件。来源观察的`exact_text_ref`以`artifact_ref`与`path=[tool_result,observations,index,exact_text]`定位原文，`characters`记录原字符数。设计绑定保留原训练声明和资源身份，完整资源正文在`resource_ref`所指的原工件字段。其他观察值与原件保持，当前候选、预算、条件、未核验研究者意见及检索引文仍来自原sealed selection context；顶层`remaining_questions`另完整保留当前决定记录的同名问题列表，无该字段时为空。
