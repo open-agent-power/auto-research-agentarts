@@ -2,7 +2,7 @@
 
 ## 当前接续（2026-11-15 17:00）
 
-[研究基线](research-baseline-20261115.md)与[方法调研](baseline-research-20261115.md)已独审；S074已完成，S075只读事后分析已完成，S077新用途声明已完成。S076 Bike新表格范围已向用户单独请求批准、尚无答复；不下载/读真实数据、不建真实Project或调用研究工具。S078两个合成预演及原ID重放已独审，不代表科研收益。S079候选未准入且QASPER/PubMedQA公开样例意外曝光已[记录](retrieval-candidate-audit-20261115.md)，不得宣称相关片段盲测。先按AUTONOMY核独有lease、原budget和当前用户答复；若批准，仍须固定许可/原字节/发布pin/唯一claim及协议，按原身份执行。
+[研究基线](research-baseline-20261115.md)与[方法调研](baseline-research-20261115.md)已独审；S074已完成，S075只读事后分析已完成，S077新用途声明已完成。用户已批准 S076 Bike 一次新独立项目，最多2本地工具、0模型/fit/新增native evidence；并未扩大其他预算。S078两个合成预演及原ID重放已独审，不代表科研收益。真实 Bike 数据尚未下载、Project 尚未创建；正在固定许可/原字节/发布pin/唯一claim及协议，审查后按原身份执行。S079候选未准入且QASPER/PubMedQA公开样例意外曝光已[记录](retrieval-candidate-audit-20261115.md)，不得宣称相关片段盲测。先按AUTONOMY核独有lease与原budget。
 
 ## 当前任务基线（2026-11-15 15:48 后）
 
