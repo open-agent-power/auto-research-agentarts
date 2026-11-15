@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T13:43:07.891618+08:00",
+  "checkpoint_time": "2026-11-15T13:51:21.795146+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -240,9 +240,11 @@
     "status": "implementation_in_progress",
     "description": "optional versioned source-checked outer-rule comparison; v1/v2 preserved",
     "completed": false,
-    "checkpoint_path": "runs/s069-verification/checkpoint-001",
-    "checkpoint_manifest_sha256": "a6edb7525320f1e86460705c78140c477a361de9d4c625402f47ce7900e932f0",
-    "checkpoint_base": "b19cbd20f1fb7965830650183306ac4a8cb5afd0",
-    "remaining": "tamper and old wire compatibility; memory and target plan/report; final canary; independent review"
-  }
+    "checkpoint_path": "runs/s069-verification/checkpoint-002",
+    "checkpoint_manifest_sha256": "33a7d8fc691a1c691e18ed9155ff62a68f03ffc986a670c88f49a8b167004dae",
+    "checkpoint_base": "cd184c816fc646da721c5837331dbeb9e235f829",
+    "remaining": "freeze current source; repeat old compatibility and v3 integration/tamper tests; independent review and public canary"
+  },
+  "latest_trigger_start_time": "2026-11-15T13:50:27+08:00",
+  "next_scheduled_time": "2026-11-15T16:47:27+08:00"
 }
