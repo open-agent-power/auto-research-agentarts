@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T20:17:08+08:00",
-  "status": "S092_verified_original_request_material_analysis_in_progress",
+  "end_time": "2026-11-15T20:55:16+08:00",
+  "status": "S094_verified_existing_plan_failure_fix_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -22,7 +22,10 @@
     "S089 fixed reachable unknown controller parent hole; original-ID recovery preserved, new IDs blocked",
     "S090 blocked new Project operations with unknown controller parent and allowed safe read-only selection/report of recovered child",
     "S091 exposed bounded unknown parent identities without request bodies",
-    "S092 safely exposed that specific GET in restricted read-only host using immutable SQLite and sidecar checks"
+    "S092 safely exposed that specific GET in restricted read-only host using immutable SQLite and sidecar checks",
+    "S093 legal manager feedback/core selection no longer falsely classified as integrity failure; current-reader semantic match remains partial",
+    "Research baseline updated for completed Bike study and independently reviewed",
+    "S094 explicit Host adoption retains model proposal text while host attaches authenticated quality reference; synthetic validation only"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -40,7 +43,8 @@
     "S086 orphan replay target in parent ID precheck found by independent review, fixed and reverified",
     "S089 pre-fix synthetic action recovered but unknown parent allowed new candidate/parent; test intercepted before second tool. Three old test expectations changed, original failing regression retained.",
     "S090 reachable unknown parent allowed new Project budget/source/step/upgrade and simulated Europe PMC fetch; fixed, original pre-fix evidence retained",
-    "S091 missing unknown IDs in manager pending projection fixed with bounded explicit GET"
+    "S091 missing unknown IDs in manager pending projection fixed with bounded explicit GET",
+    "Clean HEAD pre-existing one test failure OPERATION_INCOMPLETE vs IDEMPOTENCY_CONFLICT preserved; excluded from S094 70 passing regression, separate fix in progress"
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -49,12 +53,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Evaluate whether original controller/manager request bodies can be reconstructed without guessing from saved intent and sealed context; keep unknown when unprovable, no dispatch.",
+  "next": "Verify Host quality plan adoption at actual process kill cut points; separately fix independently reproduced pre-existing Workbench same-ID error priority while preserving pending safety.",
   "next_planned_trigger": "2026-11-15T22:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "b1a522f20ba3bf9b82649f0fe7d943524924f38c",
-  "last_checkpoint": "2026-11-15T20:17:08+08:00",
+  "code_commit": "8700a9ee0cb705881883caf9f5b597bb62edda4d",
+  "last_checkpoint": "2026-11-15T20:55:16+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -666,5 +670,20 @@
     "author_tests": 22,
     "independent_tests": 19,
     "scope": "This restricted-host GET only; immutable/stability checks are not adversarial isolation."
+  },
+  "S093": {
+    "commit": "5c056f2eee8eaf91a946d8765e6832708840665c",
+    "author_tests": 25,
+    "independent_tests": 25,
+    "limits": "partial; producer unverified; no body disclosed or authorization"
+  },
+  "S094": {
+    "commit": "8700a9ee0cb705881883caf9f5b597bb62edda4d",
+    "author_new_tests": 16,
+    "author_legacy_tests": 70,
+    "independent_tests": 41,
+    "preexisting_head_failure": "runs/s094-host-quality/preexisting-head-plan-failure.log",
+    "preexisting_failure_sha256": "1720419730f29410db4d93240d9dd3ef6a3781d1255e552113376408c1a87a2a",
+    "scope": "Python opt-in only; synthetic Host responses, zero real model/API, Workbench/HTTP not integrated"
   }
 }
