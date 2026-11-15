@@ -164,6 +164,122 @@ def _public(value, project):
     return value
 
 
+def _staged_successor_scan_rows(con):
+    """Inspect every successor row; unknown rows cannot be assigned or ignored."""
+    from .research_project import validate_staged_feedback_plan_ref, validate_plan_experience_refs
+    known_projects = {row["id"] for row in con.execute("SELECT id FROM projects")}
+    pending = []; valid = True
+    intent_fields = {"schema_version","command","project_id","run_id","body","request_sha256","source_snapshot_sha256",
+                     "project_code_identity","controller_code_identity","manager_code_identity","manager_root","nonce","intent_sha256","feedback_ref_sha256"}
+    body_fields = {"request_id","project_id","expected_state_version","feedback_request_id","plan","reason"}
+    hashes = ("request_sha256","source_snapshot_sha256","project_code_identity","controller_code_identity","manager_code_identity","nonce","intent_sha256","feedback_ref_sha256")
+    for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command='save_staged_feedback_plan' ORDER BY rowid DESC"):
+        try:
+            _require(type(row["record"]) is str and len(row["record"].encode("utf-8")) <= 512 * 1024,
+                     "EVIDENCE_CHANGED", "Saved request exceeds the bounded scan limit.")
+            record = _local_body(row["record"].encode("utf-8")); intent = record["intent"]; body = intent["body"]
+            _require(set(record) == {"status","intent","result"} and record["status"] in ("preparing","completed")
+                     and type(intent) is dict and set(intent) == intent_fields and intent["schema_version"] == "local-staged-feedback-plan-intent-v1"
+                     and intent["command"] == row["command"] and type(body) is dict and set(body) == body_fields
+                     and body["request_id"] == row["id"] and body["project_id"] == intent["project_id"]
+                     and body["project_id"] in known_projects and type(intent["run_id"]) is str and bool(intent["run_id"])
+                     and type(intent["manager_root"]) is str and bool(intent["manager_root"])
+                     and all(type(intent[k]) is str and re.fullmatch(r"[a-f0-9]{64}", intent[k]) is not None for k in hashes)
+                     and row["digest"] == intent["request_sha256"] == fingerprint(body)
+                     and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                     and type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
+                     and type(body["plan"]) is dict and type(body["reason"]) is str,
+                     "EVIDENCE_CHANGED", "Malformed saved request.")
+            identifier(row["id"], "request_id"); identifier(body["project_id"], "project_id"); identifier(body["feedback_request_id"], "feedback_request_id")
+            identifier(intent["run_id"], "run_id")
+            plan_fields = {"question":4000, "basis":6000, "steps":12000, "expected_feedback":4000}
+            _require(set(plan_fields) <= set(body["plan"]) <= set(plan_fields) | {"experience_case_refs"}
+                     and all(type(body["plan"][k]) is str and len(body["plan"][k]) <= limit and "\x00" not in body["plan"][k]
+                             and (k == "basis" or bool(body["plan"][k].strip())) for k,limit in plan_fields.items())
+                     and 0 < len(body["reason"]) <= 2000 and bool(body["reason"].strip()) and "\x00" not in body["reason"]
+                     and len(json.dumps(body,ensure_ascii=False,separators=(",",":")).encode("utf-8")) <= 192*1024,
+                     "EVIDENCE_CHANGED", "Malformed saved request body.")
+            if "experience_case_refs" in body["plan"]:
+                validate_plan_experience_refs(body["plan"]["experience_case_refs"], code="EVIDENCE_CHANGED")
+            if record["status"] == "preparing":
+                _require(record["result"] is None, "EVIDENCE_CHANGED", "Malformed unfinished request.")
+            else:
+                result = record["result"]; revision = result["research_plan"]
+                _require(type(result) is dict and set(result) == {"schema_version","command","request_id","project_id","replayed","status","research_plan"}
+                         and result["schema_version"] == "local-workbench-command-v1" and result["command"] == row["command"]
+                         and result["status"] == "completed" and result["request_id"] == row["id"] and result["project_id"] == body["project_id"]
+                         and type(result["replayed"]) is bool and type(revision) is dict and type(revision.get("version")) is int
+                         and revision["version"] >= 2 and revision.get("request_id") == row["id"]
+                         and set(revision) == set(body["plan"]) | {"version","reason","request_id","based_on_state_version","staged_feedback_ref"}
+                         and revision.get("based_on_state_version") == body["expected_state_version"] and revision.get("reason") == body["reason"]
+                         and all(revision.get(k) == v for k,v in body["plan"].items()), "EVIDENCE_CHANGED", "Malformed completed receipt.")
+                ref = validate_staged_feedback_plan_ref(revision.get("staged_feedback_ref"), code="EVIDENCE_CHANGED")
+                _require(ref["feedback_parent_request_id"] == body["feedback_request_id"]
+                         and ref["original_plan_version"] + 1 == revision["version"]
+                         and intent["feedback_ref_sha256"] == fingerprint(ref), "EVIDENCE_CHANGED", "Malformed completed reference.")
+            if record["status"] != "completed":
+                pending.append({"request_id":row["id"], "status":record["status"], "project_id":body["project_id"]})
+        except (ResearchError, KeyError, TypeError, ValueError, AttributeError, UnicodeError, OverflowError, RecursionError):
+            valid = False; break
+    return pending, valid
+
+
+def _staged_successor_global_pending_view(workbench):
+    """Manager-only scan when there is no active project; no body is returned."""
+    from .local_workbench import _immutable_inspection_database
+    with workbench._writer():
+        with _immutable_inspection_database(workbench.db) as con:
+            _require(workbench._active(con) is None, "STALE_STATE", "An active Project now exists.")
+            pending, valid = _staged_successor_scan_rows(con)
+            _require(workbench._active(con) is None, "STALE_STATE", "An active Project now exists.")
+            return {"schema_version":"staged-successor-global-pending-v1", "verification":"manager_rows_only_not_project_claims",
+                    "active_project_id":None, "status":"available" if valid else "unknown",
+                    "total":len(pending) if valid else None, "shown":min(len(pending),8) if valid else None,
+                    "truncated":len(pending)>8 if valid else None,
+                    "project_ids":sorted({entry["project_id"] for entry in pending[:8]}) if valid else []}
+
+
+def _staged_successor_pending_view(workbench, *, project_id, snapshot_ref):
+    """Bounded manager-row scan; no original plan text or claim assertion."""
+    from .local_workbench import _immutable_inspection_database, _InspectionProject
+    identifier(project_id, "project_id")
+    _require(type(snapshot_ref) is str and re.fullmatch(r"[a-f0-9]{64}", snapshot_ref) is not None,
+             "INVALID_QUERY", "Use the current exact Project snapshot.")
+    with workbench._writer():
+        with _immutable_inspection_database(workbench.db) as con:
+            _, bound = workbench._project(con, project_id, active=True)
+            project = _InspectionProject(bound.root)
+            with project._writer():
+                state = project.status()
+                _require(state["id"] == project_id and state["snapshot_ref"] == snapshot_ref,
+                         "STALE_STATE", "Active Project snapshot changed.")
+                all_pending, valid = _staged_successor_scan_rows(con)
+                pending = [{"request_id":item["request_id"], "status":item["status"]}
+                           for item in all_pending if item["project_id"] == project_id]
+                _require(workbench._active(con) == project_id and project.status()["snapshot_ref"] == snapshot_ref,
+                         "STALE_STATE", "Active Project changed during pending inspection.")
+                return {"schema_version":"staged-successor-pending-v1", "verification":"manager_rows_only_not_project_claims",
+                        "project_id":project_id, "run_id":state["run_id"], "snapshot_ref":snapshot_ref,
+                        "state_version":state["state_version"], "status":"available" if valid else "unknown",
+                        "total":len(pending) if valid else None, "shown":min(len(pending),8) if valid else None,
+                        "truncated":len(pending)>8 if valid else None, "items":pending[:8] if valid else []}
+
+
+def _staged_successor_receipt(result):
+    """Omit original plan text and case applicability statements from HTTP receipts."""
+    from .research_project import validate_staged_feedback_plan_ref
+    _require(type(result) is dict and result.get("schema_version") == "local-workbench-command-v1"
+             and result.get("command") == "save_staged_feedback_plan" and result.get("status") == "completed"
+             and type(result.get("replayed")) is bool and type(result.get("research_plan")) is dict,
+             "EVIDENCE_CHANGED", "Original successor receipt is malformed.")
+    plan = result["research_plan"]; ref = validate_staged_feedback_plan_ref(plan.get("staged_feedback_ref"), code="EVIDENCE_CHANGED")
+    _require(plan.get("request_id") == result.get("request_id") and type(plan.get("version")) is int
+             and type(plan.get("based_on_state_version")) is int, "EVIDENCE_CHANGED", "Original successor identity is malformed.")
+    return {"schema_version":"staged-successor-plan-receipt-v1", "command":"save_staged_feedback_plan",
+            "request_id":result["request_id"], "project_id":result["project_id"], "status":"completed", "replayed":result["replayed"],
+            "plan_version":plan["version"], "based_on_state_version":plan["based_on_state_version"],
+            "plan_sha256":fingerprint(plan), "staged_feedback_ref":copy.deepcopy(ref)}
+
 def _projection(project, state, report=None):
     view = {key: state.get(key) for key in (
         "id", "run_id", "snapshot_ref", "state_version", "research_status", "execution_status",
@@ -525,6 +641,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/staged-feedback": "advance_staged_feedback",
                             "/api/local-workbench/staged-feedback-resume": "resume_staged_feedback",
                             "/api/local-workbench/staged-feedback-plan-preview": "preview_staged_feedback_plan",
+                            "/api/local-workbench/staged-feedback-plan": "save_staged_feedback_plan",
+                            "/api/local-workbench/staged-feedback-plan-resume": "resume_staged_feedback_plan",
                             "/api/local-workbench/tabular-quality-registration": "register_tabular_quality_conditions",
                             "/api/local-workbench/advance-tabular-quality-feedback": "advance_tabular_quality_feedback",
                             "/api/local-workbench/quality-plan": "save_quality_plan",
@@ -581,6 +699,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                     result = getattr(local_workspace, command)(body, executable=claude_executable)
                 else:
                     result = getattr(local_workspace, command)(body)
+                if command in ("save_staged_feedback_plan", "resume_staged_feedback_plan"):
+                    result = _staged_successor_receipt(result)
                 return self.send_json(200, result)
             except ResearchError as error:
                 self.close_connection = True
@@ -628,6 +748,27 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                                                 "read_only": getattr(local_workspace, "read_only", False)})
                 if getattr(local_workspace, "read_only", False) and parsed.path not in {"/api/local-workbench/saved-study-reference", "/api/local-workbench/project-summary", "/api/local-workbench/study-capsule", "/api/local-workbench/study-capsule.zip", "/api/local-workbench/unknown-controller-requests.json"}:
                     return self.project_error(404, "READ_ONLY_ROUTE_NOT_AVAILABLE", "Only manager metadata and stored summaries are available in this read-only host mode.")
+                if parsed.path == "/api/local-workbench/staged-feedback-plan-global-pending.json":
+                    _require_runtime_current(runtime_sources)
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    if not allow_local_actions:
+                        return self.project_error(405, "READ_ONLY", "Local pending inspection was not enabled for this service.")
+                    _require(not parsed.query, "INVALID_QUERY", "This manager-only inspection accepts no query fields.")
+                    return self.send_json(200, _staged_successor_global_pending_view(local_workspace))
+                if parsed.path == "/api/local-workbench/staged-feedback-plan-pending.json":
+                    _require_runtime_current(runtime_sources)
+                    if local_workspace is None:
+                        return self.project_error(404, "LOCAL_WORKBENCH_NOT_AVAILABLE", "No local workbench is configured.")
+                    if not allow_local_actions:
+                        return self.project_error(405, "READ_ONLY", "Local pending inspection was not enabled for this service.")
+                    try:
+                        values = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=True, max_num_fields=2)
+                    except ValueError:
+                        raise ResearchError("INVALID_QUERY", "Use exact Project and snapshot fields.") from None
+                    _require(set(values) == {"project_id", "snapshot_ref"} and all(len(v) == 1 for v in values.values()),
+                             "INVALID_QUERY", "Use exact Project and snapshot fields.")
+                    return self.send_json(200, _staged_successor_pending_view(local_workspace, **{k:v[0] for k,v in values.items()}))
                 if parsed.path == "/api/local-workbench/unknown-controller-requests.json":
                     _require_runtime_current(runtime_sources)
                     if local_workspace is None:

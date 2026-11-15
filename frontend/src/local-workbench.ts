@@ -2,6 +2,7 @@
 import { $, el } from "./dom";
 import { posthocPlanAdviceCases } from "./plan-advice";
 import { createStagedSuccessorPreviewPanel } from "./staged-successor-preview";
+import { createStagedSuccessorSavePanel } from "./staged-successor-save";
 import { createProjectPages, type ProjectOperation } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalExperiencePanel } from "./local-experience";
@@ -182,7 +183,7 @@ function planSourceFeedback(project: Obj, saved: Obj): HTMLElement {
 
 function createResearchPlanPanel(deps: {
   current(): Obj; context(): Obj | null; modelRecords(projectId: string): Obj[]; submit(body: Obj): Promise<Obj | null>;
-}): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
+}): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void; draft(): Obj | null } {
   const section = panel("研究计划", "写下当前问题、准备采取的步骤，以及什么反馈会让你调整路线。"), sourceFeedback = el("div"), preview = el("div", "research-plan-copy");
   section.classList.add("research-plan");
   const editor = el("details", "research-plan-editor"), summary = el("summary", "", "编写计划"), form = el("form"), fields = el("fieldset", "local-fieldset");
@@ -375,7 +376,21 @@ function createResearchPlanPanel(deps: {
     const result = await deps.submit({ project_id: projectId, expected_state_version: stateVersion, plan, reason });
     if (result?.status === "completed") { drafts.delete(submittedProject); update(deps.current()); editor.open = false; summary.focus(); }
   });
-  return { element: section, update, setLocked(value): void { locked = value; controls(); } };
+  function draft(): Obj | null {
+    editor.open = true;
+    const content = values(), cases = available();
+    const invalidFields = planFields.some(def => content[def.key].length > def.maximum || content[def.key].includes("\0")
+      || (def.required && !content[def.key].trim()));
+    const invalidRefs = selectedRefs.some(ref => !cases?.some(item => sameIdentity(ref, item))
+      || !ref.applicability_statement.trim() || ref.applicability_statement.length > 1000 || ref.applicability_statement.includes("\0"));
+    const invalidAdvice = appliedAdvice !== null && (!adviceStillValid(appliedAdvice) || !selectedRefs.some(ref => ref.case_id === appliedAdvice!.caseId
+      && ref.case_version === appliedAdvice!.version && ref.bundle_sha256 === appliedAdvice!.sha && !!ref.applicability_statement.trim()));
+    if (!projectId || stateVersion !== deps.current().state_version || invalidFields || invalidRefs || invalidAdvice) return null;
+    const { reason, ...planText } = content, plan: Obj = { ...planText };
+    if (selectedRefs.length) plan.experience_case_refs = { schema_version: "project-plan-experience-refs-v1", items: selectedRefs.map(ref => ({ ...ref })) };
+    keepDraft(); return { project_id: projectId, expected_state_version: stateVersion, plan, reason };
+  }
+  return { element: section, update, draft, setLocked(value): void { locked = value; controls(); } };
 }
 
 function createStagedHypothesisPanel(deps: {
@@ -736,7 +751,8 @@ export async function mountLocalWorkbench(): Promise<void> {
   runSection.append(contextStatus, candidateList, field("这次选择的理由", rationale), citationList, runActions,
     el("p", "detail-note", "等待仅保存本次选择，不表示项目暂停或方法耗尽。"));
 
-  let description: Obj = {}, current: Obj = {}, context: Obj | null = null, busy = false, loadingFile = false;
+  let description: Obj = {}, current: Obj = {}, context: Obj | null = null, successorScan: Obj | null = null, successorGlobalScan: Obj | null = null, busy = false, loadingFile = false;
+  let successorGeneration = 0;
   let selectedCandidate = "", citations = new Set<string>(), lastRequest: Pending | null = null;
   let batchUncertain: Pending | null = null;
   let csv: { name: string; bytes: Uint8Array; encoded: string; sha: string; decoded: string } | null = null;
@@ -745,6 +761,55 @@ export async function mountLocalWorkbench(): Promise<void> {
   const evidencePending = new Map<string, Pending>();
   const selectedRoles = (kind: string): string[] => headers.filter(name => roleInputs.get(name)?.[kind].checked);
   const activeId = (): string => text(description.active_project_id, "");
+  const successorStoragePending = (): boolean => {
+    try { return localStorage.getItem("autoresearch.local-workbench.staged-successor.marker.v1") !== null
+      || sessionStorage.getItem("autoresearch.local-workbench.staged-successor.session.v1") !== null; }
+    catch { return true; }
+  };
+  const validSuccessorScan = (scan: Obj | null, project: Obj): boolean => {
+    if (!scan || scan.schema_version !== "staged-successor-pending-v1" || scan.verification !== "manager_rows_only_not_project_claims"
+      || scan.project_id !== project.id || scan.run_id !== project.run_id || scan.snapshot_ref !== project.snapshot_ref
+      || scan.state_version !== project.state_version || scan.status !== "available" || !Number.isSafeInteger(scan.total)
+      || typeof scan.total !== "number" || scan.total < 0 || !Number.isSafeInteger(scan.shown) || scan.shown !== Math.min(scan.total, 8)
+      || scan.truncated !== (scan.total > 8) || !Array.isArray(scan.items) || scan.items.length !== scan.shown) return false;
+    const entries = scan.items.map(obj);
+    return entries.every(item => typeof item.request_id === "string" && item.request_id.length > 0 && item.status === "preparing")
+      && new Set(entries.map(item => item.request_id)).size === entries.length;
+  };
+  const validSuccessorGlobalScan = (): boolean => {
+    const scan = successorGlobalScan, projects = items(description.projects);
+    if (!scan || scan.schema_version !== "staged-successor-global-pending-v1" || scan.verification !== "manager_rows_only_not_project_claims"
+      || scan.active_project_id !== null || scan.status !== "available" || typeof scan.total !== "number" || !Number.isSafeInteger(scan.total) || scan.total < 0
+      || !Number.isSafeInteger(scan.shown) || scan.shown !== Math.min(scan.total, 8) || scan.truncated !== (scan.total > 8)
+      || !Array.isArray(scan.project_ids) || scan.project_ids.length > Number(scan.shown)
+      || scan.project_ids.some(id => typeof id !== "string" || !id || !projects.some(project => project.id === id))
+      || new Set(scan.project_ids).size !== scan.project_ids.length || (scan.total === 0 && scan.project_ids.length !== 0)
+      || (scan.total > 0 && scan.project_ids.length === 0)) return false;
+    return true;
+  };
+  const successorBlocked = (): boolean => successorStoragePending() || (activeId()
+    ? !validSuccessorScan(successorScan, current) || successorScan!.total !== 0
+    : !validSuccessorGlobalScan() || successorGlobalScan!.total !== 0);
+  const canSelectSuccessorProject = (projectId: string): boolean => {
+    if (activeId() || !validSuccessorGlobalScan() || successorGlobalScan!.truncated !== false || !projectId) return false;
+    if (successorStoragePending()) {
+      try { const marker = obj(JSON.parse(localStorage.getItem("autoresearch.local-workbench.staged-successor.marker.v1") ?? "null"));
+        return marker.schema_version === "staged-successor-request-marker-v1" && marker.project_id === projectId
+          && typeof marker.request_id === "string" && !!marker.request_id && typeof marker.owner === "string" && !!marker.owner
+          && typeof marker.body_sha256 === "string" && /^[a-f0-9]{64}$/.test(marker.body_sha256); }
+      catch { return false; }
+    }
+    return Array.isArray(successorGlobalScan!.project_ids) && successorGlobalScan!.project_ids.includes(projectId);
+  };
+  async function scanSuccessor(projectId: string, snapshot: string): Promise<Obj> {
+    const scan = await read("/api/local-workbench/staged-feedback-plan-pending.json?project_id=" + encodeURIComponent(projectId) + "&snapshot_ref=" + encodeURIComponent(snapshot));
+    if (projectId !== activeId() || current.id !== projectId) throw Error("活动项目已变化；请保留原 ID 并停查。");
+    const basis = current.snapshot_ref === snapshot ? current : await read("/api/project");
+    if (projectId !== activeId() || basis.id !== projectId || basis.snapshot_ref !== snapshot || !validSuccessorScan(scan, basis))
+      throw Error("后续计划未决状态不可核对；请保留原 ID 并停查。");
+    if (current.snapshot_ref === snapshot) successorScan = scan;
+    return scan;
+  }
   const savedQualityRequest = (): Pending | null => {
     try {
       const saved = obj(JSON.parse(sessionStorage.getItem(QUALITY_PENDING_KEY) ?? "null"));
@@ -811,13 +876,14 @@ export async function mountLocalWorkbench(): Promise<void> {
     const summary = obj(description.pending_staged_primary_summary);
     return summary.project_id === activeId() && typeof summary.total === "number" && summary.total > 0;
   };
-  const serverPending = (projectId = activeId()): boolean => stagedFeedbackSummaryPending() || stagedPrimarySummaryPending()
+  const serverPending = (projectId = activeId()): boolean => successorBlocked() || stagedFeedbackSummaryPending() || stagedPrimarySummaryPending()
     || items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
   const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
   const uncertain = (projectId = activeId()): boolean => hasStagedFeedback() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
     && (!["evidence", "plan", "plan-resume"].includes(lastRequest.command) || requestProject(lastRequest) === projectId);
-  const navigationBlocked = (): boolean => stagedFeedbackSummaryPending() || hasStagedFeedback() || stagedPrimarySummaryPending() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
+  const otherNavigationBlocked = (): boolean => stagedFeedbackSummaryPending() || hasStagedFeedback() || stagedPrimarySummaryPending() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan", "save_staged_feedback_plan"].includes(text(record.command, "")))
     || !!lastRequest?.uncertain && !["batch", "continue", "evidence", "plan", "plan-resume"].includes(lastRequest.command);
+  const navigationBlocked = (): boolean => successorBlocked() || otherNavigationBlocked();
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
   const experiencePanel = createLocalExperiencePanel({ read, submit: (name, body, recover) => submit(recover
@@ -842,9 +908,24 @@ export async function mountLocalWorkbench(): Promise<void> {
     submitFeedback: (body, identity) => submit({command:"staged-feedback", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedFeedbackContext:identity}) });
   const stagedSuccessorPreview = createStagedSuccessorPreviewPanel({ current: () => current, context: () => context,
     active: () => activeId(), preview: body => previewLocal("staged-feedback-plan-preview", body) });
+  const stagedSuccessorSave = createStagedSuccessorSavePanel({ current: () => current, context: () => context, active: () => activeId(), generation: () => successorGeneration,
+    readDraft: () => planPanel.draft(), scanNow: scanSuccessor, read,
+    post: async (name, body) => {
+      const response = await fetch("/api/local-workbench/" + name, { method:"POST", credentials:"same-origin", cache:"no-store",
+        headers:{"Content-Type":"application/json", "X-AutoResearch-CSRF":text(description.csrf_token, "")}, body, signal:AbortSignal.timeout(60000) });
+      const value = obj(await response.json());
+      if (!response.ok) throw Error("后续计划原请求尚未核对：" + text(value.code, String(response.status)));
+      return value;
+    },
+    enabled: () => description.enabled === true && !!activeId() && current.id === activeId()
+      && !stagedFeedbackSummaryPending() && !stagedPrimarySummaryPending() && !hasStagedFeedback() && !hasStagedPrimary()
+      && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && !batchUncertain && !lastRequest?.uncertain
+      && ![...evidencePending.values()].some(item => item.uncertain)
+      && !items(description.pending_requests).some(record => record.command !== "save_staged_feedback_plan"),
+    setBusy: value => { busy = value; controls(); }, onState: () => { controls(); showPending(); }, refresh });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
-    planning: [planPanel.element, stagedSuccessorPreview.element, stagedHypothesisPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
+    planning: [planPanel.element, stagedSuccessorSave.element, stagedSuccessorPreview.element, stagedHypothesisPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
     operations: { action: runSection, evidence: evidencePanel.element, continuation: batchPanel.element, model: modelPanel.element, recipe: recipePanel.element },
     design: designPanel.element, designLibrary: designPanel.libraryElement, experience: experiencePanel.element, reportButton, announce });
   function planContinuation(requestId = ""): Obj | undefined {
@@ -853,6 +934,7 @@ export async function mountLocalWorkbench(): Promise<void> {
       && (!requestId || obj(record.plan_ref).request_id === requestId));
   }
   function otherModelBlockers(requestId = ""): boolean {
+    if (successorBlocked()) return true;
     const owner = requestId ? planContinuation(requestId) : undefined;
     return items(description.pending_requests).some(record => record.request_id !== owner?.request_id
       && (record.command !== "evidence" || !record.project_id || record.project_id === activeId()))
@@ -908,10 +990,12 @@ export async function mountLocalWorkbench(): Promise<void> {
   function announce(value: string, error = false): void { message.textContent = value; message.classList.toggle("error", error); message.setAttribute("role", error ? "alert" : "status"); }
   function controls(): void {
     const globalLocked = busy || description.enabled !== true || serverPending("") || uncertain("");
-    const navigationLocked = busy || description.enabled !== true || navigationBlocked();
+    const canChooseOriginal = !otherNavigationBlocked() && items(description.projects).some(project => canSelectSuccessorProject(text(project.id, "")));
+    const navigationLocked = busy || description.enabled !== true || (navigationBlocked() && !(canChooseOriginal && canSelectSuccessorProject(projectSelect.value)));
     const locked = globalLocked || serverPending() || uncertain() || unknownExecution() || modelPanel.pending();
     createFields.disabled = globalLocked; createButton.disabled = globalLocked || loadingFile || !csv || !headers.length;
-    selectButton.disabled = navigationLocked || !projectSelect.value || projectSelect.value === activeId(); projectSelect.disabled = navigationLocked;
+    selectButton.disabled = navigationLocked || !projectSelect.value || projectSelect.value === activeId();
+    projectSelect.disabled = busy || description.enabled !== true || (navigationBlocked() && !canChooseOriginal);
     executeButton.disabled = locked || !context || !selectedCandidate || !rationale.value.trim() || items(context.blockers).length > 0;
     waitButton.disabled = locked || !context || !rationale.value.trim();
     const reportReady = obj(current.report).available === true && obj(current.report).stale !== true;
@@ -935,6 +1019,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     const successorPending = pendingSuccessor !== undefined && (successorSummary.project_id !== activeId()
       || typeof successorSummary.total !== "number" || !Number.isSafeInteger(successorSummary.total) || successorSummary.total < 0 || successorSummary.total > 0);
     stagedSuccessorPreview.setLocked(locked || current.id !== activeId() || successorPending);
+    stagedSuccessorSave.setLocked(locked || current.id !== activeId());
     feedbackPanel.setLocked(locked || current.id !== activeId());
     rationale.disabled = locked;
     candidateList.querySelectorAll<HTMLInputElement>("input").forEach(control => { control.disabled = locked || items(context?.blockers).length > 0; });
@@ -944,7 +1029,12 @@ export async function mountLocalWorkbench(): Promise<void> {
     const records = items(description.pending_requests);
     let remembered: Obj = {};
     try { remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}")); } catch { /* Storage is optional; manager owns durable state. */ }
-    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !stagedFeedbackSummaryPending() && !hasStagedFeedback() && !stagedPrimarySummaryPending() && !hasStagedPrimary() && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
+    pendingNotice.replaceChildren(); pendingNotice.hidden = !successorBlocked() && !records.length && !remembered.request_id && !batchUncertain && !stagedFeedbackSummaryPending() && !hasStagedFeedback() && !stagedPrimarySummaryPending() && !hasStagedPrimary() && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
+    if (successorBlocked()) {
+      pendingNotice.append(el("p", "notice error", "后续计划未决状态、原正文或跨标签标记不可确认；保留原 ID，只能核对原请求。浏览器存储可能丢失，不适用于其他设备。"));
+      if (successorStoragePending()) { const button = el("button", "text-button", "只核对原后续计划请求"); button.type = "button";
+        button.disabled = busy || description.enabled !== true; button.addEventListener("click", () => { if (!button.disabled) void stagedSuccessorSave.recover(); }); pendingNotice.append(button); }
+    }
     if (records.length) pendingNotice.append(el("strong", "", records.some(record => ["batch", "continue"].includes(text(record.command, "")))
       ? "有原推进记录尚未收口。请在继续研究中核对原阶段；计划建议需先采用或拒绝，未知行动不会重发。"
       : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
@@ -1217,8 +1307,9 @@ export async function mountLocalWorkbench(): Promise<void> {
     }
   }
   async function refresh(): Promise<void> {
-    const previousId = activeId(); context = null; candidates();
-    stagedSuccessorPreview.invalidate(); stagedSuccessorPreview.setLocked(true);
+    successorGeneration++;
+    const previousId = activeId(); context = null; successorScan = null; successorGlobalScan = null; candidates();
+    stagedSuccessorPreview.invalidate(); stagedSuccessorPreview.setLocked(true); stagedSuccessorSave.setLocked(true);
     planPanel.setLocked(true);
     stagedHypothesisPanel.setLocked(true);
     feedbackPanel.setLocked(true);
@@ -1252,6 +1343,8 @@ export async function mountLocalWorkbench(): Promise<void> {
       if (remembered.command === "continue" && savedContinuation(text(remembered.request_id, ""))) sessionStorage.removeItem(PENDING_KEY);
     } catch { /* The saved continuation, including its pending phase, remains authoritative. */ }
     const now = activeId();
+    if (!now) { try { successorGlobalScan = await read("/api/local-workbench/staged-feedback-plan-global-pending.json"); }
+      catch { successorGlobalScan = null; } }
     if (now !== previousId) { selectedCandidate = ""; citations.clear(); rationale.value = ""; if (now) form.hidden = true; }
     if (evidencePending.has(now)) lastRequest = evidencePending.get(now) ?? null;
     createToggle.textContent = form.hidden ? "展开新课题与CSV输入" : "收起新课题输入";
@@ -1268,6 +1361,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (now) {
       try { current = await read("/api/project"); }
       catch (error) { planPanel.update({}); feedbackPanel.update({}); await workspacePages.update({}, null); throw error; }
+      try { await scanSuccessor(now, text(current.snapshot_ref, "")); } catch { successorScan = null; }
       const savedPlanIds = new Set(items(obj(current.research_plan).revisions).map(revision => revision.request_id));
       const savedFeedbackIds = new Set(items(current.researcher_feedback).map(record => record.request_id));
       const pendingPlans = new Set(items(description.pending_requests).filter(record => record.command === "save_plan").map(record => record.request_id));
@@ -1285,7 +1379,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         if (next.project_id !== now || next.schema_version !== "project-selection-context-v1") throw Error("候选不属于当前项目，请刷新后核对。");
         context = next;
       } catch (error) { context = null; announce(error instanceof Error ? error.message : "当前候选读取失败。", true); }
-      planPanel.update(current); stagedSuccessorPreview.update(current); stagedHypothesisPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
+      planPanel.update(current); stagedSuccessorSave.update(current); stagedSuccessorPreview.update(current); stagedHypothesisPanel.update(current); feedbackPanel.update(current); candidates(); batchPanel.update(description, current); await evidencePanel.refresh(now, current);
       await modelPanel.refresh(now, current, context); planPanel.update(current); await recipePanel.refresh(now, current, context); await designPanel.update(current);
       await experiencePanel.refresh(now, current, items(description.pending_requests)); await workspacePages.update(current, context);
       if (lastRequest && modelPanel.decisionResolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
@@ -1295,7 +1389,7 @@ export async function mountLocalWorkbench(): Promise<void> {
       } catch { /* Saved model records remain authoritative. */ }
       showPending();
       revealPendingOperations();
-    } else { planPanel.update({}); stagedSuccessorPreview.update({}); stagedHypothesisPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await designPanel.update({}); await workspacePages.update({}, null); }
+    } else { planPanel.update({}); stagedSuccessorSave.update({}); stagedSuccessorPreview.update({}); stagedHypothesisPanel.update({}); feedbackPanel.update({}); batchPanel.update(description, {}); await modelPanel.refresh("", {}, null); await recipePanel.refresh("", {}, null); await designPanel.update({}); await workspacePages.update({}, null); }
     if (lastRequest && experiencePanel.resolved(lastRequest.command, lastRequest.requestId)) lastRequest = null;
     try {
       const remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}"));
@@ -1313,6 +1407,8 @@ export async function mountLocalWorkbench(): Promise<void> {
   async function submit(pending: Pending): Promise<Obj | null> {
     if (busy) return null;
     const targetProject = requestProject(pending), switching = pending.command === "select";
+    const selectOriginal = switching && !otherNavigationBlocked() && canSelectSuccessorProject(targetProject);
+    if (successorBlocked() && !selectOriginal) { announce("后续计划原请求或未决状态尚需核对；仅允许原请求恢复。", true); return null; }
     const sameEvidence = pending.command === "evidence" && evidencePending.get(targetProject)?.requestId === pending.requestId;
     const recoverBatch = (pending.command === "batch" || pending.command === "continue") && pending.recoverBatch === true
       && canRecoverBatch(obj(JSON.parse(pending.body)), pending.command);
@@ -1343,7 +1439,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.recoverManual && !recoverManual) { announce("原人工计划请求尚不能核对；不会导入到其他 Host 或创建新ID。", true); return null; }
     if (pending.recoverStagedHypothesis && !recoverStagedHypothesis) { announce("请选择原项目并核对原登记；不会创建替代请求。", true); return null; }
     if (pending.recoverStagedPrimary && !recoverStagedPrimary) { announce("原 primary 正文或项目不可核对；保留原 ID，不能重派。", true); return null; }
-    const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
+    const blocked = switching ? navigationBlocked() && !selectOriginal : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
     if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && !recoverManual && !recoverStagedHypothesis && !recoverStagedPrimary && !recoverStagedFeedback && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
     if (pending.command === "staged-feedback") {

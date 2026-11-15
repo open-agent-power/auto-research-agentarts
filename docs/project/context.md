@@ -1,5 +1,7 @@
 # 云端开发上下文
 
+S125 工作台支持人工后继计划保存及原body/ID恢复；同源tab锁、未决扫描和存储异常停查，独立合成浏览器/HTTP通过；5秒测试曾超时，旧pin不迁移。[记录](../execution/SPRINT-125.md)。
+
 S124 新管理器 pin 的 Python resume-only 在同锁内核原 body/ID及计划claim，缺失停查、完整时仅补原回执；独立合成10/10及旧pin保护通过。未接HTTP/UI，不迁移旧项目。[记录](../execution/SPRINT-124.md)。
 
 S123 工作台页面可显式预览后继计划的等待或需另授权的事后审计建议；独立浏览器/HTTP合成与旧pin兼容通过，不派发或写账本，锁可能写。S121保存仍为Python，无真实科研收益。[记录](../execution/SPRINT-123.md)。

@@ -428,4 +428,15 @@ unknown Controller 查询要求 `project_id` 和 `snapshot_ref` 各恰好一次�
 
 显式启用本地操作的普通工作台提供 `POST /api/local-workbench/staged-feedback-plan-preview`，沿用本地 Host、Origin、CSRF、JSON 大小和运行时代码门。body 为原 S122 的 `project_id/snapshot_ref/plan_request_id/plan_sha256`，可选携带操作者确认的 `posthoc_rule`；未选规则时默认等待。服务端原 S122 路径重核 S121 manager 已完成原回执、原登记/primary/反馈、计划 revision/claim、来源、SQL、工件、当前 context 和预算。它不保存计划、不写研究账本、不补回执、不调用模型或派发工具；现有协作锁可能创建或填充 `writer.lock`，immutable SQLite 遇 sidecar 会停查，不能称全文件零写或 OS 隔离。受限只读宿主不开放该 POST。
 
-页面将观察后声明的规则与原登记分支分开显示。审计建议只是在现有候选及额度内的事后预览，若以后另行授权，潜在费用为 1 次本地工具、0 次 evidence、0 次 fit；本页不执行，也不能追认原 wait 分支或 holdout final。已完成审计或额度不足显示等待，unknown、原件/身份不符或项目变化停查；旧项目与 manager pin 不自动升级。预览可能读取已注册 dev/validation、保存排名、共享来源语料、Host journal 和已引用案例；共享语料可能含与其他评测共享的 passage，不访问 final query/qrels 或 private 包。当前页面只接预览，S121 后续计划的保存与恢复仍未接 HTTP/UI。
+页面将观察后声明的规则与原登记分支分开显示。审计建议只是在现有候选及额度内的事后预览，若以后另行授权，潜在费用为 1 次本地工具、0 次 evidence、0 次 fit；本页不执行，也不能追认原 wait 分支或 holdout final。已完成审计或额度不足显示等待，unknown、原件/身份不符或项目变化停查；旧项目与 manager pin 不自动升级。预览可能读取已注册 dev/validation、保存排名、共享来源语料、Host journal 和已引用案例；共享语料可能含与其他评测共享的 passage，不访问 final query/qrels 或 private 包。后续计划的显式保存与恢复见下文。
+
+
+### 显式保存反馈后的后续计划
+
+工作台可在同一活动项目快照中选择已完成的原反馈，并使用操作者填写的计划草稿提交后续计划。页面的登记、计划、primary、反馈与来源身份仅供快照对照；S121 服务端在保存时重新认证原 manager 记录、Project claims、来源与工件。此操作写入 manager 意图和 Project 计划修订与 claim；它不派发研究工具、模型或拟合，也不重置额度或追认 final。旧项目沿用原 pin，不自动迁移。
+
+首次发送前，页面通过 Web Lock 排他重新核对活动项目和服务端未决状态，并先保存、读回非正文身份哨兵及本标签的完整原请求正文。原正文与理由保存在 sessionStorage，哨兵保存在 localStorage；这不是安全持久存储，只协调同源合作标签。双存储都被清除、跨设备或不合作进程不在保证范围内；缺锁、不可用存储、未知或截断的未决状态均停查。任何发送后的错误或超时保留原 ID 和正文，不假定请求未被接受，也不以新 ID 替代。
+
+正常成功回执也需以原正文调用单独的 resume-only 接口，认证原 intent 与 Project claim，必要时补原 manager 回执；它不会首次创建请求。若首次响应不确定，用户须显式点击“只核对原后续计划请求”，该操作不会调用普通保存入口。缺原 intent、正文或必要证据时停查。GET 仅提供 manager 状态或 Project 状态字段，不独立认证 claims。页面当前只在该原修订仍是最新计划且其服务端投影 SHA 与 resume 回执一致时清除本地记录；若后来已有新计划，保留正文停查，Python 原 ID 恢复能力可能仍可核验历史修订。两种浏览器存储的清理没有跨存储事务保证。
+
+`GET /api/local-workbench/staged-feedback-plan-pending.json` 显式限定当前 Project 与 snapshot，持 manager→Project 锁扫描所有同命令记录，检查原意图、正文摘要及记录状态的结构一致性；无法归属或畸形时返回 unknown，而不是零。结果只作 manager 状态投影，最多展示 8 条并给出总数和截断标志，不输出原正文。该 GET 在启用本地操作的宿主可用；受限只读宿主不开放，锁文件可能被创建或填充，SQLite sidecar 存在时停查。无活动项目时，独立 manager-only 全表结构概览用于决定能否创建或选择项目：无未决才允许新建；已有可完整归属的未决记录时仅可选择原项目以便核对；无法归属、截断或概览不可用时停查。概览与后续提交各自核验，不能声称与不合作进程之间的跨操作原子性。保存和恢复的 POST 延用本地 Host、Origin、CSRF 及请求体大小门，响应省略计划正文；恢复接口只核验原请求，不重建正文。
