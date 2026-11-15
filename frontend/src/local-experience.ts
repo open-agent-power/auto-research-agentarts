@@ -10,7 +10,7 @@ type Host = {
   methodTitle(methodId: string): string;
   announce(message: string, error?: boolean): void;
 };
-type Draft = { name: string; encoded: string; preview: Obj; reason: string; loading: boolean; submitted: boolean; statusReasons: Map<string, string> };
+type Draft = { name: string; encoded: string; preview: Obj; reason: string; loading: boolean; submitted: boolean; statusReasons: Map<string, string>; boundVersion?: unknown; boundSnapshot?: unknown; fileChoice?: number };
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const objects = (value: unknown): Obj[] => Array.isArray(value) ? value.map(object) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
@@ -22,7 +22,7 @@ export function isStagedExperienceSchema(value: unknown): boolean {
 }
 
 export function isSupportedExperienceSchema(value: unknown): boolean {
-  return isStagedExperienceSchema(value) || ["project-experience-bundle-v1", "cpu-project-experience-bundle-v1"].includes(text(value, ""));
+  return isStagedExperienceSchema(value) || ["project-experience-bundle-v1", "cpu-project-experience-bundle-v1", "posthoc-validation-loss-experience-bundle-v1"].includes(text(value, ""));
 }
 
 function field(label: string, control: HTMLElement): HTMLElement {
@@ -180,7 +180,7 @@ export function createLocalExperiencePanel(host: Host): {
   section.append(status, recovery, editor, list);
   const drafts = new Map<string, Draft>(), statusButtons: { button: HTMLButtonElement; reason: HTMLTextAreaElement }[] = [];
   const recoveryButtons: { button: HTMLButtonElement; body: Obj }[] = [];
-  let active = "", project: Obj = {}, view: Obj = {}, pending: Obj[] = [], locked = true, loading = false, generation = 0;
+  let active = "", project: Obj = {}, view: Obj = {}, pending: Obj[] = [], locked = true, loading = false, generation = 0, fileChoiceGeneration = 0;
 
   function draftFor(projectId: string): Draft {
     const old = drafts.get(projectId); if (old) return old;
@@ -198,9 +198,11 @@ export function createLocalExperiencePanel(host: Host): {
     const draft = active ? draftFor(active) : null;
     reason.value = draft?.reason ?? "";
     const stagedSchema = isStagedExperienceSchema(draft?.preview.schema_version);
-    fileStatus.textContent = draft?.name ? draft.name + " · " + (draft.preview.schema_version === "staged-retrieval-wait-experience-bundle-v1" ? "阶段检索条件等待" : stagedSchema ? "阶段检索保存结果" : draft.preview.schema_version === "cpu-project-experience-bundle-v1" ? "CPU保存结果" : "Ridge保存结果")
+    const posthoc = draft?.preview.schema_version === "posthoc-validation-loss-experience-bundle-v1";
+    fileStatus.textContent = draft?.name ? draft.name + " · " + (posthoc ? "事后验证子集聚合" : draft.preview.schema_version === "staged-retrieval-wait-experience-bundle-v1" ? "阶段检索条件等待" : stagedSchema ? "阶段检索保存结果" : draft.preview.schema_version === "cpu-project-experience-bundle-v1" ? "CPU保存结果" : "Ridge保存结果")
       + " · 案例 " + text(draft.preview.id) + " · v" + numeric(draft.preview.version)
-      + (draft.submitted ? " · 已从保存记录确认导入。" : " · 草稿已准备，尚未提交。") : "选择不超过4MiB的案例JSON；选择文件只准备草稿。";
+      + (draft.submitted ? " · 已从保存记录确认导入。" : " · 草稿已准备，尚未提交。")
+      + (posthoc ? " 文件自述的上游 primary 来源引用：" + text(object(object(draft.preview.record).provenance).action_id) + "；提交后由服务端核验。仅绑定已发布字节，未重算或验证签名；已曝光事后子集，不证明因果或匿名，也不会自动引用到计划。" : "") : "选择不超过4MiB的案例JSON；选择文件只准备草稿。";
   }
   function resolved(command: string, requestId: string): boolean {
     return ["experience-import", "experience-status", "experience-resume"].includes(command)
@@ -339,17 +341,25 @@ export function createLocalExperiencePanel(host: Host): {
   }
   chooser.addEventListener("change", () => { void (async () => {
     const file = chooser.files?.[0], sourceProject = active; chooser.value = ""; if (!file || !sourceProject) return;
-    const draft = draftFor(sourceProject); draft.loading = true; controls();
+    const sourceGeneration = generation, sourceVersion = project.state_version, sourceSnapshot = project.snapshot_ref;
+    const choice = ++fileChoiceGeneration, draft = draftFor(sourceProject); draft.fileChoice = choice; draft.loading = true; controls();
     try {
       if (!file.size || file.size > 4 * 1024 * 1024) throw Error("案例JSON须非空且不超过4MiB，原草稿保留。");
       const bytes = new Uint8Array(await file.arrayBuffer()), preview = object(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)));
+      if (choice !== fileChoiceGeneration) return;
       if (!isSupportedExperienceSchema(preview.schema_version)
           || typeof preview.id !== "string" || typeof preview.version !== "number")
         throw Error("请选择导出的项目案例快照，原草稿保留。");
+      if (preview.schema_version === "posthoc-validation-loss-experience-bundle-v1"
+          && (generation !== sourceGeneration || active !== sourceProject || project.state_version !== sourceVersion || project.snapshot_ref !== sourceSnapshot))
+        throw Error("项目或快照已变化，请重新选择事后案例文件。");
       draft.name = file.name; draft.encoded = encoded(bytes); draft.preview = preview; draft.submitted = false;
+      if (preview.schema_version === "posthoc-validation-loss-experience-bundle-v1") {
+        draft.boundVersion = sourceVersion; draft.boundSnapshot = sourceSnapshot;
+      }
       if (active === sourceProject) draftText();
-    } catch (error) { if (active === sourceProject) host.announce(error instanceof Error ? error.message : "文件读取未完成，原草稿保留。", true); }
-    finally { draft.loading = false; controls(); }
+    } catch (error) { if (active === sourceProject && choice === fileChoiceGeneration) host.announce(error instanceof Error ? error.message : "文件读取未完成，原草稿保留。", true); }
+    finally { if (draft.fileChoice === choice) draft.loading = false; controls(); }
   })(); });
   reason.addEventListener("input", () => { if (active) { const draft = draftFor(active); draft.reason = reason.value; draft.submitted = false; } controls(); });
   form.addEventListener("submit", event => { event.preventDefault(); void (async () => {
@@ -360,6 +370,18 @@ export function createLocalExperiencePanel(host: Host): {
     if (result?.status === "completed") { draft.submitted = true; if (active === sourceProject) { draftText(); controls(); } }
   })(); });
   async function refresh(projectId: string, current: Obj, pendingRequests: Obj[] = []): Promise<void> {
+    if (active && active !== projectId) {
+      fileChoiceGeneration++;
+      const old = draftFor(active);
+      if (old.preview.schema_version === "posthoc-validation-loss-experience-bundle-v1") {
+        old.name = ""; old.encoded = ""; old.preview = {}; old.submitted = false;
+      }
+    }
+    const selected = projectId ? draftFor(projectId) : null;
+    if (selected?.preview.schema_version === "posthoc-validation-loss-experience-bundle-v1"
+        && (selected.boundVersion !== current.state_version || selected.boundSnapshot !== current.snapshot_ref)) {
+      selected.name = ""; selected.encoded = ""; selected.preview = {}; selected.submitted = false;
+    }
     const token = ++generation; active = projectId; project = current; view = {}; pending = pendingRequests; loading = true;
     list.replaceChildren(); draftText(); renderRecovery(); controls();
     if (!projectId || current.id !== projectId) { loading = false; status.textContent = "创建或选择项目后可导入案例快照。"; controls(); return; }

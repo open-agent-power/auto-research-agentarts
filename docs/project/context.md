@@ -200,3 +200,5 @@ S108：S065/S067已存validation召回不变且MRR下降子集16/24题，平均�
 S109：专用S108 posthoc Memory类型已独审，原primary只作来源；Project上下文/操作者引用与报告可用，页面文件导入尚未支持。以发布bytes绑定非现场重算；未触旧账本。见 SPRINT-109。
 
 S109实际导入：独立Memory runs/s109-real-published-memory/memory/memory.sqlite，S065/S067各首次1重入0，导出包/哈希见 SPRINT-109；本轮未打开原Project核预算，未导入真实目标项目或调用模型。
+
+S110：页面文件选择器支持S109后验bundle，真实合成HTTP和Chromium独审；原ID HTTP重放已测、浏览器断线恢复按钮未测，不自动引用计划。见 SPRINT-110。

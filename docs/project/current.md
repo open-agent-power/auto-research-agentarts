@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S110 工作台页面可显式选择并导入S109后验经验包，独立合成Chromium/HTTP验收坏包、跨项目、文件乱序和原ID HTTP重放；未测浏览器失联后恢复按钮，不自动写计划或调用研究。[SPRINT-110](../execution/SPRINT-110.md)。
+
 S109 已将S108两条已发布聚合实际导入独立持久Memory并各自导出；独审核记录隔离/哈希，重入各0。未创建真实目标Project或声明模型采纳；本轮未打开旧Project核预算。[SPRINT-109](../execution/SPRINT-109.md)。
 
 S109 新增S108两条已发布后验结果的独立Memory类型，支持Project显式导入、上下文/计划引用和报告；原行动只作来源、字节绑定不等于重算，独立合成及浏览器验证。页面只能展示，文件选择器尚不支持新类型。[SPRINT-109](../execution/SPRINT-109.md)。
