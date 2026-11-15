@@ -1,0 +1,42 @@
+{
+  "case_canonical_sha256": "ff25e86eef83e759b4d2ead3ac4a8dcfa850de5402e2b2a9b69f4226aa2371d1",
+  "case_file_sha256": "e8c232d5767685fc3432a1337cbdba424b09410c0aa760ee881b0a5f44a9471e",
+  "case_id": "s067-boolq-shadow-history",
+  "comparison": {
+    "A_method": "bm25",
+    "B_method": "bm25",
+    "B_minus_A": null,
+    "outcome": "unknown",
+    "reason": "same_arm"
+  },
+  "copied_db_and_runtime_probes": "2/2 actual copied-SQLite mutation and mocked runtime drift",
+  "final_verification_sha256": "60564c487f4599a1e3bc731b74a72005ddeb45320d8e1630e22edd8a32f02550",
+  "limits": [
+    "Capture opens the completed original final action artifact, then exports final aggregates only.",
+    "Capture and target-context patched selected private paths, indexing, ranking, scoring, model request, Project.step and recovery entry points. sklearn.fit was not separately patched; no fit observed on saved-only paths.",
+    "Before capture, finite literal canary extraction parsed completed private holdout outside the guard; final query text/ID/hash/base64 values were not saved; shared corpus may contain final positive doc IDs.",
+    "Full-study and claim byte hashing before and after read all original files including private bytes outside the guard.",
+    "Bundle and target plan context are local only; historical analogy does not show model adoption, new evidence or scientific benefit.",
+    "Final aggregate and audit policy origin remain unverifiable offline without the original Project."
+  ],
+  "memory_replay": true,
+  "origin_study_file_count": 48,
+  "original_project_unchanged": true,
+  "project_core": "4ee10be6c711eff1aeb026294989d5c5e939b8be01f25719feae3dcbce896ae6",
+  "project_import_replay": true,
+  "review_status_at_creation": "pending_public_aggregate_review",
+  "schema_version": "s069-public-aggregate-v1",
+  "scientific_validation": false,
+  "source_code_commit": "5d091b16e45b5b172bf8bee1dc8cbd05c78eccc9",
+  "source_freeze_sha256": "1e4782f4c6f859088c84456bd2aca5e00f3e331ba753fbdd9a1df3bc6c57e6ed",
+  "source_mutation_probes": "4/4 in-memory substitutions",
+  "target_actions": 0,
+  "target_project_id": "project-e89d2344bc2d4f69ab673a4a4c36a5e4",
+  "unit_tests": {
+    "count": 40,
+    "log_sha256": "fcce40aaa442f75897e2c641ea01ceedacb84255687c1208adffc8daf88f5550",
+    "status": "passed"
+  },
+  "v1_v2_wire": "exact summary and report rows equal to old pin",
+  "verification_boundary": "source_checked_at_capture; offline_shadow_binding_unverifiable_without_origin; pre_anchor_snapshot_unverifiable_without_original_snapshot"
+}
