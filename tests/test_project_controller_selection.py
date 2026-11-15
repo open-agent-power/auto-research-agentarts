@@ -87,7 +87,12 @@ class ControllerSelectionTests(unittest.TestCase):
             self.assertEqual(controller.advance_selection(request_id="unknown", proposal=proposal)["status"], "unknown")
             blocked = controller.selection_context()
             forged = self.proposal(blocked, context["candidates"][0])
-            self.assert_code("SELECTION_BLOCKED", controller.advance_selection, request_id="bypass", proposal=forged)
+            before = self.project.status()
+            before_db = self.project.db.read_bytes()
+            self.assert_code("EXECUTION_UNKNOWN", controller.advance_selection, request_id="bypass", proposal=forged)
+            self.assertEqual(self.project.status(), before)
+            self.assertEqual(self.project.db.read_bytes(), before_db)
+            self.assertEqual(controller.advance_selection(request_id="unknown", proposal=proposal)["status"], "unknown")
             execute.assert_called_once()
         self.assertEqual(self.project.status()["budget"]["evidence_reads_reserved"], 1)
 

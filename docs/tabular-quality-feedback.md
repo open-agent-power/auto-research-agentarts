@@ -90,6 +90,8 @@ profile 和空 flags 不核实上游来源或许可、字段含义和单位、�
 
 登记与只读反馈本身不使用本地研究工具、模型、fit 或 native evidence-read 额度；它们不增加任何授权额度。后续实际行动仍须单独符合原候选、预算、身份和恢复门禁。现有 Controller 非终态同 ID 恢复可能继续执行原子行动；本 reader 不提供该恢复，也不保证直接 Controller/Project 调用受登记条件约束。
 
+Controller 的原 parent 为 `unknown` 时，即便原 child 后来独立恢复成 `completed`，该 parent 仍需检查。当前 Controller 预览和 selection context 将其标为 `EXECUTION_UNKNOWN`，不提供新的执行候选；plan readiness 因此为 blocked。通用 Controller 在 writer 锁内拒绝新的请求 ID，而原普通 Controller 请求仍可按自身原 ID 和原 body 恢复；质量策略自己的非终态原 ID 则仍按其更严格的停查合同处理。这不改变直接 `Project.step` 的原有恢复语义，也不是全局质量条件门。
+
 ## 显式调用 Controller v1 条件策略
 
 在质量行动完成并保存后，调用方可在已获授权的项目和预算范围内显式调用：

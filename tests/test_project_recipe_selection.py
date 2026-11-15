@@ -111,8 +111,11 @@ class ProjectRecipeSelectionTests(unittest.TestCase):
             unknown = ProjectController(self.project.root).advance_recipe(**unknown_request)
             self.assertEqual(unknown["status"], "unknown")
             self.assertEqual(self.controller.advance_recipe(**unknown_request)["status"], "unknown")
-            bypass = self.controller.advance_recipe(**self.request("recipe-must-not-bypass"))
-            self.assertEqual((bypass["status"], bypass["child_request_id"], bypass["recipe_decision"]["reason"]), ("needs_review", None, "HOST_BLOCKERS"))
+            before = self.project.status()
+            before_db = self.project.db.read_bytes()
+            self.assert_code("EXECUTION_UNKNOWN", self.controller.advance_recipe, **self.request("recipe-must-not-bypass"))
+            self.assertEqual(self.project.status(), before)
+            self.assertEqual(self.project.db.read_bytes(), before_db)
             self.assertEqual(self.project.status()["budget"]["evidence_reads_reserved"], 1)
             extract.assert_called_once()
 

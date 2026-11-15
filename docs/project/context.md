@@ -10,6 +10,8 @@ S085 Project 质量行动结构化计划与 S086 显式 Controller v2 已完成�
 
 S088 以真实不同进程+SIGKILL验证合成链五个固定中断切点，同ID仅停查或核原claim收敛，无重派和额度变化；不证明断电或所有时序。保留日志和旧真实研究原pin/预算。
 
+S089 真实合成恢复链发现旧 Controller 未阻断 unknown parent；现新ID被拒且原ID仍可恢复。该producer行为变化仅适用于新源码，旧项目保留原pin，不擅自升级。
+
 ## 当前任务基线（2026-11-15 15:48 后）
 
 基线外部方法已独审写入 [调研](baseline-research-20261115.md)（commit ca3f40a）；S075事后只读再分析两个真实项目validation的召回/排序联合分布，保留不利例、无新实验/模型，见[S075](../execution/SPRINT-075.md)。

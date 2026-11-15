@@ -85,7 +85,12 @@ class ProjectControllerTests(unittest.TestCase):
             self.assertEqual(recovered["status"], "unknown")
             self.assertEqual(controller.advance(request_id="unknown-parent")["status"], "unknown")
             self.assertFalse(controller.next()["executable"])
-            self.assertIsNone(controller.advance(request_id="do-not-bypass")["child_request_id"])
+            before = self.project.status()
+            before_db = self.project.db.read_bytes()
+            self.assert_code("EXECUTION_UNKNOWN", controller.advance, request_id="do-not-bypass")
+            self.assertEqual(self.project.status(), before)
+            self.assertEqual(self.project.db.read_bytes(), before_db)
+            self.assertEqual(controller.advance(request_id="unknown-parent")["status"], "unknown")
             self.assert_code("EXECUTION_UNKNOWN", self.project.read_evidence, request_id="direct-bypass",
                              receipt_snapshot_sha256=registration["receipt_snapshot_sha256"])
             extract.assert_called_once()

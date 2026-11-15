@@ -111,7 +111,8 @@ class ProjectController:
         outstanding = [item for item in project["actions"] + project["evidence_actions"]
                        if item.get("status") in ("running", "pending", "unknown")]
         outstanding.extend(item for item in project.get("source_requests", []) if item.get("status") in ("sending", "unknown"))
-        if outstanding:
+        unknown_parent = any(item.get("status") == "unknown" for item in project.get("controller_requests", []))
+        if outstanding or unknown_parent:
             blockers.append({"code": "EXECUTION_UNKNOWN", "reason": "Collect or reconcile the original execution; never resend it."})
         if any(item["status"] in ("prepared", "running") for item in project.get("controller_requests", [])):
             blockers.append({"code": "PROJECT_BUSY", "reason": "Resume the already accepted controller request before choosing another action."})
@@ -141,7 +142,7 @@ class ProjectController:
         elif executable:
             blockers.append({"code": "METHOD_NOT_SUPPORTED", "reason": "Only the registered primary method or a source read may execute."})
         executable = bool(executable and not blockers)
-        status = "needs_review" if outstanding else "waiting" if blockers else decision["project_status"]
+        status = "needs_review" if outstanding or unknown_parent else "waiting" if blockers else decision["project_status"]
         result = {"schema_version": "project-controller-next-v1", "project_id": project["id"],
                 "snapshot_ref": project["snapshot_ref"], "state_version": project["state_version"],
                 "source_snapshot_sha256": project["source_snapshot_sha256"], "options": options,
@@ -840,6 +841,8 @@ class ProjectController:
                             and not any(item["request_id"] == request_id for key in ("code_revisions", "evidence_registrations", "source_requests", "model_budget_revisions", "local_model_requests", "researcher_feedback", "plan_revisions", "recipe_revisions", "hypothesis_registrations")
                                         for item in project.get(key, [])),
                             "IDEMPOTENCY_CONFLICT", "Request ID is already bound to a project command.")
+                    require(not any(item.get("status") == "unknown" for item in project.get("controller_requests", [])),
+                            "EXECUTION_UNKNOWN", "Inspect the original unknown controller request before accepting new work.")
                     require(not any(item["status"] in ("prepared", "running") for item in project.get("controller_requests", [])),
                             "PROJECT_BUSY", "Resume the already accepted controller request first.")
                     require(expected_state_version is None or project["state_version"] == expected_state_version,
