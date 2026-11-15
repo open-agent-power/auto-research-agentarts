@@ -20,6 +20,20 @@ def require(condition, code, message):
 
 
 _UNSET_SELECTION_POLICY = object()
+_UNSET_EVIDENCE_PURPOSE = object()
+_DECLARED_RESEARCH_PURPOSE = "operator_declared_descriptive_research"
+
+
+def _validate_project_purpose(project):
+    """Check only the opt-in declaration; preserve historical states unchanged."""
+    registration = project.get("registration")
+    explicit = type(registration) is dict and "evidence_purpose" in registration
+    if explicit or project.get("evidence_purpose") == _DECLARED_RESEARCH_PURPOSE:
+        require(explicit and registration["evidence_purpose"] == _DECLARED_RESEARCH_PURPOSE
+                and type(registration["evidence_purpose"]) is str
+                and registration.get("method_id") == "data.tabular-quality-audit"
+                and project.get("evidence_purpose") == _DECLARED_RESEARCH_PURPOSE,
+                "EVIDENCE_CHANGED", "The operator-declared purpose differs from its original registration.")
 
 
 def _source_metadata(receipt):
@@ -195,13 +209,20 @@ class ResearchProject:
     def _project(con):
         row = con.execute("SELECT record FROM project WHERE id=1").fetchone()
         require(row is not None, "INCOMPLETE_PROJECT", "Project registration did not complete.")
-        return json.loads(row[0])
+        project = json.loads(row[0])
+        _validate_project_purpose(project)
+        return project
 
     @staticmethod
     def _save(con, project):
         con.execute("UPDATE project SET record=? WHERE id=1", (canonical(project),))
 
-    def create(self, *, source, goal, budget_ref, max_tool_calls=1, method_id=adapter.TOOL_ID):
+    def create(self, *, source, goal, budget_ref, max_tool_calls=1, method_id=adapter.TOOL_ID,
+               evidence_purpose=_UNSET_EVIDENCE_PURPOSE):
+        if evidence_purpose is not _UNSET_EVIDENCE_PURPOSE:
+            require(type(evidence_purpose) is str and evidence_purpose == _DECLARED_RESEARCH_PURPOSE
+                    and method_id == "data.tabular-quality-audit", "INVALID_REQUEST",
+                    "Only a tabular Project may explicitly declare the descriptive research purpose.")
         primary = registry.get(method_id)
         require(isinstance(goal, str) and 0 < len(goal.strip()) <= 4000,
                 "INVALID_REQUEST", "A bounded research goal is required.")
@@ -218,11 +239,17 @@ class ResearchProject:
         payload = primary.load_source(raw)
         registration = {"goal": goal, "budget_ref": budget_ref, "max_tool_calls": max_tool_calls,
                         "source_sha256": hashlib.sha256(raw).hexdigest(), "method_id": method_id}
+        if evidence_purpose is not _UNSET_EVIDENCE_PURPOSE:
+            registration["evidence_purpose"] = evidence_purpose
         if self.db.exists():
             current = self.status()
             previous = dict(current["registration"])
             previous.setdefault("method_id", adapter.TOOL_ID)
             require(previous == registration, "CONFIG_CHANGED", "Project configuration is immutable.")
+            if evidence_purpose is not _UNSET_EVIDENCE_PURPOSE:
+                saved = self._source(current)
+                require(saved["snapshot_sha256"] == current["source_snapshot_sha256"],
+                        "EVIDENCE_CHANGED", "The saved Project source snapshot changed.")
             return current
         require(not self.root.exists(), "WORKSPACE_EXISTS", "Choose a new, separate workspace.")
         self.root.mkdir(parents=True)
@@ -245,7 +272,8 @@ class ResearchProject:
                                           "condition": "uncertain", "scope": "task-bound source selections"}],
                    "initial_decision": {"method_id": method_id, "execution_status": "not_executed",
                                         "reason": "Execute the registered method only within its validated domain input and evaluation scope."},
-                   "next_decision": None, "evidence_purpose": "isolated_adapter_regression_not_new_research",
+                   "next_decision": None, "evidence_purpose": ("isolated_adapter_regression_not_new_research"
+                                                                  if evidence_purpose is _UNSET_EVIDENCE_PURPOSE else evidence_purpose),
                    "evidence_sources": [], "evidence_registrations": [], "knowledge_refs": [], "code_revisions": [],
                    "researcher_feedback": [],
                    "budget": {"lineage_ref": budget_ref, "historical_spend_cny": None,
