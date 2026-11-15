@@ -4,7 +4,7 @@
 
 以 [current](current.md) 和 [latest-report](latest-report.json) 为准。S065已使用源码pin `5d431097f3b4846ac240745121e56070edd78e86` 完成真实Hotpot研究：final R20 .91→.92，但MRR .865984→.830095，原project `project-2376ca4a6db64027a1099bd737ca9640`、run `run-a1a631efa41541e2800b43ae047c4c66` 和3/3预算保留；无模型或fit，新进程原ID恢复和独审通过。S066以原native Memory保留正负反馈并供工程目标计划使用，未证明模型学习或科研迁移。详见对应Sprint。
 
-S067 BoolQ双规则对照尚处协议和驱动实现：源公开标签此前已读取，非盲测；尚未选样、创建新Project或执行。唯一原生A规则与事前封存的外层B分开，只有异臂且最终两臂均实测才能判断预先指定的比较；同臂为unknown。保留原claim、预算与源pin。当前checkout owner `root-continuation-20261115T1052`，继续前检查heartbeat及活跃执行者，开发完成再独审。定时计划13:47:27北京时间，完成/投递状态unknown。
+S067 BoolQ双规则真实对照已完成并独审：原pin 5bd9883、project-dc1b1b59889f49c0b744254b1a1afd68，3/3工具、0model/fit；A和B均选择BM25，最终只测BM25，规则比较unknown，源公开标签此前已读取，非盲测。唯一原生A与事前封存的外层B分开，详见 SPRINT-067；不要重置原项目或预算。保留原claim、预算与源pin。当前checkout owner `root-continuation-20261115T1052`，继续前检查heartbeat及活跃执行者，开发完成再独审。定时计划13:47:27北京时间，完成/投递状态unknown。
 
 ## 当前接续（2026-11-15 07:44轮收尾）
 

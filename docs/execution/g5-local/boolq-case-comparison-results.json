@@ -1,0 +1,181 @@
+{
+  "actions": [
+    {
+      "command": "research.relevance-validation-pair",
+      "id": "action-ad83795edf793a9dc19125edbd2ee442",
+      "request_id": "controller-child-2d89e44a8b14565d83c8d53c48cc6a1f",
+      "result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f",
+      "status": "completed"
+    },
+    {
+      "command": "research.relevance-validation-saved-audit",
+      "id": "action-f586f4a6210c115082c4d450916afd89",
+      "request_id": "controller-child-d819ec3dcb6dac7a9db93a4ddf383a74",
+      "result_sha256": "bb2204e4ca2333a1fc9624c00565866ecc0ff9f4e43beca4743e81b303c70f2f",
+      "status": "completed"
+    },
+    {
+      "command": "research.relevance-final-evaluation",
+      "id": "action-b2ff913f09b5a01142285286c8f88112",
+      "request_id": "controller-child-b0b2fc9c80e57cb5244751ae2f7dfd80",
+      "result_sha256": "d42a7daab27d4225f524dbc2d945e915fdff512f5e53f16a0e63fc653d1317be",
+      "status": "completed"
+    }
+  ],
+  "budget": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 0,
+    "evidence_reads_reserved": 0,
+    "evidence_reads_used": 0,
+    "existing_cash_cap_cny": 5,
+    "fit_attempts_used": 0,
+    "fit_limit": 0,
+    "fits_completed": 0,
+    "fits_reserved": 0,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "s067-boolq-paired-passage-v1",
+    "local_tool_call_limit": 3,
+    "local_tool_calls_reserved": 0,
+    "local_tool_calls_used": 3,
+    "local_tool_dispatches": 3,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "preprocessing_fits": 0,
+    "preprocessing_fits_completed": 0,
+    "ridge_fits_completed": 0
+  },
+  "canonical_summary_file_sha256": "99ea63fe98bb5a8cb2bd7dc6d9da7ff257f3a423a8b9bfb2f6caced4dec421a7",
+  "comparison": {
+    "B_minus_A": null,
+    "outcome": "unknown",
+    "reason": "same_arm"
+  },
+  "development_usage": {
+    "cost": "unknown",
+    "tokens": "unknown"
+  },
+  "driver_sha256": "0e40c8d2ab4b38890ac1b28b519bad645d6dcc1f735a1a2c33583b9a999d0892",
+  "feedback": {
+    "condition": {
+      "measure": "candidate_minus_baseline",
+      "metric": "recall@20",
+      "operator": "gt",
+      "split": "validation",
+      "threshold": 0
+    },
+    "outcome": "condition_not_met",
+    "registration_request_id": "s067-hypothesis",
+    "registration_sha256": "a67d3e6a028826341d9f24f3e6a43a17f8965029fcb9279df9b774fd842c6843",
+    "unknown_reason": null,
+    "value": 0.0
+  },
+  "final_query_count": 200,
+  "final_status": "measured",
+  "final_summary": {
+    "baseline": {
+      "mrr@10": 0.8587281746031746,
+      "ndcg@10": 0.8859893031287003,
+      "recall@10": 0.97,
+      "recall@20": 0.97,
+      "recall@5": 0.935
+    },
+    "delta": {
+      "mrr@10": 0.0,
+      "ndcg@10": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "recall@5": 0.0
+    },
+    "selected": {
+      "mrr@10": 0.8587281746031746,
+      "ndcg@10": 0.8859893031287003,
+      "recall@10": 0.97,
+      "recall@20": 0.97,
+      "recall@5": 0.935
+    }
+  },
+  "final_usage": {
+    "index_builds": 1,
+    "model_calls": 0,
+    "native_fits": 0,
+    "ranking_calls": 200,
+    "scoring_calls": 200
+  },
+  "limitations": [
+    "Public input, prior full source and yes/no label exposure, shared corpus; not blind or OS-isolated.",
+    "Full original JSONL including eventual final questions and answer labels is parsed in prepare and verification.",
+    "One author-paired passage is not an exhaustive set of relevant passages; yes/no answer is not a relevance label.",
+    "The fixed historical case informed a human-authored rule, not model learning or a causal effect of memory.",
+    "Both rules on the same arm give an unknown comparison; BM25-only final leaves TFIDF unmeasured.",
+    "Native report, source, historical case and per-query inputs remain private to the local workspace."
+  ],
+  "original_source_sha256": "ebc29ea3808c5c611672384b3de56e83349fe38fc1fe876fd29b674d81d0a80a",
+  "primary": {
+    "action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+    "result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f"
+  },
+  "project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+  "protocol_sha256": "ca8e7212ed1aa1ce65e197571e0613d3ace738855470ef7c71d7b4f40efaf5c1",
+  "review_status_at_creation": "pending_independent_review",
+  "run_id": "run-276475c33d7542509c840bc575005271",
+  "same_id_resume": {
+    "files_after": 48,
+    "files_before": 48,
+    "files_byte_equal": true,
+    "private_bytes_read_for_integrity_check": true,
+    "stdout_byte_equal": true
+  },
+  "schema_version": "s067-public-aggregate-v1",
+  "scientific_validation": false,
+  "selected_method": "bm25",
+  "shadow_policy": {
+    "case_sha256": "4ff88cb1fb5c365b9cd333f9dd56035d7d2cc366b2df98a2a6ddf8ded4a7712a",
+    "condition": {
+      "all": [
+        {
+          "measure": "candidate_minus_baseline",
+          "metric": "recall@20",
+          "operator": "gt",
+          "split": "validation",
+          "threshold": 0
+        },
+        {
+          "measure": "candidate_minus_baseline",
+          "metric": "mrr@10",
+          "operator": "gte",
+          "split": "validation",
+          "threshold": 0
+        }
+      ],
+      "leave_one_out": {
+        "measure": "leave_one_out_mean",
+        "metric": "recall@20",
+        "operator": "gt",
+        "split": "validation",
+        "threshold": 0
+      }
+    },
+    "decision_sha256": "6a4356387fb73b75b1b111a9e619cb57845f1aab63e51b0f54c2920c7c7da383",
+    "method": "bm25",
+    "native_A_method": "bm25",
+    "value": {
+      "leave_one_out": {
+        "maximum": 0.005025125628140704,
+        "minimum": -0.005025125628140704,
+        "queries": 200
+      },
+      "means": [
+        0.0,
+        -0.02336706349206349
+      ]
+    }
+  },
+  "source_commit": "5bd9883dd435a1d39b857a51bb6f4d20a53f156b",
+  "source_license": "CC BY-SA 3.0",
+  "source_snapshot_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb",
+  "stdout_sha256": "6bae1097902d05bb64ecd2a09b92d91ae783f59902a42fc93381a6a04f47d94a"
+}

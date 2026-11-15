@@ -1,7 +1,7 @@
 # 当前自主研究开发
 Status: resumable
 
-S067固定协议/驱动完成15项合成和6项独审，源码pin `5bd9883dd435a1d39b857a51bb6f4d20a53f156b` 和唯一claim已用于真实BoolQ输入准备；输入独立重算通过（600题，200/200/200），尚未建项目或启动真实研究。公开源及答案标签此前已读取，不是盲测。A为唯一原生规则，B为前置固定的外层case影子；同臂比较unknown，详见[SPRINT-067](../execution/SPRINT-067.md)。
+S067已完成一次真实BoolQ对照并独审：源码pin `5bd9883dd435a1d39b857a51bb6f4d20a53f156b`，project `project-dc1b1b59889f49c0b744254b1a1afd68` / run `run-276475c33d7542509c840bc575005271`；验证集R20差0、MRR差−.023367，A/B均选BM25，final 200题BM25 R20 .97/MRR .858728，双规则比较unknown、TFIDF反事实未测。3/3工具、0model/fit，原ID恢复与48文件相同；公开源/标签曾读取，不盲测、不宣称迁移收益。[SPRINT-067](../execution/SPRINT-067.md)。
 
 S066已完成独审，本提交保存结果：真实S065的事前条件、validation正面和final MRR/nDCG下降已捕获为独立v2 Memory case `s065-hotpot-support-history`，导入工程目标Project并供原计划context；target工具limit1/used0、model/fit/evidence 0，原S065 42文件/claim和3/3预算不变。离线需回源核audit/final，完整bundle/plan留本地；非模型采纳或迁移收益。[SPRINT-066](../execution/SPRINT-066.md)。
 
