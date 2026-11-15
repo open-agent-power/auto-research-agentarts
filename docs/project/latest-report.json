@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T00:42:35+08:00",
-  "status": "S109_adapter_verified_published_memory_import_in_progress",
+  "end_time": "2026-11-16T00:47:52+08:00",
+  "status": "S109_real_published_memory_verified_ui_import_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -41,7 +41,8 @@
     "S106 strict quality adoption UI with resume-only original intent; independently verified synthetic browser/HTTP",
     "S107 same-project synthetic UI: original quality preview, direct Host manual response, fact check, strict adoption, report and original-ID replay independently verified via Chromium/HTTP",
     "S108 published fixed protocol/reader before real input, computed S065/S067 saved validation subgroup and independently recomputed Decimal; original states and budgets unchanged",
-    "S109 versioned S108 posthoc binding-only Memory type with Native Project/selection/plan/report and display; independent 29+27 synthetic checks"
+    "S109 versioned S108 posthoc binding-only Memory type with Native Project/selection/plan/report and display; independent 29+27 synthetic checks",
+    "S109 actual published S065/S067 aggregates imported into independent persistent Memory; two per-case bundles independently verified and published; no new research project or model"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -65,7 +66,8 @@
     "S103 original context/prompt relationship allowed synchronized ledger+prompt tamper; retained failing synthetic log and added current-reader prompt recompilation check.",
     "S105 repeated preview left submit temporarily enabled; fixed and independently browser verified. Test fixture timing failure and BrokenPipe retained.",
     "S106 test SQL INSERT column order wrong, so same-digest different-command was initially not covered; independent direct verification and corrected independent 5/5 preserved.",
-    "S107 deletion of manual marker allowed existing old import and successful terminal replay in synthetic negative cases; fixed same-journal version/marker consistency and intent SHA claim binding, retained original failure logs."
+    "S107 deletion of manual marker allowed existing old import and successful terminal replay in synthetic negative cases; fixed same-journal version/marker consistency and intent SHA claim binding, retained original failure logs.",
+    "S109 first actual Memory capture stopped before creation because leader handoff files were dirty; failure retained, documents committed and source identity verified before retry."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -74,12 +76,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Import two published S108 aggregates to isolated Native Memory and independently verify binding and unchanged original budgets.",
+  "next": "Add explicit Workbench file import for S109 posthoc case schema and independently verify in synthetic target project.",
   "next_planned_trigger": "2026-11-16T01:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "c1a8b3a3130f3b54eea292bc6df15e1a7aac4d0a",
-  "last_checkpoint": "2026-11-16T00:42:35+08:00",
+  "code_commit": "f9d15d9e931d02df4f0f849713717acb828ed356",
+  "last_checkpoint": "2026-11-16T00:47:52+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -828,6 +830,13 @@
     "additional_independent_tests": 27,
     "source_role": "upstream_primary_reference_not_audit_producer",
     "limitations": "two known available cases only, binding not numerical recomputation/signature, no frontend file selector",
-    "actual_memory_import": "in_progress_not_complete"
+    "actual_memory_import": "completed_independently_reviewed",
+    "memory_path": "runs/s109-real-published-memory/memory/memory.sqlite",
+    "memory_sha256": "f14ee417c7fa56fe127dbfbb1529f3b1cfd932353f86d02c8c1b88eabbf07d62",
+    "receipt_sha256": "fba4ffa05643091c1c6b0a4586047d0e2b1d83e7db8d59f1d751b5b2bcfd4563",
+    "s065_bundle_sha256": "aa7b3be6cb250fbf51827765087c966840e27bf72e708484aa254915e992aad3",
+    "s067_bundle_sha256": "d92f6b7b6c76842fe8d9b95d92fdebed0ca362f5d6305865b065f277b14a00d0",
+    "result_commit": "f9d15d9e931d02df4f0f849713717acb828ed356",
+    "old_project_check": "not opened on import; S108 previous 3/3 verification only"
   }
 }
