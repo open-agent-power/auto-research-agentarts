@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T01:35:32+08:00",
-  "status": "S111_verified_staged_primary_design_in_progress",
+  "end_time": "2026-11-16T01:49:19+08:00",
+  "status": "S112_primary_backend_uncommitted_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -80,12 +80,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Design explicit staged primary execution with registered original future Controller ID, bounded tool cost and safe original-intent recovery.",
-  "next_planned_trigger": "2026-11-16T01:47:27+08:00",
+  "next": "Finish S112 strict staged primary parent/child ownership, add manager terminal verification and meaningful independent synthetic tests; UI not started.",
+  "next_planned_trigger": "2026-11-16T04:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
   "code_commit": "c873cb7e87be3f7f64827dfd46ac7f72ab6bc60e",
-  "last_checkpoint": "2026-11-16T01:35:32+08:00",
+  "last_checkpoint": "2026-11-16T01:49:19+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -856,5 +856,19 @@
     "browser": "normal registration and first packet absent stop; two real os._exit(86) windows",
     "runtime": "-B and fresh empty PYTHONPYCACHEPREFIX required for new entry",
     "scope": "registration/read only, future controller ID not reserved, no UI primary/feedback action"
+  },
+  "S112_work_in_progress": {
+    "status": "uncommitted_unfrozen_not_independently_reviewed",
+    "author_initial_synthetic": "4/4, not final",
+    "active_owner": "root-quality-20261115T1806",
+    "worktree_files": [
+      "src/autoresearch/local_workbench.py",
+      "src/autoresearch/project_controller.py",
+      "src/autoresearch/project_workbench.py",
+      "src/autoresearch/research_project.py",
+      "src/autoresearch/tabular_quality_feedback.py",
+      "tests/test_staged_primary_workbench.py"
+    ],
+    "limits": "manager terminal/replay and additional child/claim tests in progress; no real study/model; old project pin must not be upgraded"
   }
 }
