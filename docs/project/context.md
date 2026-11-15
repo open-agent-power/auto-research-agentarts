@@ -2,6 +2,8 @@
 
 ## 当前接续（2026-11-15 10:51轮进行中）
 
+S072已验证同一合成Project从未知wait经显式case refs/原登记primary到新conditional，旧wait原ID仍返回历史回执；额度耗尽待定/unknown null和快照漂移均保留。测试提交 `9df7f3ad6743763a2471ac45d9ae6d0982da1b32`，无新模型或真实科研，见 [SPRINT-072](../execution/SPRINT-072.md)。
+
 S071 waiting经验已推 `49a9274dc243eb311e18eb00615ba873917a11f0` 并独审：known原primary与unknown null可进入Memory/计划/报告/Workbench，final仅在等待时未测，状态漂移拒绝；工程案例非新科研。见 [SPRINT-071](../execution/SPRINT-071.md)。
 
 S070 Workbench staged经验导入/展示已推 `dd7cf66cefe1940d96c08e5e7e7a7388a9439301`，真实浏览器+原本地后端三版本导入及重启同ID恢复通过，旧Ridge/CPU独审只到预览；结果/失败与边界见 [SPRINT-070](../execution/SPRINT-070.md)。

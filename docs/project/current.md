@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S072原项目wait→经验引用→原登记primary→新conditional闭环已做合成工程验证并推送 `9df7f3ad6743763a2471ac45d9ae6d0982da1b32`；原wait/primary/conditional跨进程原ID重放，3/3正向、额度用尽等待、unknown null及漂移拒绝均核实，作者/独审各3/3。无产品源码/真实科研/模型新增；pin 193项相同，3本机probe不在Git pin。[SPRINT-072](../execution/SPRINT-072.md)。
+
 S071等待经验已独审推送 `49a9274dc243eb311e18eb00615ba873917a11f0`：known反馈绑定原primary，controller_not_started的action/value保持null，final仅当时未测、后续可继续；Memory/目标计划/报告/Workbench接入，项目漂移拒绝。旧工程原件只读；固定版23相关/独审4及真实浏览器两种导入+同ID恢复通过，旧版相关59；真实研究/模型未新增。源码pin 49a9274 196项匹配。[SPRINT-071](../execution/SPRINT-071.md)。
 
 S070修复Workbench拒绝staged v1/v2/v3和错误Ridge卡片，代码推送 `dd7cf66cefe1940d96c08e5e7e7a7388a9439301`；真实Chromium+原后端独立目标导入三版本、原字节与同ID重启恢复通过，加载期间禁用、unknown/单臂与安全文本正确。旧Ridge/CPU独审仅预览；原研究48文件/claim不变，工程目标工具0。隔离构建四产物字节同，pin dd7cf66 238项匹配。[SPRINT-070](../execution/SPRINT-070.md)。

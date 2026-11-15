@@ -45,3 +45,5 @@ S070 Workbench staged v1/v2/v3文件导入及卡片已推 `dd7cf66cefe1940d96c08
 S071等待经验进行中：S059 known待定和S062 controller_not_started unknown工程原件只读capture初稿，独审发现未来primary ID占用及封存scope投影缺口正在修复；WIP专项5/5、frontend build/静态渲染通过但完整接入及独审未完成。WIP快照 runs/s071-verification/checkpoint-001 manifest SHA 1fc23f4a6dedbd5b0fa49d91259d7e8445880bb41526fa1fa03336c53aeff8fb，本盘非发布产物，源码可能继续变。检查点 2026-11-15T14:37:00.961603+08:00。
 
 S071已独审推送 `49a9274dc243eb311e18eb00615ba873917a11f0`：known/unknown waiting可进入Memory/计划/报告/Workbench，未知不填零、final仅当时未测；固定版23相关/独审4及独立浏览器本地HTTP两种导入和原ID恢复通过，旧版相关59；旧工程源只读、不新增真实科研/模型。pin 196项匹配，源码级/私有哨兵范围见Sprint。检查点 2026-11-15T14:49:18.132798+08:00，继续下一项。
+
+S072同Project等待到后续闭环工程回归已独审推送 `9df7f3ad6743763a2471ac45d9ae6d0982da1b32`，作者/独审各3/3；原登记计划不变、显式case refs、原ID跨进程恢复、额度耗尽等待和unknown null均核实。新合成工具4次/model/fit 0、非科研收益；pin193项，3本地probe不含于Git。检查点 2026-11-15T15:01:08.490291+08:00。
