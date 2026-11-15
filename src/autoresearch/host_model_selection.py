@@ -82,6 +82,14 @@ def _check_quality_adoption_final(project, request_id, intent_sha):
     _require(intent["intent_sha256"] == intent_sha
              and intent["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
              "EVIDENCE_CHANGED", "The original Host adoption changed during verification.")
+    if intent["schema_version"] == "host-quality-adoption-v3":
+        # The final Host re-read can itself take time: recheck the original
+        # quality action and its SQL fingerprint before the Project write.
+        from .tabular_quality_plan import check_reference
+        check_reference(project, project.status(), intent["quality_feedback_ref"],
+                        based_on_state_version=intent["expected_state_version"])
+        _require(intent["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
+                 "CODE_CHANGED", "The Host implementation changed during quality verification.")
 
 
 def _check_manager_quality_binding(project, record, binding):
@@ -585,16 +593,48 @@ class HostModelSelection:
             self._save(state)
             return copy.deepcopy(record)
 
+    def _check_supplied_quality(self, record, ref, project):
+        """Match the sealed selected material to the original registration and reference."""
+        from .saved_materials import QUALITY_KIND
+        specification = record["prepare_specification"]
+        selectors = normalize_requests(specification.get("saved_materials"))
+        selector = {"kind": QUALITY_KIND, "registration_request_id": ref["registration_request_id"],
+                    "registration_sha256": ref["registration_sha256"]}
+        materials = record["context"].get("supplied_materials", [])
+        selected = [m for m in materials if m.get("kind") == QUALITY_KIND
+                    and m.get("registration_request_id") == ref["registration_request_id"]]
+        registrations = [r for r in project.get("tabular_quality_registrations", [])
+                         if r.get("request_id") == ref["registration_request_id"]]
+        _require(selectors.count(selector) == 1 and len(selected) == 1 and len(registrations) == 1,
+                 "EVIDENCE_CHANGED", "The original selected quality material or registration is unavailable.")
+        material, registration = selected[0], registrations[0]
+        feedback = material["feedback"]
+        _require(material["registration_sha256"] == registration["registration_sha256"] == ref["registration_sha256"]
+                 and material["conditions"] == registration["conditions"]
+                 and material["controller_request_id"] == registration["controller_request_id"] == ref["quality_parent_request_id"]
+                 and material["plan_version"] == registration["plan_version"] == ref["original_plan_version"]
+                 and material["plan_sha256"] == registration["plan_sha256"] == ref["original_plan_sha256"]
+                 and material["source_snapshot_sha256"] == registration["source_snapshot_sha256"] == ref["source_snapshot_sha256"]
+                 and feedback["outcome"] in ("condition_met", "condition_not_met")
+                 and feedback["action_id"] == ref["quality_action_id"]
+                 and feedback["result_sha256"] == ref["quality_result_sha256"]
+                 and fingerprint(feedback) == ref["feedback_sha256"],
+                 "EVIDENCE_CHANGED", "The sealed quality material differs from the original evidence.")
+        return fingerprint(specification), fingerprint(material)
+
     def _check_quality_adoption(self, record):
         intent = record.get("quality_adoption")
         fields = {"schema_version", "request_id", "project_id", "run_id", "source_snapshot_sha256",
                   "project_code_identity", "host_code_identity", "host_root", "nonce", "expected_state_version",
                   "context_sha256", "prompt_sha256", "proposal_sha256", "response_sha256", "quality_feedback_ref", "intent_sha256"}
         v2 = type(intent) is dict and intent.get("schema_version") == "host-quality-adoption-v2"
+        v3 = type(intent) is dict and intent.get("schema_version") == "host-quality-adoption-v3"
         if v2:
             fields.add("manager_binding")
+        if v3:
+            fields.update(("prepare_specification_sha256", "supplied_quality_material_sha256"))
         _require(type(intent) is dict and set(intent) == fields
-                 and intent["schema_version"] in ("host-quality-adoption-v1", "host-quality-adoption-v2")
+                 and intent["schema_version"] in ("host-quality-adoption-v1", "host-quality-adoption-v2", "host-quality-adoption-v3")
                  and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
                  and type(intent["nonce"]) is str and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
                  "EVIDENCE_CHANGED", "The original quality adoption intent changed.")
@@ -629,6 +669,11 @@ class HostModelSelection:
                  and any(item["action_id"] == ref["quality_action_id"] and item["status"] == "completed"
                          for item in context["feedback"]),
                  "EVIDENCE_CHANGED", "The proposal did not reference its supplied quality action.")
+        if v3:
+            specification_sha, material_sha = self._check_supplied_quality(record, ref, project)
+            _require(intent["prepare_specification_sha256"] == specification_sha
+                     and intent["supplied_quality_material_sha256"] == material_sha,
+                     "EVIDENCE_CHANGED", "The original selected quality material changed.")
         if v2:
             manager = _check_manager_quality_binding(self.project, record, intent["manager_binding"])
             _require(manager["body"]["registration_request_id"] == ref["registration_request_id"],
@@ -661,6 +706,15 @@ class HostModelSelection:
 
     def adopt_quality_plan(self, *, request_id, registration_request_id, _manager_binding=None):
         """Explicitly adopt an unchanged Host proposal with an authenticated quality reference."""
+        return self._adopt_quality_plan(request_id=request_id, registration_request_id=registration_request_id,
+                                        manager_binding=_manager_binding, supplied_quality=False)
+
+    def adopt_supplied_quality_plan(self, *, request_id, registration_request_id):
+        """Adopt only when the exact registered feedback was supplied in the sealed prompt."""
+        return self._adopt_quality_plan(request_id=request_id, registration_request_id=registration_request_id,
+                                        manager_binding=None, supplied_quality=True)
+
+    def _adopt_quality_plan(self, *, request_id, registration_request_id, manager_binding, supplied_quality):
         identifier(request_id); identifier(registration_request_id)
         from .tabular_quality_feedback import _manager_claim
         with self._writer():
@@ -688,16 +742,23 @@ class HostModelSelection:
                           "prompt_sha256": fingerprint(record["prompt"]),
                           "proposal_sha256": fingerprint(record["proposal"]), "response_sha256": record["response_sha256"],
                           "quality_feedback_ref": ref}
-                if _manager_binding is not None:
+                if supplied_quality:
+                    specification_sha, material_sha = self._check_supplied_quality(record, ref, current)
+                    intent.update(schema_version="host-quality-adoption-v3",
+                                  prepare_specification_sha256=specification_sha,
+                                  supplied_quality_material_sha256=material_sha)
+                elif manager_binding is not None:
                     intent["schema_version"] = "host-quality-adoption-v2"
-                    intent["manager_binding"] = copy.deepcopy(_manager_binding)
+                    intent["manager_binding"] = copy.deepcopy(manager_binding)
                 intent["intent_sha256"] = fingerprint(intent)
                 record["quality_adoption"] = intent
                 self._check_quality_adoption(record)
                 self._save(state)
             else:
                 intent = self._check_quality_adoption(record)
-                _require(intent.get("manager_binding") == _manager_binding,
+                _require((intent["schema_version"] == "host-quality-adoption-v3") == supplied_quality,
+                         "OPERATION_INCOMPLETE", "The original adoption belongs to a different entry point.")
+                _require(intent.get("manager_binding") == manager_binding,
                          "OPERATION_INCOMPLETE", "The original Host adoption belongs to a different caller.")
                 _require(intent["quality_feedback_ref"]["registration_request_id"] == registration_request_id,
                          "IDEMPOTENCY_CONFLICT", "The original quality registration differs.")

@@ -92,6 +92,14 @@
 
 Host保留原selector与完整context/prompt并沿原ID核对；proposal内 `context_sha256` 绑定的是selection子上下文，不单独认证整个v3材料。此材料不调用模型、研究工具、fit或来源读取行动，也不增加预算或自动批准计划；delegated回复不能证明实际模型看到、理解或使用材料。
 
+### 明确采用已供应的质量反馈
+
+Python `HostModelSelection.adopt_supplied_quality_plan(request_id=..., registration_request_id=...)` 是独立显式入口：原计划请求必须选择了同一登记ID/SHA的 `tabular_quality_feedback`，完整封存材料须与原登记条件、计划、来源、认证反馈、质量行动及结果一致；原提案必须引用该行动，反馈必须为已知的met或not_met。系统核原响应、proposal、完整context和prompt及其再生关系；四项计划正文和理由逐字来自原提案。操作者明确发起采用，质量引用仍由宿主附加。
+
+新的Host intent固定原准备参数、材料、响应、prompt、proposal、完整context和质量引用的身份；Project writer内重核原登记、parent/child、SQL、工件、来源与代码，并在计划revision同一事务写入绑定该intent的claim。仅原ID和原登记可恢复：intent已存但原计划缺失时停查；原计划及claim已提交可只读重验后补Host回执，后续另存计划后也只回读原记录，不重新选择或派发。缺失、未知、原件漂移及旧／新入口互用均停止；这些一致性检查依赖可信合作进程，不是系统隔离或对抗性签名。
+
+此入口当前仅Python，Workbench/HTTP不自动启用；旧 `adopt_quality_plan` 行为不变。它证明材料存在于封存的prompt及原回复引用该质量行动，不证明模型实际收到、理解或使用材料，也不证明科学有效性或来源许可；它不调用模型、研究工具或新增预算。
+
 ### 显式采用附质量引用的原计划提案
 
 Python `HostModelSelection.adopt_quality_plan(request_id=..., registration_request_id=...)` 是独立的显式采用操作，只接受原 Host 已保存的 `proposed` 计划。原封存 context 必须供应已完成的质量行动，原 proposal 的 `feedback_action_ids` 必须明确引用该行动。系统重新读取原 response、proposal、context 和 prompt，核对 prompt 可由封存 context 生成；再由同项目的质量 reader 核原登记、计划、parent/child、SQL、工件、来源及代码，生成结构化引用。四项计划正文和理由逐字来自原 proposal；质量引用由宿主附加，已知 met 与 not_met 都可保存，unknown 停止。认证会读取原来源和工件文件，但不派发模型、研究工具或来源读取行动，也不增加任何预算。后续若要执行，仍需显式调用原质量策略 v2 并重验其计划、条件和剩余额度。

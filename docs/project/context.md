@@ -178,3 +178,5 @@ Sprint039源7c1f399a557856d232e523416f6c8b49ebc8d399/pin delegated-batch-source-
 用户21:32要求快速收尾/换新对话。S040 source26ad4531cd2a94fdf2e24854de79a659b47a46a2已过冻结13项真实日志/fakefixture+13追加检查、独审，普通completed-only观察补Host，真实alias仍unknown不派发，旧7c1 pending原pin。S041 v2设计已审未实现，优先事前条件/真实反馈/下一选择，已知0不得unknown，当前test非盲测。接续读next-chat.md，收尾push/release回执runs/session-close-20261114-2132。原pilot3/2及50fit/pins不扩。
 
 S099：Host 规划可显式携带原登记条件和三态质量反馈，材料/原回答/计划是否同一身份是下一重点；原计划漂移拒绝，controller unknown 不证明未执行。参见 SPRINT-099；无新增真实研究、模型或预算。
+
+S100：Python显式严格采纳绑定原选择器/材料/回复与计划，旧入口不变；下一步若接Workbench须绑定manager身份及原ID恢复。无新增真实模型/研究。见 SPRINT-100。
