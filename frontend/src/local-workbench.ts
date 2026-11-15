@@ -1,5 +1,6 @@
 /** Explicit local commands above the existing saved-result reader; no automatic research. */
 import { $, el } from "./dom";
+import { posthocPlanAdviceCases } from "./plan-advice";
 import { createProjectPages, type ProjectOperation } from "./project-pages";
 import { createLocalEvidencePanel } from "./local-evidence";
 import { createLocalExperiencePanel } from "./local-experience";
@@ -12,6 +13,7 @@ import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from ".
 type Obj = Record<string, unknown>;
 type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean; recoverManual?: boolean; recoverStagedHypothesis?: boolean; recoverStagedPrimary?: boolean; stagedPrimaryContext?: Obj; recoverStagedFeedback?: boolean; stagedFeedbackContext?: Obj };
 type PlanCaseRef = { case_id: string; case_version: number; bundle_sha256: string; applicability_statement: string };
+type PlanAdvice = { projectId: string; snapshot: string; caseId: string; version: number; sha: string };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
 const text = (value: unknown, fallback = "未记录"): string => typeof value === "string" && value.length ? value : fallback;
@@ -192,7 +194,12 @@ function createResearchPlanPanel(deps: {
   references.append(el("h4", "", "操作者声明的历史案例引用（可选）"),
     el("p", "detail-note", "最多选择4个当前有效的案例，并逐条说明适用范围与差异；这是操作者声明，未证明模型采用或科学适用。"),
     referenceList, referenceStatus);
-  fields.append(references);
+  const advice = el("section", "local-plan-experience"), adviceSelect = el("select"), advicePreview = el("p", "detail-note"), adviceStatus = el("p", "detail-note");
+  const adviceCopy = el("button", "text-button", "将建议复制到空白计划草稿"), adviceDiscard = el("button", "text-button", "清除建议绑定");
+  adviceSelect.setAttribute("aria-label", "选择事后经验生成计划建议"); adviceCopy.type = "button"; adviceDiscard.type = "button";
+  advice.append(el("h4", "", "从历史经验构思计划（可选）"), el("p", "detail-note", "选择一个当前有效的已发布事后案例后预览；这只是确定性提示，不调用模型、不保存或执行。仅供未来另行明确操作，不能为已完成 primary 补事前登记或追认 final。"),
+    field("选择历史案例", adviceSelect), advicePreview, adviceStatus, adviceCopy, adviceDiscard);
+  fields.append(advice, references);
   const status = el("p", "detail-note"), save = el("button", "local-primary", "保存计划"), rebase = el("button", "text-button", "按当前版本继续编辑");
   save.type = "submit"; rebase.type = "button"; rebase.hidden = true;
   const actions = el("div", "local-actions"); actions.append(save, rebase); form.append(fields, status, actions); editor.append(summary, form);
@@ -200,11 +207,13 @@ function createResearchPlanPanel(deps: {
   const comparison = el("details", "research-plan-comparison"), comparisonTitle = el("summary"), comparisonBody = el("div");
   comparison.append(comparisonTitle, comparisonBody); comparison.hidden = true;
   section.append(sourceFeedback, preview, comparison, editor, history);
-  const drafts = new Map<string, { values: Record<string, string>; stateVersion: number; refs: PlanCaseRef[] }>();
+  const drafts = new Map<string, { values: Record<string, string>; stateVersion: number; refs: PlanCaseRef[]; advice: PlanAdvice | null }>();
   let projectId = "", stateVersion = 0, locked = true;
-  let selectedRefs: PlanCaseRef[] = [];
+  let selectedRefs: PlanCaseRef[] = [], appliedAdvice: PlanAdvice | null = null, adviceSnapshot = "", adviceKey = "";
+  const adviceSteps = "在本项目 validation 总体同时比较 Recall@20 与 MRR@10；在 primary 前由操作者明确两项比较符、阈值及已知结果的分支。";
+  const adviceExpected = "按事前登记检查两个总体指标，并在结果未知或原证据不可核验时停查；历史负向子集不等于本项目总体结果。";
   const values = (): Record<string, string> => Object.fromEntries([...inputs].map(([key, control]) => [key, control.value]));
-  const keepDraft = (): void => { if (projectId) drafts.set(projectId, { values: values(), stateVersion, refs: selectedRefs.map(ref => ({ ...ref })) }); };
+  const keepDraft = (): void => { if (projectId) drafts.set(projectId, { values: values(), stateVersion, refs: selectedRefs.map(ref => ({ ...ref })), advice: appliedAdvice ? { ...appliedAdvice } : null }); };
   const validIdentity = (caseId: unknown, version: unknown, sha: unknown): boolean => typeof caseId === "string" && !!caseId.trim()
     && typeof version === "number" && Number.isSafeInteger(version) && version >= 1 && typeof sha === "string" && /^[0-9a-f]{64}$/.test(sha);
   const sameIdentity = (ref: PlanCaseRef, item: Obj): boolean => ref.case_id === item.case_id && ref.case_version === item.case_version && ref.bundle_sha256 === item.bundle_sha256;
@@ -215,6 +224,44 @@ function createResearchPlanPanel(deps: {
     return items(obj(context.experience).cases).filter(item => item.inclusion_status === "active"
       && validIdentity(item.case_id, item.case_version, item.bundle_sha256));
   }
+  function adviceCases(): Obj[] { return posthocPlanAdviceCases(deps.current(), deps.context()); }
+  const adviceIdentity = (item: Obj): string => JSON.stringify([item.case_id, item.case_version, item.bundle_sha256]);
+  function adviceStillValid(binding: PlanAdvice): boolean {
+    const project = deps.current(); return binding.projectId === project.id && binding.snapshot === project.snapshot_ref
+      && adviceCases().filter(item => item.case_id === binding.caseId && item.case_version === binding.version && item.bundle_sha256 === binding.sha).length === 1;
+  }
+  function drawAdvice(): void {
+    const project = deps.current(), snapshot = text(project.snapshot_ref, ""), same = snapshot === adviceSnapshot;
+    if (!same) adviceKey = ""; adviceSnapshot = snapshot; adviceSelect.replaceChildren();
+    const blank = el("option", "", "请选择案例"); blank.value = ""; adviceSelect.append(blank);
+    for (const item of adviceCases()) { const option = el("option", "", text(item.case_id) + " · v" + numeric(item.case_version)); option.value = adviceIdentity(item); adviceSelect.append(option); }
+    adviceSelect.value = [...adviceSelect.options].some(option => option.value === adviceKey) ? adviceKey : "";
+    advice.hidden = project.primary_method !== "research.relevance-validation-pair";
+  }
+  function adviceControls(): void {
+    const matches = adviceCases().filter(item => adviceIdentity(item) === adviceSelect.value), selected = matches.length === 1 ? matches[0] : null;
+    const steps = inputs.get("steps")!, expected = inputs.get("expected_feedback")!, blank = steps.value.length === 0 && expected.value.length === 0;
+    const stale = stateVersion !== deps.current().state_version, valid = appliedAdvice === null || adviceStillValid(appliedAdvice);
+    adviceSelect.disabled = locked || stale || !adviceCases().length || appliedAdvice !== null; adviceCopy.disabled = locked || stale || !selected || !blank || appliedAdvice !== null;
+    adviceDiscard.hidden = appliedAdvice === null; adviceDiscard.disabled = locked || !appliedAdvice || !blank;
+    advicePreview.textContent = selected ? "案例 " + text(selected.case_id) + " · v" + numeric(selected.case_version) + " · SHA-256 " + text(selected.bundle_sha256)
+      + "。已曝 validation 的选定负向子集：召回变化近零时排序指标下降；这不是总体均值，也不能证明因果、匿名或迁移。来源仅绑定公开字节，未重新计算或验证签名。建议：" + adviceSteps + " " + adviceExpected
+      : "选择同一项目快照中的有效 S109 案例，才会出现建议；未选时没有案例专属建议。";
+    adviceStatus.textContent = !valid ? "原建议的项目、快照或案例已变化，不能保存；请手动清空步骤和预期反馈，再清除建议绑定。"
+      : appliedAdvice ? "建议已复制到草稿，绑定案例 " + appliedAdvice.caseId + " · v" + appliedAdvice.version + " · SHA-256 " + appliedAdvice.sha + "。请在下方明确勾选同一案例并填写适用范围与差异；不会自动登记、执行或选择阈值。"
+      : !blank ? "步骤或预期反馈已有内容；为保护草稿，先手动清空这两项才可复制。"
+      : "复制只写空白草稿；比较符、阈值及两分支均由操作者另行填写。";
+  }
+  adviceSelect.addEventListener("change", () => { adviceKey = adviceSelect.value; adviceControls(); });
+  adviceCopy.addEventListener("click", () => {
+    const matches = adviceCases().filter(item => adviceIdentity(item) === adviceSelect.value), steps = inputs.get("steps")!, expected = inputs.get("expected_feedback")!;
+    if (adviceCopy.disabled || matches.length !== 1 || steps.value.length !== 0 || expected.value.length !== 0
+        || adviceSteps.length > steps.maxLength || adviceExpected.length > expected.maxLength || adviceSteps.includes("\0") || adviceExpected.includes("\0")) return;
+    const item = matches[0], project = deps.current(); appliedAdvice = {projectId:text(project.id, ""), snapshot:text(project.snapshot_ref, ""),
+      caseId:text(item.case_id, ""), version:Number(item.case_version), sha:text(item.bundle_sha256, "")};
+    steps.value = adviceSteps; expected.value = adviceExpected; keepDraft(); controls();
+  });
+  adviceDiscard.addEventListener("click", () => { if (adviceDiscard.disabled) return; appliedAdvice = null; keepDraft(); controls(); });
   function showSavedRefs(parent: HTMLElement, saved: Obj): void {
     const envelope = obj(saved.experience_case_refs), refs = items(envelope.items);
     if (!refs.length) return;
@@ -265,17 +312,21 @@ function createResearchPlanPanel(deps: {
     const stale = stateVersion !== deps.current().state_version;
     const cases = available(), invalidRefs = selectedRefs.some(ref => !cases?.some(item => sameIdentity(ref, item))
       || !ref.applicability_statement.trim() || ref.applicability_statement.length > 1000 || ref.applicability_statement.includes("\0"));
-    fields.disabled = locked || !projectId; save.disabled = fields.disabled || stale || invalidRefs;
+    const invalidAdvice = appliedAdvice !== null && (!adviceStillValid(appliedAdvice) || !selectedRefs.some(ref => ref.case_id === appliedAdvice!.caseId
+      && ref.case_version === appliedAdvice!.version && ref.bundle_sha256 === appliedAdvice!.sha && !!ref.applicability_statement.trim()));
+    fields.disabled = locked || !projectId; save.disabled = fields.disabled || stale || invalidRefs || invalidAdvice;
     rebase.hidden = !projectId || !stale; rebase.disabled = locked;
     status.textContent = stale ? "项目已更新，草稿已保留。核对当前计划后，可按当前版本继续编辑。"
+      : invalidAdvice ? "建议须绑定当前快照的原案例，并由操作者勾选和说明适用差异；失效建议不能保存。"
       : invalidRefs ? "请核对每条所选案例的原身份与适用说明；不可用身份不会自动替换。"
         : "保存后进入项目记录；新计划不会自动更新已有登记，原反馈可能变为未知或最终评价被阻断。";
+    adviceControls();
   }
   function update(project: Obj): void {
     if (projectId !== project.id) comparison.open = false;
     projectId = text(project.id, ""); section.hidden = !projectId;
     const plan = obj(project.research_plan), saved = obj(plan.current), draft = drafts.get(projectId);
-    stateVersion = draft?.stateVersion ?? Number(project.state_version);
+    stateVersion = draft?.stateVersion ?? Number(project.state_version); appliedAdvice = draft?.advice ?? null;
     selectedRefs = draft ? draft.refs.map(ref => ({ ...ref })) : items(obj(saved.experience_case_refs).items).map(ref => ({
       case_id: text(ref.case_id, ""), case_version: Number(ref.case_version), bundle_sha256: text(ref.bundle_sha256, ""),
       applicability_statement: text(ref.applicability_statement, "") }));
@@ -307,10 +358,10 @@ function createResearchPlanPanel(deps: {
       showSavedRefs(record, revision);
       historyBody.append(record);
     }
-    drawReferences();
+    drawReferences(); drawAdvice();
     controls();
   }
-  form.addEventListener("input", keepDraft);
+  form.addEventListener("input", () => { keepDraft(); controls(); });
   rebase.addEventListener("click", () => {
     stateVersion = Number(deps.current().state_version); keepDraft(); drawReferences(); controls();
   });
