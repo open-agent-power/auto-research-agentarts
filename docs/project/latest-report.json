@@ -190,5 +190,16 @@
     "scientific_transfer_gain": "unknown",
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
+  },
+  "checkpoint_time": "2026-11-15T12:58:07.731625+08:00",
+  "S067": {
+    "status": "driver_and_protocol_in_implementation",
+    "actual_cohort_selected": false,
+    "actual_project_created": false,
+    "actual_research_dispatched": false,
+    "source_previously_exposed": true,
+    "design": "runs/s067-exploration/boolq-dual-policy-feasibility.md",
+    "case_bundle_canonical_sha256": "4ff88cb1fb5c365b9cd333f9dd56035d7d2cc366b2df98a2a6ddf8ded4a7712a",
+    "constraints": "one native A, one pre-final sealed external B; same arm comparison unknown; no model learning or causal memory claim"
   }
 }

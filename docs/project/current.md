@@ -3,7 +3,7 @@ Status: resumable
 
 S066已完成独审，本提交保存结果：真实S065的事前条件、validation正面和final MRR/nDCG下降已捕获为独立v2 Memory case `s065-hotpot-support-history`，导入工程目标Project并供原计划context；target工具limit1/used0、model/fit/evidence 0，原S065 42文件/claim和3/3预算不变。离线需回源核audit/final，完整bundle/plan留本地；非模型采纳或迁移收益。[SPRINT-066](../execution/SPRINT-066.md)。
 
-S065已按已发布 `5d431097f3b4846ac240745121e56070edd78e86` 和原claim真实完成一次Hotpot支持文档检索：validation R20 +.01/MRR +.0085595/留一最小 +.0050505，事前条件met→原audit→TFIDF；final支持文档R20 .91→.92，但MRR .865984→.830095、nDCG下降。3/3原工具、0model/fit，原ID新进程resume响应及42文件字节相同；费用/token unknown。原project `project-2376ca4a6db64027a1099bd737ca9640` / run `run-a1a631efa41541e2800b43ae047c4c66`，唯一workspace `/workspace/development-continuation-20261114/source-pins/5d43109/runs/s065-hotpot-support-v1`，summary SHA a0eff1bf71981b4a41774e70fcf2fa5aedd0f4c9e421ff250c2bfa52048edcb3。真实实验独立验收已完成；最终是覆盖提升/排名下降的取舍，不宣称整体科研收益或盲测，原语料/报告只留本地。[输入](../execution/g5-local/hotpot-prepared-input.json)。正在继续只读捕获这次真实负结果至S066原生Memory，不重开3/3。
+S065已按已发布 `5d431097f3b4846ac240745121e56070edd78e86` 和原claim真实完成一次Hotpot支持文档检索：validation R20 +.01/MRR +.0085595/留一最小 +.0050505，事前条件met→原audit→TFIDF；final支持文档R20 .91→.92，但MRR .865984→.830095、nDCG下降。3/3原工具、0model/fit，原ID新进程resume响应及42文件字节相同；费用/token unknown。原project `project-2376ca4a6db64027a1099bd737ca9640` / run `run-a1a631efa41541e2800b43ae047c4c66`，唯一workspace `/workspace/development-continuation-20261114/source-pins/5d43109/runs/s065-hotpot-support-v1`，summary SHA a0eff1bf71981b4a41774e70fcf2fa5aedd0f4c9e421ff250c2bfa52048edcb3。真实实验独立验收已完成；最终是覆盖提升/排名下降的取舍，不宣称整体科研收益或盲测，原语料/报告只留本地。[输入](../execution/g5-local/hotpot-prepared-input.json)。S066已只读捕获这次真实负结果至原生Memory，未重开3/3。
 
 S064经验v2已完成独立验证并推送5e397b2693f2385f26e203af12e7f3f02c6d2507：原事前登记/反馈/audit/freeze/final聚合沿现有Memory绑定目标Project/计划，保留负结果；55相关/独审3+两个目标子例通过，合成原件源状态预算保持，原100文件保持，offline必须回源核原策略及最终聚合。未调用模型/新科研，见[SPRINT-064](../execution/SPRINT-064.md)。
 
@@ -37,4 +37,4 @@ AAW02e72e3e411bec53db2288651df01afb27d8904d/v0.3.1远端仍同、7安装文件�
 
 本轮S063源码pin `/workspace/development-continuation-20261114/source-pins/a7f6284` 含191源码+1专项，与fixed freeze逐项同；继续S064评估v2结果能否版本化保存在原Memory并绑定下个计划，当前尚未通过。
 
-S064源码pin `/workspace/development-continuation-20261114/source-pins/5e397b2` 与191源码+2test固定清单同，旧研究未迁移。继续只读寻找许可明确的新真实CPU检索任务，尚无新研究执行。
+S064源码pin `/workspace/development-continuation-20261114/source-pins/5e397b2` 与191源码+2test固定清单同，旧研究未迁移。此后S065真实CPU研究和S066经验导入已完成，见文首及对应Sprint。
