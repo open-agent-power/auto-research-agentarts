@@ -10,7 +10,7 @@ import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean; recoverManual?: boolean; recoverStagedHypothesis?: boolean };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean; recoverManual?: boolean; recoverStagedHypothesis?: boolean; recoverStagedPrimary?: boolean; stagedPrimaryContext?: Obj };
 type PlanCaseRef = { case_id: string; case_version: number; bundle_sha256: string; applicability_statement: string };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
@@ -44,6 +44,7 @@ const methodNames: Record<string, string> = {
 };
 const PENDING_KEY = "autoresearch.local-workbench.pending.v1";
 const STAGED_HYPOTHESIS_PENDING_KEY = "autoresearch.local-workbench.staged-hypothesis.v1";
+const STAGED_PRIMARY_PENDING_KEY = "autoresearch.local-workbench.staged-primary.v1";
 const QUALITY_PENDING_KEY = "autoresearch.local-workbench.supplied-quality-adoption.v1";
 const MANUAL_PREPARE_KEY = "autoresearch.local-workbench.manual-plan-prepare.v1";
 const MANUAL_IMPORT_KEY = "autoresearch.local-workbench.manual-plan-import.v1";
@@ -325,7 +326,7 @@ function createResearchPlanPanel(deps: {
 }
 
 function createStagedHypothesisPanel(deps: {
-  current(): Obj; context(): Obj | null; submit(body: Obj): Promise<Obj | null>;
+  current(): Obj; context(): Obj | null; submit(body: Obj): Promise<Obj | null>; submitPrimary(body: Obj, identity: Obj): Promise<Obj | null>;
 }): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
   const section = panel("事前双指标登记", "仅保存操作者的预期，不执行检索、审计或模型。");
   const saved = el("div"), form = el("form"), fields = el("fieldset", "local-fieldset"), status = el("p", "detail-note");
@@ -351,9 +352,82 @@ function createStagedHypothesisPanel(deps: {
   }
   const submitButton = el("button", "local-primary", "仅登记事前条件"); submitButton.type = "submit";
   fields.prepend(el("p", "detail-note", "差值均为 validation 的 TF-IDF 减 BM25。必须由你填写比较符和阈值；此登记的显式反馈策略遇未知时等待，不把0当未知，普通入口不自动受此约束。"),
-    el("p", "detail-note", "先保存计划及所需历史案例引用。登记固定当时计划；以后改计划可能使反馈未知。此处不登记 final，也不保证以后仍可作前瞻 final；本页面尚无以此未来ID执行或推进反馈的按钮。"), future);
+    el("p", "detail-note", "先保存计划及所需历史案例引用。登记固定当时计划；以后改计划可能使反馈未知。此处不登记 final，也不保证以后仍可作前瞻 final；反馈分支须以后另行明确操作。"), future);
   form.append(fields, status, submitButton); section.append(saved, form);
+  const run = el("div", "local-panel"), runTitle = el("h3", "", "按原登记明确执行 primary"), runFields = el("fieldset", "local-fieldset");
+  const registrationSelect = el("select"), reason = input("", 4000), execute = el("button", "action-button primary", "执行这条登记的 primary"), runStatus = el("p", "detail-note");
+  registrationSelect.setAttribute("aria-label", "选择原事前登记"); reason.setAttribute("aria-label", "执行理由");
+  execute.type = "button"; execute.dataset.testid = "staged-primary-execute";
+  runFields.append(field("选择原事前登记", registrationSelect), field("执行理由", reason));
+  run.append(runTitle, el("p", "detail-note", "明确点击后最多消耗 1 次原有工具额度：读取登记的共享语料，并对 dev 与 validation 执行 BM25 和 TF-IDF 排名与评分。不执行 final、模型或拟合。已保存结果不等于科学批准。"),
+    runFields, runStatus, execute); section.append(run);
   let projectId = "", futureId = "", locked = true;
+  let choicesSnapshot = "";
+  function eligible(): { project:Obj; context:Obj; choice:Obj; item:Obj }[] {
+    const project = deps.current(), context = deps.context(), projection = obj(project.staged_primary_choices), rows = items(projection.items);
+    if (!context || project.id !== projectId || context.project_id !== projectId || projection.project_id !== projectId
+        || projection.schema_version !== "staged-primary-choices-v1" || projection.verification !== "registration_metadata_only"
+        || projection.manager_ownership_verified !== false || projection.snapshot_ref !== project.snapshot_ref
+        || projection.state_version !== project.state_version || context.snapshot_ref !== project.snapshot_ref
+        || context.state_version !== project.state_version || context.run_id !== project.run_id || items(context.blockers).length
+        || typeof context.context_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(context.context_sha256)
+        || !sameValue(obj(context.hypothesis_feedback), obj(project.hypothesis_feedback))) return [];
+    const budget = obj(context.budget), currentBudget = obj(project.budget);
+    if (!Number.isSafeInteger(budget.local_tool_call_limit) || !Number.isSafeInteger(budget.local_tool_dispatches)
+        || budget.local_tool_call_limit !== currentBudget.local_tool_call_limit || budget.local_tool_dispatches !== currentBudget.local_tool_dispatches
+        || Number(budget.local_tool_dispatches) >= Number(budget.local_tool_call_limit)) return [];
+    const ids = rows.map(r => text(r.registration_request_id, "")), futures = rows.map(r => text(r.controller_request_id, ""));
+    if (ids.some(id => !id) || futures.some(id => !id) || new Set(ids).size !== ids.length || new Set(futures).size !== futures.length) return [];
+    const feedback = items(obj(context.hypothesis_feedback).items), candidates = items(context.candidates);
+    return rows.flatMap(choice => {
+      const matches = feedback.filter(item => item.request_id === choice.registration_request_id && item.registration_sha256 === choice.registration_sha256
+        && item.controller_request_id === choice.controller_request_id);
+      const candidate = obj(choice.candidate), available = candidates.filter(c => sameValue(c, candidate));
+      const conditions = items(obj(matches[0]?.condition).all), branches = obj(matches[0]?.branches);
+      const validBranch = (value: unknown): boolean => sameValue(value, {kind:"wait"})
+        || sameValue(value, {kind:"method", method_id:"research.relevance-validation-saved-audit"});
+      if (choice.plan_matches !== true || choice.source_matches !== true || choice.code_matches !== true
+          || choice.plan_version !== obj(context.research_plan).version || choice.source_snapshot_sha256 !== context.source_snapshot_sha256
+          || typeof choice.registration_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(choice.registration_sha256)
+          || typeof choice.plan_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(choice.plan_sha256)
+          || candidate.method_id !== "research.relevance-validation-pair" || candidate.evaluation_ref !== "staged-relevance-development-v1"
+          || Object.keys(obj(candidate.parameters)).length !== 0 || available.length !== 1 || matches.length !== 1
+          || matches[0].outcome !== "unknown" || matches[0].unknown_reason !== "controller_not_started"
+          || matches[0].value !== null || matches[0].action_id !== null || matches[0].result_sha256 !== null
+          || conditions.length !== 2 || new Set(conditions.map(c => c.metric)).size !== 2
+          || conditions.some(c => !["recall@20", "mrr@10"].includes(text(c.metric, ""))
+            || !["gt", "gte", "lt", "lte", "eq"].includes(text(c.operator, ""))
+            || typeof c.threshold !== "number" || !Number.isFinite(c.threshold))
+          || Object.keys(branches).sort().join(",") !== "condition_met,condition_not_met"
+          || !validBranch(branches.condition_met) || !validBranch(branches.condition_not_met)
+          || !sameValue(matches[0].candidate, candidate)) return [];
+      return [{project, context, choice, item:matches[0]}];
+    });
+  }
+  function renderPrimary(): void {
+    const project = deps.current(), snapshot = text(project.snapshot_ref, ""), prior = snapshot === choicesSnapshot ? registrationSelect.value : "";
+    if (snapshot !== choicesSnapshot) reason.value = "";
+    choicesSnapshot = snapshot; registrationSelect.replaceChildren();
+    const empty = el("option", "", "请选择已登记条件"); empty.value = ""; registrationSelect.append(empty);
+    for (const entry of eligible()) {
+      const option = el("option", "", text(entry.choice.registration_request_id) + " · " + text(entry.choice.registration_sha256).slice(0, 12));
+      option.value = text(entry.choice.registration_request_id, ""); registrationSelect.append(option);
+    }
+    registrationSelect.value = [...registrationSelect.options].some(option => option.value === prior) ? prior : "";
+    run.hidden = project.primary_method !== "research.relevance-validation-pair";
+  }
+  function primaryControls(): void {
+    const entries = eligible(), chosen = entries.find(entry => entry.choice.registration_request_id === registrationSelect.value);
+    runFields.disabled = locked || !entries.length; execute.disabled = locked || !chosen || !reason.value.trim();
+    runStatus.textContent = chosen ? "原登记 " + text(chosen.choice.registration_request_id) + " · SHA-256 " + text(chosen.choice.registration_sha256)
+      + " · 原 Controller ID " + text(chosen.choice.controller_request_id) + " · 计划版本 " + numeric(chosen.choice.plan_version)
+      + " · 计划 SHA " + text(chosen.choice.plan_sha256) + " · 项目快照 " + text(chosen.context.snapshot_ref)
+      + " · 选择上下文 SHA " + text(chosen.context.context_sha256) + " · 来源快照 " + text(chosen.context.source_snapshot_sha256)
+      + " · 候选 " + text(obj(chosen.choice.candidate).id) + " · 工具已派发/上限 " + numeric(obj(chosen.context.budget).local_tool_dispatches)
+      + "/" + numeric(obj(chosen.context.budget).local_tool_call_limit) + " · 条件 " + JSON.stringify(chosen.item.condition)
+      + "。此快照提示尚未认证 manager 归属；提交时由原记录核验。"
+      : "选择匹配当前项目、计划、来源、候选和剩余额度的登记；条件未知不等于0。旧源码 pin 不自动升级。";
+  }
   function options(): { project: Obj; context: Obj; candidate: Obj } | null {
     const project = deps.current(), context = deps.context();
     if (!context || project.id !== projectId || context.project_id !== projectId
@@ -379,12 +453,13 @@ function createStagedHypothesisPanel(deps: {
         el("p", "detail-note", "原登记 SHA-256：" + text(item.registration_sha256) + "；固定分支：" + JSON.stringify(item.branches ?? null)
           + "。审计分支仍需以后另行明确提交。"));
     }
-    controls();
+    renderPrimary(); controls();
   }
   function controls(): void {
     const ready = options() !== null;
     fields.disabled = locked || !ready; submitButton.disabled = locked || !ready;
     status.textContent = ready ? "登记不使用研究工具；后续行动必须另行明确授权。" : "需在当前项目保存计划，并只读刷新到唯一可用的 staged primary。";
+    primaryControls();
   }
   form.addEventListener("submit", event => { event.preventDefault(); void (async () => {
     const selected = options(); if (!selected || submitButton.disabled || !form.reportValidity()) return;
@@ -395,6 +470,17 @@ function createStagedHypothesisPanel(deps: {
     const result = await deps.submit({project_id:projectId, expected_state_version:selected.context.state_version,
       hypothesis:{candidate_id:selected.candidate.id, controller_request_id:futureId, conditions, branches:selectedBranches}});
     if (result?.status === "completed") { futureId = requestId("staged-primary"); form.reset(); update(deps.current()); }
+  })(); });
+  registrationSelect.addEventListener("change", primaryControls); reason.addEventListener("input", primaryControls);
+  execute.addEventListener("click", () => { void (async () => {
+    const entry = eligible().find(value => value.choice.registration_request_id === registrationSelect.value);
+    if (!entry || execute.disabled || !reason.value.trim()) return;
+    const body = {request_id:entry.choice.controller_request_id, project_id:projectId, expected_state_version:entry.context.state_version,
+      registration_request_id:entry.choice.registration_request_id, registration_sha256:entry.choice.registration_sha256, reason:reason.value};
+    const identity = {snapshot_ref:entry.context.snapshot_ref, context_sha256:entry.context.context_sha256,
+      source_snapshot_sha256:entry.context.source_snapshot_sha256, candidate_id:obj(entry.choice.candidate).id,
+      plan_sha256:entry.choice.plan_sha256, plan_version:entry.choice.plan_version};
+    await deps.submitPrimary(body, identity);
   })(); });
   return { element:section, update, setLocked(value):void { locked = value; controls(); } };
 }
@@ -546,17 +632,36 @@ export async function mountLocalWorkbench(): Promise<void> {
     } catch { return null; }
   };
   const hasStagedHypothesis = (): boolean => { try { return sessionStorage.getItem(STAGED_HYPOTHESIS_PENDING_KEY) !== null; } catch { return true; } };
+  const savedStagedPrimary = (): Pending | null => {
+    try {
+      const value = obj(JSON.parse(sessionStorage.getItem(STAGED_PRIMARY_PENDING_KEY) ?? "null"));
+      const body = obj(JSON.parse(text(value.body, ""))), identity = obj(value.identity);
+      if (value.command !== "staged-primary" || typeof value.body !== "string"
+          || Object.keys(body).sort().join(",") !== "expected_state_version,project_id,reason,registration_request_id,registration_sha256,request_id"
+          || ![body.request_id, body.project_id, body.registration_request_id, body.reason, identity.candidate_id].every(v => typeof v === "string" && v.length > 0)
+          || !Number.isSafeInteger(body.expected_state_version) || !Number.isSafeInteger(identity.plan_version)
+          || ![body.registration_sha256, identity.snapshot_ref, identity.context_sha256, identity.source_snapshot_sha256, identity.plan_sha256]
+            .every(v => typeof v === "string" && /^[0-9a-f]{64}$/.test(v))) return null;
+      return {command:"staged-primary", requestId:text(body.request_id, ""), body:value.body, uncertain:true, stagedPrimaryContext:identity};
+    } catch { return null; }
+  };
+  const hasStagedPrimary = (): boolean => { try { return sessionStorage.getItem(STAGED_PRIMARY_PENDING_KEY) !== null; } catch { return true; } };
   const savedManual = (key: string): Obj | null => {
     let raw: string | null; try { raw = sessionStorage.getItem(key); } catch { return null; }
     if (raw === null) return null; try { return obj(JSON.parse(raw)); } catch { return {}; }
   };
   const hasManualRequest = (): boolean => savedManual(MANUAL_PREPARE_KEY) !== null || savedManual(MANUAL_IMPORT_KEY) !== null;
   const scopedPending = (command: string): boolean => ["evidence", "save_plan"].includes(command);
-  const serverPending = (projectId = activeId()): boolean => items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
+  const stagedPrimarySummaryPending = (): boolean => {
+    const summary = obj(description.pending_staged_primary_summary);
+    return summary.project_id === activeId() && typeof summary.total === "number" && summary.total > 0;
+  };
+  const serverPending = (projectId = activeId()): boolean => stagedPrimarySummaryPending()
+    || items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
   const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
-  const uncertain = (projectId = activeId()): boolean => hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
+  const uncertain = (projectId = activeId()): boolean => hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
     && (!["evidence", "plan", "plan-resume"].includes(lastRequest.command) || requestProject(lastRequest) === projectId);
-  const navigationBlocked = (): boolean => hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
+  const navigationBlocked = (): boolean => stagedPrimarySummaryPending() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
     || !!lastRequest?.uncertain && !["batch", "continue", "evidence", "plan", "plan-resume"].includes(lastRequest.command);
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
@@ -577,7 +682,8 @@ export async function mountLocalWorkbench(): Promise<void> {
     submit: (name, body) => submit(command(name, body)), announce });
   const designPanel = createResearchDesignPanel({ read, submit: (name, body) => submit(command(name, body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, context: () => context, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
-  const stagedHypothesisPanel = createStagedHypothesisPanel({ current: () => current, context: () => context, submit: body => submit(command("staged-hypothesis", body)) });
+  const stagedHypothesisPanel = createStagedHypothesisPanel({ current: () => current, context: () => context, submit: body => submit(command("staged-hypothesis", body)),
+    submitPrimary: (body, identity) => submit({command:"staged-primary", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedPrimaryContext:identity}) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, stagedHypothesisPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
@@ -675,12 +781,15 @@ export async function mountLocalWorkbench(): Promise<void> {
     const records = items(description.pending_requests);
     let remembered: Obj = {};
     try { remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}")); } catch { /* Storage is optional; manager owns durable state. */ }
-    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
+    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !stagedPrimarySummaryPending() && !hasStagedPrimary() && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
     if (records.length) pendingNotice.append(el("strong", "", records.some(record => ["batch", "continue"].includes(text(record.command, "")))
       ? "有原推进记录尚未收口。请在继续研究中核对原阶段；计划建议需先采用或拒绝，未知行动不会重发。"
       : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
     else if (remembered.request_id) pendingNotice.append(el("strong", "", "上次浏览器提交尚需对照保存记录核对；没有自动重发。"));
     const planSummary = obj(description.pending_plan_summary);
+    const primarySummary = obj(description.pending_staged_primary_summary);
+    if (stagedPrimarySummaryPending()) pendingNotice.append(el("p", "detail-note", "当前项目有 " + numeric(primarySummary.total)
+      + " 条未收口 primary，仅显示 " + numeric(primarySummary.shown) + " 条；原 ID 和正文需逐条核对，不能以新 ID 绕过。"));
     if (planSummary.truncated === true && planSummary.project_id === activeId())
       pendingNotice.append(el("p", "detail-note", "当前项目有 " + numeric(planSummary.total) + " 条未收口计划，仅显示前 " + numeric(planSummary.shown) + " 条；多个原请求可能互相阻断，须人工核对，不能新建替代请求。"));
     for (const record of records) {
@@ -703,8 +812,22 @@ export async function mountLocalWorkbench(): Promise<void> {
           body:JSON.stringify({request_id:id, project_id:projectId}), uncertain:false, recoverStagedHypothesis:true}); });
         row.append(el("p", "detail-note", "仅核已保存原登记和归属；若原记录不存在，不会创建登记或重派。"), button);
       }
+      if (record.command === "advance_staged_primary") row.append(el("p", "detail-note", "原 primary 尚未收口；只可核对原 ID，不能重新执行。"));
       pendingNotice.append(row);
     }
+    if (hasStagedPrimary()) {
+      const saved = savedStagedPrimary();
+      if (!saved) pendingNotice.append(el("p", "notice error", "原 primary 正文或身份不可用；停查，不创建替代 ID。"));
+      else {
+        const original = obj(JSON.parse(saved.body)), projectId = text(original.project_id, "");
+        const button = el("button", "text-button", "只核对原 primary 记录"); button.type = "button";
+        button.disabled = busy || description.enabled !== true || projectId !== activeId() || current.id !== projectId;
+        button.addEventListener("click", () => { if (!button.disabled) void submit({command:"staged-primary-resume", requestId:saved.requestId,
+          body:JSON.stringify({request_id:saved.requestId, project_id:projectId}), uncertain:false, recoverStagedPrimary:true}); });
+        pendingNotice.append(el("p", "detail-note", "原 primary ID " + saved.requestId + " 待核对。仅核对已完成的原记录与 claim，必要时补原 manager 回执；不会重新派发。未完成、失败、未知或缺原意图时停查。"), button);
+      }
+    } else if (records.some(record => record.command === "advance_staged_primary"))
+      pendingNotice.append(el("p", "notice error", "浏览器缺少原 primary 正文，不能自动重建；请保留原 ID 人工核对。"));
     if (hasStagedHypothesis()) {
       const saved = savedStagedHypothesis();
       if (!saved) pendingNotice.append(el("p", "notice error", "事前登记原ID或正文无法核对；停止并人工检查，不创建替代ID。"));
@@ -1025,6 +1148,11 @@ export async function mountLocalWorkbench(): Promise<void> {
     const recoverStagedHypothesis = pending.recoverStagedHypothesis === true && pending.command === "staged-hypothesis-resume"
       && typeof stagedRecoveryBody.request_id === "string" && !!stagedRecoveryBody.request_id
       && stagedRecoveryBody.project_id === activeId() && current.id === activeId() && description.enabled === true;
+    const originalPrimary = savedStagedPrimary(), originalPrimaryBody = originalPrimary ? obj(JSON.parse(originalPrimary.body)) : {};
+    const recoverStagedPrimary = pending.recoverStagedPrimary === true && pending.command === "staged-primary-resume"
+      && !!originalPrimary && stagedRecoveryBody.request_id === originalPrimary.requestId
+      && stagedRecoveryBody.project_id === originalPrimaryBody.project_id && stagedRecoveryBody.project_id === activeId()
+      && current.id === activeId() && description.enabled === true;
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
     if (pending.recoverExperience && !recoverExperience) { announce("请先只读刷新，核对本项目的原案例请求；不会用新文件或参数重建操作。", true); return null; }
@@ -1032,9 +1160,17 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.recoverQuality && !recoverQuality) { announce("原严格采纳请求尚不能核对；保留原ID和正文，不创建替代请求。", true); return null; }
     if (pending.recoverManual && !recoverManual) { announce("原人工计划请求尚不能核对；不会导入到其他 Host 或创建新ID。", true); return null; }
     if (pending.recoverStagedHypothesis && !recoverStagedHypothesis) { announce("请选择原项目并核对原登记；不会创建替代请求。", true); return null; }
+    if (pending.recoverStagedPrimary && !recoverStagedPrimary) { announce("原 primary 正文或项目不可核对；保留原 ID，不能重派。", true); return null; }
     const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && !recoverManual && !recoverStagedHypothesis && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && !recoverManual && !recoverStagedHypothesis && !recoverStagedPrimary && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (pending.command === "staged-primary") {
+      try {
+        sessionStorage.setItem(STAGED_PRIMARY_PENDING_KEY, JSON.stringify({command:pending.command, body:pending.body, identity:pending.stagedPrimaryContext}));
+        const saved = savedStagedPrimary();
+        if (saved?.body !== pending.body || !sameValue(saved.stagedPrimaryContext, pending.stagedPrimaryContext)) throw Error("storage");
+      } catch { announce("无法保存原 primary ID、正文和快照身份；尚未提交。", true); return null; }
+    }
     if (pending.command === "staged-hypothesis") {
       try {
         sessionStorage.setItem(STAGED_HYPOTHESIS_PENDING_KEY, JSON.stringify({command:pending.command, body:pending.body}));
@@ -1074,6 +1210,42 @@ export async function mountLocalWorkbench(): Promise<void> {
       const response = await fetch("/api/local-workbench/" + route, { method: "POST", credentials: "same-origin", cache: "no-store",
         headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(modelContinuation ? 420000 : modelCommand ? 210000 : 60000) });
       let result = obj(await response.json());
+      if (response.ok && ["staged-primary", "staged-primary-resume"].includes(pending.command)) {
+        const marker = savedStagedPrimary(), original = marker ? obj(JSON.parse(marker.body)) : {}, identity = obj(marker?.stagedPrimaryContext);
+        const valid = (value: Obj): boolean => {
+          const controller = obj(value.controller), proposal = obj(controller.selection_proposal), decision = obj(controller.decision);
+          const parentResult = obj(controller.result), child = obj(parentResult.child), action = obj(decision.next_action);
+          return !!marker && value.schema_version === "local-workbench-command-v1" && value.command === "advance_staged_primary"
+            && value.status === "completed" && value.request_id === marker.requestId && value.project_id === original.project_id
+            && typeof value.replayed === "boolean" && controller.schema_version === "project-controller-advance-v1"
+            && controller.status === "completed" && controller.project_id === original.project_id && controller.request_id === marker.requestId
+            && typeof controller.replayed === "boolean" && typeof controller.request_sha256 === "string" && /^[0-9a-f]{64}$/.test(controller.request_sha256)
+            && controller.selection_context_sha256 === identity.context_sha256 && proposal.context_sha256 === identity.context_sha256
+            && proposal.rationale === original.reason && obj(proposal.choice).kind === "execute" && obj(proposal.choice).candidate_id === identity.candidate_id
+            && action.method_id === "research.relevance-validation-pair" && child.command === action.method_id
+            && child.status === "completed" && child.request_id === controller.child_request_id && typeof child.id === "string" && !!child.id
+            && typeof child.result_sha256 === "string" && /^[0-9a-f]{64}$/.test(child.result_sha256)
+            && parentResult.recovered === false && parentResult.reused === false;
+        };
+        if (!valid(result)) throw Error("staged primary receipt mismatch");
+        if (pending.command === "staged-primary") {
+          const check = await fetch("/api/local-workbench/staged-primary-resume", {method:"POST", credentials:"same-origin", cache:"no-store",
+            headers:{"Content-Type":"application/json", "X-AutoResearch-CSRF":text(description.csrf_token, "")},
+            body:JSON.stringify({request_id:marker!.requestId, project_id:original.project_id}), signal:AbortSignal.timeout(60000)});
+          const checked = obj(await check.json());
+          if (!check.ok || !valid(checked) || !sameValue(checked.controller, result.controller)) throw Error("staged primary verification failed");
+          result = checked;
+        }
+        if (activeId() !== original.project_id || current.id !== original.project_id) throw Error("staged primary project changed");
+        const firstView = await read("/api/local-workbench"), projected = await read("/api/project"), finalView = await read("/api/local-workbench");
+        const child = obj(obj(obj(result.controller).result).child);
+        const actions = items(projected.actions).filter(item => item.id === child.id && item.request_id === child.request_id
+          && item.command === child.command && item.status === "completed" && item.result_sha256 === child.result_sha256);
+        if (firstView.active_project_id !== original.project_id || projected.id !== original.project_id
+            || finalView.active_project_id !== original.project_id || actions.length !== 1
+            || activeId() !== original.project_id || current.id !== original.project_id) throw Error("staged primary view changed");
+        sessionStorage.removeItem(STAGED_PRIMARY_PENDING_KEY);
+      }
       if (response.ok && ["staged-hypothesis", "staged-hypothesis-resume"].includes(pending.command)) {
         const marker = savedStagedHypothesis(), original = marker ? obj(JSON.parse(marker.body)) : null;
         const valid = (value: Obj): boolean => {
@@ -1114,6 +1286,10 @@ export async function mountLocalWorkbench(): Promise<void> {
           pending.uncertain = true; outcomeMessage = "事前登记尚未确认（" + code + "）；保留原ID和正文，使用只核对入口，不创建替代请求。";
           if (code === "CODE_CHANGED") outcomeMessage += " 请用 -B 和新空 PYTHONPYCACHEPREFIX 重启原宿主并核对源码。";
         }
+        if (["staged-primary", "staged-primary-resume"].includes(pending.command)) {
+          pending.uncertain = true; outcomeMessage = "原 primary 尚未确认（" + code + "）；保留原 ID 和正文，只可核对原记录，不会重派。";
+          if (code === "CODE_CHANGED") outcomeMessage += " 请用 -B 和新空 PYTHONPYCACHEPREFIX 重启原宿主并核对源码。";
+        }
       } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))
                  && !(pending.command === "manual-quality-plan-prepare" && result.status === "prepared"
                    && result.request_id === pending.requestId && result.project_id === targetProject
@@ -1124,6 +1300,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         outcomeMessage = pending.command === "create" ? "项目已创建，尚未执行方法。请从实际候选中选择下一步。" : pending.command === "select" ? "已切换活动项目，旧候选已清除。"
           : pending.command === "report" ? "当前快照报告已生成，可从顶栏或保存结果区下载。" : pending.command === "evidence" ? "资料已登记，尚未读取。请从真实来源候选中选择并明确执行。" : obj(result.decision).next_action && obj(obj(result.decision).next_action).kind === "external_wait" ? "本次等待已保存，没有创建新行动。" : "本次行动和反馈已保存，请核对结果后再决定下一步。";
         if (["staged-hypothesis", "staged-hypothesis-resume"].includes(pending.command)) outcomeMessage = "原事前条件已核对保存；没有执行检索、审计或模型。";
+        if (["staged-primary", "staged-primary-resume"].includes(pending.command)) outcomeMessage = "原 primary 完成记录与 claim 已由原请求核对；使用一次研究工具，未执行 final、模型或拟合。请查看保存反馈。";
         if (pending.command === "evidence") { evidencePanel.acceptRegistered(result); evidencePending.delete(targetProject); }
         if (pending.command === "batch") {
           const batch = obj(result.batch), stop = obj(batch.stop), count = items(batch.steps).length;

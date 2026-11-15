@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S114 页面可显式按事前登记的原future ID执行staged primary，明确最多1工具和dev/validation排名评分；原body保留、resume-only核claim，独立浏览器/回归通过。反馈分支UI仍未接，旧pin不迁移。[SPRINT-114](../execution/SPRINT-114.md)。
+
 S113 独立真实多进程验证staged primary七个SIGKILL窗口及旧Controller抢先，八场与claim独审通过；仅合成/选定切点，未证断电或恶意隔离，UI仍未接。[SPRINT-113](../execution/SPRINT-113.md)。
 
 S112 后端新增以原登记future ID显式staged primary与只核终态恢复，parent/child各自事务claim；独审43+42合成通过，direct抢占仅函数注入、尚无UI。旧pin登记不可自动升级。[SPRINT-112](../execution/SPRINT-112.md)。

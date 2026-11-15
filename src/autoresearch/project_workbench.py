@@ -223,6 +223,29 @@ def _projection(project, state, report=None):
     if state.get("hypothesis_registrations"):
         from .hypothesis_feedback import feedback_context
         public_view["hypothesis_feedback"] = feedback_context(project, state)
+        registrations = state["hypothesis_registrations"]
+        staged = [r for r in registrations if r.get("schema_version") == "hypothesis-registration-v2"
+                  and r.get("candidate", {}).get("method_id") == staged_relevance_adapter.TOOL_ID]
+        if staged:
+            from .research_project import code_identity as project_code_identity
+            from .project_controller import code_identity as controller_code_identity
+            current_plan = revisions[-1] if revisions else None
+            public_view["staged_primary_choices"] = {
+                "schema_version":"staged-primary-choices-v1", "project_id":state["id"],
+                "snapshot_ref":state["snapshot_ref"], "state_version":state["state_version"],
+                "verification":"registration_metadata_only", "manager_ownership_verified":False,
+                "items":[{"registration_request_id":r["request_id"], "registration_sha256":r["registration_sha256"],
+                    "controller_request_id":r["controller_request_id"], "candidate":copy.deepcopy(r["candidate"]),
+                    "plan_version":r["plan_version"], "plan_sha256":r["plan_sha256"],
+                    "source_snapshot_sha256":r["source_snapshot_sha256"],
+                    "plan_matches":current_plan is not None and r["plan_version"] == current_plan.get("version")
+                                   and r["plan_sha256"] == fingerprint(current_plan),
+                    "source_matches":r["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                                     and r["source_sha256"] == state["registration"]["source_sha256"]
+                                     and r["scope_sha256"] == fingerprint(state["source_scope"]),
+                    "code_matches":r["project_code_identity"] == state["code_identity"] == project_code_identity()
+                                   and r["controller_code_identity"] == controller_code_identity()}
+                    for r in staged]}
     return public_view
 
 
