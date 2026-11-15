@@ -1,0 +1,64 @@
+{
+  "schema_version": "saved-validation-unchanged-recall-mrr-loss-protocol-v1",
+  "scope": "Retrospective description of previously exposed public validation results; not blinded, preregistered confirmation, causal inference, model adoption, transfer or scientific benefit.",
+  "direction": "tfidf_cosine_minus_bm25",
+  "split": "validation",
+  "epsilon": 1e-12,
+  "cell": "abs(recall@20 delta) <= 1e-12 and mrr@10 delta < -1e-12",
+  "magnitude": "Negative math.fsum of full-precision raw MRR deltas divided by the cell count, rounded with Python round(value, 4). Classification epsilon does not zero or alter the raw difference. A displayed 0.0000 may be a positive nonzero loss.",
+  "suppression": "For n < 5, including n=0, emit status suppressed and null for both count and mean. For n >= 5 emit exact count and rounded mean. No other new group magnitudes, totals, extrema or individual values are output. This is not anonymity or a reidentification guarantee.",
+  "cases": [
+    {
+      "label": "S065",
+      "workspace": "5d43109/runs/s065-hotpot-support-v1",
+      "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+      "project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+      "run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb",
+      "primary_action_id": "action-4de378649a2bc9026793872874663343",
+      "primary_result_sha256": "32ced585400985fc64fb30b97877ba2ccc71c1164a651766764af4b49f0a9b1a",
+      "validation_queries": 100
+    },
+    {
+      "label": "S067",
+      "workspace": "5bd9883/runs/s067-boolq-paired-passage-v1",
+      "source_commit": "5bd9883dd435a1d39b857a51bb6f4d20a53f156b",
+      "project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+      "run_id": "run-276475c33d7542509c840bc575005271",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "source_snapshot_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb",
+      "primary_action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+      "primary_result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f",
+      "validation_queries": 200
+    }
+  ],
+  "s075_dependencies": {
+    "script": "scripts/audit_saved_joint_validation.py",
+    "script_sha256": "ad8091d1b1549a2c6ec02ca21e7680f5b4ec1e784d4d53ce11ae215b22ae14b2",
+    "protocol": "docs/execution/g5-local/saved-joint-validation-protocol-v1.json",
+    "protocol_sha256": "575f57346c8c0bd3c4e4f8b6c95a71eb3c70eb50bc8cfc4a467d577b414a925b",
+    "published_results": "docs/execution/g5-local/saved-joint-validation-results.json",
+    "results_sha256": "c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb"
+  },
+  "validation": "For each case perform one original checked-primary read, exactly paired coverage and both methods; use S075 complete matrix, margins, saved means and full precision fsum checks, and match the complete computed S075 aggregate and original identities to the pinned published aggregate. Any discrepancy stops the whole run without a result. Cases remain separate.",
+  "guard_scope": "Reuse S075 public source, exact primary artifact, SQL and producer/source/reader tail checks and no-write/index/rank/score/fit/model/dispatch guards. Check resolved paths in an additional outer guard; reject private/host paths, non-primary artifacts, dir_fd opens, socket use and writes during case analysis. The reader actually parses dev and validation query text/qrels, saved rankings and shared corpus, which can contain final target documents; Project SQLite state contains all action metadata including final metadata. Never read final query/qrels, final artifacts or private/Host files. Program guards are cooperative safeguards, not OS isolation. SQLite native-library I/O and other native operations are not intercepted by Python open hooks; exact readonly SQLite mode and original controlled paths are required, and no claim of complete native-I/O interception is made. Python, NumPy, SciPy and scikit-learn versions are recorded; external library bytes and the OS are not authenticated by the Git source manifest. Loaded module __file__ paths and current disk bytes are checked; this does not authenticate in-memory code or resist a coordinated local attacker. S075 is compiled directly from its verified source bytes before any product import, without consulting existing script bytecode.",
+  "output": "Only fixed identities, code/protocol identities, one available/suppressed cell per case and limitations; no query/document IDs, text, hashes, rankings, other cell magnitudes, group totals, extrema or raw rows. Sanitize failures so no row identity or text reaches console; publish a complete new JSON atomically with no overwrite. If the exclusive link succeeds but directory fsync fails, a complete target may already exist with durability unknown; retain and inspect it and never overwrite or silently rerun. Output directory components must be non-symlink directories, outside and non-ancestral to both original case workspaces; directory device/inode/mode and workspace resolutions are checked before reads and immediately before publication. This is not an OS-level race guarantee.",
+  "budget": {
+    "new_research_projects": 0,
+    "new_research_actions": 0,
+    "new_models": 0,
+    "new_fits": 0,
+    "new_rank_or_score": 0,
+    "developer_cost_and_tokens": "unknown",
+    "read_and_compute_cost": "unknown"
+  },
+  "limitations": [
+    "S065 and S067 data and prior outputs were exposed; this is post hoc and not blind.",
+    "The two cases remain separate, and query independence or population sampling is not established; no p-value, confidence interval or significance claim.",
+    "Zero recall difference does not establish no relevant change; incomplete relevance labels are not proof of non-relevance.",
+    "Suppression and rounding do not provide anonymity; external knowledge and published aggregates may permit inference.",
+    "No causal, model-understanding, adoption, transfer or overall-improvement claim."
+  ],
+  "release_gate": "Before any original case read, publish the exact new wrapper, this protocol and test plus exact pinned S075 dependencies on canonical GitHub main; verify current clean source/HEAD/blob, actual canonical remote ancestry and each producer pin/source. Until then only synthetic tests and default dry-run are allowed. Recheck the entire published Python-source and frozen audit-dependency manifest after each case and immediately before publication; retain the initially verified script identity."
+}
