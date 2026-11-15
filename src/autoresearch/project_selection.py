@@ -131,6 +131,9 @@ def hypothesis_notice(selection):
     if selection["hypothesis_feedback"].get("test_notice") == STAGED_NOTICE:
         joint_notice = (" Two-condition feedback is met only when both registered validation predicates hold; "
                         "both values must be known and unknown always waits.") if selection["hypothesis_feedback"].get("schema_version") == "hypothesis-feedback-context-v2" else ""
+        if selection["hypothesis_feedback"].get("schema_version") == "hypothesis-feedback-context-v3":
+            joint_notice = (" The preregistered leave-one-out condition is checked strictly on every validation query removal; "
+                            "all means and bounds must be known, and unknown always waits. This is not scientific approval.")
         return (" Hypothesis feedback compares a preregistered validation condition with the original saved action. "
                 "condition_met and condition_not_met are numeric predicate outcomes, not scientific approval or "
                 "hypothesis rankings. Preserve unknown and its reason; zero is a known value. Choose only current "
@@ -209,6 +212,14 @@ def _context(payload):
     if "hypothesis_feedback" in payload:
         from .hypothesis_feedback import validate_context
         validate_context(payload["hypothesis_feedback"])
+        if payload["hypothesis_feedback"]["schema_version"] == "hypothesis-feedback-context-v3":
+            counts = payload["domain_scope"].get("query_split_counts")
+            known = [item for item in payload["hypothesis_feedback"]["items"]
+                     if "leave_one_out" in item["condition"] and item["outcome"] != "unknown"]
+            if known:
+                _require(type(counts) is dict and type(counts.get("validation")) is int
+                         and all(item["value"]["leave_one_out"]["queries"] == counts["validation"] for item in known),
+                         code, "Leave-one-out coverage must match the captured validation split.")
     if "staged_evaluation" in payload:
         from .retrieval_holdout import validate_public_evaluation_context
         validate_public_evaluation_context(payload["staged_evaluation"])

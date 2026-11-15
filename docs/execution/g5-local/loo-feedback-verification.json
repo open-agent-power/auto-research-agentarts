@@ -1,0 +1,72 @@
+{
+  "schema_version": "s062-validation-loo-feedback-verification-v1",
+  "status": "verified",
+  "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
+  "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
+  "source_count": 191,
+  "author_regression": 47,
+  "independent_probes": 5,
+  "http_lo_o_isolation": {
+    "case": "tradeoff-wait",
+    "pid": 21207,
+    "project_id": "project-37382c11cce94429bffc4bef8ab554f8",
+    "run_id": "run-d8a83aaa631440628f6e36b04fbf605c",
+    "validation_values": {
+      "means": [
+        0.5,
+        -0.04444444444444445
+      ],
+      "leave_one_out": {
+        "minimum": 0.0,
+        "maximum": 1.0,
+        "queries": 2
+      }
+    },
+    "outcome": "condition_not_met",
+    "phase": "waiting",
+    "tool_calls_used": 1,
+    "model_calls": 0,
+    "fits": 0,
+    "scientific_validation": false
+  },
+  "http_all_original_replayed_new_process": true,
+  "original_case_files_unchanged": {
+    "S046": 36,
+    "S050": 17,
+    "S054": 47
+  },
+  "new_research_actions": 0,
+  "new_model_calls": 0,
+  "new_fits": 0,
+  "engineering_fixture_tool_calls": [
+    3,
+    1,
+    0,
+    3,
+    1,
+    0
+  ],
+  "development_tokens": "unknown",
+  "development_cost": "unknown",
+  "limitations": [
+    "No new scientific gain or model-driven research demonstrated",
+    "One-query leave-out is descriptive, not significance or multiple-query robustness",
+    "Original freeze still Recall20 and guard applies only explicit registered route",
+    "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
+  ],
+  "failures": [
+    "Initial independent mock omitted saved summary counts, fixed fixture and retained original log",
+    "WIP scope and validation count binding issue fixed before final freeze"
+  ],
+  "evidence": [
+    "runs/s062-verification/regression-final-v2.log",
+    "runs/s062-review/independent-tests.log",
+    "runs/s062-review/independent-tests-fixed.log",
+    "runs/s062-verification/http/result.json",
+    "runs/s062-verification/http-loo/result.json"
+  ],
+  "independent_assessment": {
+    "path": "runs/s062-review/independent-assessment.md",
+    "sha256": "c8c3982d959b21ec4c72b9993734ca2116db2e624a3f06bc2daa8a3678e90159"
+  }
+}

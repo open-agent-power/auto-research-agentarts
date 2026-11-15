@@ -85,6 +85,25 @@ def read_validation_deltas(project, state, action, metrics):
     return [paired[metric]["mean"] for metric in metrics]
 
 
+def read_validation_deltas_and_loo(project, state, action, metrics, loo_metric):
+    """Copy saved means and calculate LOO extrema from the same checked primary."""
+    _require(type(metrics) is list and len(metrics) == 2
+             and all(type(metric) is str and metric in lexical.METRICS for metric in metrics)
+             and metrics[0] != metrics[1] and type(loo_metric) is str and loo_metric in metrics)
+    checked = _checked_primary(project, state, action)
+    paired = checked["summary"]["splits"]["validation"]["paired_candidate_minus_baseline"]
+    means = [paired[metric]["mean"] for metric in metrics]
+    qids = sorted(checked["source"]["spec"]["query_splits"]["validation"])
+    if len(qids) < 2:
+        return None
+    deltas = [checked["metrics"][("validation", qid, "tfidf_cosine")]["metrics"][loo_metric]
+              - checked["metrics"][("validation", qid, "bm25")]["metrics"][loo_metric] for qid in qids]
+    # Reuse the validated S061 arithmetic while retaining the original saved means.
+    summary = _stability_aggregate(deltas, paired[loo_metric])
+    return {"means": means, "leave_one_out": {"minimum": summary["leave_one_out"]["minimum"],
+            "maximum": summary["leave_one_out"]["maximum"], "queries": len(qids)}}
+
+
 def _view(project, state, action_id):
     if type(action_id) is not str or not action_id:
         raise ResearchError("INVALID_QUERY", "Use one saved primary action identifier.")

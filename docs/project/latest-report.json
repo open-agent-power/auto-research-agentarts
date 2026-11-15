@@ -1,36 +1,35 @@
 {
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
-  "start_time": "2026-11-15T09:44:02+08:00",
-  "end_time": "2026-11-15T09:55:25.362835+08:00",
-  "status": "S061_published",
-  "source_freeze_sha256": "b12815a63cec2fade229f61486dcc0d2be86e823abe7c20678b73289b0b3fbb8",
-  "core_identity": "49db2282583ae82090963d129ed348bfa674261ec166c6ac2e68dc8d671e296b",
-  "base_commit": "968cdf1e2c7e09cd01f6f964eb41a83b5ecc2c5a",
+  "start_time": "2026-11-15T10:51:58+08:00",
+  "end_time": "2026-11-15T11:02:45.334318+08:00",
+  "status": "S062_verified_pending_publication",
+  "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
+  "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
+  "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
   "completed": [
-    "S061 plan-only saved validation stability material, original saved source and project bindings",
-    "42 author related checks, 5 independent probes, real S046 and S054 readonly comparisons against S060"
-  ],
-  "limitations": [
-    "No real model selection or new research gain",
-    "No change to frozen strategy or old research budget",
-    "Whole plan can read primary for other existing feedback; material reader itself checks once",
-    "Read only public original source and primary; private path guard is not OS isolation"
-  ],
-  "failures": [
-    "Initial author fixture source/workspace overlap rejected before dispatch; preserved",
-    "Initial independent spy assumed entire plan had only one primary read; corrected to check separate reader and feedback calls; initial failure retained"
+    "S062 preregistered leave-one-out condition integrated with existing staged feedback/controller continuation",
+    "47 related and5 independent probes; two synthetic HTTP runs, six exact fresh-process replays; isolation confirms LOO alone causes wait",
+    "Original S04636/S05017/S05447 files unchanged; original budgets and pins preserved"
   ],
   "research_actions": 0,
   "research_models": 0,
   "research_fits": 0,
+  "development_tokens": "unknown",
   "development_cost": "unknown",
-  "lease_owner": "root-continuation-20261115T0944",
-  "next": "Publish verified increment; continue autonomous research under existing budget, S050 still pending explicit one-call approval",
-  "next_planned_trigger": "2026-11-15T10:47:27+08:00",
+  "failures": [
+    "Initial independent mock omitted saved summary counts, fixed fixture and retained original log",
+    "WIP scope and validation count binding issue fixed before final freeze"
+  ],
+  "limitations": [
+    "No new scientific gain or model-driven research demonstrated",
+    "One-query leave-out is descriptive, not significance or multiple-query robustness",
+    "Original freeze still Recall20 and guard applies only explicit registered route",
+    "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
+  ],
+  "lease_owner": "root-continuation-20261115T1052",
+  "next": "Finalize independent review and push; continue autonomous feedback work in existing authorization, S050 one model call remains pending",
+  "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
-  "delivery": "unknown",
-  "code_commit": "777f92acaf08ee0c695d94cfd97d70706b308d71",
-  "active_assigned_agents": 0,
-  "lease": "release on exit; verify actual guard state"
+  "delivery": "unknown"
 }

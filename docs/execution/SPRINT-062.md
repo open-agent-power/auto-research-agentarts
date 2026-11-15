@@ -1,0 +1,7 @@
+# S062：事前登记单题留一条件
+
+新增staged-only注册v3：既有两个validation均值条件可显式增加 `leave_one_out:{metric,operator,threshold}`；指标须为预登记两项之一，支持全部原5种指标。对每个原validation问题移除后的完整精度平均值，gt/gte检查最小值、lt/lte检查最大值；不足2题、任何值不可用或原绑定损坏整体unknown并等待。原saved_mean严格判断保留，不用描述epsilon改变原决策。同一次checked primary提供数据，原v1/v2保持，原freeze仍按Recall20；仅显式条件续作路径有效。
+
+固定191源manifest SHA2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f，47相关回归及5独审合成探针通过。两组实际合成HTTP各3条原body异进程重放，第二组专门令两个均值均通过，但留一最小值0未达>0，原路径正确等待。独审旧S046/S054只读原source/SQL/primary与S060核对，未改原登记、没有新模型或研究行动。原100文件完整性hash均相同；全case hash在guard外读取private字节，不能称整体验证零private I/O。
+
+独审首个mock漏写原summary的wins/losses/ties被正确拒绝，补夹具后通过并保留失败；WIP发现scope与validation count绑定缺口，固定前修复。工程fixture非真实研究收益，不得据已曝光旧结果倒推未来阈值，也不宣称统计显著性或多题稳健。精确数据见[验证](g5-local/loo-feedback-verification.json)。

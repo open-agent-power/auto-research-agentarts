@@ -95,3 +95,8 @@ staged 的 context/prompt 使用独立说明：来源仅含 dev/validation，任
 `continue_staged` 原五字段 v1 仍是另一次明确授权的固定审计→冻结→final→报告流程，不自动遵循 `advance_feedback` 的等待分支。S052 的显式六字段条件模式可绑定原登记并在 wait/unknown 停止，见[条件续作](staged-evaluation-continuation.md#显式条件模式s052)；两种授权不可混称。
 
 [S043](execution/SPRINT-043.md)补齐reader源身份与非终态恢复无写门禁；源码不符不会将原未完成parent永久拒绝或把child改成unknown，回到原pin仍可核对/恢复。可运行的[独立演示](../examples/hypothesis-feedback/README.md)展示登记、分进程执行和终态重放，使用独立工程输入和预算。
+
+
+### 显式事前单题留一条件（S062）
+
+在staged双指标登记中可另提供 `leave_one_out`，例如 `{"metric":"recall@20","operator":"gt","threshold":0}`。该指标须属于两项已登记指标，操作符限gt/gte/lt/lte；用户须在primary之前确定条件。整体结果要求两项原保存均值和全部单题移除均值均满足条件；不足两题或任何值未知则整体unknown并等待。比较使用原数值的严格运算，不按描述性epsilon四舍五入。新增v3不改变v1/v2，也不改变原Recall20冻结规则或约束其他低层调用。留一结果仅反映单题影响，不等于显著性或多题稳健。

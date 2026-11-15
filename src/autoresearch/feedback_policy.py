@@ -75,12 +75,14 @@ def select_from_feedback(context, *, registration, provider):
             or context["source_snapshot_sha256"] != registration["source_snapshot_sha256"]
             or context["project_code_identity"] != registration["project_code_identity"]
             or context["controller_code_identity"] != registration["controller_code_identity"]
+            or (registration["schema_version"] == "hypothesis-registration-v3"
+                and fingerprint(context.get("domain_scope")) != registration["scope_sha256"])
             or fingerprint(context.get("research_plan")) != registration["plan_sha256"]
             or item["registration_sha256"] != registration["registration_sha256"]
             or item["controller_request_id"] != registration["controller_request_id"]
             or item["candidate"] != candidate
             or (canonical(item["condition"]) != canonical(registration["condition"])
-                if registration["schema_version"] == "hypothesis-registration-v2" else item["condition"] != registration["condition"])
+                if registration["schema_version"] in ("hypothesis-registration-v2", "hypothesis-registration-v3") else item["condition"] != registration["condition"])
             or item.get("branches") != branches):
         return proposal
     if item["outcome"] == "unknown":
