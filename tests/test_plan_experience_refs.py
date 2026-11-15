@@ -145,6 +145,25 @@ class PlanExperienceReferenceTests(unittest.TestCase):
         self.assertEqual(project.status(),after);self.assertTrue(manager.save_plan(body)['replayed'])
         self.assertEqual(saved['research_plan']['experience_case_refs'],refs)
 
+    def test_completed_reference_plan_conflict_precedes_other_pending_without_bypass(self):
+        manager,project,plan,refs,_=self.setup_case();plan['experience_case_refs']=refs
+        body=self.body(project,plan);manager.save_plan(body);before=project.status()
+        stale={'request_id':'stale-legacy', 'project_id':before['id'],
+               'expected_state_version':body['expected_state_version'],
+               'plan':{k:plan[k] for k in ('question','basis','steps','expected_feedback')},
+               'reason':'Keep the original stale intent.'}
+        with self.assertRaises(ResearchError) as error:manager.save_plan(stale)
+        self.assertEqual(error.exception.code,'STALE_STATE')
+        manager_before,project_before=manager.db.read_bytes(),project.db.read_bytes()
+        changed=copy.deepcopy(body)
+        changed['plan']['experience_case_refs']['items'][0]['applicability_statement']='Different statement.'
+        for candidate,code in ((changed,'IDEMPOTENCY_CONFLICT'),(body,'OPERATION_INCOMPLETE'),
+                               (self.body(project,plan,'new-versioned'),'OPERATION_INCOMPLETE')):
+            with self.subTest(code=code),self.assertRaises(ResearchError) as error:manager.save_plan(candidate)
+            self.assertEqual(error.exception.code,code)
+            self.assertEqual((manager.db.read_bytes(),project.db.read_bytes()),(manager_before,project_before))
+            self.assertEqual(project.status(),before)
+
     def test_interruption_after_manager_accept_and_state_drift_never_rebinds(self):
         manager,project,plan,refs,_=self.setup_case();plan['experience_case_refs']=refs
         body=self.body(project,plan);original=ResearchProject.save_plan

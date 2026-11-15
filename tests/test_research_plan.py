@@ -13,6 +13,7 @@ from autoresearch.project_controller import ProjectController
 from autoresearch.project_selection import validate_proposal
 from autoresearch.project_workbench import _projection
 from autoresearch.project_report import collect_report, _markdown
+import test_local_workbench as local_fixture
 
 
 class ResearchPlanTests(unittest.TestCase):
@@ -120,21 +121,40 @@ class ResearchPlanTests(unittest.TestCase):
         self.assertIn("未核验意见", _markdown(report))
         self.assertEqual(self.project.status(), after)
 
-    def test_stale_conflicting_and_unknown_requests_do_not_change_plan_or_usage(self):
+    def test_stale_intent_conflict_and_pending_gate_preserve_originals(self):
         saved = self.command()
         self.manager.save_plan(saved)
         before = self.project.status()
         stale = {**self.command("stale-plan"), "expected_state_version": saved["expected_state_version"]}
         changed = copy.deepcopy(saved)
         changed["plan"]["question"] = "Changed under an already saved request ID"
-        for body, code in ((stale, "STALE_STATE"), (changed, "IDEMPOTENCY_CONFLICT")):
+        with self.assertRaises(ResearchError) as caught:
+            self.manager.save_plan(stale)
+        self.assertEqual(caught.exception.code, "STALE_STATE")
+        with self.manager._connect(readonly=True) as con:
+            row = con.execute("SELECT digest,record FROM requests WHERE id=?", (stale["request_id"],)).fetchone()
+            original_intent = (row["digest"], row["record"])
+        manager_before, project_before = self.manager.db.read_bytes(), self.project.db.read_bytes()
+        stale_changed = copy.deepcopy(stale)
+        stale_changed["reason"] = "Changed pending request."
+        for body, code in ((changed, "IDEMPOTENCY_CONFLICT"), (stale_changed, "IDEMPOTENCY_CONFLICT"),
+                           (saved, "OPERATION_INCOMPLETE"),
+                           (self.command("new-while-pending"), "OPERATION_INCOMPLETE"),
+                           (stale, "STALE_STATE"),
+                           ({**saved, "project_id": "foreign-project"}, "STALE_STATE")):
             with self.subTest(code=code), self.assertRaises(ResearchError) as caught:
                 self.manager.save_plan(body)
             self.assertEqual(caught.exception.code, code)
             self.assertEqual(self.project.status(), before)
+            self.assertEqual((self.manager.db.read_bytes(), self.project.db.read_bytes()), (manager_before, project_before))
+        with self.manager._connect(readonly=True) as con:
+            row = con.execute("SELECT digest,record FROM requests WHERE id=?", (stale["request_id"],)).fetchone()
+            self.assertEqual((row["digest"], row["record"]), original_intent)
         with self.assertRaises(ResearchError) as caught:
             self.project.step(request_id=saved["request_id"])
         self.assertEqual(caught.exception.code, "IDEMPOTENCY_CONFLICT")
+
+    def test_unknown_project_state_without_manager_pending_remains_blocked(self):
         with self.project._writer(), self.project._connect() as con:
             raw = self.project._project(con)
             raw["source_requests"] = [{"request_id": "fixture-unknown-source", "status": "unknown"}]
@@ -145,6 +165,40 @@ class ResearchPlanTests(unittest.TestCase):
             self.manager.save_plan(self.command("save-while-unknown"))
         self.assertEqual(caught.exception.code, "EXECUTION_UNKNOWN")
         self.assertEqual(self.project.status(), unknown)
+
+    def test_pending_plan_is_project_scoped_but_active_project_still_required(self):
+        first_id = self.project.status()['id']
+        self.manager.save_plan(self.command())
+        stale = {**self.command('stale-plan'), 'expected_state_version': 0}
+        with self.assertRaises(ResearchError) as error:
+            self.manager.save_plan(stale)
+        self.assertEqual(error.exception.code, 'STALE_STATE')
+        first_before = self.project.status()
+        with self.manager._connect(readonly=True) as con:
+            row = con.execute('SELECT digest,record FROM requests WHERE id=?', (stale['request_id'],)).fetchone()
+            pending = (row['digest'], row['record'])
+        # Project creation and switching remain governed by their existing rules.
+        other = self.manager.create(local_fixture.LocalWorkbenchTests.create_body(self, 'create-second'))
+        second, _ = self.manager.binding()
+        inactive = self.command()
+        inactive['plan']['question'] = 'Changed for the inactive project.'
+        with self.assertRaises(ResearchError) as error:
+            self.manager.save_plan(inactive)
+        self.assertEqual(error.exception.code, 'STALE_STATE')
+        other_body = {**self.command('other-plan'), 'project_id': other['project_id'],
+                      'expected_state_version': second.status()['state_version']}
+        result = self.manager.save_plan(other_body)
+        self.assertEqual(result['status'], 'completed')
+        self.assertEqual(second.status()['budget']['local_tool_calls_used'], 0)
+        self.assertEqual(self.project.status(), first_before)
+        with self.manager._connect(readonly=True) as con:
+            row = con.execute('SELECT digest,record FROM requests WHERE id=?', (stale['request_id'],)).fetchone()
+            self.assertEqual((row['digest'], row['record']), pending)
+        self.manager.select({'request_id':'return-first', 'project_id':first_id})
+        with self.assertRaises(ResearchError) as error:
+            self.manager.save_plan(self.command('first-new'))
+        self.assertEqual(error.exception.code, 'OPERATION_INCOMPLETE')
+        self.assertEqual(self.project.status(), first_before)
 
 
 if __name__ == "__main__":

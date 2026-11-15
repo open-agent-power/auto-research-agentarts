@@ -1145,8 +1145,8 @@ class LocalWorkbench:
         with self._writer():
             with self._connect() as con:
                 _, project = self._project(con, body["project_id"], active=True)
-                self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
                 old = self._old(con, body, digest)
+                self._no_pending_batch(con, body["project_id"], body["request_id"], evidence=True)
                 if old is not None and old["status"] == "completed":
                     if versioned:
                         if old.get("intent", {}).get("recovery_version") == PLAN_RECOVERY_VERSION:

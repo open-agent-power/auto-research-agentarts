@@ -1,5 +1,7 @@
 # 后端索引
 
+S095 Workbench `save_plan` 在活动项目检查后先核同ID异body冲突，再仍执行原pending门；同body/新ID不能绕过未决，旧stale意图不自动清除。[Sprint](../../docs/execution/SPRINT-095.md)。
+
 Host 显式 `adopt_quality_plan` 可在保持原提案正文的同时附加原质量行动引用；Host nonce 与 Project 事务 claim 绑定，未知停止，Python 专用。[合同](../../docs/host-model-selection.md#显式采用附质量引用的原计划提案)。
 
 S093 已保存历史区分合法manager advance_feedback/core selection与明确篡改；仅已验证当前reader语义匹配，producer未验证时partial、不返回body或授权恢复。[Sprint](../../docs/execution/SPRINT-093.md)。

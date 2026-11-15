@@ -17,7 +17,7 @@ S091 为普通活动 Workbench 增加按 Project/snapshot 查询 unknown Control
 
 S093 修正合法 manager `advance_feedback` 对应 core `controller.advance_selection` 在保存历史中被误报完整性错误：有限原登记候选与manager双摘要和原封存context/提案匹配时只标 partial/current-reader语义匹配、producer未验证，不披露body或授权恢复；明确冲突仍报完整性错误。合成及独审通过。[S093](../execution/SPRINT-093.md)。
 
-S094 新增显式 Host Python 质量计划采用入口：保留原已保存proposal四文本/理由，宿主附加经认证原质量行动引用，以原Host意图及Project同事务claim绑定；可供显式Controller v2后续使用。隔离合成无真实模型调用，Workbench/HTTP尚未接新入口，不能宣称模型实际看到/理解或科研收益。相关旧合同70/70及独审41/41；另有干净HEAD已存在的工作台错误优先级测试1项失败，已独立留证、正单独修复。[S094](../execution/SPRINT-094.md)。
+S094 新增显式 Host Python 质量计划采用入口：保留原已保存proposal四文本/理由，宿主附加经认证原质量行动引用，以原Host意图及Project同事务claim绑定；可供显式Controller v2后续使用。隔离合成无真实模型调用，Workbench/HTTP尚未接新入口，不能宣称模型实际看到/理解或科研收益。相关旧合同70/70及独审41/41；另有干净HEAD已存在的工作台错误优先级测试失败，已在 S095 单独修复并保留原失败。[S094](../execution/SPRINT-094.md) · [S095](../execution/SPRINT-095.md)。
 
 参考调研：本轮固定并只读审查 MIT 的 Meta Ax `fd8a67a524b063b2615815c638af2c94b034f476`；它允许行动完成但指标缺失，印证本项目应区分完成状态与反馈 unknown。转移/暂停顺序与本项目规则不同，不直接合入或覆盖原预算门；未运行 Ax。[源码对照](ax-transition-review-20261115.md)。
 
