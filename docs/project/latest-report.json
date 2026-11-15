@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T06:38:36+08:00",
-  "status": "S125_workbench_successor_save_verified_next_goal_review",
+  "end_time": "2026-11-16T06:46:31+08:00",
+  "status": "research_candidates_and_conditional_protocol_reviewed",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -58,7 +58,8 @@
     "S122 Python successor decision preview default wait, no ledger mutation or dispatch, independently verified synthetic",
     "S123 workbench HTTP/UI successor preview independently validated with synthetic browser/HTTP and prior manager pin",
     "S124 Python resume-only for new manager pin, independently tested synthetic transaction windows and prior pin",
-    "S125 workbench successor plan save and original-ID resume, independently verified synthetic HTTP/browser with pending scans and cooperative tab locks"
+    "S125 workbench successor plan save and original-ID resume, independently verified synthetic HTTP/browser with pending scans and cooperative tab locks",
+    "Metadata-only UCI 501 candidate review and NFCorpus sample exposure recorded; Wikinews conditional protocol independently reviewed, not authorized or executable"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -986,5 +987,11 @@
     "verification": "author 32/32, independent 13/13 with 15/60s test client; real Chromium synthetic normal/lost reply/storage/multitab/no-active/cross-project; S124 pinned synthetic compatibility",
     "negative": "two independent earlier 5s HTTP timeout failures retained; single timing 2.209s, no claim 5s performance improved",
     "limits": "session body sensitive; browser locks cooperative, double storage cleared or cross-device cannot guarantee recognition; requires no holdout; no new real research/model"
+  },
+  "research_proposal": {
+    "commit": "5622de0",
+    "candidate_audit_commit": "860290a",
+    "scope": "metadata only; Wikinews protocol is conditional and unapproved, no downloaded content/real project/model",
+    "limits": "source over 40MiB, licensing and provenance, parser and purpose semantics, actual SHA and synthetic rehearsal unresolved; NFCorpus one document preview accidentally exposed"
   }
 }

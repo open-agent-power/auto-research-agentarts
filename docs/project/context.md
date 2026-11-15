@@ -1,5 +1,7 @@
 # 云端开发上下文
 
+Wikinews [条件性研究草案](wikinews-retrieval-study-proposal-20261115.md)已独审，许可、超限源、解析、用途声明与合成预演未决，不是研究授权或已执行；[候选记录](retrieval-candidate-audit-20261115.md)包括UCI元数据冲突及NFCorpus一次意外样本曝光。
+
 S125 工作台支持人工后继计划保存及原body/ID恢复；同源tab锁、未决扫描和存储异常停查，独立合成浏览器/HTTP通过；5秒测试曾超时，旧pin不迁移。[记录](../execution/SPRINT-125.md)。
 
 S124 新管理器 pin 的 Python resume-only 在同锁内核原 body/ID及计划claim，缺失停查、完整时仅补原回执；独立合成10/10及旧pin保护通过。未接HTTP/UI，不迁移旧项目。[记录](../execution/SPRINT-124.md)。
