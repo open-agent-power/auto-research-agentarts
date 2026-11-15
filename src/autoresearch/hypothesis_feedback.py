@@ -115,6 +115,11 @@ def register(project, *, request_id, expected_state_version, hypothesis):
         project._require_unclaimed(stored, target)
         require(not any(item["controller_request_id"] == target for item in records),
                 "IDEMPOTENCY_CONFLICT", "The future controller ID is already bound to a prediction.")
+        quality_records = stored.get("tabular_quality_registrations", [])
+        require(type(quality_records) is list and all(type(item) is dict and type(item.get("controller_request_id")) is str
+                for item in quality_records), "EVIDENCE_CHANGED", "The quality registration collection is malformed.")
+        require(not any(item["controller_request_id"] in (request_id, target) for item in quality_records),
+                "IDEMPOTENCY_CONFLICT", "A request ID collides with a future tabular quality controller ID.")
         current = project.status()
         project._require_fresh(stored, current, expected_state_version)
         require(not any(item["status"] in ("prepared", "running", "unknown") for item in stored.get("controller_requests", []))

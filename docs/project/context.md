@@ -4,6 +4,8 @@
 
 [研究基线](research-baseline-20261115.md)与[方法调研](baseline-research-20261115.md)已独审；S074已完成，S075只读事后分析已完成，S077新用途声明已完成。用户批准的 S076 Bike 新独立项目已完成并独审，2/2本地工具、0模型/fit/新增native evidence，唯一 claim 与原 pin 不重置；[结果](../execution/g1-local/bike-2011-results.md)和 S080 区分真实描述性关联与合成预演。S079候选未准入且QASPER/PubMedQA公开样例意外曝光已[记录](retrieval-candidate-audit-20261115.md)，不得宣称相关片段盲测。下轮按AUTONOMY核独有lease与原budget。
 
+S082 新质量条件事前登记及原行动只读认证已完成合成验证和独审；尚未接 Controller 的反馈策略。下一步在 writer 锁内设计并验证显式策略分支及非终态恢复停查，不改旧项目或旧检索 v1–v3 合同。
+
 ## 当前任务基线（2026-11-15 15:48 后）
 
 基线外部方法已独审写入 [调研](baseline-research-20261115.md)（commit ca3f40a）；S075事后只读再分析两个真实项目validation的召回/排序联合分布，保留不利例、无新实验/模型，见[S075](../execution/SPRINT-075.md)。
