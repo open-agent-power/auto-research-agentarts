@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S113 独立真实多进程验证staged primary七个SIGKILL窗口及旧Controller抢先，八场与claim独审通过；仅合成/选定切点，未证断电或恶意隔离，UI仍未接。[SPRINT-113](../execution/SPRINT-113.md)。
+
 S112 后端新增以原登记future ID显式staged primary与只核终态恢复，parent/child各自事务claim；独审43+42合成通过，direct抢占仅函数注入、尚无UI。旧pin登记不可自动升级。[SPRINT-112](../execution/SPRINT-112.md)。
 
 S111 工作台可安全显式登记staged验证集双指标及只读反馈；Project登记/claim同事务、原ID缺失停查，独立50项+浏览器/两进程故障通过。新入口需 `-B` 和新空PYTHONPYCACHEPREFIX；未来ID执行和反馈推进UI尚未接。[SPRINT-111](../execution/SPRINT-111.md)。

@@ -206,3 +206,5 @@ S110：页面文件选择器支持S109后验bundle，真实合成HTTP和Chromium
 S111：工作台staged双指标事前登记首片已独审；登记不派发，future ID未预留，原意图/claim缺失停查。新入口需-B+空PYTHONPYCACHEPREFIX；下一片为显式原ID primary及反馈推进，见SPRINT-111。
 
 S112：原future ID staged primary后端与保守恢复已独审，parent/child各自claim非跨库原子；仅函数注入竞争，UI尚无。旧pin项目不能自动升级。见SPRINT-112。
+
+S113：原future ID staged primary七个真实SIGKILL窗口及旧Controller抢先，独立八场/claim通过；rollback journal保留，UI尚未接，见 SPRINT-113。
