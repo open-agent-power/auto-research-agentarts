@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": null,
-  "status": "S073_implementation_in_progress",
+  "status": "S073_independently_verified_continuing",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Continue S073 within existing lease, preserve old plans and original registration bindings.",
+  "next": "Add or assess explicit Workbench plan reference editing against S073, preserving plan registration constraints and prior source pins.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T15:08:40.297401+08:00",
+  "checkpoint_time": "2026-11-15T15:22:13.694690+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -320,12 +320,23 @@
     "private_read": "synthetic manager/report bytes hashed; no blanket isolation claim"
   },
   "S073": {
-    "status": "implementation_in_progress",
-    "completed": false,
+    "status": "independently_verified_and_pushed",
+    "completed": true,
     "scope": "optional explicit plan case references; operator statement not model adoption",
     "checkpoint_path": "runs/s073-verification/checkpoint-001",
     "checkpoint_manifest_sha256": "2c70b43de05e62d20d986d8dec016f063959a1f724a2e7f76125341b0cc0a80f",
     "remaining": "hypothesis plan timing, old wire, concurrency and independent review",
-    "limits": "local WIP snapshot not release; worktree may change"
+    "limits": "operator statement; no model adoption; no dedicated Workbench editing control; plan changes do not bypass original registration",
+    "commit": "340e198ec5bc5a45585e4ddd2360d31d6f0741c3",
+    "source_pin": "/workspace/development-continuation-20261114/source-pins/340e198",
+    "source_freeze_sha256": "acb42c4749f85033b4e6f99256a656d7376a2f32f33d9dcfa1424054b7db8514",
+    "source_pin_files_verified": 193,
+    "local_only_probes": 1,
+    "project_core": "e4424e6e8b1d0927f1d6dd71d412767b1210a29e4dc84f1b1b76ae6b92084f91",
+    "fixed_related_tests": 33,
+    "previous_related_tests": 71,
+    "independent_tests": 5,
+    "author_tests_repeated_independently": 2,
+    "independent_review": "runs/s073-review/independent-assessment.md"
   }
 }

@@ -1,7 +1,7 @@
 # 当前自主研究开发
 Status: resumable
 
-S073进行中：可选计划案例三元组+操作者适用说明，writer锁内校active/原bytes，历史按接受时状态，原ID在后来退休后可重放；未完成/未独审。WIP快照 runs/s073-verification/checkpoint-001 manifest SHA 2c70b43de05e62d20d986d8dec016f063959a1f724a2e7f76125341b0cc0a80f，本盘非发布产物，源码可继续变化；待原假设时序、旧wire、并发和独审。
+S073可选计划结构化case引用已独审推送 `340e198ec5bc5a45585e4ddd2360d31d6f0741c3`，锁内核active原bytes、历史按接受版本、撤回后原ID可重放，登记后的计划改变不放松原假设绑定；四条长声明逐条完整出现在Markdown/PDF。固定相关33/前版71，独审5+2及旧wire通过，仍无Workbench引用编辑控件；pin193项匹配/1本地probe。[SPRINT-073](../execution/SPRINT-073.md)。
 
 S072原项目wait→经验引用→原登记primary→新conditional闭环已做合成工程验证并推送 `9df7f3ad6743763a2471ac45d9ae6d0982da1b32`；原wait/primary/conditional跨进程原ID重放，3/3正向、额度用尽等待、unknown null及漂移拒绝均核实，作者/独审各3/3。无产品源码/真实科研/模型新增；pin 193项相同，3本机probe不在Git pin。[SPRINT-072](../execution/SPRINT-072.md)。
 
