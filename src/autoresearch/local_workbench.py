@@ -1497,7 +1497,7 @@ class LocalWorkbench:
 
     def check_plan_fact(self, body):
         from .host_model_report import capture_host_models
-        from .plan_fact_check import check_plan_fact
+        from .plan_fact_check import check_plan_fact, check_quality_plan_fact
         _require(type(body) is dict and set(body) == {"project_id", "host_request_id", "claim"},
                  "INVALID_REQUEST", "Provide the project, original Host request and selected assertion.")
         identifier(body["host_request_id"], "host_request_id")
@@ -1506,6 +1506,22 @@ class LocalWorkbench:
         captured = capture_host_models(project.root)
         record = next((item for item in captured["records"] if item["request_id"] == body["host_request_id"]), None)
         _require(record is not None, "ARTIFACT_NOT_FOUND", "No original Host request matches this ID.")
+        if type(body["claim"]) is dict and "quality" in body["claim"]:
+            folder = record.get("directory")
+            response = record.get("response_file")
+            _require(type(folder) is str and type(response) is str
+                     and record.get("status") in ("proposed", "applied", "rejected")
+                     and type(record.get("context")) is dict and type(record.get("prompt")) is dict
+                     and type(record.get("proposal")) is dict and type(record.get("arguments")) is dict
+                     and type(record["context"].get("selection_context")) is dict
+                     and record["context"].get("selection_context", {}).get("project_id") == body["project_id"],
+                     "EVIDENCE_CHANGED", "The original parsed plan and its project identity are required.")
+            names = {item["name"] for item in captured["assets"]}
+            needed = {"host-model-evidence/" + folder + "/" + suffix
+                      for suffix in ("context.json", "prompt.json", "proposal.json")}
+            needed.add("host-model-evidence/" + response)
+            _require(needed <= names, "EVIDENCE_CHANGED", "The original Host context, prompt, proposal and response files are required.")
+            return check_quality_plan_fact(record, body["claim"])
         return check_plan_fact(record, body["claim"])
 
     def model_advance(self, body, *, executable):

@@ -45,3 +45,11 @@ MAE关系声明为`{"kind":"mae_order","value":"candidate_lower"}`，还可选�
 核对只证明提交者声明的数值关系与所引用保存事实是否相符。精确选句不证明提交者对原句含义的解释正确，也不保证其他错误已被选中；单位、因果、独立性、泛化及完整科学解释均不在本检查范围。它不构成整份计划通过或自动采用许可。
 
 真实Auto MPG两份计划原回答本身均正确。故意选反方向或填写错误数字属于工程反例，不能记录成模型真实失败，更不能据此声称科研判断或研究结果已经改善。
+
+## 显式质量反馈核对（S103）
+
+同一 Workbench 入口可传 `claim.quality` 和 `claim.assertion`，选择原 Host 计划响应的精确 Unicode 码点片段，手工声明该片段对应的质量事实。`quality` 必须含原 `registration_request_id` 和 `registration_sha256`；`assertion` 可为 `{"kind":"overall_outcome","value":"condition_met"}`、`{"kind":"condition_outcome","index":0,"value":"condition_not_met"}`，或 `{"kind":"condition_value","index":0,"field":"actual","value":0}`。状态也可为 `unknown`，数值字段为 `actual` 或 `expected`，flags 值限 `empty` / `nonempty`。索引从零开始，必须与封存登记一致；布尔值不是整数。
+
+本分支要求原 response、context、prompt、proposal 文件完整，并通过原 Host 捕获校验及原回复解析；新质量分支还要求原 prompt 与当前 reader 根据封存 context 重新生成的内容一致，编译规则变化可能保守拒绝历史记录。事实只取原封存的质量材料，不用当前计划补写历史。结果 `plan-quality-fact-check-v1` 带完整 context、response、材料和反馈摘要；`supported` / `contradicted` / `undetermined` 仅比较提交者声明的映射。已知零是真实值，未知不能填零或判断成不通过；声明保存状态本身为 unknown 可比较字面状态，不证明行动未发生。整体 unknown 下已知单项可单独比较，仍保留整体状态。
+
+核对不检查语义映射是否正确、计划其余内容、当前 source/SQL/工件、科学有效性，也不证明模型收到或理解材料；不自动采纳、执行或增加预算。原 Host 捕获使用协作锁，可能创建锁文件，不能称全文件零写。其他原有 claim 和返回格式不变。
