@@ -1,5 +1,7 @@
 # 接口索引
 
+普通工作台 POST `/api/local-workbench/model-quality-plan-adopt` 显式绑定原Host计划与质量登记；manager、Host及Project各保原ID/随机意图和claim，仅原终态可核后补manager回执。[字段及边界](../../docs/local-workbench.md#接口与只读边界)。
+
 S091/S092 GET `/api/local-workbench/unknown-controller-requests.json` 支持普通活动工作台和受限只读宿主，按 project/snapshot 有界返回未知parent ID；不提供body/恢复许可，受限宿主POST仍禁用。[合同](../../docs/local-workbench.md)。
 
 S087 普通活动工作台新增质量计划引用 GET、独立质量计划与v2推进 POST；原ID/claim校验，旧普通plan不接受新字段，只读宿主新GET不可用。[字段](../../docs/tabular-quality-feedback.md)。

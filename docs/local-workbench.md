@@ -333,6 +333,7 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 | POST `/api/local-workbench/model-advance` | 当前project/version、累计决策限额/CLI配置阈值及理由；沿启动时固定的CLI选择并至多执行一步 |
 | POST `/api/local-workbench/model-plan-advance` | 与`model-advance`相同的六字段，按`purpose=plan`取得回答并保存待处理建议 |
 | POST `/api/local-workbench/model-plan-adopt` | 原`request_id/project_id`，明确采用已保存建议并保存计划修订 |
+| POST `/api/local-workbench/model-quality-plan-adopt` | 精确 `request_id/project_id/expected_state_version/host_request_id/registration_request_id`，显式采用引用原质量行动的Host提案；manager ID须与原Host ID不同 |
 | POST `/api/local-workbench/model-plan-reject` | 原`request_id/project_id`及实际`reason`，保留建议与拒绝原因 |
 | POST `/api/local-workbench/model-resume` | 仅原request_id/project_id，核对保存的原请求；不创建替代请求、不重发unknown |
 | POST `/api/local-workbench/plan` | 当前project/version、plan四项正文及reason，保存一个研究计划版本 |
@@ -344,6 +345,10 @@ PDF和Markdown把原生模型计数、CLI启动尝试、已知USD报告估值、
 | GET `/api/project/evidence-receipt/<sha>.json` | 当前项目已保存的完整原登记回执 |
 | GET `/api/project/evidence-source/<sha>/<sourceid>` | 下载该回执中的已捕获原件；不接收宿主路径 |
 | GET `/api/project`及既有artifact/report/context routes | 读取活动项目的保存事实，不执行研究 |
+
+质量计划采用的新入口只接受活动项目中已保存的原Host计划提案和质量登记。manager 的随机 nonce 和原body摘要先持久保存，Host 新版意图绑定该manager身份，Project 在同一事务保存计划和绑定完整Host意图的claim；三者的归属需要联合核对。原Host ID仍是原Project计划ID，manager请求ID单独记录，不自动产生替代ID。原文本保持不变，质量引用由宿主附加；响应只返回状态、两种请求ID、计划版本和SHA，不返回原proposal、prompt、nonce或宿主路径。该动作不派发模型、研究工具或来源读取行动，不增加预算；另行使用质量v2策略仍须显式授权并重新过门。
+
+如果原manager意图已保存而Host原意图缺失、Host尚未 applied、Project claim缺失或三层身份不一致，原ID停查，不重新创建或派发；即使Project已写计划而Host回执尚未写，也停查。只有原Host已 applied、manager绑定及Project claim和原质量材料均可认证时，才只读核对并补回manager回执。未决项参与现有工作台的研究写入与项目切换检查；它不是所有低层直连调用的全局门。原普通模型计划采用、旧wire和旧pin保持。三层链接是可信本地进程的归属核对，不证明OS隔离、断电恢复、模型实际理解或科学有效性。
 
 POST使用同源JSON与`X-AutoResearch-CSRF`，严格字段由宿主校验，不把任意JSON扩成工具调用；资料登记请求上限90MiB，其余命令保持12MiB。候选的method/parameters/evaluation完全由宿主提供，UI不能更改评价或原结果。取得新CLI回答的接口须另外显式启用，只运行启动时固定的CLI，CLI工具关闭。采用或拒绝已保存计划建议使用本地操作权限。当前开放受管表格输入、资料登记及已登记白名单分析/选区读取，科学批准、跨域策略收益和真实用户价值按相应证据确认。
 

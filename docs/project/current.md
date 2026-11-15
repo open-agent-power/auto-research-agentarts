@@ -17,7 +17,7 @@ S091 为普通活动 Workbench 增加按 Project/snapshot 查询 unknown Control
 
 S093 修正合法 manager `advance_feedback` 对应 core `controller.advance_selection` 在保存历史中被误报完整性错误：有限原登记候选与manager双摘要和原封存context/提案匹配时只标 partial/current-reader语义匹配、producer未验证，不披露body或授权恢复；明确冲突仍报完整性错误。合成及独审通过。[S093](../execution/SPRINT-093.md)。
 
-S094 新增显式 Host Python 质量计划采用入口：保留原已保存proposal四文本/理由，宿主附加经认证原质量行动引用，以原Host意图及Project同事务claim绑定；可供显式Controller v2后续使用。隔离合成无真实模型调用，Workbench/HTTP尚未接新入口，不能宣称模型实际看到/理解或科研收益。相关旧合同70/70及独审41/41；另有干净HEAD已存在的工作台错误优先级测试失败，已在 S095 单独修复并保留原失败。[S094](../execution/SPRINT-094.md) · [S095](../execution/SPRINT-095.md)。
+S094 新增显式 Host Python 质量计划采用入口：保留原已保存proposal四文本/理由，宿主附加经认证原质量行动引用，以原Host意图及Project同事务claim绑定；S097 已接显式 Workbench/Python/HTTP，三层原意图身份可核并受中断停查。隔离合成无真实模型调用，不能宣称模型实际看到/理解或科研收益。S095单独修复既存工作台错误优先级失败并保留原日志。[S094](../execution/SPRINT-094.md) · [S097](../execution/SPRINT-097.md)。
 
 S096 用隔离合成Host回复在意图已存/core前与core计划+claim已提交/Host回执前两个栅栏实际SIGKILL，并以不同进程原ID恢复；作者和独审各2/2通过。前者停查，后者核原claim只读收敛；不证明断电/所有中断或真实模型采纳。[S096](../execution/SPRINT-096.md)。
 

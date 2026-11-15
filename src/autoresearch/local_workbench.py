@@ -395,7 +395,7 @@ class LocalWorkbench:
                     except ResearchError:
                         item["recovery"] = "original_body_unavailable"
                     pending.append(item)
-            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2') ORDER BY rowid DESC"):
+            for row in con.execute("SELECT id,command,digest,record FROM requests WHERE command IN ('create','import','export','evidence','batch','continue','design_bind','import_experience','set_experience_status','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt') ORDER BY rowid DESC"):
                 if len(pending) == 8:
                     break
                 if any(item["request_id"] == row["id"] for item in pending):
@@ -1521,6 +1521,85 @@ class LocalWorkbench:
         _body(body, ("request_id", "project_id"))
         return self._plan_decision(body, reject=False)
 
+    def model_quality_plan_adopt(self, body):
+        """Adopt one original Host proposal with a manager-bound quality intent."""
+        digest = _body(body, ("request_id", "project_id", "expected_state_version", "host_request_id", "registration_request_id"))
+        for name in ("request_id", "project_id", "host_request_id", "registration_request_id"):
+            identifier(body[name], name)
+        _require(body["request_id"] != body["host_request_id"]
+                 and type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0,
+                 "INVALID_REQUEST", "Use distinct manager and original Host IDs and an exact state version.")
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                old = self._old(con, body, digest)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                host = HostModelSelection(project.root)
+                if old is None:
+                    with host._writer():
+                        with project._writer():
+                            state = project.status()
+                            with project._connect(readonly=True) as core:
+                                project._require_fresh(project._project(core), state, body["expected_state_version"])
+                            _require(batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                                     and state["code_identity"] == project_code_identity(),
+                                     "CODE_CHANGED", "Use the original manager and Project source identities.")
+                            host_state = host._load()
+                            _require(not any(item["status"] in PENDING for item in host_state["requests"].values()),
+                                     "HOST_SELECTION_PENDING", "Resolve the original Host request first.")
+                            record = host._record(host_state, body["host_request_id"])
+                            ref = host._preflight_manager_quality_adoption(record, body["registration_request_id"],
+                                                                          body["expected_state_version"])
+                            self._quality_unclaimed(project, state, (body["request_id"], body["host_request_id"]))
+                            _require(host._preflight_manager_quality_adoption(record, body["registration_request_id"],
+                                                                             body["expected_state_version"]) == ref
+                                     and project.status()["snapshot_ref"] == state["snapshot_ref"]
+                                     and batch_code_identity() == _EXPORT_BOOT_IDENTITY,
+                                     "STALE_STATE", "Host or quality evidence changed before manager acceptance.")
+                            intent = {"schema_version":"local-host-quality-intent-v1", "command":"model_quality_plan_adopt",
+                                      "project_id":state["id"], "run_id":state["run_id"], "body":copy.deepcopy(body),
+                                      "request_sha256":digest, "source_snapshot_sha256":state["source_snapshot_sha256"],
+                                      "project_code_identity":state["code_identity"], "controller_code_identity":project_controller.code_identity(),
+                                      "manager_code_identity":batch_code_identity(), "manager_root":str(self.root.resolve()),
+                                      "nonce":secrets.token_hex(32), "host_context_sha256":fingerprint(record["context"]),
+                                      "host_prompt_sha256":fingerprint(record["prompt"]), "host_proposal_sha256":fingerprint(record["proposal"]),
+                                      "host_response_sha256":record["response_sha256"], "quality_ref_sha256":fingerprint(ref)}
+                            intent["intent_sha256"] = fingerprint(intent)
+                            self._accept(con, body, digest, "model_quality_plan_adopt", intent)
+                            con.commit()
+                else:
+                    row = con.execute("select command from requests where id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "model_quality_plan_adopt"
+                             and old.get("status") in ("preparing", "completed") and type(old.get("intent")) is dict,
+                             "OPERATION_INCOMPLETE", "The original manager intent is unavailable.")
+                    intent = old["intent"]
+                    _require(type(intent.get("intent_sha256")) is str
+                             and re.fullmatch(r"[a-f0-9]{64}", intent["intent_sha256"]) is not None,
+                             "EVIDENCE_CHANGED", "The original manager intent identity is malformed.")
+            binding = {"manager_root":str(self.root.resolve()), "request_id":body["request_id"], "intent_sha256":intent["intent_sha256"]}
+            if old is not None:
+                original = host.status(request_id=body["host_request_id"])
+                _require(original.get("status") == "applied" and type(original.get("quality_adoption")) is dict
+                         and original["quality_adoption"].get("manager_binding") == binding,
+                         "OPERATION_INCOMPLETE", "The original Host adoption is not terminal and manager-bound.")
+            adopted = host.adopt_quality_plan(request_id=body["host_request_id"],
+                                              registration_request_id=body["registration_request_id"],
+                                              _manager_binding=binding)
+            revision = adopted["outcome"]["research_plan"]
+            _require(adopted["status"] == "applied" and revision["request_id"] == body["host_request_id"],
+                     "EVIDENCE_CHANGED", "The original Host plan identity changed.")
+            response = self._response("model_quality_plan_adopt", body["request_id"], body["project_id"],
+                                      status="applied", host_request_id=body["host_request_id"],
+                                      plan_version=revision["version"], plan_sha256=fingerprint(revision))
+            if old is not None and old["status"] == "completed":
+                _require(type(old.get("result")) is dict and {k:v for k,v in old["result"].items() if k != "replayed"}
+                         == {k:v for k,v in response.items() if k != "replayed"},
+                         "EVIDENCE_CHANGED", "The original manager receipt changed.")
+                return dict(response, replayed=True)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status":"completed", "intent":intent, "result":response})
+            return dict(response, replayed=old is not None)
+
     def model_plan_reject(self, body):
         _body(body, ("request_id", "project_id", "reason"))
         return self._plan_decision(body, reject=True)
@@ -1591,9 +1670,9 @@ class LocalWorkbench:
     def _no_staged_switch(con, project_id):
         if project_id is None:
             return
-        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2')"):
+        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt')"):
             record = tabular._parse(row["record"].encode("utf-8"))
-            terminal = {"completed"} if row["command"] in ("register_tabular_quality_conditions", "save_quality_plan") else {"completed", "failed", "waiting", "needs_review", "rejected"}
+            terminal = {"completed"} if row["command"] in ("register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"}
             _require(record.get("status") in terminal or record.get("intent", {}).get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished quality request before switching projects.")
         for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
@@ -1603,9 +1682,9 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        quality_commands = ("register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2")
+        quality_commands = ("register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt")
         commands = (("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")) + quality_commands
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2')"))
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":

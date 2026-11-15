@@ -6,6 +6,7 @@ import math
 import os
 from pathlib import Path
 import re
+import sqlite3
 
 from . import host_selection_protocol as protocol
 from . import research_plan_proposal as plan_protocol
@@ -81,6 +82,62 @@ def _check_quality_adoption_final(project, request_id, intent_sha):
     _require(intent["intent_sha256"] == intent_sha
              and intent["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
              "EVIDENCE_CHANGED", "The original Host adoption changed during verification.")
+
+
+def _check_manager_quality_binding(project, record, binding):
+    """Read the original manager intent, without acquiring or mutating its writer."""
+    _require(type(binding) is dict and set(binding) == {"manager_root", "request_id", "intent_sha256"}
+             and type(binding["manager_root"]) is str and Path(binding["manager_root"]).is_absolute()
+             and str(Path(binding["manager_root"]).resolve()) == binding["manager_root"]
+             and type(binding["intent_sha256"]) is str and re.fullmatch(r"[a-f0-9]{64}", binding["intent_sha256"]),
+             "EVIDENCE_CHANGED", "The original manager binding is malformed.")
+    identifier(binding["request_id"])
+    root = safe_path(Path(binding["manager_root"]))
+    db = safe_path(root / "workbench.sqlite")
+    try:
+        with sqlite3.connect(db.as_uri() + "?mode=ro", uri=True) as con:
+            con.execute("BEGIN")
+            row = con.execute("select command,digest,record from requests where id=?", (binding["request_id"],)).fetchone()
+            active = con.execute("select value from metadata where key='active_project_id'").fetchone()
+            state = project.status()
+            managed = con.execute("select slot from projects where id=?", (state["id"],)).fetchone()
+        _require(row is not None and row[0] == "model_quality_plan_adopt" and active == (state["id"],)
+                 and managed is not None and type(managed[0]) is str and re.fullmatch(r"[a-f0-9]{64}", managed[0])
+                 and safe_path(root / "projects" / managed[0]).resolve() == project.root.resolve(),
+                 "OPERATION_INCOMPLETE", "The original active manager intent or project is unavailable.")
+        saved = protocol._json(row[2].encode("utf-8"))
+        intent = saved["intent"]
+        fields = {"schema_version", "command", "project_id", "run_id", "body", "request_sha256",
+                  "source_snapshot_sha256", "project_code_identity", "controller_code_identity", "manager_code_identity",
+                  "manager_root", "nonce", "host_context_sha256", "host_prompt_sha256", "host_proposal_sha256",
+                  "host_response_sha256", "quality_ref_sha256", "intent_sha256"}
+        body = intent["body"]
+        from .local_workbench import batch_code_identity, _EXPORT_BOOT_IDENTITY
+        _require(type(intent) is dict and set(intent) == fields and intent["schema_version"] == "local-host-quality-intent-v1"
+                 and intent["command"] == "model_quality_plan_adopt" and saved["status"] in ("preparing", "completed")
+                 and type(body) is dict and set(body) == {"request_id", "project_id", "expected_state_version", "host_request_id", "registration_request_id"}
+                 and body["request_id"] == binding["request_id"] and body["host_request_id"] == record["request_id"]
+                 and body["request_id"] != body["host_request_id"]
+                 and type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
+                 and body["project_id"] == intent["project_id"] == state["id"] and intent["run_id"] == state["run_id"]
+                 and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                 and intent["project_code_identity"] == state["code_identity"] == research_project.code_identity()
+                 and intent["controller_code_identity"] == project_controller.code_identity()
+                 and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                 and intent["manager_root"] == binding["manager_root"] and type(intent["nonce"]) is str
+                 and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"])
+                 and row[1] == intent["request_sha256"] == fingerprint(body)
+                 and intent["intent_sha256"] == binding["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                 and intent["host_context_sha256"] == fingerprint(record["context"])
+                 and intent["host_prompt_sha256"] == fingerprint(record["prompt"])
+                 and intent["host_proposal_sha256"] == fingerprint(record["proposal"])
+                 and intent["host_response_sha256"] == record["response_sha256"]
+                 and intent["quality_ref_sha256"] == fingerprint(record["quality_adoption"]["quality_feedback_ref"])
+                 and body["expected_state_version"] == record["context"]["selection_context"]["state_version"],
+                 "EVIDENCE_CHANGED", "The original manager, Host or Project binding changed.")
+        return intent
+    except (OSError, sqlite3.Error, KeyError, TypeError, ValueError):
+        raise ResearchError("OPERATION_INCOMPLETE", "The original manager binding is unavailable; inspect without retrying.") from None
 
 
 class HostModelSelection:
@@ -533,8 +590,11 @@ class HostModelSelection:
         fields = {"schema_version", "request_id", "project_id", "run_id", "source_snapshot_sha256",
                   "project_code_identity", "host_code_identity", "host_root", "nonce", "expected_state_version",
                   "context_sha256", "prompt_sha256", "proposal_sha256", "response_sha256", "quality_feedback_ref", "intent_sha256"}
+        v2 = type(intent) is dict and intent.get("schema_version") == "host-quality-adoption-v2"
+        if v2:
+            fields.add("manager_binding")
         _require(type(intent) is dict and set(intent) == fields
-                 and intent["schema_version"] == "host-quality-adoption-v1"
+                 and intent["schema_version"] in ("host-quality-adoption-v1", "host-quality-adoption-v2")
                  and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
                  and type(intent["nonce"]) is str and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
                  "EVIDENCE_CHANGED", "The original quality adoption intent changed.")
@@ -569,9 +629,37 @@ class HostModelSelection:
                  and any(item["action_id"] == ref["quality_action_id"] and item["status"] == "completed"
                          for item in context["feedback"]),
                  "EVIDENCE_CHANGED", "The proposal did not reference its supplied quality action.")
+        if v2:
+            manager = _check_manager_quality_binding(self.project, record, intent["manager_binding"])
+            _require(manager["body"]["registration_request_id"] == ref["registration_request_id"],
+                     "EVIDENCE_CHANGED", "The manager quality registration differs from the Host intent.")
         return intent
 
-    def adopt_quality_plan(self, *, request_id, registration_request_id):
+    def _preflight_manager_quality_adoption(self, record, registration_request_id, expected_state_version):
+        """Validate a new manager adoption under the caller's Host and Project writers."""
+        _require(record.get("purpose") == "plan" and record.get("status") == "proposed"
+                 and "quality_adoption" not in record and record.get("request_id") == record.get("controller_request_id"),
+                 "OPERATION_INCOMPLETE", "The original Host proposal is unavailable or already claimed.")
+        self._fresh(record)
+        state = self.project.status()
+        _require(state["state_version"] == expected_state_version, "STALE_STATE", "The original project version changed.")
+        ref = self.project.prepare_tabular_quality_plan_ref(registration_request_id=registration_request_id)
+        probe = copy.deepcopy(record)
+        intent = {"schema_version":"host-quality-adoption-v1", "request_id":record["request_id"],
+                  "project_id":state["id"], "run_id":state["run_id"], "source_snapshot_sha256":state["source_snapshot_sha256"],
+                  "project_code_identity":state["code_identity"], "host_code_identity":_quality_adoption_identity(),
+                  "host_root":str(self.directory.resolve()), "nonce":"0" * 64, "expected_state_version":state["state_version"],
+                  "context_sha256":fingerprint(record["context"]), "prompt_sha256":fingerprint(record["prompt"]),
+                  "proposal_sha256":fingerprint(record["proposal"]), "response_sha256":record["response_sha256"],
+                  "quality_feedback_ref":ref}
+        intent["intent_sha256"] = fingerprint(intent)
+        probe["quality_adoption"] = intent
+        self._check_quality_adoption(probe)
+        _require(self.project.status()["snapshot_ref"] == state["snapshot_ref"],
+                 "STALE_STATE", "The project changed during manager preflight.")
+        return ref
+
+    def adopt_quality_plan(self, *, request_id, registration_request_id, _manager_binding=None):
         """Explicitly adopt an unchanged Host proposal with an authenticated quality reference."""
         identifier(request_id); identifier(registration_request_id)
         from .tabular_quality_feedback import _manager_claim
@@ -600,12 +688,17 @@ class HostModelSelection:
                           "prompt_sha256": fingerprint(record["prompt"]),
                           "proposal_sha256": fingerprint(record["proposal"]), "response_sha256": record["response_sha256"],
                           "quality_feedback_ref": ref}
+                if _manager_binding is not None:
+                    intent["schema_version"] = "host-quality-adoption-v2"
+                    intent["manager_binding"] = copy.deepcopy(_manager_binding)
                 intent["intent_sha256"] = fingerprint(intent)
                 record["quality_adoption"] = intent
                 self._check_quality_adoption(record)
                 self._save(state)
             else:
                 intent = self._check_quality_adoption(record)
+                _require(intent.get("manager_binding") == _manager_binding,
+                         "OPERATION_INCOMPLETE", "The original Host adoption belongs to a different caller.")
                 _require(intent["quality_feedback_ref"]["registration_request_id"] == registration_request_id,
                          "IDEMPOTENCY_CONFLICT", "The original quality registration differs.")
             proposal = record["proposal"]

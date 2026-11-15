@@ -88,7 +88,7 @@ Python `HostModelSelection.adopt_quality_plan(request_id=..., registration_reque
 
 Host 持锁先持久化含随机 nonce 和源码身份的原采用意图；Project 在自己的 writer 内重验原意图与质量证据，并在保存 revision 的同一 SQLite 事务写入归属 claim。原意图已保存而 core 计划不存在时停查，不自动重试；core 已完成而 Host 回执未写时，只能以同一 request ID、原登记及匹配的 claim 只读核对并补回执。已有占用、缺失或不一致的 claim 停查，未决时旧 `adopt_plan`、`reject_plan` 和新 Host 请求不可绕过。完整本地 Python 源包身份变化会停止该 opt-in 的新采用与恢复；这只是可信协作进程的文件身份核对，不是隔离或对抗性签名。其他低层入口不因此成为全局策略门。断电持久性未证。
 
-普通 `adopt_plan`、旧计划 wire 和旧项目 pin 不变；此增量仅 Python，Workbench、HTTP 与现有连续研究入口不自动接入。项目 revision 自身没有模型来源标签，须联合原 Host 意图和 Project claim 才能核其归属。导入的 delegated 回复不能证明实际模型、费用或模型是否看到或理解材料；结果并不证明科学有效性或研究收益。
+普通 `adopt_plan`、旧计划 wire 和旧项目 pin 不变。工作台提供[独立显式采用入口](local-workbench.md#接口与只读边界)，现有连续研究入口不自动接入。项目 revision 自身没有模型来源标签，须联合原 Host 意图和 Project claim 才能核其归属。导入的 delegated 回复不能证明实际模型、费用或模型是否看到或理解材料；结果并不证明科学有效性或研究收益。
 
 ### 计划执行条件
 
