@@ -9,9 +9,10 @@ type SavedMaterialRequest = MaterialRequest | QualityMaterialRequest;
 type Host = {
   read(url: string): Promise<Obj>;
   canCheckPlanFacts(): boolean;
+  canImportManual(body: Obj): boolean;
   checkPlanFact(body: Obj): Promise<Obj>;
   methodTitle(methodId: string): string;
-  submit(command: "model-advance" | "model-resume" | "model-plan-advance" | "model-plan-adopt" | "model-plan-reject" | "model-supplied-quality-plan-adopt", body: Obj): Promise<Obj | null>;
+  submit(command: "model-advance" | "model-resume" | "model-plan-advance" | "model-plan-adopt" | "model-plan-reject" | "model-supplied-quality-plan-adopt" | "manual-quality-plan-prepare" | "manual-quality-plan-import", body: Obj): Promise<Obj | null>;
   announce(message: string, error?: boolean): void;
 };
 const object = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
@@ -185,7 +186,7 @@ function platformRunRecord(run: Obj): HTMLElement {
 export function createLocalModelPanel(host: Host): {
   element: HTMLElement; planElement: HTMLElement; improvementElement: HTMLElement;
   refresh(projectId: string, project: Obj, context: Obj | null): Promise<void>;
-  setLocked(value: boolean, allowedRequestId?: string): void; pending(): boolean; canResume(body: Obj): boolean;
+  setLocked(value: boolean, allowedRequestId?: string): void; pending(): boolean; canResume(body: Obj): boolean; canImportManual(body: Obj): boolean;
   decisionResolved(command: string, requestId: string): boolean;
   savedRecords(projectId: string): Obj[];
 } {
@@ -210,6 +211,7 @@ export function createLocalModelPanel(host: Host): {
   const grid = el("div", "local-form-grid"); grid.append(field("累计决策限额", limit), field("CLI配置阈值（USD，至多0.10）", cap));
   fields.append(grid, field("本次范围与理由", reason), grantNote);
   const start = el("button", "action-button primary", "用模型选择并执行一步"); start.type = "submit";
+  const manualStart = el("button", "action-button", "准备人工回答的质量计划请求"); manualStart.type = "button";
   const materials = el("details", "local-advanced local-model-materials"), materialChoices = el("div"), materialPreview = el("div");
   const materialStatus = el("p", "detail-note"); materialStatus.setAttribute("role", "status"); materialStatus.setAttribute("aria-live", "polite");
   const previewMaterials = el("button", "action-button", "预览实际供应输入"), saveInput = el("button", "quiet-button", "下载供应后的输入 JSON");
@@ -220,7 +222,9 @@ export function createLocalModelPanel(host: Host): {
     el("p", "detail-note", "可勾选原诊断字段或质量登记。预览只读取保存结果，不创建模型请求，也不占决策名额。"),
     materialChoices, materialActions, materialStatus, materialPreview,
     el("p", "detail-note", "逐行字段仅含当时保存的 input_values，可能为空，不会补入原始 CSV。质量材料含登记条件及反馈；完整计划上下文也可能含已有观察和敏感文本。预览和勾选不发送；明确提交后，选定材料和上下文可能发送给所选模型提供方。"));
-  form.append(field("这次请模型做什么", purpose), materials, fields, start, el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
+  form.append(field("这次请模型做什么", purpose), materials, fields, start, manualStart,
+    el("p", "detail-note", "人工回答入口只准备原 Host 请求并消耗一次 Host 决策名额，不调用模型；导入回答的模型、推理次数和费用均未知。该范围声明不授权外部调用。"),
+    el("p", "detail-note", "计划建议会保存为候选版本，由你查看依据并决定采用或拒绝。"));
   const history = el("div", "local-model-history local-batch-history"); section.append(status, usage, currentCosts, form, history);
   const planHistory = el("section", "local-panel local-plan-proposals content-section"); planHistory.hidden = true;
   const improvement = el("section", "local-panel local-improvement content-section"); improvement.hidden = true;
@@ -230,6 +234,7 @@ export function createLocalModelPanel(host: Host): {
   const resumeButtons: { button: HTMLButtonElement; body: Obj }[] = [];
   const decisionButtons: { button: HTMLButtonElement; record: Obj; rejectReason?: HTMLTextAreaElement }[] = [];
   const strictDecisionControls: (() => void)[] = [];
+  const manualImportControls: (() => void)[] = [];
   const rejectDrafts = new Map<string, string>();
   const factDrafts = new Map<string, FactDraft>();
   const qualityFactDrafts = new Map<string, QualityFactDraft>();
@@ -350,7 +355,7 @@ export function createLocalModelPanel(host: Host): {
   }
   function controls(): void {
     const fixed = Object.keys(grant()).length > 0;
-    fields.disabled = locked || loading || !enabled() || !projectId || fixed;
+    fields.disabled = locked || loading || (!enabled() && !host.canCheckPlanFacts()) || !projectId || fixed;
     purpose.disabled = loading || !projectId;
     start.textContent = purpose.value === "plan" ? "让模型建议研究计划" : "用模型选择并执行一步";
     const validCap = Number(cap.value) > 0 && Number(cap.value) <= 0.10;
@@ -358,12 +363,19 @@ export function createLocalModelPanel(host: Host): {
       || qualityMaterialRequests().some(request => !qualityChoice(request)));
     const qualityNeedsPreview = purpose.value === "plan" && qualityMaterialRequests().length > 0 && !suppliedPreview;
     start.disabled = !available() || !validCap || !reason.value.trim() || staleMaterials || qualityNeedsPreview;
+    const counts = object(object(view.journal).usage), actualGrant = grant();
+    manualStart.hidden = purpose.value !== "plan";
+    manualStart.disabled = locked || loading || !loaded || !host.canCheckPlanFacts() || !projectId || view.project_id !== projectId
+      || !context || context.project_id !== projectId || context.state_version !== project.state_version || objects(context.blockers).length > 0
+      || pending() || !qualityMaterialRequests().length || !suppliedPreview || staleMaterials || !validCap || !reason.value.trim()
+      || typeof actualGrant.decision_limit === "number" && typeof counts.decision_slots_used === "number" && counts.decision_slots_used >= actualGrant.decision_limit;
     for (const { button, body } of resumeButtons) button.disabled = locked && body.request_id !== allowedRequestId || loading || !canResume(body);
     for (const { button, record, rejectReason } of decisionButtons) {
       const selected = object(object(record.context).selection_context);
       button.disabled = locked && record.request_id !== allowedRequestId || loading || record.status !== "proposed" || (rejectReason ? !rejectReason.value.trim() : selected.context_sha256 !== context?.context_sha256);
     }
     for (const update of strictDecisionControls) update();
+    for (const update of manualImportControls) update();
     materialControls();
   }
 
@@ -464,6 +476,10 @@ export function createLocalModelPanel(host: Host): {
     if (record.status === "rejected") card.append(el("p", "detail-note", "拒绝理由 · " + text(record.rejection_reason)));
     if (record.status !== "proposed") return;
     const adopt = el("button", "action-button primary", "采用此计划建议"), reject = el("button", "action-button", "拒绝此建议"), rejectReason = el("textarea");
+    if (object(record.manual_plan_intent).schema_version === "host-manual-quality-plan-intent-v1") {
+      adopt.hidden = true;
+      card.append(el("p", "detail-note", "此人工质量计划只能通过原供应质量材料的严格入口采纳；拒绝仍需核对原件。"));
+    }
     adopt.type = reject.type = "button"; rejectReason.rows = 2; rejectReason.maxLength = 2000; rejectReason.value = rejectDrafts.get(id) ?? "";
     adopt.addEventListener("click", () => { if (!adopt.disabled) void host.submit("model-plan-adopt", { request_id: id, project_id: projectId }); });
     reject.addEventListener("click", () => { if (!reject.disabled) void host.submit("model-plan-reject", { request_id: id, project_id: projectId, reason: rejectReason.value }); });
@@ -780,7 +796,7 @@ export function createLocalModelPanel(host: Host): {
     improvement.append(actions);
   }
   function savedRequests(): void {
-    resumeButtons.length = 0; decisionButtons.length = 0; strictDecisionControls.length = 0; history.replaceChildren(el("h3", "", "已保存的模型请求"));
+    resumeButtons.length = 0; decisionButtons.length = 0; strictDecisionControls.length = 0; manualImportControls.length = 0; history.replaceChildren(el("h3", "", "已保存的模型请求"));
     planHistory.replaceChildren(el("h2", "section-title", "模型计划建议")); planHistory.hidden = !records.some(record => record.purpose === "plan");
     improvement.replaceChildren(); improvement.hidden = true;
     if (!records.length) { history.append(el("p", "detail-note", "尚无请求。打开页面不会创建请求。")); return; }
@@ -819,6 +835,28 @@ export function createLocalModelPanel(host: Host): {
         el("p", "detail-note", "以上来自该请求冻结输入，不表示模型已理解或科学评审通过。完整字段值和提示原文保留在原请求 JSON。"));
       const actions = el("div", "local-actions");
       if (isPlan) planSuggestion(record, card, actions);
+      if (record.provider === "delegated" && isPlan && ["prepared", "received"].includes(text(record.status, ""))
+          && object(record.manual_plan_intent).schema_version === "host-manual-quality-plan-intent-v1") {
+        const input = el("input"); input.type = "file"; input.accept = ".json,application/json";
+        const button = el("button", "action-button", "导入此原请求的人工回答"); button.type = "button";
+        const sourceProject = projectId, snapshot = text(project.snapshot_ref, ""), intent = text(object(record.manual_plan_intent).intent_sha256, "");
+        const body = {request_id:id, project_id:sourceProject};
+        const update = (): void => { button.disabled = !input.files?.length || loading || !host.canImportManual(body); };
+        input.addEventListener("change", update);
+        button.addEventListener("click", () => { void (async () => {
+          const file = input.files?.[0]; if (button.disabled || !file || file.size < 1 || file.size > 2 * 1024 * 1024) {
+            host.announce("请选择不超过 2 MiB 的原回答 JSON。", true); return; }
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          if (!input.isConnected || sourceProject !== projectId || snapshot !== project.snapshot_ref
+              || intent !== object(record.manual_plan_intent).intent_sha256 || !host.canImportManual(body)) return;
+          const parts: string[] = []; for (let offset = 0; offset < bytes.length; offset += 8192)
+            parts.push(String.fromCharCode(...bytes.subarray(offset, offset + 8192)));
+          await host.submit("manual-quality-plan-import", {...body, response_base64:btoa(parts.join(""))});
+        })(); });
+        card.append(el("p", "detail-note", "选择这条原 Host 请求的人工回答原文件；模型身份、推理次数和费用未知，导入不会调用模型或执行研究。原文件不一致或状态未知会停止。"),
+          field("原人工回答 JSON", input), button);
+        manualImportControls.push(update);
+      }
       if ((record.provider === "claude_cli" || isPlan && record.provider === "delegated") && resumableStates.has(text(record.status, "")) && (!isPlan || pendingStates.has(text(record.status, "")))) {
         const body = { request_id: id, project_id: projectId }, resume = el("button", "action-button", "核对原请求"); resume.type = "button";
         resume.setAttribute("aria-label", "核对原模型请求 " + id);
@@ -893,6 +931,13 @@ export function createLocalModelPanel(host: Host): {
       decision_limit: decisionLimit, cli_budget_usd: cliBudget, reason: actualReason,
       ...(purpose.value === "plan" && allMaterialRequests().length ? { saved_materials: allMaterialRequests() } : {}) });
   });
+  manualStart.addEventListener("click", () => {
+    if (manualStart.disabled || !context || !form.reportValidity()) return;
+    const fixed = grant(), decisionLimit = Number(fixed.decision_limit ?? limit.value), cliBudget = Number(fixed.cli_budget_usd ?? cap.value), actualReason = text(fixed.reason, reason.value.trim());
+    if (!Number.isInteger(decisionLimit) || decisionLimit < 1 || decisionLimit > 8 || !(cliBudget > 0 && cliBudget <= 0.10) || !actualReason.trim()) return;
+    void host.submit("manual-quality-plan-prepare", {project_id:projectId, expected_state_version:context.state_version,
+      expected_snapshot_ref:project.snapshot_ref, decision_limit:decisionLimit, cli_budget_usd:cliBudget, reason:actualReason, saved_materials:allMaterialRequests()});
+  });
   previewMaterials.addEventListener("click", () => { void (async () => {
     if (previewMaterials.disabled) return;
     const revision = ++materialRevision, id = projectId, snapshot = text(project.snapshot_ref, ""), requests = JSON.stringify(allMaterialRequests());
@@ -942,5 +987,9 @@ export function createLocalModelPanel(host: Host): {
   const decisionResolved = (command: string, id: string): boolean => records.some(record => record.request_id === id && record.purpose === "plan"
     && (command === "model-plan-adopt" && record.status === "applied" || command === "model-plan-reject" && record.status === "rejected"));
   return { element: section, planElement: planHistory, improvementElement: improvement, refresh, pending, canResume, decisionResolved,
+    canImportManual(body: Obj): boolean { return loaded && body.project_id === projectId && records.some(record => record.request_id === body.request_id
+      && record.provider === "delegated" && record.purpose === "plan" && ["prepared", "received"].includes(text(record.status, ""))
+      && object(record.manual_plan_intent).schema_version === "host-manual-quality-plan-intent-v1"
+      && object(record.manual_plan_intent).snapshot_ref === project.snapshot_ref); },
     savedRecords(id): Obj[] { return loaded && projectId === id ? records : []; }, setLocked(value: boolean, allowedId = ""): void { locked = value; allowedRequestId = allowedId; controls(); } };
 }

@@ -10,7 +10,7 @@ import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean; recoverManual?: boolean };
 type PlanCaseRef = { case_id: string; case_version: number; bundle_sha256: string; applicability_statement: string };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
@@ -19,6 +19,14 @@ const numeric = (value: unknown): string => typeof value === "number" && Number.
 const names = (value: unknown): string[] => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 const sameBody = (left: Obj, right: Obj): boolean => Object.keys(left).length === Object.keys(right).length
   && Object.keys(left).every(key => JSON.stringify(left[key]) === JSON.stringify(right[key]));
+function sameValue(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (Array.isArray(left) || Array.isArray(right)) return Array.isArray(left) && Array.isArray(right)
+    && left.length === right.length && left.every((item, i) => sameValue(item, right[i]));
+  if (left === null || right === null || typeof left !== "object" || typeof right !== "object") return false;
+  const a = obj(left), b = obj(right), keys = Object.keys(a).sort(), other = Object.keys(b).sort();
+  return keys.length === other.length && keys.every((key, i) => key === other[i] && sameValue(a[key], b[key]));
+}
 const methodNames: Record<string, string> = {
   "data.tabular-quality-audit": "核对表格质量、重复与声明分组",
   "data.grouped-quality-profile": "查看零值与缺失集中于哪些组",
@@ -36,6 +44,8 @@ const methodNames: Record<string, string> = {
 };
 const PENDING_KEY = "autoresearch.local-workbench.pending.v1";
 const QUALITY_PENDING_KEY = "autoresearch.local-workbench.supplied-quality-adoption.v1";
+const MANUAL_PREPARE_KEY = "autoresearch.local-workbench.manual-plan-prepare.v1";
+const MANUAL_IMPORT_KEY = "autoresearch.local-workbench.manual-plan-import.v1";
 const MODEL_COMMANDS = new Set(["model-advance", "model-resume", "model-plan-advance", "model-plan-adopt", "model-plan-reject"]);
 
 function header(textValue: string, delimiter: string): string[] {
@@ -448,12 +458,17 @@ export async function mountLocalWorkbench(): Promise<void> {
     } catch { return null; }
   };
   const hasQualityRequest = (): boolean => { try { return sessionStorage.getItem(QUALITY_PENDING_KEY) !== null; } catch { return false; } };
+  const savedManual = (key: string): Obj | null => {
+    let raw: string | null; try { raw = sessionStorage.getItem(key); } catch { return null; }
+    if (raw === null) return null; try { return obj(JSON.parse(raw)); } catch { return {}; }
+  };
+  const hasManualRequest = (): boolean => savedManual(MANUAL_PREPARE_KEY) !== null || savedManual(MANUAL_IMPORT_KEY) !== null;
   const scopedPending = (command: string): boolean => ["evidence", "save_plan"].includes(command);
   const serverPending = (projectId = activeId()): boolean => items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
   const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
-  const uncertain = (projectId = activeId()): boolean => hasQualityRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
+  const uncertain = (projectId = activeId()): boolean => hasQualityRequest() || hasManualRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
     && (!["evidence", "plan", "plan-resume"].includes(lastRequest.command) || requestProject(lastRequest) === projectId);
-  const navigationBlocked = (): boolean => hasQualityRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
+  const navigationBlocked = (): boolean => hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
     || !!lastRequest?.uncertain && !["batch", "continue", "evidence", "plan", "plan-resume"].includes(lastRequest.command);
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
@@ -464,9 +479,11 @@ export async function mountLocalWorkbench(): Promise<void> {
   const batchPanel = createLocalBatchPanel({ submit: (body, recover, name) => submit(recover
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverBatch: true }
     : command(name, body)), canRecover: canRecoverBatch, announce });
-  const modelPanel = createLocalModelPanel({ read, canCheckPlanFacts: () => description.enabled === true,
+  const modelPanel = createLocalModelPanel({ read, canCheckPlanFacts: () => description.enabled === true, canImportManual: canRecoverManual,
     checkPlanFact: body => previewLocal("plan-fact-check", body), submit: (name, body) => submit(["model-resume", "model-plan-adopt", "model-plan-reject"].includes(name)
     ? { command: name, requestId: text(body.request_id, ""), body: JSON.stringify(body), uncertain: false, recoverModel: true }
+    : name === "manual-quality-plan-import" ? { command:name, requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, recoverManual:true }
+    : name === "manual-quality-plan-prepare" ? (() => { const id = requestId("manual-plan"); return {command:name, requestId:id, body:JSON.stringify({request_id:id, ...body}), uncertain:false}; })()
     : command(name, body)), announce, methodTitle: id => methodNames[id] ?? id });
   const recipePanel = createLocalRecipePanel({ read, preview: body => previewLocal("recipe-preview", body),
     submit: (name, body) => submit(command(name, body)), announce });
@@ -492,6 +509,27 @@ export async function mountLocalWorkbench(): Promise<void> {
   function canRecoverModel(body: Obj): boolean {
     return !busy && description.enabled === true && !otherModelBlockers(text(body.request_id, ""))
       && body.project_id === activeId() && modelPanel.canResume(body);
+  }
+  function canRecoverManual(body: Obj): boolean {
+    if (busy || description.enabled !== true || body.project_id !== activeId() || current.id !== activeId()
+        || unknownExecution() || hasQualityRequest() || batchUncertain || evidencePending.get(activeId())?.uncertain
+        || !modelPanel.canImportManual(body)) return false;
+    const prepare = savedManual(MANUAL_PREPARE_KEY), imported = savedManual(MANUAL_IMPORT_KEY);
+    if (prepare && (prepare.request_id !== body.request_id || prepare.project_id !== body.project_id
+        || !manualPrepareMatches(prepare, modelPanel.savedRecords(text(body.project_id, "")).find(item => item.request_id === body.request_id) ?? {}))) return false;
+    if (imported && (imported.request_id !== body.request_id || imported.project_id !== body.project_id
+        || typeof imported.response_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(imported.response_sha256))) return false;
+    if (items(description.pending_requests).some(item => !scopedPending(text(item.command, "")) || !item.project_id || item.project_id === body.project_id)) return false;
+    return !lastRequest?.uncertain || lastRequest.requestId === body.request_id;
+  }
+  function manualPrepareMatches(body: Obj, record: Obj): boolean {
+    const spec = obj(record.prepare_specification), marker = obj(record.manual_plan_intent), selection = obj(obj(record.context).selection_context), grant = obj(spec.grant);
+    return record.request_id === body.request_id && record.provider === "delegated" && record.purpose === "plan"
+      && marker.schema_version === "host-manual-quality-plan-intent-v1" && marker.project_id === body.project_id
+      && marker.snapshot_ref === body.expected_snapshot_ref && selection.project_id === body.project_id && selection.snapshot_ref === body.expected_snapshot_ref
+      && spec.request_id === body.request_id && spec.expected_state_version === body.expected_state_version && spec.executable === null
+      && grant.decision_limit === body.decision_limit && grant.cli_budget_usd === body.cli_budget_usd && grant.reason === body.reason
+      && sameValue(spec.saved_materials, body.saved_materials);
   }
   function canRecoverExperience(body: Obj): boolean {
     const pending = items(description.pending_requests), id = text(body.request_id, "");
@@ -547,7 +585,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     const records = items(description.pending_requests);
     let remembered: Obj = {};
     try { remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}")); } catch { /* Storage is optional; manager owns durable state. */ }
-    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !hasQualityRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
+    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
     if (records.length) pendingNotice.append(el("strong", "", records.some(record => ["batch", "continue"].includes(text(record.command, "")))
       ? "有原推进记录尚未收口。请在继续研究中核对原阶段；计划建议需先采用或拒绝，未知行动不会重发。"
       : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
@@ -579,6 +617,10 @@ export async function mountLocalWorkbench(): Promise<void> {
         button.addEventListener("click", () => { if (!button.disabled) void submit({...saved, recoverQuality: true}); });
         pendingNotice.append(el("p", "detail-note", `严格采纳原ID ${saved.requestId} · 结果待核对。仅可显式重用原项目、版本和正文；恢复入口要求原 manager 记录已存在，不会创建首次请求。`), button);
       }
+    }
+    if (hasManualRequest()) {
+      const prepare = savedManual(MANUAL_PREPARE_KEY), imported = savedManual(MANUAL_IMPORT_KEY), id = text(imported?.request_id ?? prepare?.request_id, "未知");
+      pendingNotice.append(el("p", "notice", `人工计划原 ID ${id} 仍需核对；不会凭缺记录重新准备。若原 Host 可核对，请重选原回答；导入未确认时仅接受同一原文件 SHA。`));
     }
     for (const pending of evidencePending.values()) if (pending.uncertain && !records.some(record => record.request_id === pending.requestId)) pendingNotice.append(el("p", "detail-note", "evidence · 原ID " + pending.requestId + " · 结果待核对 · 项目 " + requestProject(pending)));
     if (batchUncertain && !records.some(record => record.request_id === batchUncertain?.requestId)) pendingNotice.append(el("p", "detail-note", "batch · 原ID " + batchUncertain.requestId + " · 结果待核对；可切回原项目，新提交保持锁定。"));
@@ -868,18 +910,36 @@ export async function mountLocalWorkbench(): Promise<void> {
     const recoverExperience = pending.recoverExperience === true && pending.command === "experience-resume" && canRecoverExperience(obj(JSON.parse(pending.body)));
     const recoverPlan = pending.recoverPlan === true && pending.command === "plan-resume" && canRecoverPlan(obj(JSON.parse(pending.body)));
     const recoverQuality = pending.recoverQuality === true && pending.command === "model-supplied-quality-plan-adopt" && canRecoverQuality(pending);
+    const recoverManual = pending.recoverManual === true && pending.command === "manual-quality-plan-import" && canRecoverManual(obj(JSON.parse(pending.body)));
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
     if (pending.recoverExperience && !recoverExperience) { announce("请先只读刷新，核对本项目的原案例请求；不会用新文件或参数重建操作。", true); return null; }
     if (pending.recoverPlan && !recoverPlan) { announce("请先只读刷新并核对原计划请求；不会用当前草稿重建或创建新ID。", true); return null; }
     if (pending.recoverQuality && !recoverQuality) { announce("原严格采纳请求尚不能核对；保留原ID和正文，不创建替代请求。", true); return null; }
+    if (pending.recoverManual && !recoverManual) { announce("原人工计划请求尚不能核对；不会导入到其他 Host 或创建新ID。", true); return null; }
     const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && !recoverManual && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
     if (pending.command === "model-supplied-quality-plan-adopt" && !recoverQuality) {
       try { sessionStorage.setItem(QUALITY_PENDING_KEY, JSON.stringify({command: pending.command, body: pending.body}));
         if (savedQualityRequest()?.body !== pending.body) throw Error("storage");
       } catch { announce("无法保存严格采纳原ID与正文；尚未提交。", true); return null; }
+    }
+    if (pending.command === "manual-quality-plan-prepare") {
+      try { const original = obj(JSON.parse(pending.body)); sessionStorage.setItem(MANUAL_PREPARE_KEY, JSON.stringify(original));
+        if (!sameValue(savedManual(MANUAL_PREPARE_KEY), original)) throw Error("storage");
+      } catch { announce("无法保存人工计划原ID与选择；尚未提交。", true); return null; }
+    }
+    if (recoverManual) {
+      busy = true; controls();
+      try {
+        const original = obj(JSON.parse(pending.body)), encoded = text(original.response_base64, ""), binary = atob(encoded);
+        const digest = await sha256(Uint8Array.from(binary, char => char.charCodeAt(0)));
+        const prior = savedManual(MANUAL_IMPORT_KEY), marker = {request_id:original.request_id, project_id:original.project_id, response_sha256:digest};
+        if (prior && !sameValue(prior, marker)) throw Error("原回答 SHA 不同；保留首次请求，不会导入替换文件。");
+        if (!prior) sessionStorage.setItem(MANUAL_IMPORT_KEY, JSON.stringify(marker));
+        if (!sameValue(savedManual(MANUAL_IMPORT_KEY), marker)) throw Error("无法保存原回答 SHA；尚未提交。");
+      } catch (error) { busy = false; controls(); announce(error instanceof Error ? error.message : "原回答无法核对；尚未提交。", true); return null; }
     }
     const modelCommand = MODEL_COMMANDS.has(pending.command);
     const continuation = pending.command === "continue" ? obj(JSON.parse(pending.body)) : {};
@@ -903,7 +963,10 @@ export async function mountLocalWorkbench(): Promise<void> {
         reasons.EXPERIENCE_LIMIT = "本项目的案例绑定数量已达上限，请核对现有案例";
         const code = text(result.code, String(response.status));
         failed = true; outcomeMessage = "提交未完成：" + (reasons[code] ?? "请核对当前条件与输入") + "（" + code + "）。输入已保留；" + (pending.uncertain ? "结果仍需核对，不自动重发。" : "可以用原ID和原内容显式重试，或核对后修正输入。");
-      } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))) {
+      } else if (["unknown", "running", "pending", "prepared", "sending", "received"].includes(text(result.status, ""))
+                 && !(pending.command === "manual-quality-plan-prepare" && result.status === "prepared"
+                   && result.request_id === pending.requestId && result.project_id === targetProject
+                   && manualPrepareMatches(obj(JSON.parse(pending.body)), obj(result.model_record)))) {
         pending.uncertain = true; failed = true; outcomeMessage = "原请求结果尚未确认，请只读核对保存状态。没有自动重发。";
       } else {
         pending.uncertain = pending.command === "batch" && result.status === "needs_review"; accepted = result;
@@ -932,6 +995,38 @@ export async function mountLocalWorkbench(): Promise<void> {
         }
         if (pending.command === "plan") outcomeMessage = "研究计划已保存。后续模型选择将读取当前版本，可展开修订记录查看变更依据。";
         if (pending.command === "plan-resume") outcomeMessage = "原计划请求已核对；如此前尚未写入，本次已按原正文保存，否则仅补原回执。未创建新ID。";
+        if (pending.command === "manual-quality-plan-prepare") {
+          try { const original = obj(JSON.parse(pending.body)), saved = obj(result.model_record);
+            const model = await read("/api/local-workbench/model"), projected = await read("/api/project");
+            const matches = items(model.records).filter(item => item.request_id === pending.requestId);
+            if (activeId() !== targetProject || model.project_id !== targetProject || projected.id !== targetProject
+                || projected.snapshot_ref !== original.expected_snapshot_ref || matches.length !== 1
+                || matches[0].status !== "prepared" || !manualPrepareMatches(original, matches[0])
+                || obj(matches[0].manual_plan_intent).intent_sha256 !== obj(saved.manual_plan_intent).intent_sha256
+                || !sameValue(savedManual(MANUAL_PREPARE_KEY), original)) throw Error("identity");
+            sessionStorage.removeItem(MANUAL_PREPARE_KEY);
+            outcomeMessage = "人工回答的原 Host 计划请求已准备；占用一次 Host 决策名额，未调用模型。请查看原请求并手动导入回答。";
+          } catch { pending.uncertain = true; failed = true; accepted = null; outcomeMessage = "原 Host 准备回执未能核对，保留原ID；不会重发。"; }
+        }
+        if (pending.command === "manual-quality-plan-import") {
+          const record = obj(result.model_record), prior = savedManual(MANUAL_IMPORT_KEY);
+          if (result.status !== "proposed" || result.request_id !== pending.requestId || result.project_id !== targetProject
+              || record.request_id !== pending.requestId || !prior || prior.request_id !== pending.requestId
+              || record.response_sha256 !== prior.response_sha256) {
+            pending.uncertain = true; failed = true; accepted = null;
+            outcomeMessage = "原人工回答回执未能核对；保留原ID和SHA，不会自动重派。";
+          } else {
+            try {
+              const model = await read("/api/local-workbench/model"), matches = items(model.records).filter(item => item.request_id === pending.requestId);
+              if (activeId() !== targetProject || model.project_id !== targetProject || matches.length !== 1
+                  || matches[0].status !== "proposed" || matches[0].response_sha256 !== prior.response_sha256
+                  || obj(matches[0].manual_plan_intent).intent_sha256 !== obj(record.manual_plan_intent).intent_sha256
+                  || !sameValue(savedManual(MANUAL_IMPORT_KEY), prior)) throw Error("identity");
+              sessionStorage.removeItem(MANUAL_IMPORT_KEY); sessionStorage.removeItem(MANUAL_PREPARE_KEY);
+            } catch { pending.uncertain = true; failed = true; accepted = null; }
+            outcomeMessage = pending.uncertain ? "原人工回答保存状态仍需核对。" : "人工回答已保存为待审计划建议；模型身份、推理次数和费用未知。没有执行研究。";
+          }
+        }
         if (pending.command === "model-supplied-quality-plan-adopt") {
           if (Object.keys(result).sort().join(",") !== "command,host_request_id,plan_sha256,plan_version,project_id,replayed,request_id,schema_version,status"
               || result.schema_version !== "local-workbench-command-v1" || result.command !== "model_supplied_quality_plan_adopt"

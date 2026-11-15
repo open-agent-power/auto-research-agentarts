@@ -478,6 +478,8 @@ def create_project_server(*, workspace=None, bundle=None, report=None, port=1878
                             "/api/local-workbench/continuation-preview": "preview_continuation",
                             "/api/local-workbench/model-advance": "model_advance", "/api/local-workbench/model-resume": "model_resume",
                             "/api/local-workbench/model-plan-advance": "model_plan_advance",
+                            "/api/local-workbench/manual-quality-plan-prepare": "prepare_manual_quality_plan",
+                            "/api/local-workbench/manual-quality-plan-import": "import_manual_quality_plan",
                             "/api/local-workbench/model-plan-adopt": "model_plan_adopt",
                             "/api/local-workbench/model-quality-plan-adopt": "model_quality_plan_adopt",
                             "/api/local-workbench/model-supplied-quality-plan-adopt": "model_supplied_quality_plan_adopt",

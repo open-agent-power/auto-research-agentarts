@@ -6,6 +6,7 @@ import math
 import os
 from pathlib import Path
 import re
+import secrets
 import sqlite3
 
 from . import host_selection_protocol as protocol
@@ -175,6 +176,24 @@ class HostModelSelection:
         state = json.loads(_read_file(self.state_file, MAX_STATE_BYTES).decode("utf-8"))
         _require(state["schema_version"] == "host-model-selections-v1" and state["project_id"] == project["id"],
                  "EVIDENCE_CHANGED", "Host request ledger belongs to a different project.")
+        # Both fields are stored in the same journal, not an independent signature.
+        # This catches a single missing or inconsistent field; coordinated ledger
+        # rewriting is outside this local consistency check.
+        for key, record in state["requests"].items():
+            spec = record.get("prepare_specification")
+            _require(type(spec) is dict, "EVIDENCE_CHANGED", "Original Host specification is missing.")
+            marked, versioned = "manual_plan_intent" in record, "manual_plan_mode" in spec
+            _require(marked == versioned, "EVIDENCE_CHANGED", "Manual Host intent and specification version differ.")
+            if marked:
+                marker = record["manual_plan_intent"]
+                _require(spec["manual_plan_mode"] == "host-manual-quality-plan-v1" and type(marker) is dict
+                         and marker.get("schema_version") == "host-manual-quality-plan-intent-v1"
+                         and marker.get("request_id") == key == record.get("request_id")
+                         and marker.get("project_id") == state["project_id"]
+                         and marker.get("specification_sha256") == fingerprint(spec)
+                         and marker.get("context_sha256") == fingerprint(record.get("context"))
+                         and marker.get("intent_sha256") == fingerprint({k:v for k,v in marker.items() if k != "intent_sha256"}),
+                         "EVIDENCE_CHANGED", "Manual Host intent or specification changed.")
         return state
 
     def _save(self, state):
@@ -214,14 +233,19 @@ class HostModelSelection:
 
     def prepare(self, *, request_id, provider, expected_state_version, decision_limit, cli_budget_usd,
                 reason, executable=None, purpose="selection", current_recipe=None, improvement_goal=None,
-                saved_materials=None, reconcile_completed=False):
+                saved_materials=None, reconcile_completed=False, require_new=False):
         identifier(request_id)
+        _require(type(require_new) is bool and (not require_new or (provider == "delegated" and purpose == "plan")),
+                 "INVALID_REQUEST", "Fresh-only preparation is limited to delegated plans.")
         _require(type(reconcile_completed) is bool and (not reconcile_completed or (provider == "delegated" and purpose == "selection")),
                  "INVALID_REQUEST", "Observed completion reconciliation is limited to explicitly enabled delegated selections.")
         _require(purpose in ("selection", "plan", "recipe"), "INVALID_REQUEST", "Choose a selection, plan or recipe request purpose.")
         _require(purpose == "recipe" or (current_recipe is None and improvement_goal is None),
                  "INVALID_REQUEST", "Recipe input and improvement goal belong to recipe requests.")
         selectors = normalize_requests(saved_materials)
+        _require(not require_new or (request_id.startswith("local-manual-plan-")
+                 and any(item.get("kind") == "tabular_quality_feedback" for item in selectors)),
+                 "INVALID_REQUEST", "Fresh manual preparation requires its bounded quality selector and ID.")
         _require(purpose != "selection" or not selectors, "INVALID_REQUEST", "Saved materials belong to plan or recipe requests.")
         _require(provider in ("claude_cli", "delegated") and type(decision_limit) is int and 1 <= decision_limit <= 8,
                  "INVALID_REQUEST", "Choose claude_cli/delegated and a prospective decision limit from 1 to 8.")
@@ -246,6 +270,8 @@ class HostModelSelection:
             specification.update(current_recipe=copy.deepcopy(current_recipe), improvement_goal=improvement_goal)
         if selectors:
             specification["saved_materials"] = selectors
+        if require_new:
+            specification["manual_plan_mode"] = "host-manual-quality-plan-v1"
         if reconcile_completed:
             _require(_RECONCILE_BOOT_IDENTITY == _reconcile_code_identity(), "CODE_CHANGED", "Restart with the original Host implementation.")
             specification["observed_reconciliation"] = {"schema_version": OBSERVED_RECONCILE,
@@ -254,9 +280,15 @@ class HostModelSelection:
             state = self._load()
             old = state["requests"].get(request_id)
             if old is not None:
+                _require("manual_plan_intent" not in old, "OPERATION_INCOMPLETE",
+                         "Inspect the original manual Host request without preparing it again.")
+                _require(not require_new, "IDEMPOTENCY_CONFLICT", "The original Host ID already exists; inspect it without preparing again.")
                 _require(old["prepare_specification"] == specification, "IDEMPOTENCY_CONFLICT", "Original host preparation differs.")
                 self._materialize(old)
                 return copy.deepcopy(old)
+            _require(not any("manual_plan_intent" in item and item.get("status") not in ("applied", "rejected")
+                             for item in state["requests"].values()),
+                     "OPERATION_INCOMPLETE", "Inspect the original direct manual plan before preparing another.")
             _require(state["grant"] is None or state["grant"] == grant,
                      "HOST_GRANT_CHANGED", "The original prospective host limit cannot be replaced or reset.")
             _require(not any("quality_adoption" in r and r.get("status") != "applied"
@@ -289,6 +321,20 @@ class HostModelSelection:
                       "directory": relative, "context": context, "prompt": prompt, "status": "prepared",
                       "controller_request_id": request_id, "cli_launch_attempted": False,
                       "scientific_validation": False}
+            if require_new:
+                project_state = self.project.status()
+                _require(selection.get("project_id") == project_state["id"] and selection.get("snapshot_ref") == project_state["snapshot_ref"]
+                         and selection.get("state_version") == project_state["state_version"]
+                         and project_state["code_identity"] == research_project.code_identity()
+                         and _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity(),
+                         "STALE_STATE", "Project changed during direct manual preparation.")
+                marker = {"schema_version":"host-manual-quality-plan-intent-v1", "request_id":request_id,
+                          "project_id":project_state["id"], "run_id":project_state["run_id"],
+                          "project_code_identity":project_state["code_identity"], "host_code_identity":_QUALITY_ADOPTION_BOOT_IDENTITY,
+                          "snapshot_ref":project_state["snapshot_ref"], "specification_sha256":fingerprint(specification),
+                          "context_sha256":fingerprint(context), "nonce":secrets.token_hex(32)}
+                marker["intent_sha256"] = fingerprint(marker)
+                record["manual_plan_intent"] = marker
             if purpose != "selection":
                 record["purpose"] = purpose
             state["grant"] = grant
@@ -399,10 +445,64 @@ class HostModelSelection:
                 return copy.deepcopy(record)
             return self._recover_transport(state, record)
 
-    def import_response(self, *, request_id, response_file):
+    def _check_manual_plan_files(self, record, *, require_fresh=True):
+        """Check a direct delegated plan while holding the original Host writer."""
+        spec = record.get("prepare_specification", {})
+        marker = record.get("manual_plan_intent")
+        fields = {"schema_version", "request_id", "project_id", "run_id", "project_code_identity", "host_code_identity", "snapshot_ref", "specification_sha256", "context_sha256", "nonce", "intent_sha256"}
+        _require(type(marker) is dict and set(marker) == fields and marker.get("schema_version") == "host-manual-quality-plan-intent-v1"
+                 and type(marker.get("nonce")) is str and re.fullmatch(r"[a-f0-9]{64}", marker["nonce"]) is not None
+                 and marker.get("intent_sha256") == fingerprint({k:v for k,v in marker.items() if k != "intent_sha256"})
+                 and marker.get("request_id") == record.get("request_id") and marker.get("specification_sha256") == fingerprint(spec)
+                 and marker.get("context_sha256") == fingerprint(record.get("context")),
+                 "EVIDENCE_CHANGED", "The original manual plan intent is missing or changed.")
+        _require(type(record.get("request_id")) is str and record["request_id"].startswith("local-manual-plan-")
+                 and record.get("provider") == "delegated" and record.get("purpose") == "plan"
+                 and record.get("status") in ("prepared", "received", "proposed", "applied", "rejected")
+                 and any(type(item) is dict and item.get("kind") == "tabular_quality_feedback" for item in spec.get("saved_materials", [])),
+                 "INVALID_REQUEST", "Select the original direct delegated quality plan.")
+        folder = safe_path(self.directory / record["directory"])
+        _require(not (record["status"] == "prepared" and os.path.lexists(folder / "delegated.bin"))
+                 and not (record["status"] in ("prepared", "received") and os.path.lexists(folder / "proposal.json")),
+                 "OPERATION_INCOMPLETE", "An orphan original file requires inspection; it will not be adopted automatically.")
+        def original(path):
+            try:
+                return _read_file(safe_path(path), protocol.MAX_RESPONSE_BYTES)
+            except FileNotFoundError as error:
+                raise ResearchError("EVIDENCE_CHANGED", "An original Host file is missing.") from error
+        for name in ("context", "prompt"):
+            _require(original(folder / (name + ".json")) == canonical(record[name]).encode("utf-8"),
+                     "EVIDENCE_CHANGED", "The original Host input files changed or are missing.")
+        _require(record["prompt"] == plan_protocol.build_prompt(record["context"]),
+                 "EVIDENCE_CHANGED", "The original Host prompt no longer matches its frozen context.")
+        if require_fresh:
+            self._fresh(record)
+        project_state = self.project.status()
+        _require(marker["project_id"] == project_state["id"] and marker["run_id"] == project_state["run_id"]
+                 and marker["project_code_identity"] == project_state["code_identity"] == research_project.code_identity()
+                 and marker["host_code_identity"] == _QUALITY_ADOPTION_BOOT_IDENTITY == _quality_adoption_identity()
+                 and (not require_fresh or marker["snapshot_ref"] == project_state["snapshot_ref"])
+                 and record["context"]["selection_context"].get("snapshot_ref") == marker["snapshot_ref"],
+                 "STALE_STATE", "The original manual plan project snapshot changed.")
+        if record["status"] in ("received", "proposed", "applied", "rejected"):
+            _require(record.get("response_file") == record["directory"] + "/delegated.bin", "EVIDENCE_CHANGED", "Original response location changed.")
+            raw = original(self.directory / record["response_file"])
+            _require(hashlib.sha256(raw).hexdigest() == record.get("response_sha256"), "EVIDENCE_CHANGED", "Original response bytes changed.")
+            parsed = plan_protocol.parse_host_response(raw, "delegated")
+            _require(all(record.get(k) == v for k, v in parsed.items()), "EVIDENCE_CHANGED", "Original parsed response changed.")
+            if record["status"] in ("proposed", "applied", "rejected"):
+                proposal = plan_protocol.build_proposal(record["context"], parsed["arguments"], "Operator-imported delegated decision; execution/model/usage unverified")
+                _require(proposal == record["proposal"] and original(folder / "proposal.json")
+                         == canonical(proposal).encode("utf-8"), "EVIDENCE_CHANGED", "Original proposal changed.")
+
+    def import_response(self, *, request_id, response_file, strict_manual_plan=False):
         raw = _read_file(Path(response_file).absolute(), protocol.MAX_RESPONSE_BYTES)
         with self._writer():
             state = self._load(); record = self._record(state, request_id)
+            _require("manual_plan_intent" not in record or strict_manual_plan, "OPERATION_INCOMPLETE",
+                     "Use the original strict manual import for this Host request.")
+            if strict_manual_plan:
+                self._check_manual_plan_files(record)
             _require(record["provider"] == "delegated", "INVALID_REQUEST", "Only a delegated response can be imported.")
             if record["status"] != "prepared":
                 _require(record.get("response_sha256") == hashlib.sha256(raw).hexdigest(),
@@ -414,9 +514,13 @@ class HostModelSelection:
                 "model": "unknown", "inference_count": "unknown", "cost": "unknown", "execution_verified": False}
             return self._receive(state, record, raw, relative)
 
-    def consume(self, *, request_id):
+    def consume(self, *, request_id, strict_manual_plan=False):
         with self._writer():
             state = self._load(); record = self._record(state, request_id)
+            _require("manual_plan_intent" not in record or strict_manual_plan, "OPERATION_INCOMPLETE",
+                     "Use the original strict manual import for this Host request.")
+            if strict_manual_plan:
+                self._check_manual_plan_files(record)
             if record["status"] in ("applied", "proposed", "rejected"):
                 return copy.deepcopy(record)
             _require(record["status"] == "received", "HOST_RESPONSE_NOT_READY", "Only a complete received response may be consumed.")
@@ -569,6 +673,7 @@ class HostModelSelection:
         with self._writer():
             state = self._load(); record = self._record(state, request_id)
             _require(record.get("purpose") == "plan", "INVALID_REQUEST", "Only a plan proposal can be adopted.")
+            _require("manual_plan_intent" not in record, "OPERATION_INCOMPLETE", "Use the original supplied-quality adoption for this manual plan.")
             _require("quality_adoption" not in record, "OPERATION_INCOMPLETE",
                      "Use the original quality adoption to inspect or recover this plan.")
             if record["status"] == "applied":
@@ -642,11 +747,21 @@ class HostModelSelection:
             fields.add("manager_binding")
         if v3:
             fields.update(("prepare_specification_sha256", "supplied_quality_material_sha256"))
+        manual = type(intent) is dict and "manual_plan_intent_sha256" in intent
+        if manual:
+            fields.add("manual_plan_intent_sha256")
         _require(type(intent) is dict and set(intent) == fields
                  and intent["schema_version"] in ("host-quality-adoption-v1", "host-quality-adoption-v2", "host-quality-adoption-v3", "host-quality-adoption-v4")
                  and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
                  and type(intent["nonce"]) is str and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
                  "EVIDENCE_CHANGED", "The original quality adoption intent changed.")
+        if manual:
+            _require(v3 and type(record.get("manual_plan_intent")) is dict
+                     and intent["manual_plan_intent_sha256"] == record["manual_plan_intent"].get("intent_sha256"),
+                     "EVIDENCE_CHANGED", "The original manual plan intent no longer matches adoption.")
+            self._check_manual_plan_files(record, require_fresh=False)
+        else:
+            _require("manual_plan_intent" not in record, "EVIDENCE_CHANGED", "The original adoption does not bind this manual plan.")
         project = self.project.status()
         _require(intent["request_id"] == record["request_id"] == record["controller_request_id"]
                  and record.get("purpose") == "plan" and record.get("status") in ("proposed", "applied")
@@ -694,11 +809,14 @@ class HostModelSelection:
         _require(record.get("purpose") == "plan" and record.get("status") == "proposed"
                  and "quality_adoption" not in record and record.get("request_id") == record.get("controller_request_id"),
                  "OPERATION_INCOMPLETE", "The original Host proposal is unavailable or already claimed.")
+        if "manual_plan_intent" in record:
+            self._check_manual_plan_files(record)
         self._fresh(record)
         state = self.project.status()
         _require(state["state_version"] == expected_state_version, "STALE_STATE", "The original project version changed.")
         ref = self.project.prepare_tabular_quality_plan_ref(registration_request_id=registration_request_id)
         probe = copy.deepcopy(record)
+        probe.pop("manual_plan_intent", None)  # This transient v1 probe is not an adopted record.
         intent = {"schema_version":"host-quality-adoption-v1", "request_id":record["request_id"],
                   "project_id":state["id"], "run_id":state["run_id"], "source_snapshot_sha256":state["source_snapshot_sha256"],
                   "project_code_identity":state["code_identity"], "host_code_identity":_quality_adoption_identity(),
@@ -742,6 +860,10 @@ class HostModelSelection:
             state = self._load(); record = self._record(state, request_id)
             _require(record.get("purpose") == "plan" and record.get("status") in ("proposed", "applied"),
                      "HOST_RESPONSE_NOT_READY", "Use an original proposed plan.")
+            _require("manual_plan_intent" not in record or supplied_quality, "OPERATION_INCOMPLETE",
+                     "Use supplied-quality adoption for this manual plan.")
+            if "manual_plan_intent" in record and record["status"] == "proposed":
+                self._check_manual_plan_files(record)
             old = record.get("quality_adoption")
             if old is None:
                 _require(record["status"] == "proposed", "OPERATION_INCOMPLETE", "The original plan was already adopted without this intent.")
@@ -770,6 +892,8 @@ class HostModelSelection:
                                   supplied_quality_material_sha256=material_sha)
                     if manager_binding is not None:
                         intent["manager_binding"] = copy.deepcopy(manager_binding)
+                    if "manual_plan_intent" in record:
+                        intent["manual_plan_intent_sha256"] = record["manual_plan_intent"]["intent_sha256"]
                 elif manager_binding is not None:
                     intent["schema_version"] = "host-quality-adoption-v2"
                     intent["manager_binding"] = copy.deepcopy(manager_binding)
@@ -825,11 +949,20 @@ class HostModelSelection:
                      "Inspect the original quality adoption before any other plan decision.")
             if record["status"] == "rejected":
                 _require(record["rejection_reason"] == reason, "IDEMPOTENCY_CONFLICT", "The original rejection reason is fixed.")
+                if "manual_rejection_intent_sha256" in record or "manual_plan_intent" in record:
+                    _require(type(record.get("manual_plan_intent")) is dict
+                             and record.get("manual_rejection_intent_sha256") == record["manual_plan_intent"].get("intent_sha256"),
+                             "EVIDENCE_CHANGED", "The rejected manual intent changed.")
+                    self._check_manual_plan_files(record, require_fresh=False)
                 return copy.deepcopy(record)
             _require(record["status"] == "proposed", "HOST_RESPONSE_NOT_READY", "Only a pending plan proposal can be rejected.")
+            if "manual_plan_intent" in record:
+                self._check_manual_plan_files(record)
             _require(not any(item["request_id"] == record["controller_request_id"] for item in self.project.status().get("plan_revisions", [])),
                      "PLAN_ALREADY_ADOPTED", "Replay the original adoption to recover its committed plan.")
             record.update(status="rejected", rejection_reason=reason)
+            if "manual_plan_intent" in record:
+                record["manual_rejection_intent_sha256"] = record["manual_plan_intent"]["intent_sha256"]
             self._save(state)
             return copy.deepcopy(record)
 

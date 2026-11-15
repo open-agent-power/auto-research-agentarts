@@ -1579,6 +1579,64 @@ class LocalWorkbench:
         _body(body, (*fields, "saved_materials") if type(body) is dict and "saved_materials" in body else fields)
         return self._model_command(body, executable=executable, resume=False, purpose="plan")
 
+    def prepare_manual_quality_plan(self, body):
+        """Explicitly prepare a direct delegated Host plan; never launch a model."""
+        fields = ("request_id", "project_id", "expected_state_version", "expected_snapshot_ref", "decision_limit", "cli_budget_usd", "reason", "saved_materials")
+        _body(body, fields)
+        _require(body["request_id"].startswith("local-manual-plan-") and type(body["saved_materials"]) is list
+                 and any(type(item) is dict and item.get("kind") == "tabular_quality_feedback" for item in body["saved_materials"]),
+                 "INVALID_REQUEST", "Choose an explicit quality material and a direct manual Host ID.")
+        _require(type(body["expected_snapshot_ref"]) is str and re.fullmatch(r"[a-f0-9]{64}", body["expected_snapshot_ref"]) is not None,
+                 "INVALID_REQUEST", "Bind the original project snapshot.")
+        with self._writer():
+            with self._connect(readonly=True) as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                _require(not self._linked_continuation_plan(con, body["project_id"], body["request_id"]),
+                         "OPERATION_INCOMPLETE", "A continuation owns this Host request.")
+            before = project.status()
+            _require(before["snapshot_ref"] == body["expected_snapshot_ref"] and before["state_version"] == body["expected_state_version"],
+                     "STALE_STATE", "The previewed project state changed.")
+            journal = HostModelSelection(project.root)
+            record = journal.prepare(request_id=body["request_id"], provider="delegated", purpose="plan",
+                expected_state_version=body["expected_state_version"], decision_limit=body["decision_limit"],
+                cli_budget_usd=body["cli_budget_usd"], reason=body["reason"], saved_materials=body["saved_materials"], require_new=True)
+            _require(record["context"]["selection_context"]["snapshot_ref"] == body["expected_snapshot_ref"]
+                     and project.status()["snapshot_ref"] == body["expected_snapshot_ref"],
+                     "STALE_STATE", "The project changed during the original preparation; retain this Host ID.")
+            return self._response("prepare-manual-quality-plan", body["request_id"], body["project_id"],
+                                  status=record["status"], model_record=record, usage=journal.status())
+
+    def import_manual_quality_plan(self, body):
+        """Import exact operator bytes to an existing direct Host plan, then parse only that plan."""
+        from .host_selection_protocol import MAX_RESPONSE_BYTES
+        _body(body, ("request_id", "project_id", "response_base64"))
+        _require(body["request_id"].startswith("local-manual-plan-"), "INVALID_REQUEST", "Select a direct manual Host request.")
+        raw = _decode(body["response_base64"], MAX_RESPONSE_BYTES)
+        with self._writer():
+            with self._connect(readonly=True) as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], evidence=True)
+                _require(not self._linked_continuation_plan(con, body["project_id"], body["request_id"]),
+                         "OPERATION_INCOMPLETE", "A continuation owns this Host request.")
+            journal = HostModelSelection(project.root)
+            record = journal.status(request_id=body["request_id"])
+            spec = record.get("prepare_specification", {})
+            _require(record.get("provider") == "delegated" and record.get("purpose") == "plan"
+                     and record.get("controller_request_id") == body["request_id"]
+                     and record.get("context", {}).get("selection_context", {}).get("project_id") == body["project_id"]
+                     and any(type(item) is dict and item.get("kind") == "tabular_quality_feedback" for item in spec.get("saved_materials", [])),
+                     "INVALID_REQUEST", "Only the original direct delegated quality plan may receive these bytes.")
+            _require(record.get("status") in ("prepared", "received", "proposed"), "OPERATION_INCOMPLETE", "Inspect the original Host status before importing.")
+            with tempfile.TemporaryDirectory(dir=self.root, prefix="manual-plan-response-") as directory:
+                path = Path(directory) / "response.bin"
+                write_bytes_once(path, raw)
+                record = journal.import_response(request_id=body["request_id"], response_file=path, strict_manual_plan=True)
+            if record["status"] == "received":
+                record = journal.consume(request_id=body["request_id"], strict_manual_plan=True)
+            return self._response("import-manual-quality-plan", body["request_id"], body["project_id"],
+                                  status=record["status"], model_record=record, usage=journal.status())
+
     def model_plan_adopt(self, body):
         _body(body, ("request_id", "project_id"))
         return self._plan_decision(body, reject=False)
