@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S074进行中：计划引用界面与原计划请求跨刷新恢复。新含refs请求本机intent事务存原body，pending脱敏且按项目优先，旧无body标unknown；未提交核原来源及状态、已提交仅核历史后补原receipt。后台WIP 14/14，尚未完成UI/跨进程HTTP/浏览器和独审；本盘快照 runs/s074-verification/checkpoint-001 manifest SHA 541f70cbc28231797d07f3ab48ca531de924eb0f16df7f90375c5bb902fba3d6，代码可能继续变化，不是发布版本。
+
 S073可选计划结构化case引用已独审推送 `340e198ec5bc5a45585e4ddd2360d31d6f0741c3`，锁内核active原bytes、历史按接受版本、撤回后原ID可重放，登记后的计划改变不放松原假设绑定；四条长声明逐条完整出现在Markdown/PDF。固定相关33/前版71，独审5+2及旧wire通过，仍无Workbench引用编辑控件；pin193项匹配/1本地probe。[SPRINT-073](../execution/SPRINT-073.md)。
 
 S072原项目wait→经验引用→原登记primary→新conditional闭环已做合成工程验证并推送 `9df7f3ad6743763a2471ac45d9ae6d0982da1b32`；原wait/primary/conditional跨进程原ID重放，3/3正向、额度用尽等待、unknown null及漂移拒绝均核实，作者/独审各3/3。无产品源码/真实科研/模型新增；pin 193项相同，3本机probe不在Git pin。[SPRINT-072](../execution/SPRINT-072.md)。
