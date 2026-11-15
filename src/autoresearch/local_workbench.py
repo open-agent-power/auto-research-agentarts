@@ -823,6 +823,8 @@ class LocalWorkbench:
 
     def save_plan(self, body):
         digest = _body(body, ("request_id", "project_id", "expected_state_version", "plan", "reason"))
+        _require(type(body.get("plan")) is not dict or "quality_feedback_ref" not in body["plan"],
+                 "INVALID_REQUEST", "Quality-linked plans are only available through the Project Python API.")
         versioned = type(body.get("plan")) is dict and "experience_case_refs" in body["plan"]
         with self._writer():
             with self._connect() as con:

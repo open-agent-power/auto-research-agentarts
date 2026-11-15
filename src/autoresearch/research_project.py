@@ -99,7 +99,7 @@ def code_identity():
     from . import project_recipe, recipe_improvement
     from . import staged_wait_experience
     from . import project_model_protocol
-    from . import tabular_quality_conditions, tabular_quality_feedback, contracts as contracts_module
+    from . import tabular_quality_conditions, tabular_quality_feedback, tabular_quality_plan, contracts as contracts_module
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
     from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy, saved_retrieval_reader, staged_continuation, staged_project_experience, staged_feedback_reader
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -117,6 +117,7 @@ def code_identity():
                         "hypothesis_feedback": hashlib.sha256(Path(hypothesis_feedback.__file__).read_bytes()).hexdigest(),
                         "tabular_quality_conditions": hashlib.sha256(Path(tabular_quality_conditions.__file__).read_bytes()).hexdigest(),
                         "tabular_quality_feedback": hashlib.sha256(Path(tabular_quality_feedback.__file__).read_bytes()).hexdigest(),
+                        "tabular_quality_plan": hashlib.sha256(Path(tabular_quality_plan.__file__).read_bytes()).hexdigest(),
                         "feedback_policy": hashlib.sha256(Path(feedback_policy.__file__).read_bytes()).hexdigest(),
                         "saved_retrieval_reader": hashlib.sha256(Path(saved_retrieval_reader.__file__).read_bytes()).hexdigest(),
                         "staged_feedback_reader": hashlib.sha256(Path(staged_feedback_reader.__file__).read_bytes()).hexdigest(),
@@ -396,7 +397,8 @@ class ResearchProject:
         require(type(expected_state_version) is int and expected_state_version >= 0,
                 "INVALID_REQUEST", "Bind the current project version before saving a plan.")
         limits = {"question": 4000, "basis": 6000, "steps": 12000, "expected_feedback": 4000}
-        require(type(plan) is dict and set(plan) in (set(limits), set(limits) | {"experience_case_refs"}),
+        require(type(plan) is dict and set(limits) <= set(plan)
+                and set(plan) <= set(limits) | {"experience_case_refs", "quality_feedback_ref"},
                 "INVALID_REQUEST", "Use the exact research plan fields.")
         for key, limit in limits.items():
             value = plan[key]
@@ -405,6 +407,9 @@ class ResearchProject:
                     "INVALID_REQUEST", "Research plan text is missing or exceeds its field limit.")
         if "experience_case_refs" in plan:
             validate_plan_experience_refs(plan["experience_case_refs"])
+        if "quality_feedback_ref" in plan:
+            from .tabular_quality_plan import validate_reference
+            validate_reference(plan["quality_feedback_ref"])
         require(type(reason) is str and 0 < len(reason) <= 2000 and bool(reason.strip()) and "\x00" not in reason,
                 "INVALID_REQUEST", "Record a reason for the plan revision.")
         with self._writer():
@@ -415,9 +420,15 @@ class ResearchProject:
                     require(previous["based_on_state_version"] == expected_state_version
                             and previous["reason"] == reason and all(previous[key] == plan[key] for key in limits)
                             and ("experience_case_refs" in previous) == ("experience_case_refs" in plan)
-                            and ("experience_case_refs" not in plan or canonical(previous["experience_case_refs"]) == canonical(plan["experience_case_refs"])),
+                            and ("experience_case_refs" not in plan or canonical(previous["experience_case_refs"]) == canonical(plan["experience_case_refs"]))
+                            and ("quality_feedback_ref" in previous) == ("quality_feedback_ref" in plan)
+                            and ("quality_feedback_ref" not in plan or canonical(previous["quality_feedback_ref"]) == canonical(plan["quality_feedback_ref"])),
                             "IDEMPOTENCY_CONFLICT", "The original plan revision is bound to different content.")
                     _check_plan_experience_refs(self.root, project, previous)
+                    if "quality_feedback_ref" in plan:
+                        from .tabular_quality_plan import check_reference
+                        check_reference(self, self.status(), plan["quality_feedback_ref"],
+                                        based_on_state_version=expected_state_version, revision=previous)
                     return previous
                 require(self._action(con, request_id) is None, "IDEMPOTENCY_CONFLICT", "ID belongs to an existing action.")
                 self._require_unclaimed(project, request_id, except_collection="plan_revisions")
@@ -430,6 +441,9 @@ class ResearchProject:
                 require(not any(item["status"] in PENDING for item in HostModelSelection(self.root).status()["requests"]),
                         "HOST_SELECTION_PENDING", "Reconcile the original host-model request before revising its plan.")
                 _check_plan_experience_refs(self.root, project, {**plan, "based_on_state_version": expected_state_version}, code="INVALID_REQUEST", pending=True)
+                if "quality_feedback_ref" in plan:
+                    from .tabular_quality_plan import check_reference
+                    check_reference(self, self.status(), plan["quality_feedback_ref"], based_on_state_version=expected_state_version)
                 if _validate_only:
                     return None
                 revisions = project.setdefault("plan_revisions", [])
@@ -439,6 +453,11 @@ class ResearchProject:
                 project["state_version"] += 1
                 self._save(con, project)
                 return revision
+
+    def prepare_tabular_quality_plan_ref(self, *, registration_request_id):
+        """Read a verified reference for an explicit successor plan without dispatch."""
+        from .tabular_quality_plan import read_reference
+        return read_reference(self, registration_request_id=registration_request_id)
 
     def register_hypothesis(self, *, request_id, expected_state_version, hypothesis):
         """Preregister a bounded validation condition before its original action."""
