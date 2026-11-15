@@ -9,6 +9,8 @@ S085 Project Python 能保存引用原质量行动的直接后续 plan v2；S086
 
 S088 在五个固定 manager/core 节点以独立合成Project真实 SIGKILL 子进程，再由不同进程用原ID/body验证停查或终态回执收敛；作者、主代理和独审各5/5，原Project DB/工件/预算不变。只覆盖选定进程切点，不证明断电或所有恢复时序。[S088](../execution/SPRINT-088.md)。
 
+参考调研：本轮固定并只读审查 MIT 的 Meta Ax `fd8a67a524b063b2615815c638af2c94b034f476`；它允许行动完成但指标缺失，印证本项目应区分完成状态与反馈 unknown。转移/暂停顺序与本项目规则不同，不直接合入或覆盖原预算门；未运行 Ax。[源码对照](ax-transition-review-20261115.md)。
+
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。
 
 S079检索候选元数据筛选未找到可直接准入项；PubMedQA许可未核且搜索返回公开示例，QASPER许可检索亦意外返回公开test示例，现已停止查看样本，不可称完全未曝/盲测；bioCADDIE规模和qrels权利未核。无新数据下载/项目/排序/模型。[审计](retrieval-candidate-audit-20261115.md)。
