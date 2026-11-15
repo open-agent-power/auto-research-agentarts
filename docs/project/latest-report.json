@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": null,
-  "status": "S067_real_study_independently_verified_continuing",
+  "status": "S068_verified_S069_in_progress",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Explore next bounded verifiable autonomy increment, retaining both real negative outcomes and unknown comparisons; do not reset previous studies.",
+  "next": "Continue S069 implementation and independent review without changing old cases or claiming offline proof.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T13:30:40.808579+08:00",
+  "checkpoint_time": "2026-11-15T13:37:34.425174+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -218,5 +218,27 @@
     "public_aggregate_sha256": "9dc9d6af354b7aaf7cdaed8b8ae1d5e90450ecb81bacb56f4eed612e6e0114f6",
     "independent_review": "runs/s067-review/actual-study-assessment.md",
     "finite_canary": "runs/s067-review/public-results-check.json"
+  },
+  "S068": {
+    "status": "independently_verified",
+    "case_id": "s067-boolq-paired-history",
+    "entry_id": "5035f02118207618dbf252b82da13170c14b76425035bb1e0232d26dc115ca91",
+    "bundle_file_sha256": "027b35124677af1c90c8ff98369468ecfcdf29363a37bc545db75128eff4b191",
+    "canonical_bundle_sha256": "dc8e4ccf9e90c2d7f77bc90ca5c8cf4b1644b393d9b595eef24d6c644674c66b",
+    "target_project_id": "project-e1ba4a7bfe3241c4b7838f199070212a",
+    "target_tool_limit": 1,
+    "target_tools_used": 0,
+    "source_48_files_and_claim_unchanged": true,
+    "outer_B": "unverified_operator_statement",
+    "comparison": "unknown_same_arm",
+    "scientific_transfer_gain": "unknown",
+    "limits_correction_sha256": "8f4f4b5111f911ad4f9535c51730b807d679648783ce361831630746953d8d0d",
+    "public_aggregate_sha256": "c9a8cee69cb7944840fcc366abfa02988f40a2c6651f038f6d6db8ab2e155aa0",
+    "independent_review": "runs/s068-review/independent-assessment.md"
+  },
+  "S069": {
+    "status": "implementation_in_progress",
+    "description": "optional versioned source-checked outer-rule comparison; v1/v2 preserved",
+    "completed": false
   }
 }

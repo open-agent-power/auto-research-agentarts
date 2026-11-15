@@ -1,0 +1,123 @@
+{
+  "bundle_file_sha256": "027b35124677af1c90c8ff98369468ecfcdf29363a37bc545db75128eff4b191",
+  "canonical_bundle_sha256": "dc8e4ccf9e90c2d7f77bc90ca5c8cf4b1644b393d9b595eef24d6c644674c66b",
+  "case_id": "s067-boolq-paired-history",
+  "comparison": "unknown_same_arm",
+  "counterfactual": "tfidf_final_unmeasured",
+  "feedback": {
+    "condition": {
+      "measure": "candidate_minus_baseline",
+      "metric": "recall@20",
+      "operator": "gt",
+      "split": "validation",
+      "threshold": 0
+    },
+    "outcome": "condition_not_met",
+    "policy": {
+      "condition_met": "tfidf_cosine",
+      "condition_not_met": "bm25",
+      "kind": "registered_feedback",
+      "registration_request_id": "s067-hypothesis",
+      "unknown": "stop"
+    },
+    "registration_schema": "hypothesis-registration-v1",
+    "value": 0.0
+  },
+  "final_aggregate": {
+    "baseline": {
+      "mrr@10": 0.8587281746031746,
+      "ndcg@10": 0.8859893031287003,
+      "recall@10": 0.97,
+      "recall@20": 0.97,
+      "recall@5": 0.935
+    },
+    "delta": {
+      "mrr@10": 0.0,
+      "ndcg@10": 0.0,
+      "recall@10": 0.0,
+      "recall@20": 0.0,
+      "recall@5": 0.0
+    },
+    "selected": {
+      "mrr@10": 0.8587281746031746,
+      "ndcg@10": 0.8859893031287003,
+      "recall@10": 0.97,
+      "recall@20": 0.97,
+      "recall@5": 0.935
+    }
+  },
+  "limitations": [
+    "Native v2 verifies only native rule A; outer shadow B and comparison are operator statements, not verified by the bundle.",
+    "Offline audit policy and final aggregate require the original producer.",
+    "Capture read the completed final artifact; full-file hashes and canaries read private holdout outside guards.",
+    "No separate sklearn estimator.fit sentinel was installed; no fit was observed on the read-only path.",
+    "Target is an engineering fixture; no model adoption or scientific transfer benefit is established."
+  ],
+  "limits_correction_sha256": "8f4f4b5111f911ad4f9535c51730b807d679648783ce361831630746953d8d0d",
+  "review_status_at_creation": "pending_independent_review",
+  "schema_version": "s068-public-aggregate-v1",
+  "scientific_validation": false,
+  "shadow_comparison_status": "unverified_operator_statement",
+  "source_budget": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 0,
+    "evidence_reads_reserved": 0,
+    "evidence_reads_used": 0,
+    "existing_cash_cap_cny": 5,
+    "fit_attempts_used": 0,
+    "fit_limit": 0,
+    "fits_completed": 0,
+    "fits_reserved": 0,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "s067-boolq-paired-passage-v1",
+    "local_tool_call_limit": 3,
+    "local_tool_calls_reserved": 0,
+    "local_tool_calls_used": 3,
+    "local_tool_dispatches": 3,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "preprocessing_fits": 0,
+    "preprocessing_fits_completed": 0,
+    "ridge_fits_completed": 0
+  },
+  "source_commit": "5bd9883dd435a1d39b857a51bb6f4d20a53f156b",
+  "source_file_count": 48,
+  "source_files_and_claim_unchanged": true,
+  "source_project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+  "source_run_id": "run-276475c33d7542509c840bc575005271",
+  "source_summary_sha256": "99ea63fe98bb5a8cb2bd7dc6d9da7ff257f3a423a8b9bfb2f6caced4dec421a7",
+  "target_budget": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 0,
+    "evidence_reads_reserved": 0,
+    "evidence_reads_used": 0,
+    "existing_cash_cap_cny": 5,
+    "fit_attempts_used": 0,
+    "fit_limit": 0,
+    "fits_completed": 0,
+    "fits_reserved": 0,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "s068-engineering-only",
+    "local_tool_call_limit": 1,
+    "local_tool_calls_reserved": 0,
+    "local_tool_calls_used": 0,
+    "local_tool_dispatches": 0,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "preprocessing_fits": 0,
+    "preprocessing_fits_completed": 0,
+    "ridge_fits_completed": 0
+  },
+  "target_import_replayed": true,
+  "target_plan_context_includes_original_feedback": true,
+  "target_project_id": "project-e1ba4a7bfe3241c4b7838f199070212a",
+  "verification_sha256": "f6e08ec8a338687785b8688d4efa61145de75b413aa2f2004f76153602a5456e"
+}
