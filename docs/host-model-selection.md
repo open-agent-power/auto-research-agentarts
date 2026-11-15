@@ -82,6 +82,16 @@
 
 模型原始JSON恰含`plan`、`reason`、`feedback_action_ids`和`expected_improvement`。`plan`恰含`question/basis/steps/expected_feedback`四项文本。反馈引用采用该请求context中的真实行动ID，已有反馈时至少引用一项。这里的`reason`解释计划为什么修订，与CLI参数中记录授权范围的`--reason`分别保存。
 
+### 明确供应表格质量条件反馈
+
+研究计划请求可在已有 `saved_materials` 中显式选入 `{"kind":"tabular_quality_feedback","registration_request_id":"原登记ID","registration_sha256":"原登记SHA256"}`；同次最多四个不同质量登记，原有其他材料的各自上限不变。此类型仅支持 plan，recipe 的准备与已封上下文校验均拒绝。非空选择沿原 `research-plan-context-v3.supplied_materials` 供应，未选择时旧context和prompt不变。
+
+该材料仅含原登记与Controller ID、登记/计划/来源身份、有限的原登记条件、原reader反馈及 `scientific_validation=false`。reader按原Project、source、计划、Controller parent/child、SQL指纹、原工件和生产代码核验；已知 `condition_met`、`condition_not_met`、真实零、每项条件的actual/expected与unknown原因均原样保留。reader在Controller各阶段返回的 `unknown` 与机械值不可得如实保留，不补造行动或结果；Controller阶段的unknown在完整核验parent、child、SQL及工件之前可能已返回，不证明行动未发生，也不认证未读取的证据。当前计划与原登记计划不同时拒绝供应，因为reader尚未核完原行动；已核到的来源、SQL、工件、代码或读取中证据漂移拒绝供应。已供应逐项值与已有quality observation的profile在冻结context内再做一致性检查，此检查不代替原reader认证。
+
+列名及条件是未可信数据，不是模型指令；机械判断不等于来源许可或科学批准。flags只判已保存、去重且最多64项列表的空/非空，不能当作全部异常总数。新增材料不复制原CSV、profile、examples或原始token；旧feedback本身可能已包含原有样例，不能声称完整Host context没有token。最终完整context仍最多64KiB，超限整体拒绝，不截断。报告摘要只列登记身份和三态，不重印条件或原token。
+
+Host保留原selector与完整context/prompt并沿原ID核对；proposal内 `context_sha256` 绑定的是selection子上下文，不单独认证整个v3材料。此材料不调用模型、研究工具、fit或来源读取行动，也不增加预算或自动批准计划；delegated回复不能证明实际模型看到、理解或使用材料。
+
 ### 显式采用附质量引用的原计划提案
 
 Python `HostModelSelection.adopt_quality_plan(request_id=..., registration_request_id=...)` 是独立的显式采用操作，只接受原 Host 已保存的 `proposed` 计划。原封存 context 必须供应已完成的质量行动，原 proposal 的 `feedback_action_ids` 必须明确引用该行动。系统重新读取原 response、proposal、context 和 prompt，核对 prompt 可由封存 context 生成；再由同项目的质量 reader 核原登记、计划、parent/child、SQL、工件、来源及代码，生成结构化引用。四项计划正文和理由逐字来自原 proposal；质量引用由宿主附加，已知 met 与 not_met 都可保存，unknown 停止。认证会读取原来源和工件文件，但不派发模型、研究工具或来源读取行动，也不增加任何预算。后续若要执行，仍需显式调用原质量策略 v2 并重验其计划、条件和剩余额度。

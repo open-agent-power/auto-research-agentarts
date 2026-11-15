@@ -185,6 +185,13 @@ def supplied_material_summaries(record) -> list:
         return []
     summaries = []
     for material in context["supplied_materials"]:
+        if type(material) is dict and material.get("kind") == "tabular_quality_feedback":
+            result = material.get("feedback")
+            if type(result) is dict:
+                summaries.append({"kind":"tabular_quality_feedback", "registration_request_id":material.get("registration_request_id"),
+                                  "registration_sha256":material.get("registration_sha256"), "outcome":result.get("outcome"),
+                                  "unknown_reason":result.get("unknown_reason"), "scientific_validation":False})
+            continue
         if type(material) is dict and material.get("kind") == "staged_validation_stability":
             summaries.append({key: copy.deepcopy(material[key]) for key in
                               ("kind", "action_id", "result_sha256", "artifact_ref", "binding", "origin", "producer",

@@ -1,5 +1,7 @@
 # 接口索引
 
+计划 `saved_materials` 新增显式 `tabular_quality_feedback` 登记ID/SHA选择，v3材料保留真实三态和有限条件；recipe不接受。[字段](../../docs/host-model-selection.md#明确供应表格质量条件反馈)。
+
 普通工作台 POST `/api/local-workbench/model-quality-plan-adopt` 显式绑定原Host计划与质量登记；manager、Host及Project各保原ID/随机意图和claim，仅原终态可核后补manager回执。[字段及边界](../../docs/local-workbench.md#接口与只读边界)。
 
 S091/S092 GET `/api/local-workbench/unknown-controller-requests.json` 支持普通活动工作台和受限只读宿主，按 project/snapshot 有界返回未知parent ID；不提供body/恢复许可，受限宿主POST仍禁用。[合同](../../docs/local-workbench.md)。

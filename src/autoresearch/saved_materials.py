@@ -2,6 +2,7 @@
 import copy
 import json
 import math
+import operator
 
 from .contracts import ResearchError, canonical, fingerprint
 from .project_selection import _hash, _text
@@ -11,7 +12,12 @@ FIELDS = ("groups", "folds", "rows")
 RETRIEVAL_KIND = "retrieval_adverse_query"
 STAGED_RETRIEVAL_KIND = "staged_retrieval_adverse_query"
 STABILITY_KIND = "staged_validation_stability"
+QUALITY_KIND = "tabular_quality_feedback"
 MAX_RETRIEVAL_SELECTORS = 4
+MAX_QUALITY_SELECTORS = 4
+QUALITY_UNKNOWN_REASONS = frozenset({"controller_not_started", "controller_id_claimed_by_other_command",
+    "controller_prepared", "controller_running", "controller_unknown", "controller_failed", "controller_rejected",
+    "controller_waiting", "controller_needs_review", "quality_values_unknown"})
 METHODS = {"data.saved-oof-random-diagnostics": ("random_cv", "data.ridge-random-validation"),
            "data.saved-oof-group-diagnostics": ("group_cv", "data.ridge-group-validation")}
 SOURCE_FIELDS = {"action_id", "request_id", "method_id", "result_sha256", "producer_code_identity",
@@ -28,8 +34,15 @@ def normalize_requests(value):
         return []
     code = "INVALID_SAVED_MATERIALS"
     _require(type(value) is list, "Saved materials must be an array of explicit saved diagnostic selectors.", code)
-    known, queries = set(), set()
+    known, queries, quality = set(), set(), set()
     for item in value:
+        if type(item) is dict and item.get("kind") == QUALITY_KIND:
+            _require(set(item) == {"kind", "registration_request_id", "registration_sha256"}
+                     and _text(item["registration_request_id"], 160) and _hash(item["registration_sha256"])
+                     and item["registration_request_id"] not in quality and len(quality) < MAX_QUALITY_SELECTORS,
+                     "Select at most four distinct exact quality registrations.", code)
+            quality.add(item["registration_request_id"])
+            continue
         if type(item) is dict and item.get("kind") == STABILITY_KIND:
             _require(set(item) == {"kind", "action_id", "result_sha256"}
                      and _text(item["action_id"], 160) and _hash(item["result_sha256"]),
@@ -327,9 +340,132 @@ def _validate_retrieval_material(context, material, feedback, seen):
     seen.add(identity)
 
 
+def _quality_material(project, state, request):
+    """Project one exact registration and the original reader's bounded result."""
+    from .tabular_quality_feedback import _checked_collection
+    records = state.get("tabular_quality_registrations", [])
+    _checked_collection(records)
+    found = [item for item in records if item["request_id"] == request["registration_request_id"]]
+    _require(len(found) == 1 and found[0]["registration_sha256"] == request["registration_sha256"],
+             "The original quality registration or SHA is unavailable.")
+    record = found[0]
+    first = project.read_tabular_quality_feedback(request_id=record["request_id"])
+    second = project.read_tabular_quality_feedback(request_id=record["request_id"])
+    _require(first == second and project.status()["snapshot_ref"] == state["snapshot_ref"],
+             "Quality evidence changed during materialization.")
+    _require(first["registration_sha256"] == record["registration_sha256"]
+             and first["request_id"] == record["request_id"]
+             and first["controller_request_id"] == record["controller_request_id"],
+             "The original quality reader binding changed.")
+    _require(first["unknown_reason"] != "plan_binding_changed",
+             "The registered plan changed; its original quality evidence was not fully checked.")
+    _require(first["outcome"] != "unknown" or first["unknown_reason"] in QUALITY_UNKNOWN_REASONS,
+             "Quality evidence cannot be authenticated; inspect its original state.")
+    return {"kind":QUALITY_KIND, "registration_request_id":record["request_id"],
+            "registration_sha256":record["registration_sha256"], "controller_request_id":record["controller_request_id"],
+            "plan_version":record["plan_version"], "plan_sha256":record["plan_sha256"],
+            "source_snapshot_sha256":record["source_snapshot_sha256"],
+            "conditions":copy.deepcopy(record["conditions"]), "feedback":copy.deepcopy(first),
+            "scientific_validation":False}
+
+
+def _validate_quality_material(context, material, feedback, seen):
+    """Validate a frozen projection's shape; live authenticity is checked when built."""
+    from . import tabular_quality_conditions as conditions
+    code = "INVALID_PLAN_CONTEXT"
+    fields = {"kind", "registration_request_id", "registration_sha256", "controller_request_id", "plan_version",
+              "plan_sha256", "source_snapshot_sha256", "conditions", "feedback", "scientific_validation"}
+    _require(set(material) == fields and _text(material["registration_request_id"], 160)
+             and material["registration_request_id"] not in seen and len(seen) < MAX_QUALITY_SELECTORS
+             and _text(material["controller_request_id"], 160) and _hash(material["registration_sha256"])
+             and type(material["plan_version"]) is int and material["plan_version"] >= 1
+             and _hash(material["plan_sha256"]) and _hash(material["source_snapshot_sha256"])
+             and material["source_snapshot_sha256"] == context["selection_context"]["source_snapshot_sha256"]
+             and material["scientific_validation"] is False,
+             "Use distinct bounded original quality registration identities.", code)
+    seen.add(material["registration_request_id"])
+    try:
+        registered = conditions.validate_conditions(material["conditions"], numeric_columns=context["selection_context"]["domain_scope"]["numeric_columns"])
+    except (ResearchError, KeyError, TypeError):
+        raise ResearchError(code, "The saved quality conditions are invalid.") from None
+    result = material["feedback"]
+    keys = {"schema_version", "outcome", "unknown_reason", "evaluation", "action_id", "result_sha256",
+            "scientific_validation", "request_id", "registration_sha256", "controller_request_id"}
+    _require(type(result) is dict and set(result) == keys and result["schema_version"] == "tabular-quality-feedback-v1"
+             and result["outcome"] in ("condition_met", "condition_not_met", "unknown")
+             and result["request_id"] == material["registration_request_id"]
+             and result["registration_sha256"] == material["registration_sha256"]
+             and result["controller_request_id"] == material["controller_request_id"]
+             and result["scientific_validation"] is False,
+             "The bounded quality feedback identity is invalid.", code)
+    outcome, evaluation = result["outcome"], result["evaluation"]
+    if outcome == "unknown":
+        _require(type(result["unknown_reason"]) is str and result["unknown_reason"] in QUALITY_UNKNOWN_REASONS and result["action_id"] is None
+                 and result["result_sha256"] is None
+                 and ((result["unknown_reason"] == "quality_values_unknown") == (evaluation is not None)),
+                 "Unknown quality must retain its reason without a known result identity.", code)
+    else:
+        _require(_text(result["action_id"], 160), "Known quality requires its original action ID.", code)
+        action = feedback.get(result["action_id"])
+        _require(result["unknown_reason"] is None
+                 and _hash(result["result_sha256"]) and type(action) is dict
+                 and action["status"] == "completed" and action["method_id"] == "data.tabular-quality-audit"
+                 and evaluation is not None, "Known quality requires its supplied completed quality action.", code)
+    if evaluation is None:
+        return
+    child_id = "controller-child-" + fingerprint({"project_id":context["selection_context"]["project_id"],
+                                                  "request_id":material["controller_request_id"]})[:32]
+    children = [item for item in feedback.values() if item.get("request_id") == child_id]
+    _require(len(children) == 1 and children[0]["status"] == "completed"
+             and children[0]["method_id"] == "data.tabular-quality-audit"
+             and (outcome == "unknown" or children[0]["action_id"] == result["action_id"]),
+             "The supplied quality observation does not match the original child.", code)
+    observations = children[0]["observations"]
+    _require(type(observations) is list and len(observations) == 1 and type(observations[0]) is dict
+             and observations[0].get("kind") == "tabular_quality_audit" and type(observations[0].get("profile")) is dict,
+             "The original quality observation is unavailable.", code)
+    _require(conditions.evaluate_conditions(registered, observations[0]["profile"],
+                 numeric_columns=context["selection_context"]["domain_scope"]["numeric_columns"]) == evaluation,
+             "The supplied quality evaluation differs from its saved observation.", code)
+    _require(type(evaluation) is dict and set(evaluation) == {"schema_version", "outcome", "items", "scientific_validation"}
+             and evaluation["schema_version"] == conditions.RESULT_SCHEMA and evaluation["outcome"] == outcome
+             and evaluation["scientific_validation"] is False and type(evaluation["items"]) is list
+             and len(evaluation["items"]) == len(registered["conditions"]),
+             "The original bounded quality evaluation is malformed.", code)
+    states = []
+    comparisons = {"eq":operator.eq, "gt":operator.gt, "gte":operator.ge, "lt":operator.lt, "lte":operator.le}
+    for index, (item, condition) in enumerate(zip(evaluation["items"], registered["conditions"])):
+        _require(type(item) is dict and set(item) == {"index", "outcome", "actual", "expected", "unknown_reason"}
+                 and type(item["index"]) is int and item["index"] == index,
+                 "The saved condition result order differs.", code)
+        actual, expected = item["actual"], item["expected"]
+        if condition["field"] == "flags":
+            _require(actual is None or actual in ("empty", "nonempty"), "The saved flags state is invalid.", code)
+            _require(expected == condition["operator"], "The saved flags expectation differs.", code)
+            matched = actual == expected if actual is not None else None
+        else:
+            _require(actual is None or (type(actual) is int and 0 <= actual <= conditions.MAX_ROWS),
+                     "The saved quality actual must be a bounded integer or unknown.", code)
+            _require(expected is None or (type(expected) is int and 0 <= expected <= conditions.MAX_ROWS),
+                     "The saved quality expectation must be bounded or unknown.", code)
+            if type(condition["value"]) is int:
+                _require(expected == condition["value"], "The saved literal expectation differs.", code)
+            matched = None if actual is None or expected is None else comparisons[condition["operator"]](actual, expected)
+        expected_outcome = "unknown" if matched is None else "condition_met" if matched else "condition_not_met"
+        _require(item["outcome"] == expected_outcome and item["unknown_reason"] ==
+                 ("missing_or_invalid_required_value" if matched is None else None),
+                 "The saved condition result is inconsistent.", code)
+        states.append(expected_outcome)
+    aggregate = "unknown" if "unknown" in states else "condition_not_met" if "condition_not_met" in states else "condition_met"
+    _require(outcome == aggregate, "Unknown and unmet conditions must retain their original precedence.", code)
+
+
 def materialize(project, state, normalized_requests):
     materials = []
     for request in normalize_requests(normalized_requests):
+        if request.get("kind") == QUALITY_KIND:
+            materials.append(_quality_material(project, state, request))
+            continue
         matches = [action for action in state["actions"] if action["id"] == request["action_id"]]
         _require(len(matches) == 1 and matches[0].get("result_sha256") == request["result_sha256"],
                  "The selected diagnostic action or exact result SHA is unavailable.")
@@ -362,8 +498,11 @@ def validate_supplied(context):
     _require(context.get("schema_version") == "research-plan-context-v3" and type(materials) is list and bool(materials),
              "A v3 context requires explicitly supplied complete saved materials.", code)
     feedback = {item["action_id"]: item for item in context["feedback"]}
-    known, queries = set(), set()
+    known, queries, quality = set(), set(), set()
     for material in materials:
+        if type(material) is dict and material.get("kind") == QUALITY_KIND:
+            _validate_quality_material(context, material, feedback, quality)
+            continue
         if type(material) is dict and material.get("kind") == STABILITY_KIND:
             _validate_stability_material(context, material, feedback, queries)
             continue

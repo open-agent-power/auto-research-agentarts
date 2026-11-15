@@ -5,7 +5,7 @@ import copy
 from . import host_selection_protocol as host_protocol
 from . import research_plan_proposal as plan_protocol
 from . import research_recipe
-from .saved_materials import normalize_requests, require_complete_size, RETRIEVAL_KIND, STAGED_RETRIEVAL_KIND, STABILITY_KIND
+from .saved_materials import normalize_requests, require_complete_size, RETRIEVAL_KIND, STAGED_RETRIEVAL_KIND, STABILITY_KIND, QUALITY_KIND
 from .contracts import ResearchError, canonical
 from .plan_feedback import projection_notice
 from .project_selection import MAX_PROPOSAL_BYTES, _json_value, experience_notice, budget_cost_notice, condition_reference_notice, hypothesis_notice, evaluation_stage_notice
@@ -36,6 +36,8 @@ def _context(context):
              and context["schema_version"] == "recipe-change-context-v1",
              code, "Use the complete frozen recipe change context.")
     plan_protocol._context(context["research_context"])
+    _require(not any(item.get("kind") == QUALITY_KIND for item in context["research_context"].get("supplied_materials", [])),
+             code, "Saved quality feedback is supported for plan proposals only.")
     _require(not any(item.get("kind") in (RETRIEVAL_KIND, STAGED_RETRIEVAL_KIND, STABILITY_KIND)
                      for item in context["research_context"].get("supplied_materials", [])), code,
              "Saved retrieval query materials are supported for plan proposals only.")
@@ -56,6 +58,8 @@ def _context(context):
 def build_context(project, current_recipe, improvement_goal, *, saved_materials=None):
     current = research_recipe.validate_recipe(current_recipe)
     selectors = normalize_requests(saved_materials)
+    _require(not any(item.get("kind") == QUALITY_KIND for item in selectors),
+             "INVALID_RECIPE_CHANGE_CONTEXT", "Saved quality feedback is supported for plan proposals only.")
     _require(not any(item.get("kind") in (RETRIEVAL_KIND, STAGED_RETRIEVAL_KIND, STABILITY_KIND) for item in selectors),
              "INVALID_RECIPE_CHANGE_CONTEXT", "Saved retrieval query materials are supported for plan proposals only.")
     materials = {"saved_materials": selectors} if selectors else {}

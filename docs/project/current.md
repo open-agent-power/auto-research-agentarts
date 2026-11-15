@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S099 显式把事前登记质量条件和三态反馈供给 Host 计划上下文，保留原身份、未知与预算边界；最终隔离合成14项、旧合同58项、独审38项通过。原计划漂移拒绝供应，材料固定不证明送达模型或科研收益。[验证与负例](../execution/SPRINT-099.md)。
+
 S080 已完成获批的 Bike 2011 真实研究并独立复算：总体/编码0/编码1 Pearson r 为 0.771214/0.762433/0.779847，n 为 365/115/250，预先固定方向条件满足；两项工具 2/2、0 model/fit/native evidence，原计划等待。[结果和限制](../execution/g1-local/bike-2011-results.md)。这是操作者根据质量反馈修订计划的描述性链，不是模型自主或因果/跨年收益。唯一 claim、原 Project 与源码 pin `7926608e981eaf1fdfc94c0d125ae04b7f4423da` 必须保留，不重开额度。
 
 通用表格质量反馈按[设计](tabular-quality-feedback-design.md)继续推进：S081 有界条件、S082 事前登记和原行动认证、S083 显式 Controller 策略之后，S084 已将登记、读取和推进接入 LocalWorkbench/Python/HTTP，并以同事务归属凭据保护两层原ID恢复。隔离合成 HTTP 和故障注入已独审；没有新真实研究、模型自主或科研收益声明。旧项目沿原 pin、原预算保持。[S083](../execution/SPRINT-083.md) · [S084](../execution/SPRINT-084.md)。

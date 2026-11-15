@@ -1,5 +1,7 @@
 # 后端索引
 
+计划显式 `saved_materials` 可选择原质量登记ID/SHA，提供有界条件与原reader三态；计划漂移拒绝，Controller阶段unknown不证明未执行或未读取证据可信；recipe拒绝，默认不变。[合同](../../docs/host-model-selection.md#明确供应表格质量条件反馈)。
+
 S095 Workbench `save_plan` 在活动项目检查后先核同ID异body冲突，再仍执行原pending门；同body/新ID不能绕过未决，旧stale意图不自动清除。[Sprint](../../docs/execution/SPRINT-095.md)。
 
 Host 显式 `adopt_quality_plan` 可在保持原提案正文的同时附加原质量行动引用；工作台独立入口增加manager nonce→Host intent→Project claim链，未知停止，旧Host直接路径不升级。[合同](../../docs/host-model-selection.md#显式采用附质量引用的原计划提案)。
