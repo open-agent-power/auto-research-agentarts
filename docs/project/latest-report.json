@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T00:25:29+08:00",
-  "status": "S108_actual_analysis_verified_memory_assessment_in_progress",
+  "end_time": "2026-11-16T00:42:35+08:00",
+  "status": "S109_adapter_verified_published_memory_import_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -40,7 +40,8 @@
     "S106 Workbench strict supplied-quality adoption and resume-only endpoint independently validated in actual Chromium and synthetic Project; missing original manager intent cannot be accepted",
     "S106 strict quality adoption UI with resume-only original intent; independently verified synthetic browser/HTTP",
     "S107 same-project synthetic UI: original quality preview, direct Host manual response, fact check, strict adoption, report and original-ID replay independently verified via Chromium/HTTP",
-    "S108 published fixed protocol/reader before real input, computed S065/S067 saved validation subgroup and independently recomputed Decimal; original states and budgets unchanged"
+    "S108 published fixed protocol/reader before real input, computed S065/S067 saved validation subgroup and independently recomputed Decimal; original states and budgets unchanged",
+    "S109 versioned S108 posthoc binding-only Memory type with Native Project/selection/plan/report and display; independent 29+27 synthetic checks"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -73,12 +74,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Assess whether S108 negative subgroup evidence can be referenced by future Native Memory/plans without claiming model adoption or adding research budget.",
+  "next": "Import two published S108 aggregates to isolated Native Memory and independently verify binding and unchanged original budgets.",
   "next_planned_trigger": "2026-11-16T01:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "5fa9dce69fd447e9c885e15e732667caf1af5df5",
-  "last_checkpoint": "2026-11-16T00:25:29+08:00",
+  "code_commit": "c1a8b3a3130f3b54eea292bc6df15e1a7aac4d0a",
+  "last_checkpoint": "2026-11-16T00:42:35+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -820,5 +821,13 @@
     "budget": "both original 3/3 tool, reserved 0; no new study actions/models/fits/rank/score",
     "independent": "Decimal rechecked; second read-only run retained full log after first output truncation",
     "limitations": "selected negative validation subgroup, exposed post hoc, not overall mean, causality, blind study or generalization; shared corpus and final metadata may be read, no final query/qrels/artifact/private"
+  },
+  "S109": {
+    "code_commit": "c1a8b3a3130f3b54eea292bc6df15e1a7aac4d0a",
+    "independent_synthetic_tests": 29,
+    "additional_independent_tests": 27,
+    "source_role": "upstream_primary_reference_not_audit_producer",
+    "limitations": "two known available cases only, binding not numerical recomputation/signature, no frontend file selector",
+    "actual_memory_import": "in_progress_not_complete"
   }
 }
