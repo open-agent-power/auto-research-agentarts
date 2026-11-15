@@ -15,3 +15,11 @@
 - **bioCADDIE 2016：暂不准入。** [挑战论文](https://academic.oup.com/database/article/doi/10.1093/database/bax068/4237583)描述约 795,000 个来源于多个仓库的数据集；[参考标准论文](https://pmc.ncbi.nlm.nih.gov/articles/PMC5737202/)描述检索相关性评判。原生上限为 10,000 文档及有限资产/结果大小，且原始各来源和 qrels 许可、固定字节和可行子集仍 unknown。未评判项不能称人工负例，但当前二元指标实际不予相关性计分；保留被排除正例的分母也不自动保证子集有可比较性。不得根据标签或效果反复挑选子集，也不能把子集冒充完整挑战。
 
 只读筛选完整过程在本机 `runs/s079-exploration/retrieval-candidates.md`。下一步是基于清晰权利和问题语义筛选其他来源，事前固定原数据、样本、规则、预算、源 pin 和唯一身份；若无法满足，就保留 unknown，不重启旧 Project 或扩大预算。该记录不构成新的前瞻实验、科研收益或模型调用。
+
+## 后续元数据审查：SQuAD 2.0 和 Wikinews（2026-11-16）
+
+只查公开元数据与许可，不下载正文、查询或标签，不创建项目或运行实验。SQuAD 2.0 官方称 CC BY-SA 4.0，含旧 1.1 内容及无答案问题；旧 S046/S054 已接触 1.1。原段落无答案不等于检索不相关或整个语料无正例，不能用当前二元检索指标直接声称无答案能力。官方 train 对象 42,123,633 字节，超过既有 40 MiB 接收上限；候选可能重复旧题、需要先固定去重和可复现截取，不能换身份重置预算或称新领域盲测。
+
+英语 **enwikinews**（不是 enwiki）2026-11-01 官方 [dump](https://dumps.wikimedia.org/enwikinews/20261101/) 的 pages-articles.xml.bz2，经独立 HEAD 核为 47,533,780 字节；官方 sha1sums 为 `ce2fe5bdec3ef6b11fdd065b434b4283a695c40c`，实际文件字节和 SHA-256 未获取或复核。[站点 rightsinfo](https://en.wikinews.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json)目前是 CC BY 4.0；[版权说明](https://en.wikinews.org/wiki/Wikinews:Copyrights)区分历史 CC BY 2.5 与较新 CC BY 4.0，逐篇归因、历史许可、转载等例外仍需核。它大于此前 40 MiB 接收上限，解压大小、可用文章、最终 packet 大小均 unknown。
+
+标题→原文可以作为弱配对检索任务，不能当作人工完整相关性或真实性评价；标题与正文词汇重合、模板及事件重复可造成捷径，其他相关文章未标记而二元指标会计为不相关。须事前固定清洗、去重、分组和上限，确保 query/doc ID 不同以免 identical-ID 过滤误排正例，并核正例存在。解析整个 dump 可能接触未来 final 标题和配对，不能声称未读或盲测。两个候选目前均未准入；需独立固定来源、授权、预算和唯一 claim，不以新 ID 重开旧课题。元数据结果非真实研究收益。
