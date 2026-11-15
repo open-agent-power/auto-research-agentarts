@@ -7,6 +7,8 @@ S080 已完成获批的 Bike 2011 真实研究并独立复算：总体/编码0/�
 
 S085 Project Python 能保存引用原质量行动的直接后续 plan v2；S086 显式 Controller v2 策略可重新认证原行动与真实最新计划；S087 已通过独立 Workbench/Python/HTTP 入口连接质量引用读取、计划保存和v2推进，原 manager/core 归属同事务绑定。隔离合成和独审通过；旧普通计划入口仍拒新字段，只读宿主新 GET 未开放，context仅校引用形状。[S085](../execution/SPRINT-085.md) · [S086](../execution/SPRINT-086.md) · [S087](../execution/SPRINT-087.md)。
 
+S088 在五个固定 manager/core 节点以独立合成Project真实 SIGKILL 子进程，再由不同进程用原ID/body验证停查或终态回执收敛；作者、主代理和独审各5/5，原Project DB/工件/预算不变。只覆盖选定进程切点，不证明断电或所有恢复时序。[S088](../execution/SPRINT-088.md)。
+
 2026-11-15 用户已对 Bike 2011 方案回复“同意”，批准一次独立真实项目，最多 2 次本地工具、0 模型、0 拟合、0 新增原生 evidence-read；不改变其他预算。原云盘和原全局执行者状态仍未知。
 
 S079检索候选元数据筛选未找到可直接准入项；PubMedQA许可未核且搜索返回公开示例，QASPER许可检索亦意外返回公开test示例，现已停止查看样本，不可称完全未曝/盲测；bioCADDIE规模和qrels权利未核。无新数据下载/项目/排序/模型。[审计](retrieval-candidate-audit-20261115.md)。
