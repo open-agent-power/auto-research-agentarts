@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": null,
-  "status": "S065_real_research_independently_verified_S066_memory_in_progress",
+  "status": "S065_real_independently_verified_S066_memory_verified_pending_publication_S067_research_design",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,12 +32,12 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Continue S066 independently checking real S065 experience in native Memory and a synthetic target plan; no research action or model; original case3/3 remains exhausted.",
+  "next": "Publish S066 verified aggregate; continue assessing a genuinely distinct BoolQ task and predeclared experience-vs-control comparison within new independent CPU budget.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
   "code_commit": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
-  "last_checkpoint": "2026-11-15T12:41:36.388657+08:00",
+  "last_checkpoint": "2026-11-15T12:50:02.254244+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/8090aa7",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -175,5 +175,20 @@
     "final_result_sha256": "a6eba064723a9c7881765d9c5b4c89bf2881284ea77d573eaa1dec458bb4dd71",
     "public_results_sha256": "ec43c26e7da8f86194f83df7dffe37835ef17debe0e7ea068965dc556c3a3cde",
     "public_results_independent_canary": "runs/s065-review/public-results-check.json"
+  },
+  "S066": {
+    "source_project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+    "case_id": "s065-hotpot-support-history",
+    "bundle_file_sha256": "67deff921b5a42c28d075ec84129fce6df199aa3f7d5f50ae671b42d75f3d4b2",
+    "canonical_bundle_sha256": "4ff88cb1fb5c365b9cd333f9dd56035d7d2cc366b2df98a2a6ddf8ded4a7712a",
+    "target_project_id": "project-e01204bfc84846e593c5d655e3530798",
+    "target_tool_limit": 1,
+    "target_tools_used": 0,
+    "source_42_files_claim_budget_unchanged": true,
+    "independent_assessment": "runs/s066-review/independent-assessment.md",
+    "status": "verified_pending_publication",
+    "scientific_transfer_gain": "unknown",
+    "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
+    "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   }
 }

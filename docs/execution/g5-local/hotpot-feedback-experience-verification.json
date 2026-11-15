@@ -1,0 +1,177 @@
+{
+  "schema_version": "s066-real-feedback-experience-verification-v1",
+  "status": "verified_pending_publication",
+  "source_study": "s065-hotpot-support-v1",
+  "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+  "source_project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+  "source_run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+  "source_primary_action_id": "action-4de378649a2bc9026793872874663343",
+  "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb",
+  "source_summary_sha256": "a0eff1bf71981b4a41774e70fcf2fa5aedd0f4c9e421ff250c2bfa52048edcb3",
+  "source_core_identity": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+  "case_id": "s065-hotpot-support-history",
+  "bundle": {
+    "schema": "staged-retrieval-experience-bundle-v2",
+    "file_path": "runs/s066-verification/attempt-001/bundle.json",
+    "file_bytes": 1180183,
+    "file_sha256": "67deff921b5a42c28d075ec84129fce6df199aa3f7d5f50ae671b42d75f3d4b2",
+    "file_has_trailing_lf": true,
+    "imported_canonical_sha256": "4ff88cb1fb5c365b9cd333f9dd56035d7d2cc366b2df98a2a6ddf8ded4a7712a",
+    "imported_canonical_bytes": 1180182,
+    "published_raw_bundle": false
+  },
+  "feedback": {
+    "condition": {
+      "all": [
+        {
+          "measure": "candidate_minus_baseline",
+          "metric": "recall@20",
+          "operator": "gt",
+          "split": "validation",
+          "threshold": 0
+        },
+        {
+          "measure": "candidate_minus_baseline",
+          "metric": "mrr@10",
+          "operator": "gte",
+          "split": "validation",
+          "threshold": 0
+        }
+      ],
+      "leave_one_out": {
+        "measure": "leave_one_out_mean",
+        "metric": "recall@20",
+        "operator": "gt",
+        "split": "validation",
+        "threshold": 0
+      }
+    },
+    "outcome": "condition_met",
+    "policy": {
+      "condition_met": "tfidf_cosine",
+      "condition_not_met": "bm25",
+      "kind": "registered_feedback",
+      "registration_request_id": "s065-hypothesis",
+      "unknown": "stop"
+    },
+    "registration_schema": "hypothesis-registration-v3",
+    "value": {
+      "leave_one_out": {
+        "maximum": 0.015151515151515152,
+        "minimum": 0.005050505050505051,
+        "queries": 100
+      },
+      "means": [
+        0.01,
+        0.00855952380952381
+      ]
+    }
+  },
+  "validation": {
+    "mrr_at_10_delta": 0.00855952380952381,
+    "recall_at_20_delta": 0.01
+  },
+  "final_aggregate": {
+    "baseline": {
+      "mrr@10": 0.865984126984127,
+      "ndcg@10": 0.7585466521607508,
+      "recall@10": 0.855,
+      "recall@20": 0.91,
+      "recall@5": 0.715
+    },
+    "delta": {
+      "mrr@10": -0.03588888888888889,
+      "ndcg@10": -0.009793754037605568,
+      "recall@10": 0.01,
+      "recall@20": 0.01,
+      "recall@5": 0.015
+    },
+    "selected": {
+      "mrr@10": 0.8300952380952381,
+      "ndcg@10": 0.7487528981231452,
+      "recall@10": 0.865,
+      "recall@20": 0.92,
+      "recall@5": 0.73
+    }
+  },
+  "source_case_file_count": 42,
+  "source_files_and_claim_unchanged": true,
+  "source_budget": {
+    "cash_settlement": "unknown",
+    "evidence_read_limit": 0,
+    "evidence_reads_reserved": 0,
+    "evidence_reads_used": 0,
+    "existing_cash_cap_cny": 5,
+    "fit_attempts_used": 0,
+    "fit_limit": 0,
+    "fits_completed": 0,
+    "fits_reserved": 0,
+    "historical_request_counts": null,
+    "historical_spend_cny": null,
+    "historical_unknowns_resolved": false,
+    "lineage_ref": "s065-hotpot-support-v1",
+    "local_tool_call_limit": 3,
+    "local_tool_calls_reserved": 0,
+    "local_tool_calls_used": 3,
+    "local_tool_dispatches": 3,
+    "model_requests_allowed": 0,
+    "model_requests_reserved": 0,
+    "new_fits": 0,
+    "new_model_requests": 0,
+    "preprocessing_fits": 0,
+    "preprocessing_fits_completed": 0,
+    "ridge_fits_completed": 0
+  },
+  "target": {
+    "kind": "synthetic_engineering_project",
+    "project_id": "project-e01204bfc84846e593c5d655e3530798",
+    "tool_limit": 1,
+    "tools_used": 0,
+    "models_used": 0,
+    "fits_used": 0,
+    "evidence_used": 0,
+    "original_import_id_replayed": true,
+    "plan_contains_original_feedback": true
+  },
+  "independent_review": {
+    "path": "runs/s066-review/independent-assessment.md",
+    "sha256": "0afa2b90fea93244bfe353aed6a0c372a77b9a417121c65e252730afa9f74f78",
+    "result_sha256": "29dd759a9e3cd76f75fd08cc8740cbdcead6fd61ec8424c1cfecf8c213d5c35b",
+    "final_query_canary_counts": {
+      "outputs_each": 5,
+      "qid": 100,
+      "qid_sha256": 100,
+      "query_text": 100,
+      "query_text_base64": 100
+    },
+    "independent_memory_copy_repeat_imports": 2,
+    "independent_memory_copy_inserted": [
+      0,
+      0
+    ],
+    "author_memory_unchanged": true,
+    "independent_original_target_replay": false
+  },
+  "bounds": [
+    "Capture reads completed original final action artifact but exports aggregate only; offline origin and policy proof require original producer",
+    "Author separate canary phase read completed private holdout and full42-file/claim hashes outside guard include private bytes; independent review likewise reads final/private bytes",
+    "Guard blocks staged execution/index/rank/score, project step/recovery and model entry; it did not separately patch direct sklearn estimator.fit. No fitting observed on read-only path",
+    "Final query/qid/hash/base64 checks are exact finite canaries, not proof against semantic/other encoding leakage; bundle and full plan/prompt remain local",
+    "One historical case as plan context is not evidence that any real model used it, nor proof of transfer benefit, significance or automatic research progress"
+  ],
+  "failures": [
+    "Initial author report table clipped long condition/outcome; corrected and preserved initial log",
+    "Independent initial scripts misunderstood source inventory mode, nested context SHA and association projection; corrected, no confirmed product failure; logs retained",
+    "Root repeated already published S065 git commit attempt, Git returned nothing to commit; no new commit or case mutation"
+  ],
+  "development_tokens": "unknown",
+  "development_cost": "unknown",
+  "recorded_at": "2026-11-15T12:47:23.342746+08:00",
+  "evidence": [
+    "runs/s066-verification/attempt-001/verification.json",
+    "runs/s066-verification/attempt-001/limits.json",
+    "runs/s066-review/independent-assessment.md",
+    "runs/s066-review/independent-result.json",
+    "runs/s066-review/memory-dedup-result.json"
+  ]
+}
