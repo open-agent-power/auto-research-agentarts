@@ -13,3 +13,5 @@ S064代码已推main `5e397b2693f2385f26e203af12e7f3f02c6d2507`；源码pin /wor
 S065新真实Hotpot支持文档检索正在准备，固定原字节46,320,117B/SHA4e9ecb5c…与历史作者元数据一致，正式方案SHA3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef；完整原JSON尚未解析、未建项目/实验。BoolQ原文标题前缀映射初判已纠正并记录。driver/独审通过并发布前不解析源。检查点2026-11-15T12:00:31.201661+08:00。
 
 S065固定driver/protocol现通过作者48相关、独审7与合成异PID/unknown验证，尚未发布/解析真实源。固定source195项SHAa66dc739740d3ebc1c053b3ae4b8e56c0038d254079c66fa5aaec2c89bc0557f。下步发布后按唯一claim prepare；检查点2026-11-15T12:29:11.980535+08:00。
+
+S065固定source commit `5d431097f3b4846ac240745121e56070edd78e86` 发布后唯一claim真实prepare完成、独审独立重算7405组/100-100-100/2982文档/600支持对；原JSON含final候选已在准备和独审时读取，不是盲测。尚无Project/研究行动，费用unknown，下一次按原claim/源码pin运行3工具上限。检查点2026-11-15T12:33:30.012208+08:00。

@@ -1,6 +1,6 @@
 # Master Execution Pack v2 · 云端执行
 
-[S065](SPRINT-065.md)Hotpot支持文档检索真实课题处于source/预协议准备；原JSON尚未解析、driver和独审未完成，不计科研结果。BoolQ来源误判已纠正。
+[S065](SPRINT-065.md)Hotpot支持文档检索真实课题已固定源与驱动并独立核验真实准备；当前无Project或研究行动，尚无科研结果。BoolQ来源误判已纠正。
 
 [S064](SPRINT-064.md)新反馈选臂v2结果以独立版本接原Memory/目标计划，保留真实条件、反馈及负结果；合成原件与独审通过，不宣称科研收益。
 

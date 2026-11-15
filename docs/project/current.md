@@ -1,7 +1,7 @@
 # 当前自主研究开发
 Status: resumable
 
-S065固定protocol/driver已通过合成与独审、待发布，真实Hotpot支持文档检索新case准备中：固定公开源SHA4e9ecb5c…/46,320,117B、原作者CC BY-SA4/维基2017 dump，原JSON未解析或建项目；正式方案SHA3772acf2…，driver作者48相关、独审7项与异PID/unknown工程证据完成；发布前不可prepare；3tools/0model/0fit为独立新case、旧case预算不重开。见[SPRINT-065](../execution/SPRINT-065.md)。
+S065新真实Hotpot支持文档检索已固定并发布code `5d431097f3b4846ac240745121e56070edd78e86`，唯一claim下真实prepare与独审通过：7405组→100/100/100、2982文档/600支持对，source snapshot c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb。原JSON及final候选已被准备/独审读取，不能称盲；无Project/研究行动，下一步按原claim/协议至多3tools原生执行。source pin和精确输入见[prepared](../execution/g5-local/hotpot-prepared-input.json)，旧case预算不重开。
 
 S064经验v2已完成独立验证并推送5e397b2693f2385f26e203af12e7f3f02c6d2507：原事前登记/反馈/audit/freeze/final聚合沿现有Memory绑定目标Project/计划，保留负结果；55相关/独审3+两个目标子例通过，合成原件源状态预算保持，原100文件保持，offline必须回源核原策略及最终聚合。未调用模型/新科研，见[SPRINT-064](../execution/SPRINT-064.md)。
 

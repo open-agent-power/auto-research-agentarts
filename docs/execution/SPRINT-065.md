@@ -13,3 +13,9 @@ BoolQ备选：作者CC BY-SA3，原dev第三方镜像与TFDS历史源SHA逐字�
 prepare及run/replay来源核验会把公开原JSON和私有selection/holdout再解析，包括final候选字段，不声称盲或执行前未读final字节；正常原报告内含source文本，只留本地，公开仅另审allowlist aggregate。独审final qid/文本/hash/base64排除是合成canary范围，非全部泄漏途径证明。初合成预期met实际notmet已修夹具并保留日志；WIP错误origin和source/query/sidecar绑定缺口固定前已修。root曾向已完成成员发消息却误以为独审在跑，已明确纠正并followup后实际独审；不把静态审查冒称最终验证。[证据](g5-local/hotpot-driver-verification.json)。
 
 下一步：仅在本固定protocol/driver发布、验证准确source pin及原lease后，按唯一claim准备固定输入，检查global title/容量，失败即保留并停止；成功后以原3工具预算与同ID原生运行。该步骤尚未发生。
+
+## 真实输入已按固定协议准备，尚未执行
+
+驱动/协议先以源码 `5d431097f3b4846ac240745121e56070edd78e86` 推main并固定干净pin，之后唯一claim准备成功、无Project/行动。独立从完整原JSON重新选样/生成并比对：7405行/7405题组，100/100/100，2982篇文章，每题2个支持文档共600正例；开发资产2,122,881B低于11.8MB，原准备14文件前后不变，100 final qid不在5个开发资产/spec的精确字节中。source snapshot `c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb`；sidecar `b2b5b693a0da72140d58fa71f3e41dbf075713d1adc477b84e217c7726dd7604`；holdout `6c5d0cd4627e2379b99bae3b1f1dc837be85b5ea9964ec498f314d264895a053`；原claim `b31b5c582771dfc8e21b7ecfe5d891ecee799829c24665bd4991e4c11c5cf1c9`。
+
+准备和独审实际各解析完整公开原JSON与private selection/holdout/sidecar，包括final候选，shared corpus/公开预曝均不构成盲测；qid精确不出现不保证无语义侧信道。未排名、评分、fit或调用模型，3工具只是上限、当前尚无研究账本，费用/token unknown。逐wiki revision与贡献者仍unknown；原文和原报告只在受控本地，公开仅单独检查的aggregate。[精确输入与预算](g5-local/hotpot-prepared-input.json)。

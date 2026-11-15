@@ -1,0 +1,107 @@
+{
+  "schema_version": "s065-hotpot-prepared-input-v1",
+  "status": "prepared_and_independently_verified_not_yet_run",
+  "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+  "workspace": "/workspace/development-continuation-20261114/source-pins/5d43109/runs/s065-hotpot-support-v1",
+  "prepared_sha256": "1b2b594c632ad2c7ab80baf1301cfbd02b8e29d6698501fd3cecb9ba4d6f97a2",
+  "claim": {
+    "created_by_owner": "root-continuation-20261115T1052",
+    "original_source_sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+    "protocol_sha256": "3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef",
+    "schema_version": "s065-study-claim-v1",
+    "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+    "study_id": "s065-hotpot-support-v1",
+    "workspace": "/workspace/development-continuation-20261114/source-pins/5d43109/runs/s065-hotpot-support-v1"
+  },
+  "claim_sha256": "b31b5c582771dfc8e21b7ecfe5d891ecee799829c24665bd4991e4c11c5cf1c9",
+  "source_sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea",
+  "source_bytes": 46320117,
+  "protocol_sha256": "3772acf2ba1a458a0bae834205b77b840deaeae70fb33d5a1e64b23aeb0f5fef",
+  "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb",
+  "file_inventory": {
+    "development/corpus.jsonl": {
+      "bytes": 2053643,
+      "sha256": "3ed079d9db5654006be69e1d12bb64506cb00e257329027420acc89a27b0932e"
+    },
+    "development/license.md": {
+      "bytes": 336,
+      "sha256": "08367702a77f581fd8ff024a3d088845a09904e567b778c517cbe18349a50978"
+    },
+    "development/qrels.tsv": {
+      "bytes": 38425,
+      "sha256": "86c71542b6cd29b6353addbbcad2c1c960142830e2229b14bbcec542657420a2"
+    },
+    "development/queries.jsonl": {
+      "bytes": 30477,
+      "sha256": "c19a137dc9d6ec2be3c12ef23daea4597e28d68120d4a55e8132957735aca5c4"
+    },
+    "development/source.json": {
+      "bytes": 2850383,
+      "sha256": "28b3311a9ab60db1ac398dcf4f7ef0df3e28041a2cbbc2ed62f47185bc0a0fcd"
+    },
+    "development/spec.json": {
+      "bytes": 7711,
+      "sha256": "0aa0831e4e8fcb884906c6f00190fd13a0e75087a1262a47200f3c671d10f3f4"
+    },
+    "private/document-attribution.json": {
+      "bytes": 692531,
+      "sha256": "b2b5b693a0da72140d58fa71f3e41dbf075713d1adc477b84e217c7726dd7604"
+    },
+    "private/holdout.json": {
+      "bytes": 36459,
+      "sha256": "6c5d0cd4627e2379b99bae3b1f1dc837be85b5ea9964ec498f314d264895a053"
+    },
+    "private/original-local.zip": {
+      "bytes": 46320273,
+      "sha256": "be8e86a090aa3dbdaf96203ebca5707102ea73b94f45bfa335c9e69702170d9d"
+    },
+    "private/original.json": {
+      "bytes": 46320117,
+      "sha256": "4e9ecb5c8d3b719f624d66b60f8d56bf227f03914f5f0753d6fa1b359d7104ea"
+    },
+    "private/selection.json": {
+      "bytes": 101648,
+      "sha256": "7904eaeb03c24164d244ff0e124ad20cc2359b632d8bdadbb1bce2d37d997f83"
+    },
+    "private/source-receipt.json": {
+      "bytes": 913,
+      "sha256": "11a7758e18d40e5389cf0ef9c84f9aff3e7feb0967a967032b38dba478d35b4c"
+    }
+  },
+  "counts": {
+    "original_rows": 7405,
+    "normalized_groups": 7405,
+    "dev_queries": 100,
+    "validation_queries": 100,
+    "final_queries": 100,
+    "documents": 2982,
+    "positive_pairs": 600,
+    "positive_documents_per_query": 2
+  },
+  "assets_bytes": {
+    "corpus.jsonl": 2053643,
+    "license.md": 336,
+    "qrels.tsv": 38425,
+    "queries.jsonl": 30477
+  },
+  "sidecar_sha256": "b2b5b693a0da72140d58fa71f3e41dbf075713d1adc477b84e217c7726dd7604",
+  "holdout_sha256": "6c5d0cd4627e2379b99bae3b1f1dc837be85b5ea9964ec498f314d264895a053",
+  "native_project_created": false,
+  "actual_research_tool_actions": 0,
+  "future_budget_cap": {
+    "tools": 3,
+    "model": 0,
+    "fit": 0,
+    "evidence_action": 0,
+    "concurrency": 1
+  },
+  "cost": "unknown",
+  "tokens": "unknown",
+  "read_scope": "Public source downloaded and binary hashed; one viewer row read earlier for schema. Real preparation and independent verification each parsed full original public JSON, including final candidates, and read private selection/holdout/sidecar. No blind/unexposed claim.",
+  "license": "Dataset CC BY-SA4; author and Wikipedia 2017 dump citations/sidecar retained; article revisions/contributors unknown; source/derived text and original report remain local, publish reviewed aggregate only.",
+  "independent_assessment": {
+    "path": "runs/s065-review/actual-preparation-assessment.md",
+    "sha256": "3eaa684ce9c74aa33cc96632fc4968d2f40372bdbec0fc22a82bdca81f107aa0"
+  },
+  "checked_at": "2026-11-15T12:33:30.012208+08:00"
+}
