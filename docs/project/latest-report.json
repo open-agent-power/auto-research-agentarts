@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T19:27:37+08:00",
-  "status": "S087_verified_process_recovery_in_progress",
+  "end_time": "2026-11-15T19:46:39+08:00",
+  "status": "S089_verified_alignment_continues",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -16,7 +16,10 @@
     "S084 LocalWorkbench registration/feedback/advance and transaction-bound manager ownership completed and reviewed",
     "S085 Project opt-in structured quality action reference and direct successor plan verified; old policy waits and Workbench rejects the new field",
     "S086 explicit Controller v2 authenticates actual latest structured quality plan and routes bounded candidate, independently reviewed",
-    "S087 structured quality plan and Controller v2 integrated with LocalWorkbench/HTTP; independently reviewed with transaction-bound manager ownership"
+    "S087 structured quality plan and Controller v2 integrated with LocalWorkbench/HTTP; independently reviewed with transaction-bound manager ownership",
+    "S088 verified five actual SIGKILL cut points with original-ID recovery in isolated synthetic projects",
+    "Reviewed Meta Ax fd8a67a524b063b2615815c638af2c94b034f476 MIT source without installing or running it",
+    "S089 fixed reachable unknown controller parent hole; original-ID recovery preserved, new IDs blocked"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -31,7 +34,8 @@
     "Report fixture initially used items instead of records; fixed",
     "S084 manager/core same-ID race, missing intent and nondistinct intent identified in review; transactional nonce-bound ownership and tests added",
     "S085 review identified source-code drift after evidence read; final identity recheck and injection added",
-    "S086 orphan replay target in parent ID precheck found by independent review, fixed and reverified"
+    "S086 orphan replay target in parent ID precheck found by independent review, fixed and reverified",
+    "S089 pre-fix synthetic action recovered but unknown parent allowed new candidate/parent; test intercepted before second tool. Three old test expectations changed, original failing regression retained."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -40,12 +44,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Verify actual cross-process kill and original-ID recovery at fixed manager/core boundaries on isolated synthetic projects, no real study actions.",
-  "next_planned_trigger": "2026-11-15T19:47:27+08:00",
+  "next": "Continue audit and correct inconsistent unknown parent handling across Workbench and saved report, without changing old projects or research budgets.",
+  "next_planned_trigger": "2026-11-15T22:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "11db75aa76e6c3eb5d1fdbd7cbc257ae0b59b63c",
-  "last_checkpoint": "2026-11-15T19:27:37+08:00",
+  "code_commit": "d62f31edee0d758a097a822a14369ae85ebab35b",
+  "last_checkpoint": "2026-11-15T19:46:39+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -617,5 +621,24 @@
     "independent_legacy_tests": 40,
     "real_research_actions": 0,
     "limitations": "Isolated synthetic HTTP/mocked interruptions only; true process kill/power failure unproven; read-only host GET unavailable, UI absent."
+  },
+  "S088": {
+    "code_commit": "edb87187dc41f09f95841e1d141ec86e2dd4748e",
+    "kill_cuts": 5,
+    "author_passed": 5,
+    "root_passed": 5,
+    "independent_passed": 5,
+    "log_sha256": "c1c465ff2d8789b6da8614e7d7374e6dc2630fd261acddbbd254cb9c369c7946",
+    "limits": "Synthetic selected SIGKILL cuts, not power failure or all timing windows."
+  },
+  "S089": {
+    "code_commit": "d62f31edee0d758a097a822a14369ae85ebab35b",
+    "pre_fix_sha256": "6c9ecf595b68e157c56f50fbcc4184ebff2294b1e05a481bbd87d920d7c2120f",
+    "old_regression_failure_sha256": "9b32f99796ae72962bfff7fea203b2884d468fd40f374e0e9cd5f484a52563bc",
+    "fixed_regression_sha256": "f8855b0023f60e3e7f4e6d9ae591c6e0cad59f1f837eb26b4941b74236bd889c",
+    "regressions_passed": 75,
+    "independent_regressions": 36,
+    "independent_updated_tests": 13,
+    "real_research_actions": 0
   }
 }
