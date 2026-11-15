@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T05:59:22+08:00",
-  "status": "S124_resume_only_verified_next_interface_review",
+  "end_time": "2026-11-16T06:38:36+08:00",
+  "status": "S125_workbench_successor_save_verified_next_goal_review",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -57,7 +57,8 @@
     "S121 explicit known staged feedback to operator successor plan via Python manager, independently verified synthetic; no UI or automatic policy",
     "S122 Python successor decision preview default wait, no ledger mutation or dispatch, independently verified synthetic",
     "S123 workbench HTTP/UI successor preview independently validated with synthetic browser/HTTP and prior manager pin",
-    "S124 Python resume-only for new manager pin, independently tested synthetic transaction windows and prior pin"
+    "S124 Python resume-only for new manager pin, independently tested synthetic transaction windows and prior pin",
+    "S125 workbench successor plan save and original-ID resume, independently verified synthetic HTTP/browser with pending scans and cooperative tab locks"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -977,5 +978,13 @@
     "manifest_sha256": "366d107f362e0b1fc5188ff0bcd27b5f1ed149dfe3f9b8e7b686c4e4aca165c8",
     "verification": "author 40/40 independent 10/10, two function-injected transaction windows recovered in new process; prior pin refused by new manager",
     "limits": "Python only new manager pin; old projects not migrated; no SIGKILL/power-loss proof or real research/model"
+  },
+  "S125": {
+    "commit": "f7d7feb3256823df779048d1315cbb1bbadf217c",
+    "source_head": "da56ef2a2b5934939418bf2e1bbba4355b6e2a50",
+    "manifest_sha256": "628f91860e91486f184ce3f8981e62fe52e6ef027b1ecebccc35b1f3c144d3bc",
+    "verification": "author 32/32, independent 13/13 with 15/60s test client; real Chromium synthetic normal/lost reply/storage/multitab/no-active/cross-project; S124 pinned synthetic compatibility",
+    "negative": "two independent earlier 5s HTTP timeout failures retained; single timing 2.209s, no claim 5s performance improved",
+    "limits": "session body sensitive; browser locks cooperative, double storage cleared or cross-device cannot guarantee recognition; requires no holdout; no new real research/model"
   }
 }
