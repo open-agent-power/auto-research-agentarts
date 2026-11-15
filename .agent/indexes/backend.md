@@ -209,3 +209,4 @@ S039 `HostModelBatch.advance_delegated`/host-model-batch-v2复用Host journal、
 - staged 后续计划的 `LocalWorkbench.preview_staged_feedback_plan` 仅提供已认证的事后规则预览，不写研究账本、不补回执、不派发；锁文件可有副作用。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
 - 工作台的 staged 后续计划预览只调用既有 S122 认证路径；后续计划保存/恢复尚未通过 HTTP/UI 接线。[合同](../../docs/local-workbench.md#后续计划的事后决策预览)。
 - staged 后续计划可用 `resume_staged_feedback_plan` 在 manager 锁内只核原 ID/body 与已有 revision/claim；缺原意图或 revision 停查，完成写前中断不会重建。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
+- staged 检索 Project 的 Python 创建支持显式操作者用途声明，仅限 development packet；状态为结构投影，显式重开核原 core/source/scope，旧 pin 不迁移。[合同](../../docs/staged-retrieval-reader.md#新-staged-project-的显式用途)。

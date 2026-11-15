@@ -220,3 +220,4 @@ S039新增`advance-delegated-batch`：最多2selection及可选1个原Host plan 
 - staged 后续计划的决策预览仅为 `LocalWorkbench.preview_staged_feedback_plan` Python 入口，默认 wait，显式后验规则不构成授权；没有 HTTP/页面。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
 - 工作台 `POST /api/local-workbench/staged-feedback-plan-preview` 接 S122 事后规则预览；仅活动普通宿主，身份投影是状态摘要，后台原件核验且不派发，锁文件可能变化。[合同](../../docs/local-workbench.md#后续计划的事后决策预览)。
 - `LocalWorkbench.resume_staged_feedback_plan` 是仅新 manager pin 的 Python resume-only：完整原 body、原 manager intent 与 Project revision/claim 必须可核，不会首次创建计划；尚无 HTTP/页面。[合同](../../docs/hypothesis-feedback.md#严格反馈后的显式后续计划)。
+- `ResearchProject.create(..., method_id="research.relevance-validation-pair", evidence_purpose="operator_declared_staged_retrieval_research")` 是显式 Python 用途声明，不改变 Workbench/CLI 创建 wire 或提供研究授权；原 workspace 同配置重开核 core/source/scope。[合同](../../docs/staged-retrieval-reader.md#新-staged-project-的显式用途)。
