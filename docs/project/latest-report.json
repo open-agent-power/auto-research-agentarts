@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
-  "end_time": "2026-11-15T15:42:30.306213+08:00",
-  "status": "S078_synthetic_preflight_verified_awaiting_bike_scope",
+  "end_time": "2026-11-15T17:01:26.679231+08:00",
+  "status": "S078_preflight_verified_bike_scope_decision_pending",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Await Bike scope decision; continue permitted provenance/data screening without inspecting future final labels.",
+  "next": "Await Bike user decision; if approved, verify actual licence/source bytes, pin, scope, unique claim and freeze prior to two-tool research; otherwise continue authorized independent provenance/evaluation work. Never rebuild original disk or reset protected budgets.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T17:00:13.470522+08:00",
+  "checkpoint_time": "2026-11-15T17:01:26.679231+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -509,5 +509,25 @@
     "new_models": 0,
     "limits": "PubMedQA source rights unknown; bioCADDIE corpus exceeds cap and qrels rights unknown",
     "development_cost": "unknown"
+  },
+  "current_round": {
+    "start_time": "2026-11-15T15:47:44+08:00",
+    "automation_trigger_time": "2026-11-15T16:46:04+08:00",
+    "report_checkpoint_time": "2026-11-15T17:01:26.679231+08:00",
+    "owner": "root-rebaseline-20261115T1548",
+    "baseline_commit": "9a7cb5a8be052b0ef8345e69f9346d5faa5e8eb5",
+    "research_method_commit": "ca3f40a82feb60a564bd362c416c8878f6560166",
+    "S074_commit": "ea8152e595abca322870a9eb6c7fbc0b9e1eebbf",
+    "S075_result_commit": "62bdd712bfe8689767b03dc152ac091521158cd7",
+    "S077_commit": "3ba33b62a0d8456fb0d04765285e11d0b7e1195c",
+    "S078_record_commit": "5fa6f48b8947ef8ea8a7f5818b3807f6fdeeeb25",
+    "reference_commit": "015ac48da8a9ebd2420ffee0f4f84bd5d1d8bbb9",
+    "S079_audit": "docs/project/retrieval-candidate-audit-20261115.md",
+    "bike_scope": "separate user request pending; no data/real project",
+    "source_exposure": "QASPER/PubMedQA public examples surfaced; not blind",
+    "next_planned_trigger": "2026-11-15T19:47:27+08:00",
+    "platform_completion_delivery": "unknown",
+    "lease_release_receipt": "runs/review/rebaseline-lease-release.json",
+    "development_cost_token": "unknown"
   }
 }

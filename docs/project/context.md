@@ -1,5 +1,9 @@
 # 云端开发上下文
 
+## 当前接续（2026-11-15 17:00）
+
+[研究基线](research-baseline-20261115.md)与[方法调研](baseline-research-20261115.md)已独审；S074已完成，S075只读事后分析已完成，S077新用途声明已完成。S076 Bike新表格范围已向用户单独请求批准、尚无答复；不下载/读真实数据、不建真实Project或调用研究工具。S078两个合成预演及原ID重放已独审，不代表科研收益。S079候选未准入且QASPER/PubMedQA公开样例意外曝光已[记录](retrieval-candidate-audit-20261115.md)，不得宣称相关片段盲测。先按AUTONOMY核独有lease、原budget和当前用户答复；若批准，仍须固定许可/原字节/发布pin/唯一claim及协议，按原身份执行。
+
 ## 当前任务基线（2026-11-15 15:48 后）
 
 基线外部方法已独审写入 [调研](baseline-research-20261115.md)（commit ca3f40a）；S075事后只读再分析两个真实项目validation的召回/排序联合分布，保留不利例、无新实验/模型，见[S075](../execution/SPRINT-075.md)。

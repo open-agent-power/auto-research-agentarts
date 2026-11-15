@@ -75,3 +75,5 @@ S077已推 `3ba33b62a0d8456fb0d04765285e11d0b7e1195c`：新表格Project Python�
 S078预案隔离合成预演已独审：两合成Project各2/2工具、0 model/fit/evidence，正常与constant_predictor unknown，质量原观察→人工plan v2→关联→v3及作者原body原ID分进程重放；独审核回执未自行重放，未记录PID/未测断电/guard非全面；未触真实Bike。真实新表格研究范围经单独请求用户决定，未批准前不执行。检查点 2026-11-15T16:54:56.964445+08:00。
 
 S079现有授权内新检索源元数据筛选：无可直接准入候选；QASPER/PubMedQA许可搜索意外返回公开例子片段，已停止并如实记录[审计](retrieval-candidate-audit-20261115.md)，不声称相关test未曝；bioCADDIE规模/权利未知。无候选数据下载、项目、排序评分或模型。检查点 2026-11-15T17:00:13.470522+08:00。
+
+本轮北京开始2026-11-15T15:47:44+08:00，定时再次触发约16:46:04，交接检查点 2026-11-15T17:01:26.679231+08:00。调整并独审真实研究基线9a7cb5a、调研ca3f40a；参考Negative_Knowledge实际独立clone固定015ac48/MIT，未调用其模型API。S074 ea8152e已独审；S075 reader a8207f6推送后只读两真实validation，S065召回改善3题其中2题MRR下降，S067召回不变198题中24题MRR下降/12上升，结果62bdd71；是已曝事后分析非前瞻/迁移。S077 3ba33b6显式用途声明非授权；S078两组合成各2工具、0model/fit/evidence，通过独审与作者原ID分进程重放（独审仅核回执）；S076 Bike预案/新表格预算已单独问用户，未获答复，未下载/建真实项目。S079两例公开样例意外曝光已记录3cf4b55，当前无合格检索候选；原盘/全局执行者unknown。现有代码及研究证据已推，工作树检查后结束owner；实际release见 runs/review/rebaseline-lease-release.json。下次计划19:47:27北京时间，平台完成/投递unknown。
