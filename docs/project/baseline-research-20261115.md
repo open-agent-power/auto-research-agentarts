@@ -14,7 +14,7 @@
 
 [Negative Knowledge as Failure-aware Shared Memory for AutoResearch v1](https://arxiv.org/html/2606.21024v1) §2–3、附录 B/C（2026-06-19，预印本）：作者将完成尝试的失败按范围、程度和建议行动形成有界记录，分别比较无记忆重试、原始日志 self-debug、一次失败整理和多轮整理。其 38 项确定性评测子集报告：单条失败记录 36.8%，三轮原始日志 self-debug 44.7%，三轮深整理 47.4%；这是同一任务失败后的重试，不是跨课题迁移对照；这些是该论文条件/样本的作者结果，不是我们复现的成功率。44.7% 与 47.4% 在 38 题中约相差一题（17/38 与 18/38），不应据此声称稳健显著差异。更关键的是作者附录区分“下次看到的记忆长度”和**包含生成、失败尝试、整理、后续尝试的端到端成本**：深整理约 101k 中位 token，对照三轮 self-debug 约 56k；因此不能仅因短记录就声称整体更省。不同条件的尝试轮数不同，比较时须明确机会与费用而不是直接假设公平或因果。
 
-已只读核 [官方仓库固定 commit 015ac48](https://github.com/hch-wang/Negative_Knowledge/tree/015ac48da8a9ebd2420ffee0f4f84bd5d1d8bbb9) 的 README、`negative_knowledge/curator.py` 与 MIT 根许可证。代码使用枚举区分失败层级、范围、程度与建议；curator 路径需要 Anthropic SDK/模型密钥，未执行、未复制代码、未接入。论文样本、任务和模型有限，其 reported 效果不能推广到本项目；标签如“普遍失败”需要证据支持，不应由单次失败自动晋级。
+已只读核 [官方仓库固定 commit 015ac48](https://github.com/hch-wang/Negative_Knowledge/tree/015ac48da8a9ebd2420ffee0f4f84bd5d1d8bbb9) 的 README、`negative_knowledge/curator.py` 与 MIT 根许可证。代码使用枚举区分失败层级、范围、程度与建议；受限静态审计及纯合成探针显示其现有 validator 不能证明描述真实，也未强制所有文本长度/类型/额外字段，不能直接作为证据验证器。curator 路径需要 Anthropic SDK/模型密钥，且可发送本地实验材料；未运行该路径、未复制代码、未接入。已按用户授权将该固定commit拉至独立新参考目录 `/workspace/reference-exploration-20261115/negative-knowledge-015ac48`，这不是缺失旧参考盘的恢复；本机审计 `runs/s075-reference/negative-knowledge-assessment.md`。论文样本、任务和模型有限，其 reported 效果不能推广到本项目；标签如“普遍失败”需要证据支持，不应由单次失败自动晋级。
 
 **对基线的具体改变：** 原结果、适用条件、不利例和 unknown 先作为有来源的候选经验；操作者声明、模型实际看到、模型实际采用、行为/研究结果发生变化四者分开记录。若未来要评估价值，事前固定任务、材料、可用工具、模型、提示、尝试机会、评价器及总预算，比较无经验、原始失败记录及整理经验等相关条件；完整计入生成/整理/执行/恢复成本。若没有模型授权，只能做无模型的回放/评估设计或明确规则对照，不能宣称模型采用。S067 同臂保持 unknown，不能重开其预算来制造差异。
 
