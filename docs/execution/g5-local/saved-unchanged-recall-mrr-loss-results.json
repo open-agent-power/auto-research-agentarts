@@ -1,0 +1,66 @@
+{
+  "cases": [
+    {
+      "case": "S065",
+      "cell": {
+        "count": 16,
+        "mean_mrr_loss": 0.4026,
+        "status": "available"
+      },
+      "primary_action_id": "action-4de378649a2bc9026793872874663343",
+      "primary_artifact_sha256": "d75481f0f3b2a2f502aa299cc42224fc9af26e9fe3b43d2aa08ba736cbfa4502",
+      "primary_result_sha256": "32ced585400985fc64fb30b97877ba2ccc71c1164a651766764af4b49f0a9b1a",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "project_id": "project-2376ca4a6db64027a1099bd737ca9640",
+      "run_id": "run-a1a631efa41541e2800b43ae047c4c66",
+      "source_commit": "5d431097f3b4846ac240745121e56070edd78e86",
+      "source_snapshot_sha256": "c7bd3a7286072af61cd53b20465bc6f5dde3ecefae759cc5b0d08fb4c9da9dfb"
+    },
+    {
+      "case": "S067",
+      "cell": {
+        "count": 24,
+        "mean_mrr_loss": 0.3724,
+        "status": "available"
+      },
+      "primary_action_id": "action-ad83795edf793a9dc19125edbd2ee442",
+      "primary_artifact_sha256": "4f9ad51aa8f88074697e66f04631083c32e5f5e4c49be6d5746216c92edc8dd3",
+      "primary_result_sha256": "5d75076370f74f6b41bde4c214428957d7531defe073bdce124404a864fad15f",
+      "producer_core": "ca09803b71c2bfd82a3356d428f4f05b8a311da433ea1109019e556b53d7c572",
+      "project_id": "project-dc1b1b59889f49c0b744254b1a1afd68",
+      "run_id": "run-276475c33d7542509c840bc575005271",
+      "source_commit": "5bd9883dd435a1d39b857a51bb6f4d20a53f156b",
+      "source_snapshot_sha256": "2ab8f454956a0b0b75df792cfe9ab37cf7942df769963c58fb9c238d021f8dcb"
+    }
+  ],
+  "development_cost": "unknown",
+  "guard_scope": "Reuse S075 public source, exact primary artifact, SQL and producer/source/reader tail checks and no-write/index/rank/score/fit/model/dispatch guards. Check resolved paths in an additional outer guard; reject private/host paths, non-primary artifacts, dir_fd opens, socket use and writes during case analysis. The reader actually parses dev and validation query text/qrels, saved rankings and shared corpus, which can contain final target documents; Project SQLite state contains all action metadata including final metadata. Never read final query/qrels, final artifacts or private/Host files. Program guards are cooperative safeguards, not OS isolation. SQLite native-library I/O and other native operations are not intercepted by Python open hooks; exact readonly SQLite mode and original controlled paths are required, and no claim of complete native-I/O interception is made. Python, NumPy, SciPy and scikit-learn versions are recorded; external library bytes and the OS are not authenticated by the Git source manifest. Loaded module __file__ paths and current disk bytes are checked; this does not authenticate in-memory code or resist a coordinated local attacker. S075 is compiled directly from its verified source bytes before any product import, without consulting existing script bytecode.",
+  "limitations": [
+    "S065 and S067 data and prior outputs were exposed; this is post hoc and not blind.",
+    "The two cases remain separate, and query independence or population sampling is not established; no p-value, confidence interval or significance claim.",
+    "Zero recall difference does not establish no relevant change; incomplete relevance labels are not proof of non-relevance.",
+    "Suppression and rounding do not provide anonymity; external knowledge and published aggregates may permit inference.",
+    "No causal, model-understanding, adoption, transfer or overall-improvement claim."
+  ],
+  "new_fits": 0,
+  "new_models": 0,
+  "new_research_actions": 0,
+  "protocol_sha256": "bef2c9e49cb2323be5d16918703beb09b09aac19271186e059554e5685da1e70",
+  "read_and_compute_cost": "unknown",
+  "reader_and_audit_manifest_sha256": "75d129a08f27096363cbccc996725e1e1c7e712bd093852753a81aed8b44fef0",
+  "reader_commit": "a4c2eb01e92526b73e2dee4e24f1ba7aa38d5867",
+  "reader_core": "3098e87758abe7bc1fa1ff610ec7e17121766c5a125fbbe45183e346445313ba",
+  "reader_implementation_sha256": "f9a7913bc3ec121011682d506a95ab37e2d02e1289bf367f3f4a1fb3a6784227",
+  "runtime": {
+    "numpy": "2.3.5",
+    "python": "3.12.14",
+    "scikit_learn": "1.8.0",
+    "scipy": "1.17.0"
+  },
+  "s075_protocol_sha256": "575f57346c8c0bd3c4e4f8b6c95a71eb3c70eb50bc8cfc4a467d577b414a925b",
+  "s075_results_sha256": "c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb",
+  "s075_script_sha256": "ad8091d1b1549a2c6ec02ca21e7680f5b4ec1e784d4d53ce11ae215b22ae14b2",
+  "schema_version": "saved-unchanged-recall-mrr-loss-v1",
+  "script_sha256": "910e5715a533483aca7066e92a85591e7a3c351ae265d1d1196479eab0d6f07e",
+  "verified_remote_head_at_execution": "a4c2eb01e92526b73e2dee4e24f1ba7aa38d5867"
+}
