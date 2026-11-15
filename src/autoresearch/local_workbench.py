@@ -1484,6 +1484,35 @@ class LocalWorkbench:
             journal = HostModelSelection(project.root)
             view["journal"] = journal.status()
             view["records"] = [journal.status(request_id=item["request_id"]) for item in view["journal"]["requests"]]
+            identities = []
+            for record in view["records"]:
+                context = record.get("context")
+                materials = context.get("supplied_materials") if type(context) is dict else None
+                quality = [m for m in materials if type(m) is dict and m.get("kind") == "tabular_quality_feedback"] if type(materials) is list else []
+                if not quality:
+                    continue
+                identity = {"host_request_id": record.get("request_id"), "status": "unavailable"}
+                try:
+                    response_sha = record.get("response_sha256")
+                    ids = [m.get("registration_request_id") for m in quality]
+                    valid = (type(record.get("request_id")) is str and len(quality) <= 4
+                             and all(type(i) is str and re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", i) for i in ids)
+                             and len(set(ids)) == len(ids)
+                             and all(type(m.get("registration_sha256")) is str
+                                     and re.fullmatch(r"[0-9a-f]{64}", m["registration_sha256"]) for m in quality)
+                             and type(response_sha) is str and re.fullmatch(r"[0-9a-f]{64}", response_sha))
+                    if valid:
+                        identity.update(status="available", context_sha256=fingerprint(context), response_sha256=response_sha,
+                                        materials=[{"registration_request_id":m["registration_request_id"],
+                                                    "registration_sha256":m["registration_sha256"],
+                                                    "material_sha256":fingerprint(m)} for m in quality])
+                except (TypeError, ValueError, RecursionError):
+                    pass
+                identities.append(identity)
+            if identities:
+                # Snapshot hashes of exactly the records returned above; this GET
+                # does not authenticate the saved Host files or original producer.
+                view["quality_fact_identities"] = identities
             view["plan_reviews"] = review_plan_requests(view["records"])
             view["recipe_validations"] = [read_recipe_validation(project.root, record["request_id"])
                                           for record in view["records"] if record.get("purpose") == "recipe"]

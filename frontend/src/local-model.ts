@@ -38,8 +38,13 @@ const factFields: Record<string, string> = { "plan.question": "本轮问题", "p
 const factMetrics: Record<string, string> = { baseline_mae: "父版本 MAE", candidate_mae: "候选 MAE", mae_change: "候选减父版本 MAE",
   relative_improvement: "相对改善比例（非百分数）", baseline_negative_predictions: "父版本负预测数量", candidate_negative_predictions: "候选负预测数量" };
 const factOrders: Record<string, string> = { candidate_lower: "候选 MAE 更低", baseline_lower: "父版本 MAE 更低", equal: "两版 MAE 相同" };
+const qualityStates: Record<string, string> = { condition_met: "条件满足", condition_not_met: "条件未满足", unknown: "未知",
+  empty: "无 flags", nonempty: "有 flags" };
+const qualityState = (value: unknown, fallback = "未提供"): string => typeof value === "string" ? qualityStates[value] ?? value : fallback;
 const materialFields: Record<MaterialField, string> = { groups: "完整组明细", folds: "完整折明细", rows: "完整逐行明细" };
 type FactDraft = { field: string; start: number; end: number; quote: string; comparison: string; kind: string; order: string; metric: string; value: string; open: boolean };
+type QualityFactDraft = { field: string; start: number; end: number; quote: string; registration: string; index: string;
+  kind: string; outcome: string; count: string; flags: string; open: boolean; contextSha: string; responseSha: string };
 
 function suppliedMaterials(context: Obj): Obj[] {
   return objects(("supplied_materials" in context ? context : object(context.research_context)).supplied_materials);
@@ -47,6 +52,12 @@ function suppliedMaterials(context: Obj): Obj[] {
 function materialSummary(context: Obj): HTMLElement {
   const wrap = el("div", "local-supplied-materials");
   for (const material of suppliedMaterials(context)) {
+    if (material.kind === "tabular_quality_feedback") {
+      const feedback = object(material.feedback);
+      wrap.append(el("p", "", `质量登记 · ${text(material.registration_request_id)} · ${qualityState(feedback.outcome)}`),
+        el("p", "detail-note", `登记 SHA ${text(material.registration_sha256)}；未知原因 ${text(feedback.unknown_reason, "无")}。`));
+      continue;
+    }
     const producer = object(material.producer), source = object(material.source_ref);
     const fields = Object.entries(object(material.fields)).map(([name, value]) => `${name} ${number(object(value).count)} 条`);
     wrap.append(el("p", "", `${text(material.action_id)} · ${fields.join("；")}`),
@@ -206,6 +217,7 @@ export function createLocalModelPanel(host: Host): {
   const decisionButtons: { button: HTMLButtonElement; record: Obj; rejectReason?: HTMLTextAreaElement }[] = [];
   const rejectDrafts = new Map<string, string>();
   const factDrafts = new Map<string, FactDraft>();
+  const qualityFactDrafts = new Map<string, QualityFactDraft>();
   const materialDrafts = new Map<string, MaterialRequest[]>();
   let suppliedPreview: Obj | null = null, materialRevision = 0, materialBusy = false;
   const materialRequests = (): MaterialRequest[] => materialDrafts.get(projectId) ?? [];
@@ -382,6 +394,7 @@ export function createLocalModelPanel(host: Host): {
       const cited = strings(proposal.feedback_action_ids);
       card.append(el("p", "detail-note", cited.length ? `引用${cited.length}条已保存执行反馈，可在实验中心和原请求中核对。` : "根据当前课题与条件制定初始计划。"));
       planFactCheck(record, card);
+      qualityPlanFactCheck(record, card);
     }
     const outcome = object(record.outcome);
     if (record.status === "applied") card.append(el("p", "notice", "已采用为研究计划第" + object(outcome.research_plan).version + "版。"));
@@ -450,6 +463,141 @@ export function createLocalModelPanel(host: Host): {
     })(); });
     factComparisonDetails(comparisons[Number(draft.comparison)] ?? {}, ui.comparisonDetails); controls();
     if (!host.canCheckPlanFacts() && comparisons.length) ui.details.append(el("p", "detail-note", "此服务未开启本地操作。请在已开启本地操作的工作台核对，原建议仍可阅读。"));
+  }
+  function qualityPlanFactCheck(record: Obj, card: HTMLElement): void {
+    const sourceProject = projectId, id = text(record.request_id, ""), key = sourceProject + ":" + id;
+    const materials = suppliedMaterials(object(record.context)).filter(item => item.kind === "tabular_quality_feedback");
+    if (!materials.length) return;
+    const identities = objects(view.quality_fact_identities).filter(item => item.host_request_id === id);
+    const identity = identities.length === 1 ? identities[0] : {};
+    const isHash = (value: unknown): value is string => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+    const contextSha = text(identity.context_sha256, ""), responseSha = text(identity.response_sha256, "");
+    const previous = qualityFactDrafts.get(key);
+    const draft = previous && isHash(contextSha) && isHash(responseSha)
+      && previous.contextSha === contextSha && previous.responseSha === responseSha ? previous
+      : { field: factText(record, "plan.basis") ? "plan.basis" : "plan.question", start: 0, end: 0, quote: "",
+          registration: "", index: "", kind: "overall_outcome", outcome: "", count: "", flags: "", open: false, contextSha, responseSha };
+    qualityFactDrafts.set(key, draft);
+    const details = el("details", "local-advanced local-quality-fact-check"); details.open = draft.open;
+    details.append(el("summary", "", "核对质量反馈的一条声明"), el("p", "detail-note",
+      "由你选择原句并声明它对应的条件；结果仅核对封存材料，不判断句意、不证明模型理解或科学结论。"));
+    const form = el("form", "local-fact-check-form"), fields = el("fieldset", "local-fieldset");
+    const fieldControl = factSelect(factFields, draft.field), source = el("textarea"); source.readOnly = true; source.rows = 6; source.value = factText(record, draft.field);
+    const pick = el("button", "quiet-button", "使用所选原句"); pick.type = "button";
+    const quoted = el("p", "detail-note"); quoted.setAttribute("aria-live", "polite");
+    const materialKey = (material: Obj): string => JSON.stringify([material.registration_request_id, material.registration_sha256]);
+    const registration = factSelect({ "": "请选择原登记", ...Object.fromEntries(materials.map(m => [materialKey(m),
+      `${text(m.registration_request_id)} · ${qualityState(object(m.feedback).outcome)} · ${text(m.registration_sha256)}`])) }, draft.registration);
+    const condition = factSelect({ "": "请选择条件" }, draft.index), conditionWrap = field("原登记条件", condition);
+    const kind = factSelect({ overall_outcome: "总体结果", condition_outcome: "单项结果", actual: "单项实际值", expected: "单项预期值" }, draft.kind);
+    const outcomes = { "": "请选择原句声明", condition_met: "条件满足", condition_not_met: "条件未满足", unknown: "记录为未知" };
+    const declaredOutcome = factSelect(outcomes, draft.outcome), outcomeWrap = field("原句声明的状态", declaredOutcome);
+    const count = el("input"); count.type = "text"; count.inputMode = "numeric"; count.maxLength = 5; count.value = draft.count;
+    const countWrap = field("原句声明的非负整数", count), flags = factSelect({ "": "请选择原句声明", empty: "无 flags", nonempty: "有 flags" }, draft.flags);
+    const flagsWrap = field("原句声明的 flags 状态", flags), saved = el("p", "detail-note"), binding = el("p", "detail-note");
+    const run = el("button", "action-button primary", "核对质量声明"); run.type = "submit";
+    const save = el("button", "quiet-button", "下载这次质量核对 JSON"); save.type = "button"; save.disabled = true;
+    const actions = el("div", "local-actions"); actions.append(run, save);
+    const resultView = el("div"); resultView.setAttribute("aria-live", "polite");
+    fields.append(field("原建议字段", fieldControl), field("原建议正文（请选中一句）", source), pick, quoted,
+      field("冻结的质量登记", registration), field("声明类型", kind), conditionWrap, saved, binding, outcomeWrap, countWrap, flagsWrap);
+    form.append(fields, actions, resultView); details.append(form); card.append(details);
+    let busy = false, revision = 0, result: Obj | null = null;
+    const selected = (): Obj | undefined => {
+      const matches = materials.filter(material => materialKey(material) === draft.registration);
+      return draft.registration !== "" && matches.length === 1 ? matches[0] : undefined;
+    };
+    const selectedIdentity = (): Obj | undefined => {
+      const material = selected(), matches = objects(identity.materials).filter(item =>
+        item.registration_request_id === material?.registration_request_id && item.registration_sha256 === material?.registration_sha256);
+      return identity.status === "available" && identities.length === 1 && matches.length === 1
+        && isHash(identity.context_sha256) && isHash(identity.response_sha256) && isHash(matches[0].material_sha256)
+        && record.response_sha256 === identity.response_sha256 ? matches[0] : undefined;
+    };
+    const conditions = (): Obj[] => objects(object(selected()?.conditions).conditions);
+    const selectedCondition = (): Obj | undefined => draft.index === "" ? undefined : conditions()[Number(draft.index)];
+    function choices(): void {
+      const options = [{ value: "", label: "请选择条件" }, ...conditions().map((item, i) => ({ value: String(i),
+        label: `${i + 1}. ${text(item.field)}${typeof item.column === "string" ? " · " + item.column : ""} · ${text(item.operator)}` }))];
+      condition.replaceChildren(...options.map(item => { const option = el("option", "", item.label); option.value = item.value; return option; }));
+      condition.value = draft.index;
+    }
+    function controls(): void {
+      const material = selected(), item = selectedCondition(), feedback = object(material?.feedback);
+      const isOutcome = draft.kind === "overall_outcome" || draft.kind === "condition_outcome";
+      const isFlags = item?.field === "flags", countValid = /^(?:0|[1-9][0-9]{0,4})$/.test(draft.count) && Number(draft.count) <= 50000;
+      fields.disabled = busy; conditionWrap.hidden = draft.kind === "overall_outcome";
+      outcomeWrap.hidden = !isOutcome; countWrap.hidden = isOutcome || isFlags; flagsWrap.hidden = isOutcome || !isFlags;
+      saved.textContent = material ? `封存总体状态：${qualityState(feedback.outcome)}；未知原因：${text(feedback.unknown_reason, "无")}。`
+        + (item ? ` 原条件：${JSON.stringify(item)}` : "") : "请选择这份请求中已经封存的质量登记。";
+      binding.textContent = material && !selectedIdentity() ? "原记录的质量核对身份缺失或不一致，请重新读取；不会替换登记。" : "";
+      quoted.textContent = draft.quote ? "已选原句 · " + draft.quote : "先在原建议正文中选中要核对的一句。";
+      run.disabled = busy || !host.canCheckPlanFacts() || !draft.quote || !material
+        || !selectedIdentity()
+        || (draft.kind !== "overall_outcome" && !item) || (isOutcome ? !draft.outcome : isFlags ? !draft.flags : !countValid);
+      run.textContent = busy ? "正在核对…" : "核对质量声明"; save.disabled = busy || !result;
+    }
+    function invalidate(): void { revision++; result = null; resultView.replaceChildren(); controls(); }
+    function edited(): void {
+      if (draft.field !== fieldControl.value) { draft.field = fieldControl.value; draft.start = draft.end = 0; draft.quote = ""; source.value = factText(record, draft.field); }
+      if (draft.registration !== registration.value) { draft.registration = registration.value; draft.index = ""; choices(); }
+      else draft.index = condition.value;
+      draft.kind = kind.value; draft.outcome = declaredOutcome.value; draft.count = count.value; draft.flags = flags.value;
+      invalidate();
+    }
+    pick.addEventListener("click", () => {
+      if (source.selectionStart === source.selectionEnd) { host.announce("请先在原建议正文中选中要核对的原句。", true); return; }
+      const raw = factText(record, draft.field), start = factRawOffset(raw, source.selectionStart), end = factRawOffset(raw, source.selectionEnd);
+      draft.start = Array.from(raw.slice(0, start)).length; draft.end = Array.from(raw.slice(0, end)).length;
+      draft.quote = raw.slice(start, end); invalidate();
+    });
+    for (const control of [fieldControl, registration, condition, kind, declaredOutcome, count, flags]) {
+      control.addEventListener("input", edited); control.addEventListener("change", edited);
+    }
+    details.addEventListener("toggle", () => { draft.open = details.open; });
+    save.addEventListener("click", () => { if (result) download(result, "-quality-fact-check"); });
+    form.addEventListener("submit", event => { event.preventDefault(); void (async () => {
+      if (run.disabled) return;
+      const material = selected()!, item = selectedCondition(), materialIdentity = selectedIdentity()!, isFlags = item?.field === "flags";
+      const assertion: Obj = draft.kind === "overall_outcome" ? { kind: draft.kind, value: draft.outcome }
+        : draft.kind === "condition_outcome" ? { kind: draft.kind, index: Number(draft.index), value: draft.outcome }
+          : { kind: "condition_value", index: Number(draft.index), field: draft.kind, value: isFlags ? draft.flags : Number(draft.count) };
+      const quality = { registration_request_id: material.registration_request_id, registration_sha256: material.registration_sha256 };
+      const span = { field: draft.field, start: draft.start, end: draft.end, quote: draft.quote };
+      const claim = { ...span, quality, assertion }, generation = ++revision;
+      busy = true; result = null; resultView.replaceChildren(); controls();
+      try {
+        const checked = await host.checkPlanFact({ project_id: sourceProject, host_request_id: id, claim });
+        if (generation !== revision || projectId !== sourceProject || !form.isConnected) return;
+        const frozen = object(object(record.context).selection_context), returnedQuality = object(checked.quality), returnedSpan = object(checked.quote_span);
+        const returnedAssertion = object(checked.assertion);
+        if (checked.schema_version !== "plan-quality-fact-check-v1" || checked.project_id !== sourceProject || checked.host_request_id !== id
+          || checked.selection_context_sha256 !== frozen.context_sha256 || checked.context_sha256 !== identity.context_sha256
+          || checked.response_sha256 !== identity.response_sha256 || checked.material_sha256 !== materialIdentity.material_sha256
+          || returnedQuality.registration_request_id !== quality.registration_request_id
+          || returnedQuality.registration_sha256 !== quality.registration_sha256 || Object.keys(returnedQuality).length !== 2
+          || Object.entries(span).some(([k, v]) => returnedSpan[k] !== v) || Object.keys(returnedSpan).length !== 4
+          || Object.entries(assertion).some(([k, v]) => returnedAssertion[k] !== v) || Object.keys(returnedAssertion).length !== Object.keys(assertion).length
+          || !["supported", "contradicted", "undetermined"].includes(text(checked.status, "")))
+          throw Error("返回的核对记录与原登记或选句不符，请重新读取。");
+        result = checked;
+        const labels: Record<string, string> = { supported: "所声明的判断与封存材料一致", contradicted: "所声明的判断与封存材料矛盾", undetermined: "当前封存材料不可核对" };
+        const actual = checked.actual === null || checked.actual === undefined ? "未知或未提供"
+          : typeof checked.actual === "string" ? qualityState(checked.actual) : String(checked.actual);
+        resultView.replaceChildren(el("p", checked.status === "contradicted" ? "notice error" : "notice", labels[text(checked.status)]),
+          el("p", "", `保存值：${actual}；总体状态：${qualityState(checked.overall_outcome)}。`),
+          el("p", "detail-note", `原因：${text(checked.reason_code)}；反馈未知原因：${text(checked.feedback_unknown_reason, "无")}。`),
+          el("p", "detail-note", "只核对你指定的映射；记录为未知不证明行动未发生，也不证明模型理解或科学有效。"));
+        const raw = el("details", "local-advanced"); raw.append(el("summary", "", "查看选句和核对身份"),
+          el("pre", "project-source-text", JSON.stringify(checked, null, 2))); resultView.append(raw);
+      } catch (error) {
+        if (generation !== revision || projectId !== sourceProject || !form.isConnected) return;
+        resultView.replaceChildren(el("p", "notice error", error instanceof Error ? error.message : "核对未完成，请重新选择原句。"));
+      } finally { busy = false; if (form.isConnected) controls(); }
+    })(); });
+    choices(); controls();
+    if (!host.canCheckPlanFacts()) details.append(el("p", "detail-note", "此服务未开启本地操作；原建议仍可阅读。"));
+    if (identity.status !== "available") details.append(el("p", "detail-note", "这份记录的质量核对身份不完整；请重新读取原记录。"));
   }
   function usageText(): void {
     const journal = object(view.journal), counts = object(journal.usage);
