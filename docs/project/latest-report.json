@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T19:14:57+08:00",
-  "status": "S086_verified_workbench_v2_in_progress",
+  "end_time": "2026-11-15T19:27:37+08:00",
+  "status": "S087_verified_process_recovery_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -15,7 +15,8 @@
     "S083 explicit verified-quality Controller route completed and reviewed",
     "S084 LocalWorkbench registration/feedback/advance and transaction-bound manager ownership completed and reviewed",
     "S085 Project opt-in structured quality action reference and direct successor plan verified; old policy waits and Workbench rejects the new field",
-    "S086 explicit Controller v2 authenticates actual latest structured quality plan and routes bounded candidate, independently reviewed"
+    "S086 explicit Controller v2 authenticates actual latest structured quality plan and routes bounded candidate, independently reviewed",
+    "S087 structured quality plan and Controller v2 integrated with LocalWorkbench/HTTP; independently reviewed with transaction-bound manager ownership"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -39,12 +40,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Safely integrate quality-linked plan v2 and explicit Controller v2 with LocalWorkbench manager/core transactional ownership and original-ID recovery; synthetic only.",
+  "next": "Verify actual cross-process kill and original-ID recovery at fixed manager/core boundaries on isolated synthetic projects, no real study actions.",
   "next_planned_trigger": "2026-11-15T19:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "649e6faa6f757afd7e063f459970aafd42973c91",
-  "last_checkpoint": "2026-11-15T19:14:57+08:00",
+  "code_commit": "11db75aa76e6c3eb5d1fdbd7cbc257ae0b59b63c",
+  "last_checkpoint": "2026-11-15T19:27:37+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -608,5 +609,13 @@
     "independent_legacy_tests": 29,
     "real_research_actions": 0,
     "limitations": "Python opt-in only, Workbench/HTTP v2 not integrated; synthetic, no proof of actual power-failure recovery or scientific benefit."
+  },
+  "S087": {
+    "code_commit": "11db75aa76e6c3eb5d1fdbd7cbc257ae0b59b63c",
+    "author_related_tests": 90,
+    "independent_new_tests": 15,
+    "independent_legacy_tests": 40,
+    "real_research_actions": 0,
+    "limitations": "Isolated synthetic HTTP/mocked interruptions only; true process kill/power failure unproven; read-only host GET unavailable, UI absent."
   }
 }
