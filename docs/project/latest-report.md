@@ -69,3 +69,5 @@ S074已独审推送 `ea8152e595abca322870a9eb6c7fbc0b9e1eebbf`：两真实进程
 S075协议发布reader `a8207f63c3201eb2e601dc81642d15342943813b` 后真实只读原S065/S067 validation，独立Decimal复算一致：S065 100题召回上升3题中2题MRR下降；S067 200题召回不变198题中24题MRR下降/12上升。事后已曝描述，不等于盲测/新科研闭环/迁移；0新增模型/fit/rank/score/研究行动，原3/3预算保持。结果SHA c0adf1d0edda145af95da1dfdf94f19a85ceb71decb0e290a90fbdd3734e31cb；有限canary不含final query，详情Sprint。检查点 2026-11-15T16:20:18.413470+08:00。
 
 S076只做候选元数据/接口审计：[Bike 2011预案](bike-sharing-2011-study-proposal.md)经独审，拟独立新表格项目≤2工具/0model/fit/evidence，原ZIP与source SHA unknown、未下载/读目标/建项目；现有G5 retrieval/scheduling授权不自动覆盖，需要明确新范围。现有Project evidence_purpose硬编码适配器回归的语义缺口已记录，先独立评估，不静默改写。检查点 2026-11-15T16:31:53.834634+08:00。
+
+S077已推 `3ba33b62a0d8456fb0d04765285e11d0b7e1195c`：新表格Project Python创建可显式声明操作者描述性研究用途，默认旧wire/旧pin不变，不自动授权/科学验证。作者27相关、独审4+复跑作者6，pin193项；独审意外执行额外合成工具记录见Sprint，不能称全程0工具。Bike仅预案、未授权/未下载/未创建。检查点 2026-11-15T16:43:16.000560+08:00。

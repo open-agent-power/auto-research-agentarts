@@ -3,7 +3,7 @@
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T10:51:58+08:00",
   "end_time": "2026-11-15T15:42:30.306213+08:00",
-  "status": "S076_candidate_only_not_authorized",
+  "status": "S077_independently_verified_candidate_not_authorized",
   "base_commit": "3f36b3ac14c44ccf8d48a115941563d80c7dd9ed",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -32,7 +32,7 @@
     "Whole-case integrity hashing outside guards reads private-marked bytes; HTTP audit synthetic final reads synthetic private"
   ],
   "lease_owner": "root-continuation-20261115T1052",
-  "next": "Continue independent assessment of Project purpose semantics and licensed G5 research directions; obtain specific approval before new Bike research action.",
+  "next": "Await specific new Bike table research scope approval if pursued; meanwhile carry out independent no-paid work and prepare synthetic preflight under existing authorization.",
   "next_planned_trigger": "2026-11-15T13:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
@@ -191,7 +191,7 @@
     "public_aggregate_sha256": "08dd897627bb9856ec5ea13c679fb01a320a970ab2f93257eabbbc0490bbefa5",
     "public_aggregate_independent_check": "runs/s066-review/public-results-check.json"
   },
-  "checkpoint_time": "2026-11-15T16:31:53.834634+08:00",
+  "checkpoint_time": "2026-11-15T16:43:16.000560+08:00",
   "S067": {
     "status": "real_study_independently_verified",
     "actual_cohort_selected": true,
@@ -450,9 +450,9 @@
     "development_cost": "unknown"
   },
   "S076": {
-    "status": "proposal_only_not_authorized",
+    "status": "proposal_only_not_authorized_s077_api_gap_resolved",
     "proposal": "docs/project/bike-sharing-2011-study-proposal.md",
-    "proposal_sha256": "ed8ba0016ca25a66a7e58ed18f44f7693f291417a7d28884a58d42145834487f",
+    "proposal_sha256": "3b96112a3bb455695b98ffb5eaa342367baf87d87a911a3dc060ded35067df3d",
     "candidate": "UCI Bike Sharing 2011 descriptive association",
     "proposed_budget": "at most 2 native tools, 0 model, 0 fit, 0 additional native evidence reads",
     "source_zip_sha256": "unknown_not_downloaded",
@@ -460,7 +460,21 @@
     "project_created": false,
     "actual_research_actions": 0,
     "authorization": "new table research not automatically covered by existing G5 scope",
-    "code_gap": "Project default evidence_purpose denotes isolated adapter regression",
+    "code_gap": "S077 Python opt-in implemented; no automatic authorization, no UI create",
     "independent_review": "metadata and API static audit; unknown-first correction applied"
+  },
+  "S077": {
+    "status": "independently_verified_and_pushed",
+    "commit": "3ba33b62a0d8456fb0d04765285e11d0b7e1195c",
+    "source_pin": "/workspace/development-continuation-20261114/source-pins/3ba33b6",
+    "source_freeze_sha256": "60e9c7928183b654e9c69bd5cfe31f068df89c368e8fe335a2153dd5f4d30ad4",
+    "source_pin_files_verified": 193,
+    "project_core": "3bcccb20f6b428795fe7563ba9892af99fa83ed06704923fefe9e3f70c846f0e",
+    "author_related_tests": 27,
+    "independent_tests": 4,
+    "author_tests_repeated_independently": 6,
+    "extra_synthetic_activity": "accidentally collected 2 author tests: synthetic project 2/2 tools, 4 adapter successes and 1 expected rejection",
+    "limits": "opt-in Python create only; operator declaration not authorization/scientific validation; no separate fit/network sentinel on all synthetic work",
+    "independent_review": "runs/s077-review/independent-assessment.md"
   }
 }

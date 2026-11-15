@@ -15,3 +15,5 @@
 独审最初运行的 `independent-probe.log` 因 unittest 自动收集作者的另外两项合成测试而包含额外工程计算：其中一个合成 Project 使用 **2/2 工具**（质量与数值关联，账面 model/fit/evidence 0），另有 4 次成功的直接数值关联 adapter 计算及 1 次预期拒绝的直接调用。过滤测试类后的 `independent-core-only.log` 才是独立 4/4。作者相关回归亦包含合成工具/adapter 路径，未单独统计全进程所有调用；上述合成执行未安装覆盖所有 fit 和网络访问的独立哨兵，不能把整个过程写成普遍零工具、零私有读取或零外部行为。独审旧 pin 的原版子进程也没有单独安装网络哨兵。受信本地守卫不是 OS 隔离，开发费用/token 未测，保持 unknown。
 
 本增量没有下载 Bike 数据、创建真实 Bike Project 或启动该研究；Bike 预案仍待用户决定，其许可、具体预算、原始文件 SHA 和后续研究行动均不由用途标签自动授权。
+
+源码提交 `3ba33b62a0d8456fb0d04765285e11d0b7e1195c` 已推送；pin `/workspace/development-continuation-20261114/source-pins/3ba33b6` 与193项冻结文件逐项匹配。

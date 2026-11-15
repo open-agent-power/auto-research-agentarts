@@ -60,3 +60,7 @@
 ## 尚待批准/核实
 
 需要独审本协议的字段和质量门、处理上述新 Project 用途元数据差异、核可用发布 commit/运行时、批准一次独立新表格研究和预算、取得原始 ZIP/README、固定全部真实 SHA 与唯一 claim；这些完成前不启动。协议只预先约束可做什么，不保证数据适配、结论可计算、行动成功或任何科研收益。
+
+## S077 后的用途声明更新
+
+[S077](../execution/SPRINT-077.md)已新增仅 Python `ResearchProject.create` 的显式 `operator_declared_descriptive_research`；它解决新项目可准确持久操作者用途的 API 能力，但不是研究授权、领域有效性、预算授权、文件冻结或已执行本案的证明。Workbench/CLI 的直接创建入口仍未扩展。若获批准，必须先确认采用的已发布源码 pin、完成本预案的隔离合成全链及原 ID 恢复验证、原始数据与派生 source 实际 SHA/许可/容量以及唯一 claim，之后才可行动。旧项目和预算不迁移。
