@@ -1,5 +1,7 @@
 # 云端开发上下文
 
+UCI 501 [单站描述性条件协议](uci-501-single-station-descriptive-proposal-20261115.md)已独审；站点/时区/权利、时间绑定及安全恢复仍阻断执行。两次未授权 Firecrawl 各显示1 credit，已停止、实际结算unknown。
+
 S131 续用两原合成项目保存人工plan2，浏览器丢回执同body/ID恢复；独审核前后备份、claims及预算不变，预览不派发。仅合成。[记录](../execution/SPRINT-131.md)。
 
 S130 同pin两全新合成项目先登记同规则再行动：S127 [0,0]→wait 1/2；S129白盒 [0,-0.5]→audit 2/2。独审复算排名/claims；非真实科研或未见评估。[记录](../execution/SPRINT-130.md)。
