@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-15T22:37:25+08:00",
-  "status": "S104_verified_quality_material_ui_in_progress",
+  "end_time": "2026-11-15T22:53:26+08:00",
+  "status": "S105_verified_strict_adoption_ui_in_progress",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -35,7 +35,8 @@
     "S101 strict supplied quality plan adoption connected to Workbench/HTTP with manager→Host v4→Project claim; synthetic 36 independent and 65 related checks",
     "S102 four strict three-layer fixed windows independently verified using actual SIGKILL and distinct recovery PIDs; synthetic 4/4 each",
     "S103 existing Workbench fact check compares explicitly mapped original response span with frozen registered quality feedback; final author/independent 50/50 and additional independent 20/20 synthetic checks",
-    "S104 workbench UI quality fact checks over previously supplied frozen materials; independent actual Chromium/HTTP and 23 related synthetic checks"
+    "S104 workbench UI quality fact checks over previously supplied frozen materials; independent actual Chromium/HTTP and 23 related synthetic checks",
+    "S105 quality registration selector and read-only preview in Workbench plan UI; independent dual-project Chromium/HTTP and 36 Python synthetic tests"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -56,7 +57,8 @@
     "S091 missing unknown IDs in manager pending projection fixed with bounded explicit GET",
     "Clean HEAD pre-existing one test failure OPERATION_INCOMPLETE vs IDEMPOTENCY_CONFLICT preserved; excluded from S094 70 passing regression, separate fix in progress",
     "S099 independent review found changed plan causes reader early unknown before SQL/artifact authentication; two pre-fix failing cases retained, fixed by refusing supplied material on plan drift.",
-    "S103 original context/prompt relationship allowed synchronized ledger+prompt tamper; retained failing synthetic log and added current-reader prompt recompilation check."
+    "S103 original context/prompt relationship allowed synchronized ledger+prompt tamper; retained failing synthetic log and added current-reader prompt recompilation check.",
+    "S105 repeated preview left submit temporarily enabled; fixed and independently browser verified. Test fixture timing failure and BrokenPipe retained."
   ],
   "limitations": [
     "S082 does not route Controller decisions or prove scientific benefit",
@@ -65,12 +67,12 @@
     "Protected Bike 2/2 budget and prior pin preserved"
   ],
   "lease_owner": "root-quality-20261115T1806",
-  "next": "Expose explicit quality registration material selection in existing Host plan preparation UI; preserve budget and no automatic model request.",
-  "next_planned_trigger": "2026-11-15T22:47:27+08:00",
+  "next": "Expose explicit strict supplied quality adoption in Workbench UI, with original three-layer ownership and safe recovery.",
+  "next_planned_trigger": "2026-11-16T01:47:27+08:00",
   "automation_completion": "unknown",
   "delivery": "unknown",
-  "code_commit": "db58e10bf03fd7a1ad0973f97d4caab02e90c5c0",
-  "last_checkpoint": "2026-11-15T22:37:25+08:00",
+  "code_commit": "1bb20d0dbef4309e5065528ea8c83624b9a1f54b",
+  "last_checkpoint": "2026-11-15T22:53:26+08:00",
   "source_pin": "/workspace/development-continuation-20261114/source-pins/7926608",
   "code_commits": {
     "S062": "8090aa7191b3cff8132edd6dcff7e9309ba90e62",
@@ -769,5 +771,13 @@
     "independent_browser_post_count": 7,
     "browser_evidence_sha256": "103de44812bd50eaf8f6ccbceaab5042df76eeb405fe85ae426e532ce333e0a5",
     "scope": "actual browser delayed refresh tested; actual cross-project switch only static audit; create material and strict adopt UI remain absent"
+  },
+  "S105": {
+    "commit": "1bb20d0dbef4309e5065528ea8c83624b9a1f54b",
+    "author_related": 43,
+    "independent_python": 36,
+    "additional_independent": 27,
+    "browser_evidence_sha256": "b567a0300dbd9810ee862479c4e4ca25e30062aaca6ab1980a3b2becf56d0c9d",
+    "scope": "dual-project actual HTTP, model POST intercepted; mixed and max-four materials mocked"
   }
 }
