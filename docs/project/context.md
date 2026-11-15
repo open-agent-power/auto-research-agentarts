@@ -214,3 +214,5 @@ S114：原future ID strict staged primary已接页面并经合成浏览器/HTTP�
 S115：严格已知反馈后端wait/audit已独审；unknown或原primary不完整停查，不支持未开始primary记wait。审计可能额外1工具，未做S115多进程/UI，旧pin不升级。见SPRINT-115。
 
 S116：严格反馈wait/audit十个真实SIGKILL窗口、两个竞争、四种不同分支独审通过，仅合成；各例原primary已用1工具，audit各自再计。反馈UI未接，见SPRINT-116。
+
+S117：已知staged反馈wait/audit接页面，原body/ID与resume-only、预算和unknown边界保留；模拟unknown/阻塞，真实合成主链与跨项目独审通过。见SPRINT-117。

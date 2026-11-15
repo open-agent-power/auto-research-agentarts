@@ -1,6 +1,8 @@
 # 当前自主研究开发
 Status: resumable
 
+S117 工作台可显式按原登记处理已认证known staged反馈，显示总体条件/原分支/实际wait或audit；unknown与阻塞停查、audit可能额外1工具。独立合成浏览器和后端通过，真实研究未新增。[SPRINT-117](../execution/SPRINT-117.md)。
+
 S116 对严格staged反馈在新合成项目完成十个真实SIGKILL窗口、两个真实旧入口竞争和四种不同分支，独审逐项复算；非断电/任意并发证明。反馈页面仍未接。[SPRINT-116](../execution/SPRINT-116.md)。
 
 S115 已认证completed primary的已知双指标反馈可走严格后端wait或原登记audit，unknown/缺凭据停查；独审52+51合成及3项事务负例通过，S115多进程竞争/UI尚未验证或接入。[SPRINT-115](../execution/SPRINT-115.md)。

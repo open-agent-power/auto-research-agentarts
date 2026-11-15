@@ -246,6 +246,31 @@ def _projection(project, state, report=None):
                     "code_matches":r["project_code_identity"] == state["code_identity"] == project_code_identity()
                                    and r["controller_code_identity"] == controller_code_identity()}
                     for r in staged]}
+    feedback_parents = [p for p in state.get("controller_requests", []) if "staged_feedback_policy" in p]
+    if feedback_parents:
+        try:
+            from .research_project import _staged_feedback_parent_claim_sha
+            _require(len({p["request_id"] for p in feedback_parents}) == len(feedback_parents), "EVIDENCE_CHANGED", "Duplicate feedback parent.")
+            projected = []
+            for parent in feedback_parents:
+                _staged_feedback_parent_claim_sha(parent)
+                meta = parent["staged_feedback_policy"]
+                _require(parent["project_id"] == state["id"] and meta["controller_request_id"] == parent["request_id"]
+                         and meta["context_sha256"] == parent["selection_context"]["context_sha256"]
+                         and meta["child_request_id"] == parent["child_request_id"], "EVIDENCE_CHANGED", "Feedback parent differs.")
+                projected.append({"request_id":parent["request_id"], "project_id":parent["project_id"], "run_id":state["run_id"],
+                    "state_version_before":parent["state_version_before"], "snapshot_ref_before":parent["snapshot_ref_before"],
+                    "context_sha256":meta["context_sha256"], "registration_request_id":meta["registration_request_id"],
+                    "registration_sha256":meta["registration_sha256"], "primary_action_id":meta["primary_action_id"],
+                    "primary_result_sha256":meta["primary_result_sha256"], "decision":meta["decision"],
+                    "status":parent["status"], "child_request_id":parent["child_request_id"]})
+            public_view["staged_feedback_parents"] = {"schema_version":"staged-feedback-parent-view-v1", "project_id":state["id"],
+                "run_id":state["run_id"], "snapshot_ref":state["snapshot_ref"], "state_version":state["state_version"],
+                "verification":"state_fields_only_not_claim_sql_or_artifacts", "items":projected}
+        except (ResearchError, KeyError, TypeError, ValueError, AttributeError):
+            public_view["staged_feedback_parents"] = {"schema_version":"staged-feedback-parent-view-v1", "project_id":state["id"],
+                "run_id":state["run_id"], "snapshot_ref":state["snapshot_ref"], "state_version":state["state_version"],
+                "verification":"unavailable", "items":[]}
     return public_view
 
 

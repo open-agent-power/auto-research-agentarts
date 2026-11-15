@@ -413,3 +413,7 @@ unknown Controller 查询要求 `project_id` 和 `snapshot_ref` 各恰好一次�
 ## 固定 CPU 研究页
 
 三项已登记固定检索/调度primary采用只读协议视图，按需核对原source，不显示CSV/Ridge设计编辑器；其他方法保持现有流程。原项目代码不同而禁止编辑时仍可阅读。完整字段、声明分区与已完成次数的区别见[协议阅读](fixed-cpu-protocol.md)。
+
+已完成严格 staged primary 后，事前双指标面板可让操作者选择当前项目快照中匹配原登记、计划、来源及已保存 primary 的已知反馈，并明确提交一次反馈选择。页面展示两个 validation 总体差值、原先登记的两种分支和当前预算；0 是有效值，S108 的事后子集经验不是本次总体反馈。原登记的通用策略将 unknown 映射等待；此处严格入口只支持已认证完成的 primary 和已知反馈，unknown、原件或 claims 缺失均停查，不记录等待。旧 pin 不自动迁移。
+
+点击后保存完整原反馈请求到当前浏览器会话并读回，随后才发送。已知的保存结果审计最多使用一次现有工具，读取 dev/validation 已保存指标及共享来源；共享语料可能包含 final 的目标 passage，不新增 rank、score、模型、fit 或 final 评估。实际分支可能因候选或额度不可用而等待，即使原登记为审计；等待不新增工具。任何不确定回执保留原 ID 和正文，只能显式使用 resume-only 核对，缺失原意图或正文不得重造。成功回执也经过 resume-only 核原 manager、parent 和 child claims，必要时补原 manager 回执，再以活动项目的状态投影对照身份；GET 投影仅检查状态字段，不独立认证 claims、SQL 或工件。此机制不构成跨账本原子隔离或科学结论。

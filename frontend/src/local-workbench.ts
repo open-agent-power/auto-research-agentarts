@@ -10,7 +10,7 @@ import { createResearchDesignPanel } from "./research-design";
 import { progressFeedback, researcherFeedbackItems, sourceQuestionText } from "./project-view";
 
 type Obj = Record<string, unknown>;
-type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean; recoverManual?: boolean; recoverStagedHypothesis?: boolean; recoverStagedPrimary?: boolean; stagedPrimaryContext?: Obj };
+type Pending = { command: string; requestId: string; body: string; uncertain: boolean; recoverBatch?: boolean; recoverModel?: boolean; recoverExperience?: boolean; recoverPlan?: boolean; recoverQuality?: boolean; recoverManual?: boolean; recoverStagedHypothesis?: boolean; recoverStagedPrimary?: boolean; stagedPrimaryContext?: Obj; recoverStagedFeedback?: boolean; stagedFeedbackContext?: Obj };
 type PlanCaseRef = { case_id: string; case_version: number; bundle_sha256: string; applicability_statement: string };
 const obj = (value: unknown): Obj => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Obj : {};
 const items = (value: unknown): Obj[] => Array.isArray(value) ? value.map(obj) : [];
@@ -44,6 +44,7 @@ const methodNames: Record<string, string> = {
 };
 const PENDING_KEY = "autoresearch.local-workbench.pending.v1";
 const STAGED_HYPOTHESIS_PENDING_KEY = "autoresearch.local-workbench.staged-hypothesis.v1";
+const STAGED_FEEDBACK_PENDING_KEY = "autoresearch.local-workbench.staged-feedback.v1";
 const STAGED_PRIMARY_PENDING_KEY = "autoresearch.local-workbench.staged-primary.v1";
 const QUALITY_PENDING_KEY = "autoresearch.local-workbench.supplied-quality-adoption.v1";
 const MANUAL_PREPARE_KEY = "autoresearch.local-workbench.manual-plan-prepare.v1";
@@ -326,7 +327,7 @@ function createResearchPlanPanel(deps: {
 }
 
 function createStagedHypothesisPanel(deps: {
-  current(): Obj; context(): Obj | null; submit(body: Obj): Promise<Obj | null>; submitPrimary(body: Obj, identity: Obj): Promise<Obj | null>;
+  current(): Obj; context(): Obj | null; submit(body: Obj): Promise<Obj | null>; submitPrimary(body: Obj, identity: Obj): Promise<Obj | null>; submitFeedback(body: Obj, identity: Obj): Promise<Obj | null>;
 }): { element: HTMLElement; update(project: Obj): void; setLocked(value: boolean): void } {
   const section = panel("事前双指标登记", "仅保存操作者的预期，不执行检索、审计或模型。");
   const saved = el("div"), form = el("form"), fields = el("fieldset", "local-fieldset"), status = el("p", "detail-note");
@@ -351,7 +352,7 @@ function createStagedHypothesisPanel(deps: {
     fields.append(field(label, input)); branches.push({ outcome, input });
   }
   const submitButton = el("button", "local-primary", "仅登记事前条件"); submitButton.type = "submit";
-  fields.prepend(el("p", "detail-note", "差值均为 validation 的 TF-IDF 减 BM25。必须由你填写比较符和阈值；此登记的显式反馈策略遇未知时等待，不把0当未知，普通入口不自动受此约束。"),
+  fields.prepend(el("p", "detail-note", "差值均为 validation 的 TF-IDF 减 BM25。必须由你填写比较符和阈值；原登记策略把未知映射为等待；下方严格反馈入口遇未知会停查，不保存等待记录。0 是有效值，普通入口不自动受此约束。"),
     el("p", "detail-note", "先保存计划及所需历史案例引用。登记固定当时计划；以后改计划可能使反馈未知。此处不登记 final，也不保证以后仍可作前瞻 final；反馈分支须以后另行明确操作。"), future);
   form.append(fields, status, submitButton); section.append(saved, form);
   const run = el("div", "local-panel"), runTitle = el("h3", "", "按原登记明确执行 primary"), runFields = el("fieldset", "local-fieldset");
@@ -361,6 +362,90 @@ function createStagedHypothesisPanel(deps: {
   runFields.append(field("选择原事前登记", registrationSelect), field("执行理由", reason));
   run.append(runTitle, el("p", "detail-note", "明确点击后最多消耗 1 次原有工具额度：读取登记的共享语料，并对 dev 与 validation 执行 BM25 和 TF-IDF 排名与评分。不执行 final、模型或拟合。已保存结果不等于科学批准。"),
     runFields, runStatus, execute); section.append(run);
+  const feedbackRun = el("div", "local-panel"), feedbackFields = el("fieldset", "local-fieldset"), feedbackSelect = el("select");
+  const feedbackInfo = el("p", "detail-note"), feedbackResult = el("p", "detail-note");
+  const feedbackExecute = el("button", "action-button primary", "按原登记处理已保存反馈");
+  feedbackSelect.setAttribute("aria-label", "选择已完成的事前登记"); feedbackExecute.type = "button"; feedbackExecute.dataset.testid = "staged-feedback-execute";
+  feedbackFields.append(field("选择已完成的事前登记", feedbackSelect));
+  feedbackRun.append(el("h3", "", "按事前登记处理反馈"), el("p", "detail-note", "明确点击才处理：已知审计分支最多使用 1 次本地工具，读取已保存的 dev、validation 结果及共享语料；共享语料可能包含 final 目标段落。不新增排名、评分、拟合、模型或 final 评估。等待不使用额外工具。"), feedbackFields, feedbackInfo, feedbackResult, feedbackExecute); section.append(feedbackRun);
+  let feedbackSnapshot = "";
+  function feedbackEligible(): {project:Obj; context:Obj; choice:Obj; item:Obj}[] {
+    const project = deps.current(), context = deps.context(), projection = obj(project.staged_primary_choices), rows = items(projection.items);
+    if (!context || project.id !== projectId || context.project_id !== projectId || projection.project_id !== projectId
+        || projection.schema_version !== "staged-primary-choices-v1" || projection.verification !== "registration_metadata_only"
+        || projection.manager_ownership_verified !== false || projection.snapshot_ref !== project.snapshot_ref || projection.state_version !== project.state_version
+        || context.snapshot_ref !== project.snapshot_ref || context.state_version !== project.state_version || context.run_id !== project.run_id
+        || !Array.isArray(context.blockers) || context.blockers.length !== 0
+        || typeof context.context_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(context.context_sha256)
+        || !sameValue(obj(context.hypothesis_feedback), obj(project.hypothesis_feedback))) return [];
+    const budget = obj(context.budget), currentBudget = obj(project.budget);
+    if (!Number.isSafeInteger(budget.local_tool_call_limit) || !Number.isSafeInteger(budget.local_tool_dispatches)
+        || budget.local_tool_call_limit !== currentBudget.local_tool_call_limit || budget.local_tool_dispatches !== currentBudget.local_tool_dispatches) return [];
+    const ids = rows.map(r => text(r.registration_request_id, "")), futures = rows.map(r => text(r.controller_request_id, ""));
+    if (ids.some(id => !id) || futures.some(id => !id) || new Set(ids).size !== ids.length || new Set(futures).size !== futures.length) return [];
+    const priorView = obj(project.staged_feedback_parents);
+    if (project.staged_feedback_parents !== undefined && (priorView.schema_version !== "staged-feedback-parent-view-v1"
+        || priorView.verification !== "state_fields_only_not_claim_sql_or_artifacts" || priorView.project_id !== projectId
+        || priorView.run_id !== project.run_id || priorView.snapshot_ref !== project.snapshot_ref || priorView.state_version !== project.state_version)) return [];
+    const priorFeedback = items(priorView.items);
+    if (new Set(priorFeedback.map(parent => text(parent.request_id, ""))).size !== priorFeedback.length) return [];
+    const feedback = items(obj(context.hypothesis_feedback).items);
+    const validBranch = (value:unknown):boolean => sameValue(value, {kind:"wait"}) || sameValue(value, {kind:"method", method_id:"research.relevance-validation-saved-audit"});
+    return rows.flatMap(choice => {
+      const matches = feedback.filter(item => item.request_id === choice.registration_request_id && item.registration_sha256 === choice.registration_sha256 && item.controller_request_id === choice.controller_request_id);
+      if (matches.length !== 1) return [];
+      const item = matches[0], candidate = obj(choice.candidate), conditions = items(obj(item.condition).all), branches = obj(item.branches), values = item.value;
+      const actions = items(project.actions).filter(a => a.id === item.action_id && a.result_sha256 === item.result_sha256 && a.command === "research.relevance-validation-pair" && a.status === "completed");
+      if (priorFeedback.some(parent => parent.registration_request_id === choice.registration_request_id)
+          || choice.plan_matches !== true || choice.source_matches !== true || choice.code_matches !== true || choice.plan_version !== obj(context.research_plan).version
+          || choice.source_snapshot_sha256 !== context.source_snapshot_sha256 || ![choice.registration_sha256, choice.plan_sha256, item.result_sha256].every(v => typeof v === "string" && /^[0-9a-f]{64}$/.test(v))
+          || candidate.method_id !== "research.relevance-validation-pair" || candidate.evaluation_ref !== "staged-relevance-development-v1" || Object.keys(obj(candidate.parameters)).length !== 0
+          || !sameValue(item.candidate, candidate) || !["condition_met", "condition_not_met"].includes(text(item.outcome, "")) || item.unknown_reason !== null
+          || !Array.isArray(values) || values.length !== 2 || values.some(v => typeof v !== "number" || !Number.isFinite(v) || v < -1 || v > 1)
+          || conditions.length !== 2 || new Set(conditions.map(c => c.metric)).size !== 2 || conditions.some(c => !["recall@20", "mrr@10"].includes(text(c.metric, "")) || !["gt", "gte", "lt", "lte", "eq"].includes(text(c.operator, "")) || typeof c.threshold !== "number" || !Number.isFinite(c.threshold))
+          || Object.keys(branches).sort().join(",") !== "condition_met,condition_not_met" || !validBranch(branches.condition_met) || !validBranch(branches.condition_not_met) || actions.length !== 1) return [];
+      const check = (c:Obj, v:number):boolean => c.operator === "gt" ? v > Number(c.threshold) : c.operator === "gte" ? v >= Number(c.threshold) : c.operator === "lt" ? v < Number(c.threshold) : c.operator === "lte" ? v <= Number(c.threshold) : v === Number(c.threshold);
+      if ((item.outcome === "condition_met") !== conditions.every((c, i) => check(c, values[i] as number))) return [];
+      return [{project, context, choice, item}];
+    });
+  }
+  function renderFeedback():void {
+    const snapshot = text(deps.current().snapshot_ref, ""), prior = snapshot === feedbackSnapshot ? feedbackSelect.value : "";
+    if (snapshot !== feedbackSnapshot) feedbackResult.textContent = "";
+    feedbackSnapshot = snapshot; feedbackSelect.replaceChildren(); const empty = el("option", "", "请选择已完成登记"); empty.value = ""; feedbackSelect.append(empty);
+    for (const entry of feedbackEligible()) { const option = el("option", "", text(entry.choice.registration_request_id) + " · " + text(entry.choice.registration_sha256).slice(0, 12)); option.value = text(entry.choice.registration_request_id, ""); feedbackSelect.append(option); }
+    feedbackSelect.value = [...feedbackSelect.options].some(option => option.value === prior) ? prior : "";
+    feedbackRun.hidden = deps.current().primary_method !== "research.relevance-validation-pair";
+  }
+  function feedbackControls():void {
+    const entries = feedbackEligible(), chosen = entries.find(entry => entry.choice.registration_request_id === feedbackSelect.value);
+    feedbackFields.disabled = locked || !entries.length; feedbackExecute.disabled = locked || !chosen;
+    const branchLabel = (value:unknown):string => obj(value).kind === "wait" ? "等待" : "保存结果审计";
+    const conditionLabel = (entry:{item:Obj}):string => items(obj(entry.item.condition).all).map((condition, index) =>
+      text(condition.metric) + " " + ({gt:">", gte:"≥", lt:"<", lte:"≤", eq:"="} as Record<string,string>)[text(condition.operator, "")]
+      + " " + numeric(condition.threshold) + "，实际 " + numeric((entry.item.value as unknown[])[index])).join("；");
+    feedbackInfo.textContent = chosen ? "登记 " + text(chosen.choice.registration_request_id) + " · SHA " + text(chosen.choice.registration_sha256)
+      + " · primary " + text(chosen.item.action_id) + " · 结果 SHA " + text(chosen.item.result_sha256)
+      + " · 原计划 SHA " + text(chosen.choice.plan_sha256) + " · validation 总体条件：" + conditionLabel(chosen)
+      + " · 结果 " + (chosen.item.outcome === "condition_met" ? "两项均满足" : "至少一项不满足")
+      + " · 原满足分支：" + branchLabel(obj(chosen.item.branches).condition_met) + "；原不满足分支：" + branchLabel(obj(chosen.item.branches).condition_not_met)
+      + " · 工具已派发/上限 " + numeric(obj(chosen.context.budget).local_tool_dispatches) + "/" + numeric(obj(chosen.context.budget).local_tool_call_limit)
+      + "。登记分支与实际决策分开：候选不可用或预算不足时可实际等待。此 GET 仅为快照提示，未认证原 manager claims；提交时核原链。S108 子集经验不是本次总体值。"
+      : "选择当前计划和来源匹配、primary 完成且两个总体条件均已知的登记。未知、缺失、不一致或已有原反馈时须核对原记录；不创建替代请求。旧 pin 不自动迁移。";
+  }
+  feedbackSelect.addEventListener("change", feedbackControls);
+  feedbackExecute.addEventListener("click", () => { void (async () => {
+    const entry = feedbackEligible().find(value => value.choice.registration_request_id === feedbackSelect.value);
+    if (!entry || feedbackExecute.disabled) return;
+    const id = requestId("staged-feedback"), body = {request_id:id, project_id:projectId, expected_state_version:entry.context.state_version,
+      registration_request_id:entry.choice.registration_request_id, registration_sha256:entry.choice.registration_sha256, primary_action_id:entry.item.action_id};
+    const identity = {snapshot_ref:entry.context.snapshot_ref, context_sha256:entry.context.context_sha256, source_snapshot_sha256:entry.context.source_snapshot_sha256,
+      plan_sha256:entry.choice.plan_sha256, plan_version:entry.choice.plan_version, primary_result_sha256:entry.item.result_sha256,
+      candidate_id:obj(entry.choice.candidate).id, feedback:entry.item, audit_candidates:items(entry.context.candidates).filter(candidate => candidate.method_id === "research.relevance-validation-saved-audit" && sameValue(candidate.parameters, {based_on_action_id:entry.item.action_id, based_on_result_sha256:entry.item.result_sha256}))};
+    const result = await deps.submitFeedback(body, identity);
+    if (result) { const controller = obj(result.controller), proposal = obj(controller.selection_proposal);
+      feedbackResult.textContent = "原链已核对 · 实际状态 " + text(controller.status) + " · 实际选择 " + JSON.stringify(proposal.choice) + " · 原记录理由 " + text(proposal.rationale) + "."; }
+  })(); });
   let projectId = "", futureId = "", locked = true;
   let choicesSnapshot = "";
   function eligible(): { project:Obj; context:Obj; choice:Obj; item:Obj }[] {
@@ -453,13 +538,13 @@ function createStagedHypothesisPanel(deps: {
         el("p", "detail-note", "原登记 SHA-256：" + text(item.registration_sha256) + "；固定分支：" + JSON.stringify(item.branches ?? null)
           + "。审计分支仍需以后另行明确提交。"));
     }
-    renderPrimary(); controls();
+    renderPrimary(); renderFeedback(); controls();
   }
   function controls(): void {
     const ready = options() !== null;
     fields.disabled = locked || !ready; submitButton.disabled = locked || !ready;
     status.textContent = ready ? "登记不使用研究工具；后续行动必须另行明确授权。" : "需在当前项目保存计划，并只读刷新到唯一可用的 staged primary。";
-    primaryControls();
+    primaryControls(); feedbackControls();
   }
   form.addEventListener("submit", event => { event.preventDefault(); void (async () => {
     const selected = options(); if (!selected || submitButton.disabled || !form.reportValidity()) return;
@@ -646,6 +731,24 @@ export async function mountLocalWorkbench(): Promise<void> {
     } catch { return null; }
   };
   const hasStagedPrimary = (): boolean => { try { return sessionStorage.getItem(STAGED_PRIMARY_PENDING_KEY) !== null; } catch { return true; } };
+  const savedStagedFeedback = (): Pending | null => {
+    try {
+      const value = obj(JSON.parse(sessionStorage.getItem(STAGED_FEEDBACK_PENDING_KEY) ?? "null"));
+      const body = obj(JSON.parse(text(value.body, ""))), identity = obj(value.identity), feedback = obj(identity.feedback);
+      if (value.command !== "staged-feedback" || typeof value.body !== "string"
+          || Object.keys(body).sort().join(",") !== "expected_state_version,primary_action_id,project_id,registration_request_id,registration_sha256,request_id"
+          || ![body.request_id, body.project_id, body.registration_request_id, body.primary_action_id, identity.candidate_id].every(v => typeof v === "string" && v.length > 0)
+          || !Number.isSafeInteger(body.expected_state_version) || !Number.isSafeInteger(identity.plan_version)
+          || ![body.registration_sha256, identity.snapshot_ref, identity.context_sha256, identity.source_snapshot_sha256, identity.plan_sha256, identity.primary_result_sha256]
+            .every(v => typeof v === "string" && /^[0-9a-f]{64}$/.test(v))
+          || feedback.request_id !== body.registration_request_id || feedback.registration_sha256 !== body.registration_sha256
+          || feedback.action_id !== body.primary_action_id || feedback.result_sha256 !== identity.primary_result_sha256
+          || !["condition_met", "condition_not_met"].includes(text(feedback.outcome, ""))) return null;
+      return {command:"staged-feedback", requestId:text(body.request_id, ""), body:value.body, uncertain:true, stagedFeedbackContext:identity};
+    } catch { return null; }
+  };
+  const hasStagedFeedback = ():boolean => { try { return sessionStorage.getItem(STAGED_FEEDBACK_PENDING_KEY) !== null; } catch { return true; } };
+  const stagedFeedbackSummaryPending = ():boolean => { const summary = obj(description.pending_staged_feedback_summary); return summary.project_id === activeId() && typeof summary.total === "number" && summary.total > 0; };
   const savedManual = (key: string): Obj | null => {
     let raw: string | null; try { raw = sessionStorage.getItem(key); } catch { return null; }
     if (raw === null) return null; try { return obj(JSON.parse(raw)); } catch { return {}; }
@@ -656,12 +759,12 @@ export async function mountLocalWorkbench(): Promise<void> {
     const summary = obj(description.pending_staged_primary_summary);
     return summary.project_id === activeId() && typeof summary.total === "number" && summary.total > 0;
   };
-  const serverPending = (projectId = activeId()): boolean => stagedPrimarySummaryPending()
+  const serverPending = (projectId = activeId()): boolean => stagedFeedbackSummaryPending() || stagedPrimarySummaryPending()
     || items(description.pending_requests).some(record => !scopedPending(text(record.command, "")) || !record.project_id || record.project_id === projectId);
   const requestProject = (pending: Pending): string => text(obj(JSON.parse(pending.body)).project_id, "");
-  const uncertain = (projectId = activeId()): boolean => hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
+  const uncertain = (projectId = activeId()): boolean => hasStagedFeedback() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || !!batchUncertain || !!evidencePending.get(projectId)?.uncertain || !!lastRequest?.uncertain
     && (!["evidence", "plan", "plan-resume"].includes(lastRequest.command) || requestProject(lastRequest) === projectId);
-  const navigationBlocked = (): boolean => stagedPrimarySummaryPending() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
+  const navigationBlocked = (): boolean => stagedFeedbackSummaryPending() || hasStagedFeedback() || stagedPrimarySummaryPending() || hasStagedPrimary() || hasStagedHypothesis() || hasQualityRequest() || hasManualRequest() || items(description.pending_requests).some(record => !["batch", "continue", "evidence", "save_plan"].includes(text(record.command, "")))
     || !!lastRequest?.uncertain && !["batch", "continue", "evidence", "plan", "plan-resume"].includes(lastRequest.command);
   const unknownExecution = (): boolean => items(context?.blockers).some(item => /UNKNOWN|NEEDS_REVIEW/.test(text(item.code, ""))) || current.execution_status === "unknown";
   const evidencePanel = createLocalEvidencePanel({ read, submit: body => submit(command("evidence", body)), announce });
@@ -683,7 +786,8 @@ export async function mountLocalWorkbench(): Promise<void> {
   const designPanel = createResearchDesignPanel({ read, submit: (name, body) => submit(command(name, body)), announce });
   const planPanel = createResearchPlanPanel({ current: () => current, context: () => context, modelRecords: id => modelPanel.savedRecords(id), submit: body => submit(command("plan", body)) });
   const stagedHypothesisPanel = createStagedHypothesisPanel({ current: () => current, context: () => context, submit: body => submit(command("staged-hypothesis", body)),
-    submitPrimary: (body, identity) => submit({command:"staged-primary", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedPrimaryContext:identity}) });
+    submitPrimary: (body, identity) => submit({command:"staged-primary", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedPrimaryContext:identity}),
+    submitFeedback: (body, identity) => submit({command:"staged-feedback", requestId:text(body.request_id, ""), body:JSON.stringify(body), uncertain:false, stagedFeedbackContext:identity}) });
   const feedbackPanel = createResearcherFeedbackPanel({ current: () => current, context: () => context, submit: body => submit(command("feedback", body)) });
   const workspacePages = createProjectPages(host, { shared: [message, pendingNotice, toolbar], management: [switching, createSection],
     planning: [planPanel.element, stagedHypothesisPanel.element, modelPanel.planElement, modelPanel.improvementElement, recipePanel.effectiveElement, feedbackPanel.element], feedback: feedbackPanel.element,
@@ -781,7 +885,7 @@ export async function mountLocalWorkbench(): Promise<void> {
     const records = items(description.pending_requests);
     let remembered: Obj = {};
     try { remembered = obj(JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? "{}")); } catch { /* Storage is optional; manager owns durable state. */ }
-    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !stagedPrimarySummaryPending() && !hasStagedPrimary() && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
+    pendingNotice.replaceChildren(); pendingNotice.hidden = !records.length && !remembered.request_id && !batchUncertain && !stagedFeedbackSummaryPending() && !hasStagedFeedback() && !stagedPrimarySummaryPending() && !hasStagedPrimary() && !hasStagedHypothesis() && !hasQualityRequest() && !hasManualRequest() && ![...evidencePending.values()].some(pending => pending.uncertain);
     if (records.length) pendingNotice.append(el("strong", "", records.some(record => ["batch", "continue"].includes(text(record.command, "")))
       ? "有原推进记录尚未收口。请在继续研究中核对原阶段；计划建议需先采用或拒绝，未知行动不会重发。"
       : "有原请求尚未确认，保留原ID核对；资料登记仅阻断对应项目的新提交，可切换查看其他项目。"));
@@ -815,6 +919,19 @@ export async function mountLocalWorkbench(): Promise<void> {
       if (record.command === "advance_staged_primary") row.append(el("p", "detail-note", "原 primary 尚未收口；只可核对原 ID，不能重新执行。"));
       pendingNotice.append(row);
     }
+    if (stagedFeedbackSummaryPending()) { const summary = obj(description.pending_staged_feedback_summary);
+      pendingNotice.append(el("p", "detail-note", "当前项目有 " + numeric(summary.total) + " 条未收口反馈，仅显示 " + numeric(summary.shown) + " 条；原 ID 可能未列出，须核对，不可创建替代请求。")); }
+    if (hasStagedFeedback()) {
+      const saved = savedStagedFeedback();
+      if (!saved) pendingNotice.append(el("p", "notice error", "原反馈正文或身份不可用；停查，不创建替代 ID。"));
+      else { const original = obj(JSON.parse(saved.body)), projectId = text(original.project_id, ""), button = el("button", "text-button", "只核对原反馈记录");
+        button.type = "button"; button.disabled = busy || description.enabled !== true || projectId !== activeId() || current.id !== projectId;
+        button.addEventListener("click", () => { if (!button.disabled) void submit({command:"staged-feedback-resume", requestId:saved.requestId,
+          body:JSON.stringify({request_id:saved.requestId, project_id:projectId}), uncertain:false, recoverStagedFeedback:true}); });
+        pendingNotice.append(el("p", "detail-note", "反馈原 ID " + saved.requestId + " 待核对。只核原记录和 claims，可能补原 manager 回执；不重新派发。未完成、失败、未知或缺原意图时停查。"), button);
+      }
+    } else if (items(description.pending_requests).some(record => record.command === "advance_staged_feedback") || stagedFeedbackSummaryPending())
+      pendingNotice.append(el("p", "notice error", "浏览器缺少原反馈正文，不能自动重建；保留原 ID 人工核对。"));
     if (hasStagedPrimary()) {
       const saved = savedStagedPrimary();
       if (!saved) pendingNotice.append(el("p", "notice error", "原 primary 正文或身份不可用；停查，不创建替代 ID。"));
@@ -1153,6 +1270,11 @@ export async function mountLocalWorkbench(): Promise<void> {
       && !!originalPrimary && stagedRecoveryBody.request_id === originalPrimary.requestId
       && stagedRecoveryBody.project_id === originalPrimaryBody.project_id && stagedRecoveryBody.project_id === activeId()
       && current.id === activeId() && description.enabled === true;
+    const originalFeedback = savedStagedFeedback(), originalFeedbackBody = originalFeedback ? obj(JSON.parse(originalFeedback.body)) : {};
+    const recoverStagedFeedback = pending.recoverStagedFeedback === true && pending.command === "staged-feedback-resume"
+      && !!originalFeedback && stagedRecoveryBody.request_id === originalFeedback.requestId && stagedRecoveryBody.project_id === originalFeedbackBody.project_id
+      && stagedRecoveryBody.project_id === activeId() && current.id === activeId() && description.enabled === true;
+    if (pending.recoverStagedFeedback && !recoverStagedFeedback) { announce("原反馈正文或项目不可核对；保留原 ID，不能重派。", true); return null; }
     if (pending.recoverBatch && !recoverBatch) { announce("原批次恢复条件尚未核对，请选择原项目并只读刷新；不会创建替代批次。", true); return null; }
     if (pending.recoverModel && !recoverModel) { announce("请先只读刷新，核对当前项目中保存的原模型请求。不会创建替代请求。", true); return null; }
     if (pending.recoverExperience && !recoverExperience) { announce("请先只读刷新，核对本项目的原案例请求；不会用新文件或参数重建操作。", true); return null; }
@@ -1163,7 +1285,12 @@ export async function mountLocalWorkbench(): Promise<void> {
     if (pending.recoverStagedPrimary && !recoverStagedPrimary) { announce("原 primary 正文或项目不可核对；保留原 ID，不能重派。", true); return null; }
     const blocked = switching ? navigationBlocked() : pending.command === "design-import" ? serverPending("") || uncertain("")
       : (serverPending(targetProject) && !sameEvidence) || uncertain(targetProject) || modelPanel.pending() || (pending.command !== "create" && unknownExecution());
-    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && !recoverManual && !recoverStagedHypothesis && !recoverStagedPrimary && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (!recoverBatch && !recoverModel && !recoverExperience && !recoverPlan && !recoverQuality && !recoverManual && !recoverStagedHypothesis && !recoverStagedPrimary && !recoverStagedFeedback && (description.enabled !== true || blocked)) { announce("当前命令不可提交，请先只读核对原请求与保存状态。", true); return null; }
+    if (pending.command === "staged-feedback") {
+      try { sessionStorage.setItem(STAGED_FEEDBACK_PENDING_KEY, JSON.stringify({command:pending.command, body:pending.body, identity:pending.stagedFeedbackContext}));
+        const saved = savedStagedFeedback(); if (saved?.body !== pending.body || !sameValue(saved.stagedFeedbackContext, pending.stagedFeedbackContext)) throw Error("storage");
+      } catch { announce("无法保存原反馈 ID、正文和快照身份；尚未提交。", true); return null; }
+    }
     if (pending.command === "staged-primary") {
       try {
         sessionStorage.setItem(STAGED_PRIMARY_PENDING_KEY, JSON.stringify({command:pending.command, body:pending.body, identity:pending.stagedPrimaryContext}));
@@ -1210,6 +1337,50 @@ export async function mountLocalWorkbench(): Promise<void> {
       const response = await fetch("/api/local-workbench/" + route, { method: "POST", credentials: "same-origin", cache: "no-store",
         headers: { "Content-Type": "application/json", "X-AutoResearch-CSRF": text(description.csrf_token, "") }, body: pending.body, signal: AbortSignal.timeout(modelContinuation ? 420000 : modelCommand ? 210000 : 60000) });
       let result = obj(await response.json());
+      if (response.ok && ["staged-feedback", "staged-feedback-resume"].includes(pending.command)) {
+        const marker = savedStagedFeedback(), original = marker ? obj(JSON.parse(marker.body)) : {}, identity = obj(marker?.stagedFeedbackContext);
+        const valid = (value:Obj):boolean => {
+          const controller = obj(value.controller), proposal = obj(controller.selection_proposal), choice = obj(proposal.choice), action = obj(obj(controller.decision).next_action);
+          const parentResult = obj(controller.result), child = obj(parentResult.child), waiting = value.status === "waiting";
+          const feedback = obj(identity.feedback), branch = obj(obj(feedback.branches)[text(feedback.outcome, "")]), auditCandidates = items(identity.audit_candidates);
+          return !!marker && value.schema_version === "local-workbench-command-v1" && value.command === "advance_staged_feedback"
+            && ["waiting", "completed"].includes(text(value.status, "")) && value.request_id === marker.requestId && value.project_id === original.project_id && typeof value.replayed === "boolean"
+            && controller.schema_version === "project-controller-advance-v1" && controller.project_id === original.project_id && controller.request_id === marker.requestId
+            && controller.status === value.status && typeof controller.replayed === "boolean" && typeof controller.request_sha256 === "string" && /^[0-9a-f]{64}$/.test(controller.request_sha256)
+            && controller.selection_context_sha256 === identity.context_sha256 && proposal.context_sha256 === identity.context_sha256
+            && (waiting ? choice.kind === "wait" && action.kind === "external_wait" && controller.child_request_id === null && controller.result === null
+              : branch.kind === "method" && branch.method_id === "research.relevance-validation-saved-audit" && auditCandidates.length === 1 && choice.candidate_id === auditCandidates[0].id
+                && choice.kind === "execute" && action.method_id === "research.relevance-validation-saved-audit" && sameValue(action.parameters, {based_on_action_id:original.primary_action_id, based_on_result_sha256:identity.primary_result_sha256})
+                && child.command === action.method_id && child.status === "completed" && child.request_id === controller.child_request_id && typeof child.id === "string" && !!child.id
+                && typeof child.result_sha256 === "string" && /^[0-9a-f]{64}$/.test(child.result_sha256) && parentResult.recovered === false && parentResult.reused === false);
+        };
+        if (!valid(result)) throw Error("staged feedback receipt mismatch");
+        if (pending.command === "staged-feedback") {
+          const check = await fetch("/api/local-workbench/staged-feedback-resume", {method:"POST", credentials:"same-origin", cache:"no-store",
+            headers:{"Content-Type":"application/json", "X-AutoResearch-CSRF":text(description.csrf_token, "")},
+            body:JSON.stringify({request_id:marker!.requestId, project_id:original.project_id}), signal:AbortSignal.timeout(60000)});
+          const checked = obj(await check.json());
+          if (!check.ok || !valid(checked) || !sameValue(checked.controller, result.controller)) throw Error("staged feedback verification failed"); result = checked;
+        }
+        if (activeId() !== original.project_id || current.id !== original.project_id) throw Error("staged feedback project changed");
+        const firstView = await read("/api/local-workbench"), projected = await read("/api/project"), finalView = await read("/api/local-workbench"), latest = await read("/api/project");
+        const view = obj(projected.staged_feedback_parents), controller = obj(result.controller), child = obj(obj(controller.result).child);
+        const parents = items(view.items).filter(p => p.request_id === marker!.requestId);
+        const parent = parents[0], matches = parents.length === 1 && view.schema_version === "staged-feedback-parent-view-v1"
+          && view.verification === "state_fields_only_not_claim_sql_or_artifacts" && view.project_id === original.project_id
+          && view.run_id === projected.run_id && view.snapshot_ref === projected.snapshot_ref && view.state_version === projected.state_version
+          && parent.project_id === original.project_id && parent.run_id === projected.run_id && parent.state_version_before === original.expected_state_version
+          && parent.snapshot_ref_before === identity.snapshot_ref && parent.context_sha256 === identity.context_sha256
+          && parent.registration_request_id === original.registration_request_id && parent.registration_sha256 === original.registration_sha256
+          && parent.primary_action_id === original.primary_action_id && parent.primary_result_sha256 === identity.primary_result_sha256
+          && parent.status === result.status && parent.child_request_id === controller.child_request_id
+          && parent.decision === (result.status === "waiting" ? "wait" : "audit");
+        const actions = items(projected.actions).filter(item => item.id === child.id && item.request_id === child.request_id && item.command === child.command && item.status === "completed" && item.result_sha256 === child.result_sha256);
+        if (firstView.active_project_id !== original.project_id || projected.id !== original.project_id || finalView.active_project_id !== original.project_id
+            || latest.id !== projected.id || latest.snapshot_ref !== projected.snapshot_ref || latest.state_version !== projected.state_version
+            || !matches || (result.status === "completed" && actions.length !== 1) || activeId() !== original.project_id || current.id !== original.project_id) throw Error("staged feedback view changed");
+        sessionStorage.removeItem(STAGED_FEEDBACK_PENDING_KEY);
+      }
       if (response.ok && ["staged-primary", "staged-primary-resume"].includes(pending.command)) {
         const marker = savedStagedPrimary(), original = marker ? obj(JSON.parse(marker.body)) : {}, identity = obj(marker?.stagedPrimaryContext);
         const valid = (value: Obj): boolean => {
@@ -1286,6 +1457,9 @@ export async function mountLocalWorkbench(): Promise<void> {
           pending.uncertain = true; outcomeMessage = "事前登记尚未确认（" + code + "）；保留原ID和正文，使用只核对入口，不创建替代请求。";
           if (code === "CODE_CHANGED") outcomeMessage += " 请用 -B 和新空 PYTHONPYCACHEPREFIX 重启原宿主并核对源码。";
         }
+        if (["staged-feedback", "staged-feedback-resume"].includes(pending.command)) {
+          pending.uncertain = true; outcomeMessage = "原反馈尚未确认（" + code + "）；保留原 ID 和正文，只可核对原记录，不会重派。";
+        }
         if (["staged-primary", "staged-primary-resume"].includes(pending.command)) {
           pending.uncertain = true; outcomeMessage = "原 primary 尚未确认（" + code + "）；保留原 ID 和正文，只可核对原记录，不会重派。";
           if (code === "CODE_CHANGED") outcomeMessage += " 请用 -B 和新空 PYTHONPYCACHEPREFIX 重启原宿主并核对源码。";
@@ -1300,6 +1474,7 @@ export async function mountLocalWorkbench(): Promise<void> {
         outcomeMessage = pending.command === "create" ? "项目已创建，尚未执行方法。请从实际候选中选择下一步。" : pending.command === "select" ? "已切换活动项目，旧候选已清除。"
           : pending.command === "report" ? "当前快照报告已生成，可从顶栏或保存结果区下载。" : pending.command === "evidence" ? "资料已登记，尚未读取。请从真实来源候选中选择并明确执行。" : obj(result.decision).next_action && obj(obj(result.decision).next_action).kind === "external_wait" ? "本次等待已保存，没有创建新行动。" : "本次行动和反馈已保存，请核对结果后再决定下一步。";
         if (["staged-hypothesis", "staged-hypothesis-resume"].includes(pending.command)) outcomeMessage = "原事前条件已核对保存；没有执行检索、审计或模型。";
+        if (["staged-feedback", "staged-feedback-resume"].includes(pending.command)) outcomeMessage = (result.status === "waiting" ? "原反馈已核对：本次等待，无新增工具。" : "原反馈审计与 claims 已核对；使用一次保存结果审计工具，未新增排名、评分、模型、拟合或 final。") + " 原选择理由：" + text(obj(obj(result.controller).selection_proposal).rationale);
         if (["staged-primary", "staged-primary-resume"].includes(pending.command)) outcomeMessage = "原 primary 完成记录与 claim 已由原请求核对；使用一次研究工具，未执行 final、模型或拟合。请查看保存反馈。";
         if (pending.command === "evidence") { evidencePanel.acceptRegistered(result); evidencePending.delete(targetProject); }
         if (pending.command === "batch") {
