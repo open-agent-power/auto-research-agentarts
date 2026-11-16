@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T08:46:24+08:00",
-  "status": "S134_synthetic_hourly_report_verified_next_binding_review",
+  "end_time": "2026-11-16T09:02:04+08:00",
+  "status": "S135_synthetic_time_preregistration_verified_dispatch_binding_design",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -69,7 +69,8 @@
     "UCI 501 conditional descriptive protocol independently reviewed, not authorized or ready to execute",
     "S132 fixed synthetic-packet quality primary strict ownership and original-ID terminal recovery; independent 72/72",
     "S133 nine actual SIGKILL synthetic windows and two actual old-entry races; original verifier stopped on preserved journals, adapted copy verifier checked 11 cases",
-    "S134 fixed synthetic hourly time packet and report independently recomputed, no Project or real UCI data"
+    "S134 fixed synthetic hourly time packet and report independently recomputed, no Project or real UCI data",
+    "S135 synthetic-only time report preregistration after quality registration and before action; independent 53/53; not a dispatch gate"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1095,5 +1096,12 @@
     "report_sha256": "1d18eeb4c6fccfcf8675c235fb8c4e0d0028366da3a4f54ab9f15e2ccda59772",
     "verification": "author and independent 11/11, independent standard library 28 leap-day hours/26 pairs, six files identical",
     "limits": "synthetic naive clock, not UCI/permission/timezone or dispatch gate; no model/real research"
+  },
+  "S135": {
+    "commit": "1bc5a5291fc211b4e341de3e5a79fd5bc264c89f",
+    "source_head": "4b8980b7836bf559153e99a353c468b3800e6506",
+    "manifest_sha256": "5ce849ef060c5d50d0f4ca509591936051416cd847760472348a98423009bb8f",
+    "verification": "independent new process 53/53; own test author separately 16/16; source/claim drift and cooperative flock",
+    "limits": "synthetic only, no dispatch gate, old wire/pins unchanged, no real UCI; fault injection not real SIGKILL"
   }
 }
