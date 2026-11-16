@@ -7,3 +7,5 @@
 独立原 `verify.py` 因原目录三个SQLite journal存在按合同拒绝、exit1；原stderr仅在工具会话，后存摘录明确标手工重建而非原日志。原账本/journal不触碰。独审逐字复制336个case文件，仅在副本上SQLite常规打开/integrity_check均ok，DB/journal哈希不变且journal仍存在，不能称发生回滚或原库已恢复。另以明确改写路径及SQLite只读方式的verifier检查副本11/11；脚本SHA `8ddadb7600406e576f65c3897130bba02b62708343f726cef5567ecb4c33b416`，日志SHA `57e30e960d1fc4896108f2d65ecd87c7d13d268e72c5bb762cec99e351da4b78`。原版verifier不算通过，原journal冷热及恢复状态unknown。
 
 独审核原340项哈希与HEAD不变、不同PID、原claims、SQL fingerprint和canonical工件；未重跑SIGKILL。仅固定人工包/选定合作式进程切点，不证明断电、OS隔离或全部系统/网络调用；未执行真实UCI或模型。
+
+后续第二份独立副本工具 `verify-copy.py` SHA `92cdb118964408933bb0a2b3cf60cf86c979c3335662cd39fed7d7ed5a157db0` 实际 exit0、11案；三份逐字副本经 SQLite 常规读取/quick_check 后 DB 与 journal 字节均不变，副本保留 sidecar，另生成逻辑 backup 并 immutable 核验。日志 SHA `b73dd8ac62a1e1fadc58e411d359e5e370c0eadedd8a4bf69ab02df92d382de5`；独审复核原340项无漂移且原三journal仍在。工具不核运行前后 Git HEAD，独审只核运行后 HEAD `93d783a354d7a0c2f5207738b1aaf7d72fc22a08`；不能声称期间HEAD未变。原版 verifier 仍为 exit1，原库未恢复或清理。
