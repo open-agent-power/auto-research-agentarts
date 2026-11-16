@@ -1,0 +1,9 @@
+# S133：合成质量首行动的真实进程切点
+
+固定 HEAD `dda74a9f3feb2cf120ebe67ebf9c01e42ef3a39b`，198项源码/fixture/verifier及probe身份清单 `runs/s133-verification/pin.json` SHA `560f16ab197da7c7e643f831dcb74eb505b443169ac3a0f57acf57a72ab691f6`。固定人工包上，作者在8个提交前后/完成窗口及合法unknown案实际发出9次 SIGSTOP/SIGKILL(-9)，另有旧Controller与旧child两次不同PID真实抢先；各案原ID与独立恢复PID、账本、claim、事件和journal保留，340项原件清单 SHA `fb2f4f2df8f70226adb7def9f158642ce0fa5066b12488862706a9d7b1ba276d`。
+
+前7个未完成切点原ID停查；父子均完成的末两个案仅认证原结果并可补原manager回执，其中合法质量值unknown保持unknown，未动态验证下游策略。子行动已接受未执行案 used=0/reserved=1/dispatch=1；两次旧入口先抢各实际执行1次合成工具，used=1/reserved=0/dispatch=1，strict拒绝认领且不再派发。
+
+独立原 `verify.py` 因原目录三个SQLite journal存在按合同拒绝、exit1；原stderr仅在工具会话，后存摘录明确标手工重建而非原日志。原账本/journal不触碰。独审逐字复制336个case文件，仅在副本上SQLite常规打开/integrity_check均ok，DB/journal哈希不变且journal仍存在，不能称发生回滚或原库已恢复。另以明确改写路径及SQLite只读方式的verifier检查副本11/11；脚本SHA `8ddadb7600406e576f65c3897130bba02b62708343f726cef5567ecb4c33b416`，日志SHA `57e30e960d1fc4896108f2d65ecd87c7d13d268e72c5bb762cec99e351da4b78`。原版verifier不算通过，原journal冷热及恢复状态unknown。
+
+独审核原340项哈希与HEAD不变、不同PID、原claims、SQL fingerprint和canonical工件；未重跑SIGKILL。仅固定人工包/选定合作式进程切点，不证明断电、OS隔离或全部系统/网络调用；未执行真实UCI或模型。

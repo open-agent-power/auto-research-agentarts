@@ -1,5 +1,7 @@
 # 当前自主研究开发
 
+S133 固定合成包9次真实SIGKILL及2次旧入口竞争已留证；原verifier因3个journal停查，独立副本改写核验11案通过，原库恢复状态unknown。[记录](../execution/SPRINT-133.md)。
+
 S132 合成固定包的严格质量首行动与原ID恢复已独审72/72；非终态停查，合法质量unknown可回读但后继停查。非真实UCI、非真实竞争/断电验证。[记录](../execution/SPRINT-132.md)。
 
 UCI 501 [单站描述性条件协议](uci-501-single-station-descriptive-proposal-20261115.md)已独审；站点/时区/权利、时间绑定及安全恢复仍阻断执行。两次未授权 Firecrawl 各显示1 credit，已停止、实际结算unknown。
