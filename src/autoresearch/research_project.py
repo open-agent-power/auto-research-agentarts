@@ -286,9 +286,12 @@ def code_identity():
     from . import staged_wait_experience, posthoc_loss_experience
     from . import project_model_protocol
     from . import tabular_quality_conditions, tabular_quality_feedback, tabular_quality_plan, contracts as contracts_module
+    from . import synthetic_time_binding, synthetic_time_registration
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
     from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy, saved_retrieval_reader, staged_continuation, staged_project_experience, staged_feedback_reader
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                        "synthetic_time_binding": hashlib.sha256(Path(synthetic_time_binding.__file__).read_bytes()).hexdigest(),
+                        "synthetic_time_registration": hashlib.sha256(Path(synthetic_time_registration.__file__).read_bytes()).hexdigest(),
                         "contracts": hashlib.sha256(Path(contracts_module.__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
@@ -562,7 +565,7 @@ class ResearchProject:
 
     @staticmethod
     def _require_unclaimed(project, request_id, *, except_collection=None):
-        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions", "experience_revisions", "hypothesis_registrations", "tabular_quality_registrations"):
+        for collection in ("code_revisions", "budget_revisions", "model_budget_revisions", "local_model_requests", "evidence_registrations", "controller_requests", "source_requests", "plan_revisions", "researcher_feedback", "recipe_revisions", "design_revisions", "experience_revisions", "hypothesis_registrations", "tabular_quality_registrations", "synthetic_time_registrations"):
             if collection != except_collection:
                 require(not any(record["request_id"] == request_id for record in project.get(collection, [])),
                         "IDEMPOTENCY_CONFLICT", "Request ID belongs to another persisted command.")

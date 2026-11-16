@@ -1944,6 +1944,16 @@ class LocalWorkbench:
         return ProjectController._response(parent, True)
 
 
+    def register_synthetic_time_report(self, body):
+        """Register a fixed artificial clock report; this does not authorize dispatch."""
+        from .synthetic_time_registration import register
+        return register(self, body)
+
+    def resume_synthetic_time_report(self, body):
+        """Authenticate only the original committed synthetic report registration."""
+        from .synthetic_time_registration import resume
+        return resume(self, body)
+
     def advance_tabular_quality_primary(self, body):
         fields = ("request_id", "project_id", "expected_state_version", "registration_request_id", "registration_sha256", "reason")
         digest = _body(body, fields)
@@ -3182,9 +3192,9 @@ class LocalWorkbench:
     def _no_staged_switch(con, project_id):
         if project_id is None:
             return
-        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','advance_tabular_quality_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
+        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('register_synthetic_time_report','save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','advance_tabular_quality_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
             record = tabular._parse(row["record"].encode("utf-8"))
-            terminal = ({"completed", "waiting"} if row["command"] == "advance_staged_feedback" else {"completed"} if row["command"] in ("save_staged_feedback_plan", "advance_staged_primary", "advance_tabular_quality_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"})
+            terminal = ({"completed", "waiting"} if row["command"] == "advance_staged_feedback" else {"completed"} if row["command"] in ("register_synthetic_time_report", "save_staged_feedback_plan", "advance_staged_primary", "advance_tabular_quality_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"})
             _require(record.get("status") in terminal or record.get("intent", {}).get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished quality request before switching projects.")
         for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
@@ -3194,9 +3204,9 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        quality_commands = ("save_staged_feedback_plan", "advance_staged_feedback", "advance_staged_primary", "advance_tabular_quality_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
+        quality_commands = ("register_synthetic_time_report", "save_staged_feedback_plan", "advance_staged_feedback", "advance_staged_primary", "advance_tabular_quality_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
         commands = (("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")) + quality_commands
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','advance_tabular_quality_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','register_synthetic_time_report','save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','advance_tabular_quality_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":
