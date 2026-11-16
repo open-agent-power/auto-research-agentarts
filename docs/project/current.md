@@ -1,5 +1,7 @@
 # 当前自主研究开发
 
+S138 真实合成负例确认：质量v2关联parent后报告或child后source漂移仍会执行，实际payload为原缓存；每案2/2工具。第二行动时间门缺口待修，不能外推S136首行动保护。[记录](../execution/SPRINT-138.md)。
+
 S137 固定人工时间门6次真实SIGKILL、2次旧入口抢先、3次source/report漂移；副本核验11案，原工具耗用/预留如实记录。无真实UCI/断电证明。[记录](../execution/SPRINT-137.md)。
 
 S136 新独立strict入口将S134合成时间登记绑定质量首行动及原ID恢复，独审17/17、旧合同3/3和marker负例通过；非全局门/真实UCI，竞争为注入。[记录](../execution/SPRINT-136.md)。
