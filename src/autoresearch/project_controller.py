@@ -367,11 +367,11 @@ class ProjectController:
                 self.project._save(con, project)
                 return copy.deepcopy(parent)
 
-    def _dispatch(self, parent, *, replayed, _staged_primary=None, _staged_feedback=None):
-        require(_staged_primary is None or _staged_feedback is None, "INVALID_REQUEST", "Use one original staged binding.")
-        strict = _staged_primary if _staged_primary is not None else _staged_feedback
-        marker = "staged_primary" if _staged_primary is not None else "staged_feedback_policy"
-        if "staged_primary" in parent or "staged_feedback_policy" in parent:
+    def _dispatch(self, parent, *, replayed, _staged_primary=None, _staged_feedback=None, _quality_primary=None):
+        require(sum(x is not None for x in (_staged_primary, _staged_feedback, _quality_primary)) <= 1, "INVALID_REQUEST", "Use one original strict binding.")
+        strict = _staged_primary if _staged_primary is not None else _staged_feedback if _staged_feedback is not None else _quality_primary
+        marker = "staged_primary" if _staged_primary is not None else "staged_feedback_policy" if _staged_feedback is not None else "tabular_quality_primary"
+        if any(key in parent for key in ("staged_primary", "staged_feedback_policy", "tabular_quality_primary")):
             require(marker in parent and not replayed and type(strict) is dict and parent.get("status") == "prepared",
                     "OPERATION_INCOMPLETE", "Inspect the original staged operation without redispatch.")
         else:
@@ -386,7 +386,13 @@ class ProjectController:
                 require(stored is not None and stored["request_sha256"] == parent["request_sha256"],
                         "IDEMPOTENCY_CONFLICT", "Controller request binding changed.")
                 parent = copy.deepcopy(stored)
-                if "staged_primary" in parent or "staged_feedback_policy" in parent:
+                quality_claim_table = con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='quality_manager_claims'").fetchone()
+                quality_claim = quality_claim_table and con.execute(
+                    "SELECT 1 FROM quality_manager_claims WHERE kind='quality_primary_parent' AND request_id=?",
+                    (parent["request_id"],)).fetchone()
+                require(not quality_claim or (_quality_primary is not None and "tabular_quality_primary" in parent),
+                        "OPERATION_INCOMPLETE", "Inspect the original claimed quality primary without dispatch.")
+                if any(key in parent for key in ("staged_primary", "staged_feedback_policy", "tabular_quality_primary")):
                     require(marker in parent and not replayed and parent.get("status") == "prepared" and type(strict) is dict,
                             "OPERATION_INCOMPLETE", "The staged primary cannot be dispatched again.")
                 self._check_rejected(parent)
@@ -438,7 +444,10 @@ class ProjectController:
                         result = self.project.step(request_id=parent["child_request_id"], method_id=action["method_id"],
                                                    parameters=parameters, expected_state_version=parent["dispatch_state_version"])
                 else:
-                    if _staged_primary is None:
+                    if _quality_primary is not None:
+                        result = self.project.step(request_id=parent["child_request_id"], dimension=parameters.get("dimension"),
+                                                   expected_state_version=parent["dispatch_state_version"], _quality_primary=_quality_primary)
+                    elif _staged_primary is None:
                         result = self.project.step(request_id=parent["child_request_id"], dimension=parameters.get("dimension"),
                                                    expected_state_version=parent["dispatch_state_version"])
                     else:
@@ -561,6 +570,92 @@ class ProjectController:
             self.project._save(con, stored)
             _manager_claim(con, "staged_primary_parent", request_id, _manager_intent_sha256, _staged_primary_parent_claim_sha(parent), create=True)
         return self._dispatch(parent, replayed=False, _staged_primary={"parent_request_id":request_id,"intent_sha256":_manager_intent_sha256})
+
+    def _advance_quality_primary(self, *, request_id, registration_request_id, registration_sha256,
+                                expected_state_version, proposal, _manager_intent_sha256, _registration_intent_sha256):
+        """Create one claimed staged primary parent; existing parents never dispatch here."""
+        from . import tabular_quality_feedback as quality_feedback, tabular_quality_adapter as quality
+        from .research_project import _quality_primary_parent_claim_sha
+        from .tabular_quality_feedback import _manager_claim
+        identifier(request_id); identifier(registration_request_id, "registration_request_id")
+        require(type(expected_state_version) is int and expected_state_version >= 0,
+                "INVALID_REQUEST", "Bind the exact staged project version.")
+        proposal = project_selection.parse_proposal(canonical(proposal).encode("utf-8"))
+        with self.project._writer(), self.project._connect() as con:
+            stored = self.project._project(con)
+            records = [r for r in stored.get("tabular_quality_registrations", []) if r.get("request_id") == registration_request_id]
+            require(len(records) == 1, "EVIDENCE_CHANGED", "The original staged registration is unavailable.")
+            registration = records[0]; quality_feedback._checked_record(registration)
+            require(registration["registration_sha256"] == registration_sha256
+                    and registration["controller_request_id"] == request_id and registration["schema_version"] == "tabular-quality-registration-v1"
+                    and registration["candidate"]["method_id"] == quality.TOOL_ID,
+                    "EVIDENCE_CHANGED", "The staged registration or future controller ID differs.")
+            _manager_claim(con, "registration", registration_request_id, _registration_intent_sha256, registration_sha256)
+            require(self._parent(stored, request_id) is None, "OPERATION_INCOMPLETE", "The original staged parent already exists; inspect without dispatch.")
+            require(stored["state_version"] == expected_state_version, "STALE_STATE", "Read the exact staged project version.")
+            require(stored["code_identity"] == registration["project_code_identity"] == project_code_identity()
+                    and code_identity() == registration["controller_code_identity"],
+                    "CODE_CHANGED", "Use the original staged source.")
+            require(stored["source_snapshot_sha256"] == registration["source_snapshot_sha256"]
+                    and stored["registration"]["source_sha256"] == registration["source_sha256"]
+                    and fingerprint(stored["source_scope"]) == registration["scope_sha256"]
+                    and stored.get("plan_revisions") and fingerprint(stored["plan_revisions"][-1]) == registration["plan_sha256"],
+                    "EVIDENCE_CHANGED", "The original source or plan changed after preregistration.")
+            require(not any(p.get("status") in ("prepared", "running", "unknown") for p in stored.get("controller_requests", [])),
+                    "EXECUTION_UNKNOWN", "Inspect the existing controller request.")
+            self.project._require_unclaimed(stored, request_id)
+            require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
+                    and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (request_id, request_id)).fetchone() is None,
+                    "IDEMPOTENCY_CONFLICT", "The original staged controller ID is already claimed.")
+            child_id = "controller-child-" + fingerprint({"project_id": stored["id"], "request_id": request_id})[:32]
+            self.project._require_unclaimed(stored, child_id)
+            require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (child_id,)).fetchone() is None
+                    and con.execute("SELECT 1 FROM replays WHERE request_id=? OR action_request_id=?", (child_id, child_id)).fetchone() is None,
+                    "IDEMPOTENCY_CONFLICT", "The original staged child ID is already claimed.")
+            self.project._source(stored)
+            require(stored["registration"]["source_sha256"] == "dd88f02f49fd94c830ac3ef12ed307f437d52cc12c9b1b298a9585d8082ac799"
+                    and stored["source_snapshot_sha256"] == "b4097316500039827e13d11c86691eaef349da52558828600157d3df63f84c29",
+                    "CONDITION_NOT_SATISFIED", "This opt-in entry accepts only the fixed synthetic quality fixture.")
+            current = self.project.status()
+            context = self._selection_context(current, "next_check")
+            require(fingerprint(context.get("research_plan")) == registration["plan_sha256"]
+                    and registration["candidate"] in context["candidates"] and not context["blockers"],
+                    "CONDITION_NOT_SATISFIED", "The original staged candidate is not currently eligible.")
+            selected = project_selection.validate_proposal(context, proposal)
+            require(selected["candidate"] == registration["candidate"] and selected["evidence_citation_ids"] == [],
+                    "EVIDENCE_CHANGED", "Choose exactly the registered staged primary without additional evidence.")
+            plan = self._selected_plan(current, "next_check", proposal, context=context)
+            require(plan["executable"] and plan["decision"]["next_action"]["method_id"] == quality.TOOL_ID,
+                    "CONDITION_NOT_SATISFIED", "The staged primary is not executable under the current budget.")
+            quality_feedback._check_loaded_code()
+            self.project._source(stored)
+            _manager_claim(con, "registration", registration_request_id, _registration_intent_sha256, registration_sha256)
+            require(self.project.status()["snapshot_ref"] == current["snapshot_ref"]
+                    and project_code_identity() == registration["project_code_identity"]
+                    and code_identity() == registration["controller_code_identity"],
+                    "EVIDENCE_CHANGED", "The original synthetic quality source, registration or producer changed.")
+            request = {"project_id": stored["id"], "command": "controller.advance_selection", "need": "next_check",
+                       "expected_state_version": expected_state_version, "proposal": copy.deepcopy(proposal)}
+            meta = {"schema_version":"tabular-quality-primary-binding-v1", "registration_request_id":registration_request_id,
+                    "registration_sha256":registration_sha256, "registration_intent_sha256":_registration_intent_sha256,
+                    "manager_intent_sha256":_manager_intent_sha256,
+                    "controller_request_id":request_id, "child_request_id":child_id, "context_sha256":context["context_sha256"],
+                    "proposal_sha256":fingerprint(proposal), "plan_sha256":registration["plan_sha256"],
+                    "source_snapshot_sha256":stored["source_snapshot_sha256"]}
+            meta["record_sha256"] = fingerprint(meta)
+            stored["state_version"] += 1
+            parent = {"schema_version":"project-controller-request-v1", "project_id":stored["id"], "request_id":request_id,
+                      "request_sha256":fingerprint(request), "request":request, "source_snapshot_sha256":stored["source_snapshot_sha256"],
+                      "snapshot_ref_before":current["snapshot_ref"], "state_version_before":current["state_version"],
+                      "dispatch_state_version":stored["state_version"], "code_identity":stored["code_identity"],
+                      "controller_code_identity":code_identity(), "decision":_compact_decision(plan["decision"]),
+                      "blockers":copy.deepcopy(plan["blockers"]), "child_request_id":child_id, "status":"prepared", "result":None,
+                      "selection_context":context, "tabular_quality_primary":meta}
+            parent["decision_sha256"] = fingerprint(parent["decision"])
+            stored.setdefault("controller_requests", []).append(parent)
+            self.project._save(con, stored)
+            _manager_claim(con, "quality_primary_parent", request_id, _manager_intent_sha256, _quality_primary_parent_claim_sha(parent), create=True)
+        return self._dispatch(parent, replayed=False, _quality_primary={"parent_request_id":request_id,"intent_sha256":_manager_intent_sha256})
 
     def _advance_staged_feedback(self, *, request_id, registration_request_id, registration_sha256, primary_action_id,
                                  expected_state_version, frozen, _manager_intent_sha256, _registration_intent_sha256,
@@ -1032,11 +1127,15 @@ class ProjectController:
                     require(proposal is not None, "EVIDENCE_CHANGED", "A recipe decision requires its exact proposal.")
                     request.update(command="controller.advance_recipe", recipe_decision=copy.deepcopy(recipe_decision))
                 old = self._parent(project, request_id)
+                quality_claim_table = con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='quality_manager_claims'").fetchone()
+                quality_claim = quality_claim_table and con.execute(
+                    "SELECT 1 FROM quality_manager_claims WHERE kind='quality_primary_parent' AND request_id=?", (request_id,)).fetchone()
+                require(not quality_claim, "OPERATION_INCOMPLETE", "Inspect the original claimed quality primary without redispatch.")
                 digest = fingerprint(request)
                 if old is not None:
                     require("tabular_quality_policy" not in old, "IDEMPOTENCY_CONFLICT",
                             "Use the original tabular quality policy request; direct replay is forbidden.")
-                    require("staged_primary" not in old and "staged_feedback_policy" not in old, "OPERATION_INCOMPLETE",
+                    require("staged_primary" not in old and "staged_feedback_policy" not in old and "tabular_quality_primary" not in old, "OPERATION_INCOMPLETE",
                             "The original staged operation must be inspected without redispatch.")
                     require(old["request_sha256"] == digest, "IDEMPOTENCY_CONFLICT", "Controller request content changed.")
                     if recipe_decision is not None:

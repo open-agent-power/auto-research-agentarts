@@ -1771,6 +1771,259 @@ class LocalWorkbench:
                     self._save(con, body["request_id"], {"status":"completed", "intent":record["intent"], "result":response})
             return dict(response, replayed=True)
 
+    def _quality_primary_registration_locked(self, con, project, registration_request_id):
+        row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (registration_request_id,)).fetchone()
+        _require(row is not None and row["command"] == "register_tabular_quality_conditions", "OPERATION_INCOMPLETE", "Original quality registration intent is absent.")
+        saved = tabular._parse(row["record"].encode("utf-8"))
+        _require(type(saved) is dict and saved.get("status") == "completed" and type(saved.get("intent")) is dict
+                 and type(saved["intent"].get("body")) is dict, "OPERATION_INCOMPLETE", "Original quality registration is incomplete.")
+        body = saved["intent"]["body"]
+        digest = _body(body, ("request_id","project_id","expected_state_version","controller_request_id","candidate_id","conditions"))
+        _require(digest == row["digest"] and body["request_id"] == registration_request_id,
+                 "EVIDENCE_CHANGED", "Original quality registration body changed.")
+        state = project.status()
+        self._check_quality_intent(saved["intent"], body, digest, "register_tabular_quality_conditions", state)
+        registration = self._quality_registration(project, body, saved["intent"])
+        _require(type(saved.get("result")) is dict and saved["result"].get("registration") == registration,
+                 "EVIDENCE_CHANGED", "Original quality registration receipt differs.")
+        return registration, saved["intent"]["intent_sha256"]
+
+    def _preflight_quality_primary_locked(self, con, project, state, body):
+        from . import tabular_quality_feedback as quality_feedback, project_selection, tabular_quality_adapter as quality
+        registration, registration_intent = self._quality_primary_registration_locked(con, project, body["registration_request_id"])
+        _require(registration["registration_sha256"] == body["registration_sha256"]
+                 and registration["controller_request_id"] == body["request_id"]
+                 and state["state_version"] == body["expected_state_version"],
+                 "EVIDENCE_CHANGED", "Use the exact registered future ID, registration and project version.")
+        project._require_fresh(state, state, body["expected_state_version"])
+        _require(state.get("plan_revisions") and fingerprint(state["plan_revisions"][-1]) == registration["plan_sha256"]
+                 and state["source_snapshot_sha256"] == registration["source_snapshot_sha256"]
+                 and state["code_identity"] == registration["project_code_identity"] == project_code_identity()
+                 and project_controller.code_identity() == registration["controller_code_identity"],
+                 "EVIDENCE_CHANGED", "The registered plan, source or producer changed.")
+        _require(not any(item.get("status") in ("prepared", "running", "unknown") for item in state.get("controller_requests", []))
+                 and not any(item.get("status") in ("running", "unknown") for item in state.get("actions", []) + state.get("evidence_actions", []))
+                 and not any(item.get("status") in PENDING for item in HostModelSelection(project.root).status()["requests"]),
+                 "EXECUTION_UNKNOWN", "Inspect the original unfinished project or Host operation.")
+        child = "controller-child-" + fingerprint({"project_id": state["id"], "request_id": body["request_id"]})[:32]
+        self._quality_unclaimed(project, state, (body["request_id"], child))
+        _require(con.execute("SELECT 1 FROM requests WHERE id=?", (child,)).fetchone() is None,
+                 "IDEMPOTENCY_CONFLICT", "The derived child ID is already used by the workbench.")
+        project._source(state)
+        _require(state["registration"]["source_sha256"] == "dd88f02f49fd94c830ac3ef12ed307f437d52cc12c9b1b298a9585d8082ac799"
+                 and state["source_snapshot_sha256"] == "b4097316500039827e13d11c86691eaef349da52558828600157d3df63f84c29",
+                 "CONDITION_NOT_SATISFIED", "Only the fixed synthetic quality fixture is supported.")
+        context = ProjectController(project.root)._selection_context(state, "next_check")
+        item = quality_feedback.read_feedback(project, request_id=body["registration_request_id"])
+        _require(item["outcome"] == "unknown" and item["unknown_reason"] == "controller_not_started"
+                 and not context["blockers"] and registration["candidate"] in context["candidates"]
+                 and registration["candidate"]["method_id"] == quality.TOOL_ID,
+                 "CONDITION_NOT_SATISFIED", "The registered primary is not the unique unstarted eligible candidate.")
+        proposal = {"schema_version":"project-selection-proposal-v1", "context_sha256":context["context_sha256"],
+                    "provider":{"kind":"operator_assistant", "label":"Explicit synthetic quality primary authorization"},
+                    "choice":{"kind":"execute", "candidate_id":registration["candidate"]["id"]},
+                    "rationale":body["reason"], "evidence_citation_ids":[]}
+        selected = project_selection.validate_proposal(context, proposal)
+        plan = ProjectController(project.root)._selected_plan(state, "next_check", proposal, context=context)
+        _require(selected["candidate"] == registration["candidate"] and plan["executable"]
+                 and plan["decision"]["next_action"]["method_id"] == quality.TOOL_ID
+                 and project.status()["snapshot_ref"] == state["snapshot_ref"],
+                 "CONDITION_NOT_SATISFIED", "The original primary is not executable within the current budget.")
+        return registration, registration_intent, context, proposal
+
+    def _quality_primary_intent(self, body, digest, state, registration_intent, context, proposal):
+        intent = {"schema_version":"local-quality-primary-intent-v1", "command":"advance_tabular_quality_primary",
+                  "body":copy.deepcopy(body), "request_sha256":digest, "project_id":state["id"], "run_id":state["run_id"],
+                  "source_snapshot_sha256":state["source_snapshot_sha256"], "project_code_identity":state["code_identity"],
+                  "controller_code_identity":project_controller.code_identity(), "manager_code_identity":batch_code_identity(),
+                  "manager_root":str(self.root.resolve()), "registration_intent_sha256":registration_intent,
+                  "selection_context":copy.deepcopy(context), "proposal":copy.deepcopy(proposal), "nonce":secrets.token_hex(32)}
+        intent["intent_sha256"] = fingerprint(intent)
+        return intent
+
+    def _inspect_quality_primary(self, con, project, body, digest, record):
+        try:
+            return self._inspect_quality_primary_checked(con, project, body, digest, record)
+        except ResearchError:
+            raise
+        except (KeyError, TypeError, ValueError, AttributeError, IndexError, OverflowError, RecursionError, OSError):
+            raise ResearchError("EVIDENCE_CHANGED", "Original staged primary records are malformed or unavailable.") from None
+
+    def _inspect_quality_primary_checked(self, con, project, body, digest, record):
+        """Read only a fully completed original primary; never call Controller dispatch."""
+        _check_staged_runtime()
+        with project._writer():
+            return self._inspect_quality_primary_locked(con, project, body, digest, record)
+
+    def _inspect_quality_primary_locked(self, con, project, body, digest, record):
+        from . import project_selection, staged_project_experience as saved, tabular_quality_feedback as quality_feedback, tabular_quality_adapter as quality
+        from .research_project import _quality_primary_parent_claim_sha, _quality_primary_child_claim_sha
+        from .tabular_quality_feedback import _manager_claim
+        state = project.status()
+        _require(state["registration"]["source_sha256"] == "dd88f02f49fd94c830ac3ef12ed307f437d52cc12c9b1b298a9585d8082ac799"
+                 and state["source_snapshot_sha256"] == "b4097316500039827e13d11c86691eaef349da52558828600157d3df63f84c29",
+                 "EVIDENCE_CHANGED", "Only the original fixed synthetic quality fixture can be inspected.")
+        intent = record.get("intent")
+        fields = {"schema_version", "command", "body", "request_sha256", "project_id", "run_id", "source_snapshot_sha256",
+                  "project_code_identity", "controller_code_identity", "manager_code_identity", "manager_root",
+                  "registration_intent_sha256", "selection_context", "proposal", "nonce", "intent_sha256"}
+        _require(type(intent) is dict and set(intent) == fields and intent["schema_version"] == "local-quality-primary-intent-v1"
+                 and intent["command"] == "advance_tabular_quality_primary" and canonical(intent["body"]) == canonical(body)
+                 and intent["request_sha256"] == digest == fingerprint(body)
+                 and intent["intent_sha256"] == fingerprint({k:v for k,v in intent.items() if k != "intent_sha256"})
+                 and intent["project_id"] == body["project_id"] == state["id"] and intent["run_id"] == state["run_id"]
+                 and intent["source_snapshot_sha256"] == state["source_snapshot_sha256"]
+                 and intent["project_code_identity"] == state["code_identity"] == project_code_identity()
+                 and intent["controller_code_identity"] == project_controller.code_identity()
+                 and intent["manager_code_identity"] == batch_code_identity() == _EXPORT_BOOT_IDENTITY
+                 and intent["manager_root"] == str(self.root.resolve()) and type(intent["nonce"]) is str
+                 and re.fullmatch(r"[a-f0-9]{64}", intent["nonce"]) is not None,
+                 "EVIDENCE_CHANGED", "Original staged primary manager intent or identity changed.")
+        registration, registration_intent = self._quality_primary_registration_locked(con, project, body["registration_request_id"])
+        _require(registration_intent == intent["registration_intent_sha256"] and registration["registration_sha256"] == body["registration_sha256"]
+                 and registration["controller_request_id"] == body["request_id"], "EVIDENCE_CHANGED", "Original preregistration changed.")
+        parents = [item for item in state.get("controller_requests", []) if item.get("request_id") == body["request_id"]]
+        _require(len(parents) == 1, "OPERATION_INCOMPLETE", "Original staged parent is missing; inspect without dispatch.")
+        parent = parents[0]
+        _require(parent.get("status") == "completed", "EXECUTION_UNKNOWN", "Original staged parent is not completed; inspect without dispatch.")
+        meta = parent.get("tabular_quality_primary")
+        parent_sha = _quality_primary_parent_claim_sha(parent)
+        context = intent["selection_context"]
+        selected = project_selection.validate_proposal(context, intent["proposal"])
+        _require(type(meta) is dict and meta["manager_intent_sha256"] == intent["intent_sha256"]
+                 and meta["registration_intent_sha256"] == registration_intent
+                 and meta["registration_request_id"] == body["registration_request_id"]
+                 and meta["registration_sha256"] == body["registration_sha256"]
+                 and meta["plan_sha256"] == registration["plan_sha256"]
+                 and canonical(parent["selection_context"]) == canonical(context)
+                 and canonical(parent["request"]["proposal"]) == canonical(intent["proposal"])
+                 and parent["state_version_before"] == body["expected_state_version"]
+                 and selected["candidate"] == registration["candidate"] and selected["evidence_citation_ids"] == []
+                 and parent["decision"]["next_action"]["method_id"] == quality.TOOL_ID,
+                 "EVIDENCE_CHANGED", "The original staged parent or candidate changed.")
+        actions = [item for item in state.get("actions", []) if item.get("request_id") == parent["child_request_id"]]
+        _require(len(actions) == 1 and actions[0].get("status") == "completed", "EXECUTION_UNKNOWN", "Original staged child is not completed.")
+        child = actions[0]
+        saved._action(child, state, quality.TOOL_ID)
+        saved._verify_action_rows(project, [child])
+        envelope, artifact_sha = saved._read(project, child)
+        _require(artifact_sha == hashlib.sha256(canonical(envelope).encode("utf-8")).hexdigest(),
+                 "EVIDENCE_CHANGED", "Original staged artifact is not its native canonical bytes.")
+        plans = state.get("plan_revisions", [])
+        version = registration["plan_version"]
+        _require(type(plans) is list and 1 <= version <= len(plans)
+                 and fingerprint(plans[version - 1]) == registration["plan_sha256"],
+                 "EVIDENCE_CHANGED", "The original quality plan changed.")
+        historical = copy.deepcopy(state)
+        historical["plan_revisions"] = [copy.deepcopy(plans[version - 1])]
+        feedback = quality_feedback._outcome(project, historical, registration)
+        _require((feedback.get("outcome") in ("condition_met", "condition_not_met")
+                  and feedback.get("action_id") == child["id"] and feedback.get("result_sha256") == child["result_sha256"])
+                 or (feedback.get("outcome") == "unknown" and feedback.get("unknown_reason") == "quality_values_unknown"
+                     and type(feedback.get("evaluation")) is dict),
+                 "EVIDENCE_CHANGED", "The saved quality feedback is unavailable or damaged.")
+        child_view = {k: copy.deepcopy(child[k]) for k in ("id", "request_id", "command", "status", "artifact", "result_sha256", "failure") if k in child}
+        _require(parent.get("result") == {"child":child_view,"recovered":False,"reused":False},
+                 "EVIDENCE_CHANGED", "Original staged parent and child result differ.")
+        with project._connect(readonly=True) as project_con:
+            _manager_claim(project_con, "quality_primary_parent", body["request_id"], intent["intent_sha256"], parent_sha)
+            _manager_claim(project_con, "quality_primary_child", parent["child_request_id"], intent["intent_sha256"],
+                           _quality_primary_child_claim_sha(parent, child["request_sha256"]))
+        project._source(state)
+        _require(project.status()["snapshot_ref"] == state["snapshot_ref"] and project_code_identity() == intent["project_code_identity"]
+                 and project_controller.code_identity() == intent["controller_code_identity"]
+                 and batch_code_identity() == intent["manager_code_identity"] == _EXPORT_BOOT_IDENTITY
+                 and saved._read(project, child)[1] == artifact_sha,
+                 "EVIDENCE_CHANGED", "Original staged source, result or code changed during inspection.")
+        saved._verify_action_rows(project, [child])
+        with project._connect(readonly=True) as project_con:
+            _manager_claim(project_con, "quality_primary_parent", body["request_id"], intent["intent_sha256"], parent_sha)
+            _manager_claim(project_con, "quality_primary_child", parent["child_request_id"], intent["intent_sha256"],
+                           _quality_primary_child_claim_sha(parent, child["request_sha256"]))
+        _check_staged_runtime()
+        return ProjectController._response(parent, True)
+
+
+    def advance_tabular_quality_primary(self, body):
+        fields = ("request_id", "project_id", "expected_state_version", "registration_request_id", "registration_sha256", "reason")
+        digest = _body(body, fields)
+        identifier(body["project_id"], "project_id")
+        identifier(body["registration_request_id"], "registration_request_id")
+        _require(type(body["expected_state_version"]) is int and body["expected_state_version"] >= 0
+                 and type(body["registration_sha256"]) is str and re.fullmatch(r"[a-f0-9]{64}", body["registration_sha256"])
+                 and _text(body["reason"], 4000), "INVALID_REQUEST", "Use the original registration, project version and bounded reason.")
+        _check_staged_runtime()
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                old = self._old(con, body, digest)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                if old is None:
+                    with project._writer():
+                        state = project.status()
+                        _, registration_intent, context, proposal = self._preflight_quality_primary_locked(con, project, state, body)
+                        intent = self._quality_primary_intent(body, digest, state, registration_intent, context, proposal)
+                        _check_staged_runtime()
+                        self._accept(con, body, digest, "advance_tabular_quality_primary", intent)
+                        con.commit()
+                else:
+                    row = con.execute("SELECT command FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                    _require(row is not None and row["command"] == "advance_tabular_quality_primary" and type(old) is dict
+                             and old.get("status") in ("preparing", "completed") and type(old.get("intent")) is dict
+                             and (old["status"] != "preparing" or old.get("result") is None),
+                             "OPERATION_INCOMPLETE", "Original staged primary intent is unavailable.")
+                    intent = old["intent"]
+            if old is None:
+                _check_staged_runtime()
+                ProjectController(project.root)._advance_quality_primary(
+                    request_id=body["request_id"], registration_request_id=body["registration_request_id"],
+                    registration_sha256=body["registration_sha256"], expected_state_version=body["expected_state_version"],
+                    proposal=intent["proposal"], _manager_intent_sha256=intent["intent_sha256"],
+                    _registration_intent_sha256=intent["registration_intent_sha256"])
+                record = {"status":"preparing", "intent":intent, "result":None}
+            else:
+                record = old
+            with self._connect() as con:
+                result = self._inspect_quality_primary(con, project, body, digest, record)
+            response = self._response("advance_tabular_quality_primary", body["request_id"], body["project_id"], status="completed", controller=result)
+            if old is not None and old["status"] == "completed":
+                _require(type(old.get("result")) is dict and canonical({k:v for k,v in old["result"].items() if k != "replayed"})
+                         == canonical({k:v for k,v in response.items() if k != "replayed"}),
+                         "EVIDENCE_CHANGED", "Original staged primary receipt changed.")
+                return dict(response, replayed=True)
+            with self._connect() as con:
+                self._save(con, body["request_id"], {"status":"completed", "intent":intent, "result":response})
+            return dict(response, replayed=old is not None)
+
+    def resume_tabular_quality_primary(self, body):
+        _body(body, ("request_id", "project_id"))
+        _check_staged_runtime()
+        with self._writer():
+            with self._connect() as con:
+                _, project = self._project(con, body["project_id"], active=True)
+                self._no_pending_batch(con, body["project_id"], except_id=body["request_id"], evidence=True)
+                row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (body["request_id"],)).fetchone()
+                _require(row is not None and row["command"] == "advance_tabular_quality_primary", "OPERATION_INCOMPLETE", "Original staged primary intent is absent.")
+                record = tabular._parse(row["record"].encode("utf-8"))
+                _require(type(record) is dict and record.get("status") in ("preparing", "completed")
+                         and type(record.get("intent")) is dict and type(record["intent"].get("body")) is dict
+                         and record["intent"]["body"].get("request_id") == body["request_id"]
+                         and record["intent"]["body"].get("project_id") == body["project_id"]
+                         and (record["status"] != "preparing" or record.get("result") is None),
+                         "OPERATION_INCOMPLETE", "Original staged primary body is unavailable.")
+                original = record["intent"]["body"]
+                _require(_body(original, ("request_id", "project_id", "expected_state_version", "registration_request_id", "registration_sha256", "reason")) == row["digest"],
+                         "EVIDENCE_CHANGED", "Original staged primary body changed.")
+                result = self._inspect_quality_primary(con, project, original, row["digest"], record)
+            response = self._response("advance_tabular_quality_primary", body["request_id"], body["project_id"], status="completed", controller=result)
+            if record["status"] == "completed":
+                _require(type(record.get("result")) is dict and canonical({k:v for k,v in record["result"].items() if k != "replayed"})
+                         == canonical({k:v for k,v in response.items() if k != "replayed"}), "EVIDENCE_CHANGED", "Original staged primary receipt changed.")
+            else:
+                with self._connect() as con:
+                    self._save(con, body["request_id"], {"status":"completed", "intent":record["intent"], "result":response})
+            return dict(response, replayed=True)
+
     def _authenticated_staged_primary_locked(self, con, project, registration_id, primary_action_id):
         registration, registration_intent = self._staged_primary_registration_locked(con, project, registration_id)
         row = con.execute("SELECT command,digest,record FROM requests WHERE id=?", (registration["controller_request_id"],)).fetchone()
@@ -2929,9 +3182,9 @@ class LocalWorkbench:
     def _no_staged_switch(con, project_id):
         if project_id is None:
             return
-        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
+        for row in con.execute("SELECT command,record FROM requests WHERE command IN ('save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','advance_tabular_quality_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"):
             record = tabular._parse(row["record"].encode("utf-8"))
-            terminal = ({"completed", "waiting"} if row["command"] == "advance_staged_feedback" else {"completed"} if row["command"] in ("save_staged_feedback_plan", "advance_staged_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"})
+            terminal = ({"completed", "waiting"} if row["command"] == "advance_staged_feedback" else {"completed"} if row["command"] in ("save_staged_feedback_plan", "advance_staged_primary", "advance_tabular_quality_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "save_quality_plan", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt") else {"completed", "failed", "waiting", "needs_review", "rejected"})
             _require(record.get("status") in terminal or record.get("intent", {}).get("project_id") != project_id,
                      "OPERATION_INCOMPLETE", "Reconcile the original unfinished quality request before switching projects.")
         for row in con.execute("SELECT record FROM requests WHERE command='continue_staged'"):
@@ -2941,9 +3194,9 @@ class LocalWorkbench:
 
     @staticmethod
     def _no_pending_batch(con, project_id, except_id=None, *, evidence=False, plan_request_id=None):
-        quality_commands = ("save_staged_feedback_plan", "advance_staged_feedback", "advance_staged_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
+        quality_commands = ("save_staged_feedback_plan", "advance_staged_feedback", "advance_staged_primary", "advance_tabular_quality_primary", "register_staged_hypothesis", "register_tabular_quality_conditions", "advance_tabular_quality_feedback", "save_quality_plan", "advance_tabular_quality_feedback_v2", "model_quality_plan_adopt", "model_supplied_quality_plan_adopt")
         commands = (("batch", "evidence", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan") if evidence else ("batch", "continue", "register_holdout", "freeze_retrieval_strategy", "continue_staged", "save_plan")) + quality_commands
-        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
+        rows = list(con.execute("SELECT id,command,record FROM requests WHERE command IN ('batch','evidence','continue','register_holdout','freeze_retrieval_strategy','continue_staged','save_plan','save_staged_feedback_plan','advance_staged_feedback','advance_staged_primary','advance_tabular_quality_primary','register_staged_hypothesis','register_tabular_quality_conditions','advance_tabular_quality_feedback','save_quality_plan','advance_tabular_quality_feedback_v2','model_quality_plan_adopt','model_supplied_quality_plan_adopt')"))
         owned = set()
         for row in rows:
             if row["command"] != "continue":

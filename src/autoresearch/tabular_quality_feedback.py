@@ -113,7 +113,7 @@ def _checked_collection(records):
 
 def _manager_claim(con, kind, request_id, intent_sha256, core_sha256, *, create=False):
     """Store/check cooperative ownership in the same transaction as core acceptance."""
-    require(kind in ("registration", "policy", "plan", "hypothesis_registration", "staged_primary_parent", "staged_primary_child", "staged_feedback_parent", "staged_feedback_child", "staged_feedback_plan") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
+    require(kind in ("registration", "policy", "plan", "hypothesis_registration", "staged_primary_parent", "staged_primary_child", "staged_feedback_parent", "staged_feedback_child", "staged_feedback_plan", "quality_primary_parent", "quality_primary_child") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
             and type(core_sha256) is str and _HASH.fullmatch(core_sha256),
             "EVIDENCE_CHANGED", "Invalid manager ownership identity.")
     identifier(request_id)
@@ -251,6 +251,28 @@ def _artifact(project, action):
     return envelope
 
 
+def _strict_quality_claims(project, parent, action):
+    """Reject a missing strict marker or claim; old unmarked records remain readable."""
+    from .research_project import _quality_primary_parent_claim_sha, _quality_primary_child_claim_sha
+    marker = parent.get("tabular_quality_primary")
+    with project._connect(readonly=True) as con:
+        table = con.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='quality_manager_claims'").fetchone()
+        rows = [] if table is None else con.execute(
+            "SELECT kind FROM quality_manager_claims WHERE (kind='quality_primary_parent' AND request_id=?) "
+            "OR (kind='quality_primary_child' AND request_id=?)",
+            (parent["request_id"], parent["child_request_id"])).fetchall()
+        if marker is None:
+            require(not rows, "EVIDENCE_CHANGED", "Original quality primary marker is missing.")
+            return
+        require(type(marker) is dict and action is not None, "OPERATION_INCOMPLETE", "Original strict quality action is unavailable.")
+        _manager_claim(con, "registration", marker["registration_request_id"], marker["registration_intent_sha256"],
+                       marker["registration_sha256"])
+        _manager_claim(con, "quality_primary_parent", parent["request_id"], marker["manager_intent_sha256"],
+                       _quality_primary_parent_claim_sha(parent))
+        _manager_claim(con, "quality_primary_child", parent["child_request_id"], marker["manager_intent_sha256"],
+                       _quality_primary_child_claim_sha(parent, action["request_sha256"]))
+
+
 def _outcome(project, state, record):
     try:
         _check_loaded_code()
@@ -319,6 +341,11 @@ def _outcome(project, state, record):
         if len(actions) != 1:
             return _unknown("original_child_unavailable")
         action = actions[0]
+        marker = parent.get("tabular_quality_primary")
+        if marker is not None and (type(marker) is not dict or marker.get("registration_request_id") != record["request_id"]
+                                   or marker.get("registration_sha256") != record["registration_sha256"]):
+            return _unknown("quality_registration_binding_changed")
+        _strict_quality_claims(project, parent, action)
         result = parent.get("result")
         parent_child = result.get("child") if type(result) is dict else None
         fields = ("id", "request_id", "command", "status", "artifact", "result_sha256", "failure")
@@ -363,6 +390,7 @@ def _outcome(project, state, record):
         # exact original row again as well as source and artifact before return.
         project._source(state)
         _artifact(project, action)
+        _strict_quality_claims(project, parent, action)
         with project._connect(readonly=True) as con:
             final_row = con.execute("SELECT fingerprint, record FROM actions WHERE request_id=?", (child_id,)).fetchone()
         if final_row is None or final_row["fingerprint"] != row["fingerprint"] or final_row["record"] != row["record"]:
