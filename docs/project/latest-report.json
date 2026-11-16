@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T09:49:04+08:00",
-  "status": "S137_synthetic_time_gate_real_process_evidence_reviewed",
+  "end_time": "2026-11-16T10:08:19+08:00",
+  "status": "S138_synthetic_quality_followup_drift_gap_confirmed_repair_design",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -72,7 +72,8 @@
     "S134 fixed synthetic hourly time packet and report independently recomputed, no Project or real UCI data",
     "S135 synthetic-only time report preregistration after quality registration and before action; independent 53/53; not a dispatch gate",
     "S136 fixed synthetic time preregistration bound to opt-in strict quality primary, independently verified",
-    "S137 six SIGKILL, two real old-entry races, three real local source/report drifts on separate synthetic projects; copy-based verification of 11 cases"
+    "S137 six SIGKILL, two real old-entry races, three real local source/report drifts on separate synthetic projects; copy-based verification of 11 cases",
+    "S138 two real synthetic drifts showed second numeric association executes without rechecking original report/source; each tool 2/2"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1120,5 +1121,12 @@
     "evidence_manifest_sha256": "45693be4d4133ff78ad91334c1f3c266cf46caa427940162838d8d15cc0dca29",
     "verification": "6 actual SIGKILL inc unknown, two races each consumed 1 synthetic tool, three drifts; 11 cases verified from 66 database copies; 1315 originals unchanged",
     "limits": "5 postcommit windows only; raw snapshots no sidecars, no hot journal rollback; observer covers quality adapter only; no real UCI/model"
+  },
+  "S138": {
+    "commit": "2f2584dd90cd72e8ec68311e373dd3c2e05b1e09",
+    "source_head": "e89f21fe01512c0c0f30e42ddc65b907499aec5c",
+    "evidence_manifest_sha256": "33188ee7a71d89af7deac4344ea8476bb3d5d0057f0d35fb0d52299aee3c184d",
+    "result": "two independent synthetic cases actual numeric adapter once after report/source drift; both 2/2 tools, actual payload original packet",
+    "limits": "does not prove use of modified bytes, synthetic only; strict numeric fix not yet implemented; existing S136 covers first action only"
   }
 }
