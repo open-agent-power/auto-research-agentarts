@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T09:19:41+08:00",
-  "status": "S136_synthetic_time_quality_gate_verified_process_design",
+  "end_time": "2026-11-16T09:49:04+08:00",
+  "status": "S137_synthetic_time_gate_real_process_evidence_reviewed",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -71,7 +71,8 @@
     "S133 nine actual SIGKILL synthetic windows and two actual old-entry races; original verifier stopped on preserved journals, adapted copy verifier checked 11 cases",
     "S134 fixed synthetic hourly time packet and report independently recomputed, no Project or real UCI data",
     "S135 synthetic-only time report preregistration after quality registration and before action; independent 53/53; not a dispatch gate",
-    "S136 fixed synthetic time preregistration bound to opt-in strict quality primary, independently verified"
+    "S136 fixed synthetic time preregistration bound to opt-in strict quality primary, independently verified",
+    "S137 six SIGKILL, two real old-entry races, three real local source/report drifts on separate synthetic projects; copy-based verification of 11 cases"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1112,5 +1113,12 @@
     "verification": "independent 17/17 synthetic, old contracts 3/3 and marker deletion 1/1; author compatible 42/42",
     "negative": "initial observed name shadow caused recursion, parent not written/no quality tool, log retained",
     "limits": "synthetic fixed packet only, not a global gate; reader unlocked observed, fault injection not real SIGKILL/races; no UCI/model"
+  },
+  "S137": {
+    "commit": "397f94778b9bfd5fd1f2bd9b66756793f71a52dc",
+    "source_head": "4eded8b4282f6e3824e8ff817c081e45c0636cac",
+    "evidence_manifest_sha256": "45693be4d4133ff78ad91334c1f3c266cf46caa427940162838d8d15cc0dca29",
+    "verification": "6 actual SIGKILL inc unknown, two races each consumed 1 synthetic tool, three drifts; 11 cases verified from 66 database copies; 1315 originals unchanged",
+    "limits": "5 postcommit windows only; raw snapshots no sidecars, no hot journal rollback; observer covers quality adapter only; no real UCI/model"
   }
 }
