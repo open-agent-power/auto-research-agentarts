@@ -2,8 +2,8 @@
   "schema_version": "project-progress-report-v2",
   "timezone": "Asia/Shanghai",
   "start_time": "2026-11-15T18:06:38+08:00",
-  "end_time": "2026-11-16T09:02:04+08:00",
-  "status": "S135_synthetic_time_preregistration_verified_dispatch_binding_design",
+  "end_time": "2026-11-16T09:19:41+08:00",
+  "status": "S136_synthetic_time_quality_gate_verified_process_design",
   "base_commit": "63496eb3b869c34ee356fff887f046365a4e3aba",
   "source_freeze_sha256": "2400df6fa2129e6897864fbd5eddec65e8e115b9635fc8f003897ed6494df19f",
   "core_identity": "d1cfdd6d686efdce39807ae8c9e0b41f5acf28c238b8e97bf412ea1b36d9e81a",
@@ -70,7 +70,8 @@
     "S132 fixed synthetic-packet quality primary strict ownership and original-ID terminal recovery; independent 72/72",
     "S133 nine actual SIGKILL synthetic windows and two actual old-entry races; original verifier stopped on preserved journals, adapted copy verifier checked 11 cases",
     "S134 fixed synthetic hourly time packet and report independently recomputed, no Project or real UCI data",
-    "S135 synthetic-only time report preregistration after quality registration and before action; independent 53/53; not a dispatch gate"
+    "S135 synthetic-only time report preregistration after quality registration and before action; independent 53/53; not a dispatch gate",
+    "S136 fixed synthetic time preregistration bound to opt-in strict quality primary, independently verified"
   ],
   "research_actions": 0,
   "research_models": 0,
@@ -1103,5 +1104,13 @@
     "manifest_sha256": "5ce849ef060c5d50d0f4ca509591936051416cd847760472348a98423009bb8f",
     "verification": "independent new process 53/53; own test author separately 16/16; source/claim drift and cooperative flock",
     "limits": "synthetic only, no dispatch gate, old wire/pins unchanged, no real UCI; fault injection not real SIGKILL"
+  },
+  "S136": {
+    "commit": "f5d49fdf21fc97c3c3d100f8e70387cd706c4349",
+    "source_head": "57e5ebe80d38a35fe2e7d1419e17e81b3ea91c56",
+    "manifest_sha256": "78510e100594b5f04977b63a04606e82d184a59bf5264900e517a902a4e4deaa",
+    "verification": "independent 17/17 synthetic, old contracts 3/3 and marker deletion 1/1; author compatible 42/42",
+    "negative": "initial observed name shadow caused recursion, parent not written/no quality tool, log retained",
+    "limits": "synthetic fixed packet only, not a global gate; reader unlocked observed, fault injection not real SIGKILL/races; no UCI/model"
   }
 }
