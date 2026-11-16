@@ -1,0 +1,9 @@
+# S137：合成人工时间门的真实进程切点
+
+固定 HEAD `4eded8b4282f6e3824e8ff817c081e45c0636cac`，630项 source manifest SHA `80bd6984ff270a28fc5fff8587723516d9c46c868ca9beab3801cd20875e9f94`，测试 pin SHA `1e32b36782a93c61fba68524a03fe25327c02d057fc27a74636864deeb158cb6`。对全新隔离的S134人工源按S084→S135登记后进行11案：5个提交后窗口及合法unknown共6次真实SIGSTOP/SIGKILL(-9)、两种真实旧入口抢先、三种报告/source实际漂移。没有测试提交前或manager回执提交后的中断，不证断电/OS隔离。
+
+原子行动已接受但执行前中断或source/report漂移时保留 used=0/reserved=1/dispatch=1、人工质量adapter入口0；活进程锁忙与终止后的持久门分别记录。原ID非终态停查；父子均completed时可认证并补原manager回执；合法quality_values_unknown保持unknown。两次旧入口先抢各实际使用1次合成工具，strict拒绝认领且未再调用adapter。错误码依实际保留：旧Controller竞争strict `OPERATION_INCOMPLETE`、resume `EVIDENCE_CHANGED`；旧Project child竞争strict `STALE_STATE`、resume `OPERATION_INCOMPLETE`；漂移均 `EVIDENCE_CHANGED`。
+
+原证据1315项 SHA清单 `45693be4d4133ff78ad91334c1f3c266cf46caa427940162838d8d15cc0dca29`；独立source verifier对33个raw快照的66份数据库仅在二次副本打开/逻辑backup核11案，日志SHA `305f246eef40fcba9a48b13f81a28384e169ecaabab3d566b3052782510f9137`，原1315项不变。本轮33份raw快照无journal/WAL/SHM，不能声称验证热journal回滚。另一独审只读核1315项、51个事件文件与回执、意图/claim/工件/报告及指定漂移；其SQL字段来自保存的receipt JSON，未直接打开原SQLite。实际Git HEAD/630源码清单在作者执行身份固定；观察工具只覆盖人工quality adapter，不证明系统级无网络/model/fit。
+
+仅固定人工包及选定合作式窗口，不是实际UCI、真实许可、科学收益或真实数据授权；外部成本unknown。
