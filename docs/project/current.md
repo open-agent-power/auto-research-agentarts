@@ -1,5 +1,7 @@
 # 当前自主研究开发
 
+S139 独立审查及一次隔离合成测试确认入口未接、claim和时间复核不全；测试按缺失方法失败，WIP/原快照保留，不可用于研究。[审查](../execution/SPRINT-139-review.md)。
+
 S139 修复S138第二关联漂移缺口尚未完成/测试；实现成员被平台风险筛查中断，完整未提交WIP保存在 runs/s139-checkpoint-002/manifest.json，保留工作树、不覆盖。详见 latest-report。
 
 S138 真实合成负例确认：质量v2关联parent后报告或child后source漂移仍会执行，实际payload为原缓存；每案2/2工具。第二行动时间门缺口待修，不能外推S136首行动保护。[记录](../execution/SPRINT-138.md)。
