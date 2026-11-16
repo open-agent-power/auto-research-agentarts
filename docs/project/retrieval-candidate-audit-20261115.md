@@ -29,3 +29,5 @@
 仅按官方网页与 API 元数据筛选：[UCI Beijing Multi-Site Air Quality 501](https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data)，DOI `10.24432/C5RK5G`，页面标 CC BY 4.0、12站逐小时、2013-03-01 至 2017-02-28，原压缩包网页显示约 7.6 MB，实际字节和 SHA-256 未下载核定，API last_updated 不是不可变版本。总 420,768 行超过本项目表格 50,000 行上限，压缩包大小不证明选定 CSV 满足 8 MiB 或 packet 上限。页面称缺失值 Yes、缺失用 NA；[官方 API](https://archive.ics.uci.edu/api/dataset?id=501) 却为 `has_missing_values: no`，且缺 data_url/feature；冲突待核，不能假设无缺失。原污染/气象监测机构数据归属与具体归因、压缩解压规模仍待核。若将来获批准，必须接触数值前固定站点与时间窗，不按结果筛选；只支持描述性观察，季节及时间依赖使因果结论不成立。此候选不是检索数据，不能证明 S109 经验迁移或 BM25/TF-IDF 收益，现未准入、未下载或执行。
 
 另筛选 NFCorpus 官方数据卡时，网页预览意外展示一条医学文献标题和摘要片段，故不能声称完全未接触样本；未读取 final 查询/qrel 或下载文件。其[作者许可页](https://webserver.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/)仅明确学术用途免费，与其他数据卡许可声明及原文权利尚需核对；当前不准入。
+
+2026-11-16 后续免费官方 HTTPS 元数据复查：UCI 页面和 API 仅称 12 个国家控制站、`station` 为站名，并未列出站名、逐站气象匹配表或 hour 表示起点/终点/区间；观测时区及 DST 均 unknown，不能由地理位置推断 UTC+8。UCI 页面声明 CC BY 4.0，但未找到北京市监测部门及中国气象局各自明确再利用授权链；DataCite 许可列表为空是信息缺失，并非相反许可。UCI API 的 `has_missing_values=no` 与其同一 summary 的 NA 及网页 Yes 矛盾，按缺失可发生处理。官方页面、API及 Crossref 论文元数据只读，未下载 ZIP/CSV 或读取观测样本；原包 SHA、行数及具体成员仍 unknown。
