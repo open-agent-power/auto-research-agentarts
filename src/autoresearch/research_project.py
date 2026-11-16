@@ -83,7 +83,11 @@ def _quality_primary_parent_claim_sha(parent):
     fields = {"schema_version", "registration_request_id", "registration_sha256", "registration_intent_sha256", "manager_intent_sha256",
               "controller_request_id", "child_request_id", "context_sha256", "proposal_sha256", "plan_sha256",
               "source_snapshot_sha256", "record_sha256"}
-    require(type(meta) is dict and set(meta) == fields and meta["schema_version"] == "tabular-quality-primary-binding-v1"
+    v2_fields = fields | {"time_registration_request_id", "time_registration_sha256", "time_intent_sha256",
+                          "time_report_sha256", "report_dir", "state_version_before"}
+    require(type(meta) is dict and ((set(meta) == fields and meta["schema_version"] == "tabular-quality-primary-binding-v1")
+            or (set(meta) == v2_fields and meta["schema_version"] == "tabular-quality-primary-binding-v2"
+                and meta["state_version_before"] == parent.get("state_version_before")))
             and meta["record_sha256"] == fingerprint({k:v for k,v in meta.items() if k != "record_sha256"})
             and meta["controller_request_id"] == parent.get("request_id") and meta["child_request_id"] == parent.get("child_request_id")
             and meta["source_snapshot_sha256"] == parent.get("source_snapshot_sha256")
@@ -103,6 +107,13 @@ def _quality_primary_child_claim_sha(parent, child_request_sha256):
                         "child_request_sha256":child_request_sha256})
 
 
+def _quality_primary_claim_kinds(parent):
+    meta = parent.get("tabular_quality_primary", {})
+    if meta.get("schema_version") == "tabular-quality-primary-binding-v2":
+        return "synthetic_time_quality_parent", "synthetic_time_quality_child"
+    return "quality_primary_parent", "quality_primary_child"
+
+
 def _check_quality_primary_claim_witness(con, project):
     """Cross-check this opt-in marker and Project SQL claims in both directions.
 
@@ -117,7 +128,7 @@ def _check_quality_primary_claim_witness(con, project):
         return
     try:
         claims = con.execute("SELECT kind,request_id,intent_sha256,core_sha256 FROM quality_manager_claims "
-                             "WHERE kind IN ('quality_primary_parent','quality_primary_child')").fetchall()
+                             "WHERE kind IN ('quality_primary_parent','quality_primary_child','synthetic_time_quality_parent','synthetic_time_quality_child')").fetchall()
     except sqlite3.DatabaseError:
         raise ResearchError("EVIDENCE_CHANGED", "The quality ownership table is malformed.") from None
     if not marked and not claims:
@@ -130,10 +141,13 @@ def _check_quality_primary_claim_witness(con, project):
         require(len(by_parent) == len(marked) == len(by_child), "EVIDENCE_CHANGED", "Quality primary identities are not unique.")
         for parent in marked:
             meta = parent["tabular_quality_primary"]
-            _manager_claim(con, "quality_primary_parent", parent["request_id"], meta["manager_intent_sha256"], _quality_primary_parent_claim_sha(parent))
+            parent_kind, child_kind = _quality_primary_claim_kinds(parent)
+            _manager_claim(con, parent_kind, parent["request_id"], meta["manager_intent_sha256"], _quality_primary_parent_claim_sha(parent))
             _manager_claim(con, "registration", meta["registration_request_id"], meta["registration_intent_sha256"], meta["registration_sha256"])
+            if meta.get("schema_version") == "tabular-quality-primary-binding-v2":
+                _manager_claim(con, "synthetic_time_registration", meta["time_registration_request_id"], meta["time_intent_sha256"], meta["time_registration_sha256"])
             action = con.execute("SELECT fingerprint,record FROM actions WHERE request_id=?", (parent["child_request_id"],)).fetchone()
-            child_claims = [row for row in claims if row[0] == "quality_primary_child" and row[1] == parent["child_request_id"]]
+            child_claims = [row for row in claims if row[0] == child_kind and row[1] == parent["child_request_id"]]
             require((action is None and not child_claims) or (action is not None and len(child_claims) == 1),
                     "OPERATION_INCOMPLETE", "The original quality child and claim do not both exist.")
             if action is not None:
@@ -142,10 +156,12 @@ def _check_quality_primary_claim_witness(con, project):
                         and child.get("project_id") == project["id"] and child.get("command") == "data.tabular-quality-audit"
                         and child.get("source_snapshot_sha256") == parent["source_snapshot_sha256"],
                         "EVIDENCE_CHANGED", "The original quality child changed.")
-                _manager_claim(con, "quality_primary_child", parent["child_request_id"], meta["manager_intent_sha256"],
+                _manager_claim(con, child_kind, parent["child_request_id"], meta["manager_intent_sha256"],
                                _quality_primary_child_claim_sha(parent, action[0]))
-        require(all((row[0] == "quality_primary_parent" and row[1] in by_parent)
-                    or (row[0] == "quality_primary_child" and row[1] in by_child) for row in claims),
+        require(all((row[0] in ("quality_primary_parent", "synthetic_time_quality_parent") and row[1] in by_parent
+                     and _quality_primary_claim_kinds(by_parent[row[1]])[0] == row[0])
+                    or (row[0] in ("quality_primary_child", "synthetic_time_quality_child") and row[1] in by_child
+                        and _quality_primary_claim_kinds(by_child[row[1]])[1] == row[0]) for row in claims),
                 "OPERATION_INCOMPLETE", "A quality primary claim has lost its original parent marker.")
     except ResearchError:
         raise
@@ -286,12 +302,14 @@ def code_identity():
     from . import staged_wait_experience, posthoc_loss_experience
     from . import project_model_protocol
     from . import tabular_quality_conditions, tabular_quality_feedback, tabular_quality_plan, contracts as contracts_module
-    from . import synthetic_time_binding, synthetic_time_registration
+    from . import synthetic_time_binding, synthetic_time_registration, synthetic_time_quality_core, synthetic_time_quality_primary
     from . import project_design, plan_feedback, project_experience, project_experience_binding, saved_materials
     from . import cpu_project_experience, project_experience_dispatch, hypothesis_feedback, feedback_policy, saved_retrieval_reader, staged_continuation, staged_project_experience, staged_feedback_reader
     return fingerprint({"application": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         "synthetic_time_binding": hashlib.sha256(Path(synthetic_time_binding.__file__).read_bytes()).hexdigest(),
                         "synthetic_time_registration": hashlib.sha256(Path(synthetic_time_registration.__file__).read_bytes()).hexdigest(),
+                        "synthetic_time_quality_core": hashlib.sha256(Path(synthetic_time_quality_core.__file__).read_bytes()).hexdigest(),
+                        "synthetic_time_quality_primary": hashlib.sha256(Path(synthetic_time_quality_primary.__file__).read_bytes()).hexdigest(),
                         "contracts": hashlib.sha256(Path(contracts_module.__file__).read_bytes()).hexdigest(),
                         "registry": registry.code_identity(), "sources": source_adapter.code_identity(),
                         "project_recipe": hashlib.sha256(Path(project_recipe.__file__).read_bytes()).hexdigest(),
@@ -935,7 +953,7 @@ class ResearchProject:
                             and expected_state_version == pending[0].get("dispatch_state_version"),
                             "OPERATION_INCOMPLETE", "Use the uniquely bound first staged child; do not recover or replace it.")
                     from .tabular_quality_feedback import _manager_claim
-                    parent_kind = "staged_primary_parent" if _staged_primary is not None else "staged_feedback_parent" if _staged_feedback is not None else "quality_primary_parent"
+                    parent_kind = "staged_primary_parent" if _staged_primary is not None else "staged_feedback_parent" if _staged_feedback is not None else _quality_primary_claim_kinds(pending[0])[0]
                     parent_hash = _staged_primary_parent_claim_sha if _staged_primary is not None else _staged_feedback_parent_claim_sha if _staged_feedback is not None else _quality_primary_parent_claim_sha
                     _manager_claim(con, parent_kind, pending[0]["request_id"], strict["intent_sha256"], parent_hash(pending[0]))
                     require(con.execute("SELECT 1 FROM actions WHERE request_id=?", (request_id,)).fetchone() is None
@@ -1025,8 +1043,11 @@ class ResearchProject:
                 plans = project.get("plan_revisions", [])
                 require(len(registrations) == 1 and bool(plans), "EVIDENCE_CHANGED", "The original quality registration or plan is unavailable.")
                 registration = registrations[0]
-                require(project["registration"]["source_sha256"] == "dd88f02f49fd94c830ac3ef12ed307f437d52cc12c9b1b298a9585d8082ac799"
-                        and project["source_snapshot_sha256"] == "b4097316500039827e13d11c86691eaef349da52558828600157d3df63f84c29"
+                is_time = meta.get("schema_version") == "tabular-quality-primary-binding-v2"
+                expected_source = "e0930f259b942f03ba044bdd3e5dcf1a75f49cf14fe764e07b2e495c1be157e9" if is_time else "dd88f02f49fd94c830ac3ef12ed307f437d52cc12c9b1b298a9585d8082ac799"
+                expected_snapshot = "eba485b9b69a06ec57998dfc5ab2149f42ee307d984221df56f4693d5d468a72" if is_time else "b4097316500039827e13d11c86691eaef349da52558828600157d3df63f84c29"
+                require(project["registration"]["source_sha256"] == expected_source
+                        and project["source_snapshot_sha256"] == expected_snapshot
                         and payload.get("snapshot_sha256") == project["source_snapshot_sha256"]
                         and payload.get("scope") == project["source_scope"]
                         and registration["project_id"] == project["id"] and registration["run_id"] == project["run_id"]
@@ -1047,6 +1068,9 @@ class ResearchProject:
                     "EXECUTION_UNKNOWN", "Recover the existing execution; do not submit another action.")
             if _quality_primary is not None:
                 from .project_selection import validate_proposal
+                if is_time:
+                    from .synthetic_time_quality_core import verify_locked
+                    verify_locked(self, current, meta)
                 context = pending[0]["selection_context"]
                 selected = validate_proposal(context, pending[0]["request"]["proposal"])
                 require(context.get("project_id") == project["id"] and context.get("run_id") == project["run_id"]
@@ -1194,19 +1218,21 @@ class ResearchProject:
                     # Recheck the original registration, parent and source at
                     # the transaction boundary before accepting the child.
                     latest = self._project(con)
-                    _manager_claim(con, "quality_primary_parent", pending[0]["request_id"], strict["intent_sha256"],
+                    _manager_claim(con, _quality_primary_claim_kinds(pending[0])[0], pending[0]["request_id"], strict["intent_sha256"],
                                    _quality_primary_parent_claim_sha(pending[0]))
                     _manager_claim(con, "registration", meta["registration_request_id"], meta["registration_intent_sha256"], meta["registration_sha256"])
                     require(latest == project and self._source(latest) == payload
                             and self.status()["snapshot_ref"] == current["snapshot_ref"],
                             "EVIDENCE_CHANGED", "The original quality registration or source changed before child acceptance.")
+                    if is_time:
+                        verify_locked(self, current, meta)
                     _check_staged_runtime()
                 con.execute("INSERT INTO actions VALUES(?,?,?)", (request_id, digest, canonical(action)))
                 project.update(state_version=project["state_version"] + 1, execution_status="running")
                 self._save(con, project)
                 if strict is not None:
                     from .tabular_quality_feedback import _manager_claim
-                    child_kind = "staged_primary_child" if _staged_primary is not None else "staged_feedback_child" if _staged_feedback is not None else "quality_primary_child"
+                    child_kind = "staged_primary_child" if _staged_primary is not None else "staged_feedback_child" if _staged_feedback is not None else _quality_primary_claim_kinds(pending[0])[1]
                     child_hash = _staged_primary_child_claim_sha if _staged_primary is not None else _staged_feedback_child_claim_sha if _staged_feedback is not None else _quality_primary_child_claim_sha
                     _manager_claim(con, child_kind, request_id, strict["intent_sha256"], child_hash(pending[0], digest), create=True)
             if strict is not None:
@@ -1222,13 +1248,15 @@ class ResearchProject:
                 # claim; it cannot be mistaken for an unaccepted operation.
                 with self._connect(readonly=True) as claim_con:
                     accepted = self._project(claim_con)
-                    _manager_claim(claim_con, "quality_primary_parent", pending[0]["request_id"], strict["intent_sha256"],
+                    _manager_claim(claim_con, _quality_primary_claim_kinds(pending[0])[0], pending[0]["request_id"], strict["intent_sha256"],
                                    _quality_primary_parent_claim_sha(pending[0]))
-                    _manager_claim(claim_con, "quality_primary_child", request_id, strict["intent_sha256"],
+                    _manager_claim(claim_con, _quality_primary_claim_kinds(pending[0])[1], request_id, strict["intent_sha256"],
                                    _quality_primary_child_claim_sha(pending[0], digest))
                     _manager_claim(claim_con, "registration", meta["registration_request_id"], meta["registration_intent_sha256"], meta["registration_sha256"])
                     require(accepted == project and self._source(accepted) == payload,
                             "EVIDENCE_CHANGED", "The original quality source or claims changed after child acceptance.")
+                if is_time:
+                    verify_locked(self, self.status(), meta)
                 _check_staged_runtime()
             if _staged_feedback is not None:
                 accepted = self.status()

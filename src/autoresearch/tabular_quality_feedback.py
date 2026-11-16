@@ -113,7 +113,7 @@ def _checked_collection(records):
 
 def _manager_claim(con, kind, request_id, intent_sha256, core_sha256, *, create=False):
     """Store/check cooperative ownership in the same transaction as core acceptance."""
-    require(kind in ("registration", "policy", "plan", "hypothesis_registration", "staged_primary_parent", "staged_primary_child", "staged_feedback_parent", "staged_feedback_child", "staged_feedback_plan", "quality_primary_parent", "quality_primary_child", "synthetic_time_registration") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
+    require(kind in ("registration", "policy", "plan", "hypothesis_registration", "staged_primary_parent", "staged_primary_child", "staged_feedback_parent", "staged_feedback_child", "staged_feedback_plan", "quality_primary_parent", "quality_primary_child", "synthetic_time_registration", "synthetic_time_quality_parent", "synthetic_time_quality_child") and type(intent_sha256) is str and _HASH.fullmatch(intent_sha256)
             and type(core_sha256) is str and _HASH.fullmatch(core_sha256),
             "EVIDENCE_CHANGED", "Invalid manager ownership identity.")
     identifier(request_id)
@@ -253,13 +253,13 @@ def _artifact(project, action):
 
 def _strict_quality_claims(project, parent, action):
     """Reject a missing strict marker or claim; old unmarked records remain readable."""
-    from .research_project import _quality_primary_parent_claim_sha, _quality_primary_child_claim_sha
+    from .research_project import _quality_primary_parent_claim_sha, _quality_primary_child_claim_sha, _quality_primary_claim_kinds
     marker = parent.get("tabular_quality_primary")
     with project._connect(readonly=True) as con:
         table = con.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='quality_manager_claims'").fetchone()
         rows = [] if table is None else con.execute(
-            "SELECT kind FROM quality_manager_claims WHERE (kind='quality_primary_parent' AND request_id=?) "
-            "OR (kind='quality_primary_child' AND request_id=?)",
+            "SELECT kind FROM quality_manager_claims WHERE (kind IN ('quality_primary_parent','synthetic_time_quality_parent') AND request_id=?) "
+            "OR (kind IN ('quality_primary_child','synthetic_time_quality_child') AND request_id=?)",
             (parent["request_id"], parent["child_request_id"])).fetchall()
         if marker is None:
             require(not rows, "EVIDENCE_CHANGED", "Original quality primary marker is missing.")
@@ -267,10 +267,14 @@ def _strict_quality_claims(project, parent, action):
         require(type(marker) is dict and action is not None, "OPERATION_INCOMPLETE", "Original strict quality action is unavailable.")
         _manager_claim(con, "registration", marker["registration_request_id"], marker["registration_intent_sha256"],
                        marker["registration_sha256"])
-        _manager_claim(con, "quality_primary_parent", parent["request_id"], marker["manager_intent_sha256"],
+        parent_kind, child_kind = _quality_primary_claim_kinds(parent)
+        _manager_claim(con, parent_kind, parent["request_id"], marker["manager_intent_sha256"],
                        _quality_primary_parent_claim_sha(parent))
-        _manager_claim(con, "quality_primary_child", parent["child_request_id"], marker["manager_intent_sha256"],
+        _manager_claim(con, child_kind, parent["child_request_id"], marker["manager_intent_sha256"],
                        _quality_primary_child_claim_sha(parent, action["request_sha256"]))
+    if marker.get("schema_version") == "tabular-quality-primary-binding-v2":
+        from .synthetic_time_quality_core import verify_observed
+        verify_observed(project, project.status(), marker)
 
 
 def _outcome(project, state, record):

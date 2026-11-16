@@ -123,13 +123,13 @@ def _committed_project(project, stored):
     return actual
 
 
-def verify_original(project, stored, report_dir):
+def verify_observed(project, stored, report_dir):
     """Recompute and bind the six S134 originals to this Project's source.
 
     Reads the full artificial CSV (including its numeric bytes). It performs no
     research action and writes no ledger or source. Only an already committed
-    Project status is accepted; a caller performing a write must hold the
-    Project writer before and throughout this check. The hashes are cooperative
+    Project status is accepted. An unlocked reader receives a snapshot observation;
+    a caller performing a write must hold the Project writer. The hashes are cooperative
     consistency checks, not cryptographic signatures or an OS isolation claim.
     """
     try:
@@ -199,3 +199,8 @@ def verify_original(project, stored, report_dir):
         raise
     except (OSError, ValueError, TypeError, AttributeError, KeyError, IndexError, OverflowError, RecursionError):
         raise ResearchError("EVIDENCE_CHANGED", "The synthetic report, producer or original Project is unavailable or changed.") from None
+
+
+def verify_original(project, stored, report_dir):
+    """Verify the original when the caller holds the cooperative Project writer."""
+    return verify_observed(project, stored, report_dir)
