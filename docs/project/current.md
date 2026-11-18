@@ -2,6 +2,8 @@
 
 **WorkBuddy 手动交接（2026-11-18）**。入口包含首轮任务、团队分工、阶段验收、外部调研和首个真实检索课题草案。先交可评审的输入与预注册证据，研究执行按批准范围开始。[WorkBuddy 交接](workbuddy/README.md)
 
+2026-11-19 复核：M0 冻结包独立交叉核对 23/23（`scripts/crosscheck_m0_packet.py`，纯标准库、不导入作者代码），snapshot 用另一套实现重算与发布值逐字符相同，85 篇正文逐篇命中源 SECTION，补上「适配器不校验内容字节」的空白。新增两条执行前提：冻结绑定本机行尾（语料/许可 LF，题目/qrels/spec CRLF）；官方 `freeze.py --check` 须用 `.venv`（托管 3.13.12 缺 numpy）。审批卡仍待签字，M1 仍未执行，研究工具行动 0。[报告](workbuddy/m0-crosscheck-20261119.md)
+
 S139 独立审查及一次隔离合成测试确认入口未接、claim和时间复核不全；测试按缺失方法失败，WIP/原快照保留，不可用于研究。[审查](../execution/SPRINT-139-review.md)。
 
 S139 修复S138第二关联漂移缺口尚未完成/测试；实现成员被平台风险筛查中断，完整未提交WIP保存在 runs/s139-checkpoint-002/manifest.json，保留工作树、不覆盖。详见 latest-report。
