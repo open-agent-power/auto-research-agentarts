@@ -30,6 +30,16 @@ M0_QUERIES_SHA = "4b0736e58ae927ca90b0b7615379c53022525894e6d249fc9980aba0ffb8f2
 M0_QRELS_SHA = "d736cc37e782f628a0f1db5d38a2c06591ad8094410b4d2ce4dad89caf314e4b"
 M0_CODE_ID = "0d65965054d0a66c14fecf55f93ea7cd64c6650d7c8b2f31bf10e50d0f92cee1"
 
+# Ten ids exist in both partitions of this frozen packet, because the id is derived from the
+# section number alone and ten section numbers occur twice. The errata (E1, E6) records the
+# defect; the packet cannot be edited without breaking the freeze, so the observed set is
+# allowlisted. Any *other* cross-partition id reuse is a new defect and fails the gate.
+# Kept in sync with KNOWN_SHARED in scripts/audit_packet_keys.py by the note in the report.
+KNOWN_SHARED_IDS = {
+    "d-16-310.2", "d-16-310.6", "d-16-425.1", "d-16-801.1", "d-16-803.2",
+    "d-16-803.5", "d-16-803.8", "d-16-803.9", "d-16-803.10", "d-16-803.12",
+}
+
 RESULTS = []
 
 
@@ -172,6 +182,57 @@ def check_shape(assets):
     return record("G8 corpus shape and label coverage", "PASS" if not problems else "FAIL", detail)
 
 
+def check_key_partition(assets):
+    """The exclusion ledger must never cover a document the run needs, and no id may be shared
+    by the two partitions unless that sharing is the documented, allowlisted defect.
+
+    The previous version of this gate only checked that ids were unique *within* the corpus,
+    so ten ids reused by the exclusion ledger passed. That is the hole this closes.
+    """
+    manifest = json.loads((Path(assets) / "manifest.json").read_text(encoding="utf-8"))
+    kept = {row["id"] for row in manifest["documents"]}
+    dropped = {row["id"] for row in manifest["excluded_sections"]}
+    positive = {row["id"] for row in manifest["documents"] if row["kept_as"] == "positive_pool"}
+    shared = sorted(kept & dropped)
+
+    qrels_rows = [line.split("\t") for line in
+                  (Path(assets) / "qrels.tsv").read_text(encoding="utf-8").splitlines() if line.strip()]
+    if qrels_rows and qrels_rows[0][0].lower().startswith("query"):
+        qrels_rows = qrels_rows[1:]
+    labelled = {row[1] for row in qrels_rows}
+
+    problems = []
+    if labelled - kept:
+        problems.append(f"{len(labelled - kept)} labelled documents are not in the corpus")
+    if positive - kept:
+        problems.append(f"{len(positive - kept)} positive-pool documents are not in the corpus")
+    if positive & dropped:
+        problems.append(f"{len(positive & dropped)} positive documents are marked excluded")
+    undocumented = sorted(set(shared) - KNOWN_SHARED_IDS)
+    if undocumented:
+        problems.append(f"{len(undocumented)} undocumented ids shared with the exclusion ledger: "
+                        f"{undocumented[:3]}")
+
+    kept_as_constant = all(
+        next(r["kept_as"] for r in manifest["documents"] if r["id"] == doc_id)
+        == next(r["kept_as"] for r in manifest["excluded_sections"] if r["id"] == doc_id)
+        for doc_id in shared)
+    detail = {
+        "corpus_documents": len(kept), "excluded": len(dropped),
+        "labelled_documents": len(labelled), "positive_pool": len(positive),
+        "shared_ids": len(shared),
+        "shared_ids_allowlisted": len(set(shared) & KNOWN_SHARED_IDS),
+        "naive_consumer_would_drop": len(shared),
+        "composite_key_id_kept_as_separates": not kept_as_constant,
+        "problems": problems,
+        "note": "the composite key (id, kept_as) does NOT separate these rows; see "
+                "docs/project/workbuddy/m1b-key-audit-20261119.md. Grandfathered for this "
+                "packet only; a new packet must re-id the dropped copy or add a partition field.",
+    }
+    return record("G10 the exclusion ledger covers no needed document", "PASS" if not problems else "FAIL",
+                  detail)
+
+
 def check_metrics_contract():
     """The scorer implements recall@k, mrr@10 and ndcg@10 with the frozen constants.
 
@@ -206,6 +267,7 @@ def run_gate(packet, card, freeze_path, assets, m0_corpus):
     check_code_pin(code, json.loads(M0_FREEZE.read_text(encoding="utf-8"))["code"]["staged_adapter_identity"])
     check_shape(assets)
     check_metrics_contract()
+    check_key_partition(assets)
 
     failed = [r for r in RESULTS if r["state"] == "FAIL"]
     blocked = [r for r in RESULTS if r["state"] == "BLOCKED"]
@@ -287,6 +349,46 @@ def selftest():
         c.write_text("\n".join(lines[:-1]) + "\n", encoding="utf-8")
         verdict, _ = run_gate(p, p / "approval-card.md", p / "freeze.json", p / "assets", M0_CORPUS)
         cases.append({"case": "one document removed", "expected": "NO_GO", "got": verdict})
+
+        # 7. the documented key defect removed -> the key check must go green
+        p = fresh("keys_clean")
+        m = json.loads((p / "assets/manifest.json").read_text(encoding="utf-8"))
+        m["excluded_sections"] = [r for r in m["excluded_sections"] if r["id"] not in KNOWN_SHARED_IDS]
+        (p / "assets/manifest.json").write_bytes(
+            (json.dumps(m, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+        RESULTS.clear()
+        check_key_partition(p / "assets")
+        cases.append({"case": "key check: shared ids removed", "expected": "PASS",
+                      "got": RESULTS[-1]["state"]})
+
+        # 8. a *new* undocumented id shared with the exclusion ledger -> FAIL
+        p = fresh("keys_new")
+        m = json.loads((p / "assets/manifest.json").read_text(encoding="utf-8"))
+        victim = next(r["id"] for r in m["documents"] if r["id"] not in KNOWN_SHARED_IDS)
+        plant = dict(m["excluded_sections"][0], id=victim, sectno=victim[5:])
+        m["excluded_sections"].append(plant)
+        (p / "assets/manifest.json").write_bytes(
+            (json.dumps(m, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+        RESULTS.clear()
+        check_key_partition(p / "assets")
+        cases.append({"case": "key check: new shared id injected", "expected": "FAIL",
+                      "got": RESULTS[-1]["state"]})
+
+        # 9. a labelled document pushed into the exclusion ledger -> FAIL
+        p = fresh("keys_label")
+        m = json.loads((p / "assets/manifest.json").read_text(encoding="utf-8"))
+        labelled = next(row[1] for row in
+                        (line.split("\t") for line in
+                         (p / "assets/qrels.tsv").read_text(encoding="utf-8").splitlines()[1:])
+                        if row[0].startswith("q-"))
+        plant = dict(m["excluded_sections"][0], id=labelled, sectno=labelled[5:])
+        m["excluded_sections"].append(plant)
+        (p / "assets/manifest.json").write_bytes(
+            (json.dumps(m, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+        RESULTS.clear()
+        check_key_partition(p / "assets")
+        cases.append({"case": "key check: labelled doc excluded", "expected": "FAIL",
+                      "got": RESULTS[-1]["state"]})
 
     ok = 0
     for item in cases:
