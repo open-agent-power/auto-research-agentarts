@@ -17,6 +17,7 @@ Checks
   python scripts/crosscheck_m0_packet.py     run checks, write runs/m0-crosscheck-20261119/result.json
 """
 
+import argparse
 import base64
 import hashlib
 import html
@@ -142,7 +143,12 @@ def xml_sections(raw):
     return out
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out", default=None,
+                        help="write result.json here instead of the default evidence path")
+    args = parser.parse_args(argv)
+    out = Path(args.out) if args.out else OUT
     freeze = json.loads(FREEZE.read_text(encoding="utf-8"))
 
     # --- A: bytes and hashes ------------------------------------------------
@@ -338,8 +344,10 @@ def main():
         "checks_failed": failed,
         "checks": CHECKS,
     }
-    OUT.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"\n{len(CHECKS) - len(failed)}/{len(CHECKS)} checks passed; wrote {OUT.name}")
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"\n{len(CHECKS) - len(failed)}/{len(CHECKS)} checks passed; wrote {out.name}")
     return 0 if not failed else 1
 
 
