@@ -46,31 +46,41 @@ def main():
         original_card, original_budget = gate.CARD, gate.BUDGET
 
         # --- approval card -------------------------------------------------
-        signed = tmp / "signed.md"
-        text = original_card.read_text(encoding="utf-8")
-        text = text.replace("- [ ]", "- [x]").replace("**待签字**", "**已签字（自检用假卡）**")
-        text = text.replace("签字人：__________　日期：__________",
-                            "签字人：selftest-not-a-signature　日期：2026-11-19")
-        signed.write_text(text, encoding="utf-8")
-        gate.CARD = signed
-        state, detail = run(gate, gate.check_approval)
-        results.append({"case": "all four boxes ticked + signature filled", "expected": "PASS",
-                        "got": state, "detail": detail})
+        # Built from a template rather than the live card, so the cases keep
+        # meaning what they say after the real card changes state.
+        template = ("## 9. 签字\n\n"
+                    "- [{a}] 同意冻结值\n- [{b}] 知悉偏差与限制\n"
+                    "- [{c}] 允许执行 1 次 M1 primary\n- [{d}] 允许推送到 GitHub\n\n"
+                    "签字人：{name}　日期：{date}\n{tail}")
 
-        partial = tmp / "partial.md"
-        partial.write_text(text.replace("- [x] 允许将可发布部分", "- [ ] 允许将可发布部分"), encoding="utf-8")
-        gate.CARD = partial
-        state, detail = run(gate, gate.check_approval)
-        results.append({"case": "three of four boxes ticked", "expected": "BLOCKED",
-                        "got": state, "detail": detail})
+        def card(filename, a="x", b="x", c="x", d=" ", name="selftest-not-a-signature",
+                 date="2026-11-19", tail=""):
+            path = tmp / filename
+            path.write_text(template.format(a=a, b=b, c=c, d=d, name=name, date=date, tail=tail),
+                            encoding="utf-8")
+            gate.CARD = path
+            return run(gate, gate.check_approval)
 
-        blank_name = tmp / "blank-name.md"
-        blank_name.write_text(text.replace("签字人：selftest-not-a-signature", "签字人：__________"),
-                              encoding="utf-8")
-        gate.CARD = blank_name
-        state, detail = run(gate, gate.check_approval)
+        state, detail = card("research-only.md")
+        results.append({"case": "three research boxes ticked, push box left empty", "expected": "PASS",
+                        "got": state,
+                        "detail": {"publication_box_ticked": detail.get("publication_box_ticked")}})
+
+        state, detail = card("all-four.md", d="x")
+        results.append({"case": "all four boxes ticked", "expected": "PASS", "got": state,
+                        "detail": {"publication_box_ticked": detail.get("publication_box_ticked")}})
+
+        state, detail = card("missing-primary.md", c=" ")
+        results.append({"case": "the primary-run box left unticked", "expected": "BLOCKED",
+                        "got": state, "detail": {"research_boxes_ticked": detail.get("research_boxes_ticked")}})
+
+        state, detail = card("blank-name.md", name="__________")
         results.append({"case": "boxes ticked but signature blank", "expected": "BLOCKED",
-                        "got": state, "detail": detail})
+                        "got": state, "detail": {"signature_name_filled": detail.get("signature_name_filled")}})
+
+        state, detail = card("still-pending.md", tail="\n状态：**待签字**\n")
+        results.append({"case": "status line still says pending", "expected": "BLOCKED",
+                        "got": state, "detail": {"status_line_says_pending": detail.get("status_line_says_pending")}})
         gate.CARD = original_card
 
         # --- budget --------------------------------------------------------

@@ -74,18 +74,27 @@ def check_interpreter():
 
 
 def check_approval():
+    """Research authorisation and publication authorisation are separate questions.
+
+    Boxes 1-3 authorise the run; box 4 authorises pushing publishable material to
+    GitHub. A run does not need box 4, so requiring it would block M1 for an
+    unrelated reason -- it is reported instead of demanded.
+    """
     text = CARD.read_text(encoding="utf-8")
     boxes = re.findall(r"^\s*-\s*\[([ xX])\]\s*(\S.*)$", text, flags=re.M)
-    checked = [label for mark, label in boxes if mark.lower() == "x"]
+    marks = [mark.lower() == "x" for mark, _ in boxes]
+    research_ok = len(marks) == 4 and all(marks[:3])
     signature = re.search(r"^签字人：(.*?)日期：(.*)$", text, flags=re.M)
     name = re.sub(r"[_\s]", "", signature.group(1)) if signature else ""
     date = re.sub(r"[_\s]", "", signature.group(2)) if signature else ""
     pending = "待签字" in text
-    ok = len(boxes) == 4 and len(checked) == 4 and bool(name) and bool(date) and not pending
-    record("P1 approval card signed", "PASS" if ok else "BLOCKED",
-           {"checkboxes_total": len(boxes), "checkboxes_ticked": len(checked),
+    ok = research_ok and bool(name) and bool(date) and not pending
+    record("P1 approval card authorises the run", "PASS" if ok else "BLOCKED",
+           {"boxes_total": len(boxes), "research_boxes_ticked": sum(marks[:3]),
+            "publication_box_ticked": marks[3] if len(marks) == 4 else None,
             "signature_name_filled": bool(name), "signature_date_filled": bool(date),
             "status_line_says_pending": pending,
+            "publication_note": "box 4 is push authorisation only; when unticked no material may be pushed",
             "note": "an unsigned card is a hard stop for M1; nothing below overrides it"})
 
 

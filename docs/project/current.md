@@ -2,6 +2,8 @@
 
 **WorkBuddy 手动交接（2026-11-18）**。入口包含首轮任务、团队分工、阶段验收、外部调研和首个真实检索课题草案。先交可评审的输入与预注册证据，研究执行按批准范围开始。[WorkBuddy 交接](workbuddy/README.md)
 
+2026-11-19 **M1 primary 已执行（唯一一次）**：审批卡第 1–3 项获操作者口头授权（16:40，代理代记，第 4 项推送未授权）；预检 GO；`capture_source` + `execute` 恰好用尽 2/2 行动，`model_calls=0`、`native_fits=0`、现金 0。validation 24 题：bm25 r@5 .7917/r@10 .9583/mrr .670007；tfidf r@5 .9167/r@10 1.0/mrr .722569，配对均值 Δr@5 +.125（3/21/0）、Δmrr +.052563（6/15/3）。**但 `recall@20` 两臂 32 题全为 1.0（天花板，无方差）**，故「Recall@20 提升是否伴随 MRR@10 下降」在本包上无法回答；3 题 MRR/nDCG 退化已逐题列出，其中 `q-val-22` 召回不变而 MRR 1.0→1/3。下一步须新批准卡：改主终点（recall@5）或换更难包，二者都必须在跑之前预注册。[结果](workbuddy/m1-primary-20261119.md)
+
 2026-11-19 预检门禁：M1 开跑判定做成可重复执行的 `scripts/m1_preflight.py`（九项，退出码 0 GO / 2 仅因未签字 / 1 真失败），本轮判定 **NO_GO_UNSIGNED**——签字是唯一剩下的事。除签字外全绿，含指标合同对 7 个手算夹具（正例第 14 位、12 正例、第 21 位）、排序合同（tie-break/截断/排除序/两处实现一致）、`staged_adapter_identity` 从字节独立重算 == `0d659650…`。门禁自身故障注入 11/11。新查三件事：① `staged_adapter_identity` 折进 `sys.version` 与 pypdf 版本，换解释器会在字节全同的情况下让 `--check` 报变化；② `ignore_identical_ids` 在本包内交集为 0、从未行使；③ 排序逻辑有字面量与 `COMPARISON` 两份实现。研究工具行动仍 0。[报告](workbuddy/m1-preflight-20261119.md)
 
 2026-11-19 复核：M0 冻结包独立交叉核对 23/23（`scripts/crosscheck_m0_packet.py`，纯标准库、不导入作者代码），snapshot 用另一套实现重算与发布值逐字符相同，85 篇正文逐篇命中源 SECTION，补上「适配器不校验内容字节」的空白。新增两条执行前提：冻结绑定本机行尾（语料/许可 LF，题目/qrels/spec CRLF）；官方 `freeze.py --check` 须用 `.venv`（托管 3.13.12 缺 numpy）。审批卡仍待签字，M1 仍未执行，研究工具行动 0。[报告](workbuddy/m0-crosscheck-20261119.md)
